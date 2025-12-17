@@ -13,10 +13,10 @@
     "windows": [
       {
         "decorations": false,
+        "label": "main",
         "title": "art",
         "width": 800,
         "height": 600,
-        "resizable": false,
         "fullscreen": false
       }
     ],
