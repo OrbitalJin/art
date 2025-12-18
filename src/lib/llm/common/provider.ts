@@ -5,11 +5,11 @@ export interface Model {
 
 export const Models: Model[] = [
   {
-    key: "genesis",
+    key: "Art Genesis",
     type: "gemma-3-27b-it",
   },
   {
-    key: "turbo",
+    key: "Turbo Pony",
     type: "gemini-2.5-flash",
   },
 ] as const;
