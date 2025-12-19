@@ -3,7 +3,7 @@ import type { Model } from "@/lib/llm/common/provider";
 import { LLMProvider } from "@/lib/llm/google";
 
 export interface LLMContextType {
-  llm: LLMProvider;
+  llm: LLMProvider | null;
   model: Model;
   setModel: (model: Model) => void;
 }

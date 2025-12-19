@@ -2,7 +2,8 @@ import { LLMContext, type LLMContextType } from "@/contexts/llm-context";
 import { Models, type Model } from "@/lib/llm/common/provider";
 import { LLMProvider } from "@/lib/llm/google";
 import { useApp } from "@/contexts/app-context";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 interface LLMProviderProps {
   children: ReactNode;
@@ -15,15 +16,24 @@ export const LLMContextProvider: React.FC<LLMProviderProps> = ({
   children,
 }) => {
   const [model, setModel] = useState<Model>(defaultModel);
+  const [apiKey, setApiKey] = useState<string>("");
   const { artPersona } = useApp();
 
+  useEffect(() => {
+    invoke<string>("get_env_var", { key: "GOOGLE_API_KEY" })
+      .then(setApiKey)
+      .catch((err) => console.log(err));
+  }, []);
+
   const llm = useMemo(() => {
+    if (!apiKey) return null;
+
     return new LLMProvider({
       model: model,
-      apiKey: "AIzaSyAJcnLZB8M1oSjm8X58Fyjx2nh2qTWv4nA",
+      apiKey: apiKey,
       systemPrompt: artPersona,
     });
-  }, [model, artPersona]);
+  }, [model, artPersona, apiKey]);
 
   const value: LLMContextType = { model, setModel, llm };
 

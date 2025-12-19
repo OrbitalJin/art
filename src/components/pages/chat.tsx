@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp, Loader2, Sparkles } from "lucide-react";
+import { ArrowUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLLM } from "@/contexts/llm-context";
-import { ChatMessage, type Message } from "@/components/chat/message";
+import { Message, type MessageObject } from "@/components/chat/message";
 import SelectModel from "../chat/model-select";
+import { ScrollArea } from "../ui/scroll-area";
+import Prompt from "../chat/prompt";
 
 export function ChatPage() {
   const [prompt, setPrompt] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<MessageObject[]>([]);
   const [isSending, setIsSending] = useState(false);
   const { llm, model, setModel } = useLLM();
 
@@ -23,10 +25,6 @@ export function ChatPage() {
       textarea.style.height = `${newHeight}px`;
     }
   }, []);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isSending]);
 
   useEffect(() => {
     adjustTextareaHeight();
@@ -46,6 +44,7 @@ export function ChatPage() {
     ]);
 
     try {
+      if (!llm) throw new Error("LLM is not initialized");
       const stream = llm.stream(text);
 
       for await (const chunk of stream) {
@@ -74,81 +73,74 @@ export function ChatPage() {
     <div className="flex-1 flex flex-col">
       <header className="flex w-full h-14 items-center justify-center px-4 border-b">
         <div className="flex items-center gap-2">
-          <span className="">Chat</span>
+          <span className="">Chat!</span>
         </div>
       </header>
 
       <main className="flex-1 overflow-hidden relative">
         <div className="h-full overflow-y-auto scroll-smooth">
-          <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-end py-6 gap-6">
-            {messages.length === 0 && (
-              <div
-                className="
+          <ScrollArea>
+            <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-end py-6 gap-6">
+              {messages.length === 0 && (
+                <div
+                  className="
                 flex flex-1 flex-col items-center justify-center 
                 gap-4 px-4 py-10 text-center animate-in fade-in zoom-in-95 duration-500 fill-mode-forwards"
-              >
-                <div className="max-w-md space-y-2">
-                  <h2 className="text-xl font-semibold">How can I help you?</h2>
+                >
+                  <div className="max-w-md space-y-2">
+                    <h2 className="text-xl font-semibold">
+                      How can I help you?
+                    </h2>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {messages.map((m, idx) => (
-              <ChatMessage key={idx} {...m} />
-            ))}
-
-            <div ref={bottomRef} className="h-0" />
-          </div>
+              {messages.map((m, idx) => (
+                <Message key={idx} {...m} />
+              ))}
+            </div>
+          </ScrollArea>
+          <div ref={bottomRef} className="h-0" />
         </div>
       </main>
 
-      <footer className="z-20 bg-background px-2 pb-0">
-        <div className="mx-auto max-w-3xl">
-          <div
-            className="
-            relative flex flex-col gap-2 p-2
-            rounded-xl rounded-b-none border border-b-0 bg-muted/40 
-            focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10 transition-all"
-          >
-            <Textarea
-              ref={textareaRef}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Message Art..."
-              className="
-              bg-transparent! w-full resize-none p-2 
-              text-sm placeholder:text-muted-foreground 
-              focus-visible:ring-0 border-0 rounded-none"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-            />
-
-            <div className="flex justify-between items-center">
-              <SelectModel model={model} setModel={setModel} />
-              <Button
-                size="icon"
-                className={`h-8 w-8 rounded-md transition-all duration-300 ${
-                  prompt.trim()
-                    ? "opacity-100 scale-110"
-                    : "opacity-0 pointer-events-none"
-                }`}
-                onClick={handleSend}
-                disabled={isSending || !prompt.trim()}
-              >
-                {isSending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ArrowUp className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Prompt
+        prompt={prompt}
+        setPrompt={setPrompt}
+        isSending={isSending}
+        onSend={handleSend}
+        model={model}
+        setModel={setModel}
+      />
     </div>
   );
 }
+
+const ScrollToBottomButton = ({
+  isVisible,
+  onClick,
+}: {
+  isVisible: boolean;
+  onClick: () => void;
+}) => {
+  return (
+    <div
+      className={cn(
+        "absolute bottom-4 left-1/2 -translate-x-1/2 transition-all duration-300 z-30",
+        isVisible
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 translate-y-4 pointer-events-none",
+      )}
+    >
+      <Button
+        variant="secondary"
+        size="sm"
+        className="rounded-full shadow-md bg-background/80 backdrop-blur border h-8 px-3 text-xs"
+        onClick={onClick}
+      >
+        <ArrowDown className="mr-1 h-3 w-3" />
+        Scroll to bottom
+      </Button>
+    </div>
+  );
+};

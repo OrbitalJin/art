@@ -1,6 +1,6 @@
 #[tauri::command]
-fn get_env_var(name: &str) -> String {
-    std::env::var(name).unwrap_or_else(|_| "".to_string())
+fn get_env_var(key: &str) -> String {
+    std::env::var(key).unwrap_or_else(|_| "".to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

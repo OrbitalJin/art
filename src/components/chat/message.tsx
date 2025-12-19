@@ -1,18 +1,20 @@
-// import ReactMarkdown from "react-markdown"; // You might need to install: npm install react-markdown
-import { Copy, Loader2, Palette, Rabbit, Check } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Copy, Check } from "lucide-react";
 import { Button } from "../ui/button";
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
+import { Spinner } from "../ui/spinner";
+import { CodeBlock } from "./code-block";
 
 export type Role = "user" | "assistant";
-export type Message = { role: Role; content: string };
+export type MessageObject = { role: Role; content: string };
 
-export const ChatMessage: React.FC<Message> = ({ role, content }) => {
+export const Message: React.FC<MessageObject> = ({ role, content }) => {
   const isUser = role === "user";
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
+  const handleMessageCopy = async () => {
     try {
       await navigator.clipboard.writeText(content);
       setCopied(true);
@@ -24,48 +26,48 @@ export const ChatMessage: React.FC<Message> = ({ role, content }) => {
 
   return (
     <div
-      className={`group flex w-full gap-3 px-4 ${
+      className={`group flex w-full gap-3 ${
         isUser ? "flex-row-reverse" : "flex-row"
       }`}
     >
       <div
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm ${
+        className={`relative shadow-sm group ${
           isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-foreground"
-        }`}
-      >
-        {isUser ? (
-          <Rabbit className="h-4 w-4" />
-        ) : (
-          <Palette className="h-4 w-4" />
-        )}
-      </div>
-
-      <div
-        className={`relative max-w-[80%] rounded-md px-5 py-3 text-sm shadow-sm group ${
-          isUser
-            ? "bg-muted/40 text-foreground rounded-tr-none border"
-            : "bg-muted/50 text-foreground rounded-tl-sm border"
+            ? "bg-muted/40 rounded-md max-w-[80%] border text-sm text-foreground/80 p-3"
+            : "text-foreground/90 leading-7 max-w-full"
         }`}
       >
         {content ? (
           <div
             className={cn(
-              "prose prose-sm dark:prose-invert leading-relaxed",
-              !isUser && "pr-4",
+              "prose prose-sm dark:prose-invert leading-relaxed wrap-break-word max-w-none",
             )}
           >
-            {isUser ? (
-              <p className="whitespace-pre-line">{content.trim()}</p>
-            ) : (
-              <ReactMarkdown>{content}</ReactMarkdown>
-            )}
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                code: CodeBlock,
+                a({ children, ...props }) {
+                  return (
+                    <a
+                      {...props}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary underline underline-offset-4 hover:text-primary/80"
+                    >
+                      {children}
+                    </a>
+                  );
+                },
+              }}
+            >
+              {content}
+            </ReactMarkdown>
           </div>
         ) : (
           <div className="flex items-center gap-2 py-1 text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
             <span className="text-xs">Thinking...</span>
+            <Spinner />
           </div>
         )}
 
@@ -73,8 +75,8 @@ export const ChatMessage: React.FC<Message> = ({ role, content }) => {
           <Button
             size="icon"
             variant="ghost"
-            onClick={handleCopy}
-            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-80 transition-opacity"
+            onClick={handleMessageCopy}
+            className="absolute bottom-0 translate-y-6 left-0 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
           >
             {copied ? (
               <Check className="h-3 w-3 text-green-500" />

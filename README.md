@@ -1,6 +1,9 @@
 - [x] Tailwindcsss
 - [x] react
 - [x] shadcn
+- [ ] cancel
+- [ ] multile chats
+- [ ] persistence
 - [ ] tauri
   - [ ] permissions
   - [ ] ports
