@@ -1,4 +1,11 @@
+import type { Model } from "./provider";
+
 export type Role = "user" | "assistant" | "system";
+export type Message = {
+  role: Role;
+  content: string;
+  model?: Model;
+};
 
 export interface Shard {
   text: string;

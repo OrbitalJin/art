@@ -22,6 +22,8 @@ export const CodeBlock: React.FC<Props> = ({
   const match = /language-(\w+)/.exec(className || "");
   const language = match?.[1] ?? "text";
 
+  console.log(inline);
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(code);
@@ -50,11 +52,11 @@ export const CodeBlock: React.FC<Props> = ({
   return (
     <div className="relative my-2 overflow-hidden rounded-md border pointer-events-none">
       <div className="flex items-center justify-between border-b bg-card px-4 py-2">
-        <span className="text-xs text-zinc-400 lowercase">{language}</span>
+        <span className="text-xs lowercase">{language}</span>
         <Button
           variant="ghost"
           size="icon"
-          className="h-4 w-4 text-zinc-400 hover:text-white hover:bg-transparent"
+          className="h-8 w-8 opacity-80 hover:opacity-100 pointer-events-auto"
           onClick={handleCopy}
         >
           {isCopied ? (

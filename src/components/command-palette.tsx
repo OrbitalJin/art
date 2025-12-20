@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Home,
-  MessageSquare,
-  StickyNote,
-  Calendar,
-  Palette,
-} from "lucide-react";
+import { Home, MessageSquare, Palette } from "lucide-react";
 import {
   CommandDialog,
   CommandInput,
@@ -33,7 +27,7 @@ export function CommandPalette() {
     },
     {
       path: "/chat",
-      label: "Chat AI",
+      label: "Chat",
       icon: MessageSquare,
       shortcut: "Alt+2",
     },
@@ -41,13 +35,11 @@ export function CommandPalette() {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      // Ctrl+K or Cmd+K to toggle command palette
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen((open) => !open);
       }
 
-      // Alt+number shortcuts for direct navigation
       if (e.altKey && e.key >= "1" && e.key <= "4") {
         e.preventDefault();
         const index = parseInt(e.key) - 1;
@@ -57,22 +49,15 @@ export function CommandPalette() {
         }
       }
 
-      // Ctrl+T for theme toggle
       if (e.key === "t" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        const themeButton = document.querySelector(
-          '[data-testid="theme-toggle"]',
-        );
-        if (themeButton && themeButton instanceof HTMLElement) {
-          themeButton.click();
-        }
+        setTheme(theme === "light" ? "dark" : "light");
         setOpen(false);
       }
     };
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, [navigate]);
+  });
 
   const handleNavigate = (path: string) => {
     navigate(path);

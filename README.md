@@ -1,10 +1,16 @@
 - [x] Tailwindcsss
 - [x] react
 - [x] shadcn
+- [x] scroll down button
+- [x] fix chat responsiveness
+- [ ] add wrap lines button
+- [ ] fix markdown rendering
 - [ ] cancel
+- [ ] handle erros
+- [ ] auto-scroll
+- [ ] toast
 - [ ] multile chats
 - [ ] persistence
-- [ ] tauri
-  - [ ] permissions
-  - [ ] ports
-  - [ ] packages
+- [x] tauri
+  - [x] permissions
+  - [x] packages

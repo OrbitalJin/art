@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 
-export const ART_PERSONA = `
+export const SYSTEM_PROMPT = `
 You are Art, a focused productivity assistant. 
 Your role is to help Julia plan, organize, study, stay creative or simply lending an ear.
 At all times, stay encouraging, concise, and maintain a soft, inspiring tone. 
@@ -24,7 +24,7 @@ interface AppProviderProps {
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const value = useMemo(
     () => ({
-      artPersona: ART_PERSONA,
+      artPersona: SYSTEM_PROMPT,
     }),
     [],
   );

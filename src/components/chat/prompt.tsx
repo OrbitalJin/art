@@ -1,11 +1,12 @@
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Clipboard } from "lucide-react";
 import SelectModel from "../chat/model-select";
 import type { Model } from "@/lib/llm/common/provider";
 import { useEffect, useRef } from "react";
 import { Spinner } from "../ui/spinner";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
+import { readText } from "@tauri-apps/plugin-clipboard-manager";
 
 interface Props {
   prompt: string;
@@ -42,28 +43,49 @@ const Prompt: React.FC<Props> = ({
     }
   };
 
+  const handlePaste = async () => {
+    const content = await readText();
+    setPrompt(content);
+  };
+
   return (
     <footer className="z-20 bg-transparent! px-4 pb-4">
-      <div className="mx-auto max-w-3xl">
-        <div className="relative flex flex-col gap-2 p-2 rounded-md border bg-muted/30 focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10 transition-all">
+      <div className="mx-auto max-w-2xl">
+        <div
+          className={cn(
+            "relative flex flex-col gap-2 p-2",
+            "rounded-md border bg-muted/30",
+            "focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10 transition-all",
+          )}
+        >
           <Textarea
             ref={textareaRef}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Message..."
-            className="bg-transparent! border-0 shadow-none resize-none p-2 text-sm placeholder:text-muted-foreground focus-visible:ring-0 min-h-[40px] max-h-[200px]"
+            className={cn(
+              "bg-transparent! border-0 shadow-none resize-none p-2",
+              "min-h-[40px] max-h-[200px]",
+              "text-foreground/80 placeholder:text-muted-foreground focus-visible:ring-0",
+            )}
             onKeyDown={handleKeyDown}
           />
 
           <div className="flex justify-between items-center px-1">
-            <SelectModel model={model} setModel={setModel} />
+            <div className="flex flex-row gap-2">
+              <Button variant="outline" size="icon" onClick={handlePaste}>
+                <Clipboard />
+              </Button>
+              <SelectModel model={model} setModel={setModel} />
+            </div>
             <Button
+              variant="default"
               size="icon"
               className={cn(
-                "h-8 w-8 rounded-lg transition-all duration-300",
+                "transition-all duration-300",
                 prompt.trim()
-                  ? "opacity-100 scale-100"
-                  : "opacity-0 scale-90 pointer-events-none",
+                  ? "opacity-100 scale-105"
+                  : "opacity-0 scale-100 pointer-events-none",
               )}
               onClick={onSend}
               disabled={isSending || !prompt.trim()}

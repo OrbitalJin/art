@@ -1,107 +1,49 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp, Loader2 } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useLLM } from "@/contexts/llm-context";
-import { Message, type MessageObject } from "@/components/chat/message";
-import SelectModel from "../chat/model-select";
+import { Message } from "@/components/chat/message";
 import { ScrollArea } from "../ui/scroll-area";
 import Prompt from "../chat/prompt";
+import { useInView } from "@/hooks/use-in-view";
+import { ArrowDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useChat } from "@/hooks/use-chat";
+import WelcomeMessage from "../chat/welcome";
 
 export function ChatPage() {
+  const { messages, sendMessage, isSending, model, setModel } = useChat();
   const [prompt, setPrompt] = useState("");
-  const [messages, setMessages] = useState<MessageObject[]>([]);
-  const [isSending, setIsSending] = useState(false);
-  const { llm, model, setModel } = useLLM();
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const isAtBottom = useInView(bottomRef, { threshold: 1 });
 
-  const bottomRef = useRef<HTMLDivElement | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const scrollToBottom = () =>
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 
-  const adjustTextareaHeight = useCallback(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = "auto";
-      const newHeight = Math.min(textarea.scrollHeight, 225);
-      textarea.style.height = `${newHeight}px`;
-    }
-  }, []);
-
-  useEffect(() => {
-    adjustTextareaHeight();
-  }, [prompt, adjustTextareaHeight]);
-
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     const text = prompt.trim();
-    if (!text || isSending) return;
-
-    setIsSending(true);
+    if (!text) return;
+    sendMessage(text);
     setPrompt("");
-
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content: text },
-      { role: "assistant", content: "" },
-    ]);
-
-    try {
-      if (!llm) throw new Error("LLM is not initialized");
-      const stream = llm.stream(text);
-
-      for await (const chunk of stream) {
-        setMessages((prev) => {
-          const next = [...prev];
-          const lastIndex = next.length - 1;
-          const lastMsg = next[lastIndex];
-
-          if (lastMsg?.role === "assistant") {
-            next[lastIndex] = {
-              ...lastMsg,
-              content: lastMsg.content + (chunk.token ?? ""),
-            };
-          }
-          return next;
-        });
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSending(false);
-    }
-  };
+  }, [prompt, sendMessage]);
 
   return (
-    <div className="flex-1 flex flex-col">
-      <header className="flex w-full h-14 items-center justify-center px-4 border-b">
-        <div className="flex items-center gap-2">
-          <span className="">Chat!</span>
-        </div>
-      </header>
-
-      <main className="flex-1 overflow-hidden relative">
+    <div className="flex-1 flex flex-col select-none">
+      <main className="flex-1 overflow-hidden relative px-4">
         <div className="h-full overflow-y-auto scroll-smooth">
           <ScrollArea>
-            <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-end py-6 gap-6">
-              {messages.length === 0 && (
-                <div
-                  className="
-                flex flex-1 flex-col items-center justify-center 
-                gap-4 px-4 py-10 text-center animate-in fade-in zoom-in-95 duration-500 fill-mode-forwards"
-                >
-                  <div className="max-w-md space-y-2">
-                    <h2 className="text-xl font-semibold">
-                      How can I help you?
-                    </h2>
-                  </div>
-                </div>
+            <div className="mx-auto flex min-h-full max-w-2xl flex-col justify-end py-6 gap-6">
+              {messages.length === 0 ? (
+                <WelcomeMessage />
+              ) : (
+                messages.map((m, idx) => <Message key={idx} {...m} />)
               )}
-
-              {messages.map((m, idx) => (
-                <Message key={idx} {...m} />
-              ))}
             </div>
           </ScrollArea>
           <div ref={bottomRef} className="h-0" />
         </div>
+        <ScrollToBottomButton
+          isVisible={!isAtBottom}
+          onClick={scrollToBottom}
+        />
       </main>
 
       <Prompt

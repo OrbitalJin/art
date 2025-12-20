@@ -29,8 +29,8 @@ const SelectModel = ({
     <Select value={model.key} onValueChange={handleSelect}>
       <SelectTrigger
         className="
-        w-[140px] h-8 text-xs 
-        border-transparent shadow-none focus:ring-0 hover:bg-muted/80 transition-colors"
+        w-[140px] h-8 text-xs
+        border shadow-none focus:ring-0 transition-colors"
       >
         <SelectValue placeholder="Model" />
       </SelectTrigger>
