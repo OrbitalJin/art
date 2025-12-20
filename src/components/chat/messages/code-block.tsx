@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
 
 interface Props extends React.HtmlHTMLAttributes<HTMLElement> {
@@ -51,7 +51,7 @@ export const CodeBlock: React.FC<Props> = ({
 
   return (
     <div className="relative my-2 overflow-hidden rounded-md border pointer-events-none">
-      <div className="flex items-center justify-between border-b bg-card px-4 py-2">
+      <div className="flex items-center justify-between border-b bg-card px-4 py-1">
         <span className="text-xs lowercase">{language}</span>
         <Button
           variant="ghost"

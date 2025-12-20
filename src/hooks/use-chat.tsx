@@ -1,51 +1,83 @@
+import { useEffect, useMemo, useState } from "react";
+import type { Message } from "@/lib/llm/common/memory/types";
 import { useLLM } from "@/contexts/llm-context";
-import type { Message } from "@/lib/llm/common/memory";
-import { useState } from "react";
 
 export const useChat = () => {
   const { llm, model, setModel } = useLLM();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isSending, setIsSending] = useState<boolean>(false);
+
+  const [baseMessages, setBaseMessages] = useState<readonly Message[]>([]);
+  const [optimisticUser, setOptimisticUser] = useState<Message | null>(null);
+  const [draftAssistant, setDraftAssistant] = useState<Message | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const [usage, setUsage] = useState<string>("");
 
   const sendMessage = async (text: string) => {
-    if (!llm) throw new Error("LLM is not initialized");
+    if (!llm) throw new Error("LLM not initialized");
+
+    const userId = crypto.randomUUID();
+    const assistantId = crypto.randomUUID();
+
+    setOptimisticUser({
+      id: userId,
+      role: "user",
+      content: text,
+    });
+
+    setDraftAssistant({
+      id: assistantId,
+      role: "assistant",
+      content: "",
+      model,
+    });
 
     setIsSending(true);
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content: text },
-      { role: "assistant", content: "", model: model },
-    ]);
 
     try {
-      const stream = llm.stream(text);
-
+      const stream = llm.stream(text, { userId, assistantId });
       for await (const chunk of stream) {
-        setMessages((prev) => {
-          const next = [...prev];
-          const lastIndex = next.length - 1;
-          const lastMsg = next[lastIndex];
-
-          if (lastMsg?.role === "assistant") {
-            next[lastIndex] = {
-              ...lastMsg,
-              content: lastMsg.content + (chunk.token ?? ""),
-            };
-          }
-          return next;
-        });
-
-        if (chunk.isFinal) setIsSending(false);
+        if (chunk.token) {
+          setDraftAssistant((prev) =>
+            prev ? { ...prev, content: prev.content + chunk.token } : prev,
+          );
+        }
+        if (chunk.isFinal) {
+          setDraftAssistant(null);
+        }
       }
     } finally {
+      setOptimisticUser(null);
       setIsSending(false);
     }
   };
+
+  // Fetch usage
+  useEffect(() => {
+    if (!llm) return;
+    llm.usage().then(setUsage);
+  }, [llm]);
+
+  // Subscribe to memory
+  useEffect(() => {
+    if (!llm) return;
+    return llm.memory.subscribe(setBaseMessages);
+  }, [llm]);
+
+  // project memory opmistically
+  const messages = useMemo(() => {
+    const result: Message[] = [...baseMessages];
+
+    if (optimisticUser) result.push(optimisticUser);
+    if (draftAssistant) result.push(draftAssistant);
+
+    return result;
+  }, [baseMessages, optimisticUser, draftAssistant]);
+
   return {
     messages,
     isSending,
     sendMessage,
     model,
     setModel,
+    usage,
   };
 };

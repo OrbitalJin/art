@@ -1,12 +1,13 @@
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, Clipboard } from "lucide-react";
-import SelectModel from "../chat/model-select";
+import SelectModel from "@/components/chat/prompt/model-select";
 import type { Model } from "@/lib/llm/common/provider";
 import { useEffect, useRef } from "react";
-import { Spinner } from "../ui/spinner";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
+import { MemoryUsage } from "./memory-usage";
 
 interface Props {
   prompt: string;
@@ -15,6 +16,7 @@ interface Props {
   onSend: () => void;
   model: Model;
   setModel: (model: Model) => void;
+  usage: string;
 }
 
 const Prompt: React.FC<Props> = ({
@@ -24,6 +26,7 @@ const Prompt: React.FC<Props> = ({
   onSend,
   model,
   setModel,
+  usage,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -53,9 +56,9 @@ const Prompt: React.FC<Props> = ({
       <div className="mx-auto max-w-2xl">
         <div
           className={cn(
-            "relative flex flex-col gap-2 p-2",
-            "rounded-md border bg-muted/30",
-            "focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10 transition-all",
+            "relative flex flex-col gap-2 p-2 transition-all",
+            "rounded-md border bg-muted/50 hover:bg-muted/70 hover:border-primary/30",
+            "focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10",
           )}
         >
           <Textarea
@@ -77,6 +80,7 @@ const Prompt: React.FC<Props> = ({
                 <Clipboard />
               </Button>
               <SelectModel model={model} setModel={setModel} />
+              <MemoryUsage usage={usage} />
             </div>
             <Button
               variant="default"

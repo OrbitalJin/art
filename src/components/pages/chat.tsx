@@ -1,16 +1,17 @@
 import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Message } from "@/components/chat/message";
+import { Message } from "@/components/chat/messages/message";
 import { ScrollArea } from "../ui/scroll-area";
-import Prompt from "../chat/prompt";
+import Prompt from "@/components/chat/prompt/prompt";
 import { useInView } from "@/hooks/use-in-view";
 import { ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChat } from "@/hooks/use-chat";
-import WelcomeMessage from "../chat/welcome";
+import WelcomeMessage from "@/components/chat/welcome";
 
 export function ChatPage() {
-  const { messages, sendMessage, isSending, model, setModel } = useChat();
+  const { messages, sendMessage, isSending, model, setModel, usage } =
+    useChat();
   const [prompt, setPrompt] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const isAtBottom = useInView(bottomRef, { threshold: 1 });
@@ -26,7 +27,7 @@ export function ChatPage() {
   }, [prompt, sendMessage]);
 
   return (
-    <div className="flex-1 flex flex-col select-none">
+    <div className="flex-1 flex flex-col selection:bg-primary/50 selection:text-white">
       <main className="flex-1 overflow-hidden relative px-4">
         <div className="h-full overflow-y-auto scroll-smooth">
           <ScrollArea>
@@ -34,7 +35,7 @@ export function ChatPage() {
               {messages.length === 0 ? (
                 <WelcomeMessage />
               ) : (
-                messages.map((m, idx) => <Message key={idx} {...m} />)
+                messages.map((msg) => <Message key={msg.id} {...msg} />)
               )}
             </div>
           </ScrollArea>
@@ -53,6 +54,7 @@ export function ChatPage() {
         onSend={handleSend}
         model={model}
         setModel={setModel}
+        usage={usage}
       />
     </div>
   );
