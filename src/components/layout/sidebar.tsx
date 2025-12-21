@@ -1,9 +1,9 @@
-import { Home, MessageSquare, StickyNote, Calendar } from "lucide-react";
+import { Home, MessageSquare } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface SidebarProps {
+interface Props extends React.HTMLProps<HTMLElement> {
   collapsed: boolean;
   onToggle: () => void;
 }
@@ -21,11 +21,11 @@ const navigationItems = [
   },
 ];
 
-export function Sidebar({ collapsed }: SidebarProps) {
+export const Sidebar: React.FC<Props> = ({ collapsed, className }) => {
   const location = useLocation();
 
   return (
-    <div className="flex flex-col gap-2 p-2 border rounded-xl">
+    <div className={cn("flex flex-col gap-2 p-2 border rounded-xl", className)}>
       {navigationItems.map((item) => {
         const isActive = location.pathname === item.path;
         const Icon = item.icon;
@@ -47,4 +47,4 @@ export function Sidebar({ collapsed }: SidebarProps) {
       })}
     </div>
   );
-}
+};

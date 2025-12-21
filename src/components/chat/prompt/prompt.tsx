@@ -14,7 +14,6 @@ interface Props {
   onSend: () => void;
   model: Model;
   setModel: (model: Model) => void;
-  usage: string;
   onAbort: () => void;
 }
 
@@ -26,7 +25,6 @@ const Prompt: React.FC<Props> = ({
   model,
   setModel,
   onAbort,
-  usage,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

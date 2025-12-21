@@ -1,3 +1,5 @@
+import type { LLMError } from "./error";
+
 export type Model = {
   key: string;
   type: "gemma-3-27b-it" | "gemini-2.5-flash";
@@ -17,6 +19,7 @@ export const Models: Model[] = [
 export type StreamChunk = {
   token: string;
   isFinal?: boolean;
+  error?: LLMError;
 };
 
 export type MessageIDs = {
@@ -25,11 +28,6 @@ export type MessageIDs = {
 };
 
 export default interface LLMProviderIface {
-  generate: (
-    prompt: string,
-    ids: MessageIDs,
-    signal?: AbortSignal,
-  ) => Promise<string>;
   stream: (
     prompt: string,
     ids: MessageIDs,

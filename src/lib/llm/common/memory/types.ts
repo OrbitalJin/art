@@ -1,8 +1,14 @@
+import type { LLMError } from "../error";
 import type { Model } from "../types";
 
 export type Role = "user" | "assistant" | "system";
 
-type MessageStatus = "streaming" | "complete" | "aborted" | "error";
+type MessageStatus =
+  | "thinking"
+  | "streaming"
+  | "complete"
+  | "aborted"
+  | "error";
 
 export type Message = {
   id: string;
@@ -10,4 +16,5 @@ export type Message = {
   content: string;
   model?: Model;
   status?: MessageStatus;
+  error?: LLMError;
 };

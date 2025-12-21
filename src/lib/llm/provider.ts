@@ -3,6 +3,7 @@ import type Config from "./common/config";
 import { Memory } from "./common/memory/memory";
 import type LLMProviderIface from "./common/types";
 import type { MessageIDs, Model, StreamChunk } from "./common/types";
+import { LLMError } from "./common/error";
 
 export class LLMProvider implements LLMProviderIface {
   private llm: GoogleGenAI;
@@ -20,11 +21,9 @@ export class LLMProvider implements LLMProviderIface {
     ids: MessageIDs,
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
-    if (signal?.aborted) {
-      throw new DOMException("Aborted", "AbortError");
-    }
-
     let response: string = "";
+    let error: LLMError | undefined = undefined;
+
     const contents = this.memory.formulate(prompt);
     try {
       const stream = await this.llm.models.generateContentStream({
@@ -34,7 +33,7 @@ export class LLMProvider implements LLMProviderIface {
 
       for await (const buf of stream) {
         if (signal?.aborted) {
-          throw new DOMException("Aborted", "AbortError");
+          throw new LLMError("aborted", "Stream was aborted by user", false);
         }
 
         const text = buf.text ?? "";
@@ -44,8 +43,25 @@ export class LLMProvider implements LLMProviderIface {
         }
       }
       yield { token: "", isFinal: true };
+    } catch (err: unknown) {
+      if (err instanceof LLMError) {
+        error = err;
+      } else if (err instanceof Error && err.name === "AbortError") {
+        error = new LLMError("aborted", "Stream was aborted", false);
+      } else {
+        error = new LLMError(
+          "network",
+          err instanceof Error ? err.message : "Network error",
+          true,
+        );
+      }
+
+      yield {
+        token: "",
+        isFinal: true,
+        error,
+      };
     } finally {
-      const aborted = signal?.aborted;
       this.memory.pushMany([
         { id: ids.userId, role: "user", content: prompt },
         {
@@ -53,25 +69,15 @@ export class LLMProvider implements LLMProviderIface {
           role: "assistant",
           content: response.trim(),
           model: this.model,
-          status: aborted ? "aborted" : "complete",
+          status: error
+            ? error.type === "aborted"
+              ? "aborted"
+              : "error"
+            : "complete",
+          error,
         },
       ]);
     }
-  }
-
-  async generate(prompt: string, ids: MessageIDs): Promise<string> {
-    const contents = this.memory.formulate(prompt);
-    const response = await this.llm.models.generateContent({
-      model: this.model.type,
-      contents: contents,
-    });
-
-    const text = response.text ?? "";
-    this.memory.pushMany([
-      { id: ids.userId, role: "user", content: prompt },
-      { id: ids.assistantId, role: "assistant", content: text },
-    ]);
-    return text;
   }
 
   async usage(): Promise<string> {

@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Message } from "@/components/chat/messages/message";
 import { ScrollArea } from "../ui/scroll-area";
 import Prompt from "@/components/chat/prompt/prompt";
 import { useInView } from "@/hooks/use-in-view";
@@ -10,15 +9,8 @@ import { useChat } from "@/hooks/use-chat";
 import WelcomeMessage from "@/components/chat/welcome";
 
 export function ChatPage() {
-  const {
-    messages,
-    sendMessage,
-    isSending,
-    model,
-    setModel,
-    usage,
-    abortStream,
-  } = useChat();
+  const { messages, sendMessage, isSending, model, setModel, abortStream } =
+    useChat();
   const [prompt, setPrompt] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -46,7 +38,7 @@ export function ChatPage() {
               {messages.length === 0 ? (
                 <WelcomeMessage />
               ) : (
-                messages.map((msg) => <Message key={msg.id} {...msg} />)
+                messages.map((msg) => <Dispatcher key={msg.id} {...msg} />)
               )}
             </div>
           </ScrollArea>
@@ -65,7 +57,6 @@ export function ChatPage() {
         onSend={handleSend}
         model={model}
         setModel={setModel}
-        usage={usage}
         onAbort={abortStream}
       />
     </div>
@@ -102,6 +93,7 @@ const ScrollToBottomButton = ({
 };
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dispatcher } from "../chat/messages/dispatcher";
 
 export function TabsDemo() {
   return (

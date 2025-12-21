@@ -11,12 +11,12 @@ export const InlineCode = ({
 }: InlineCodeProps) => {
   return (
     <code
+      style={{
+        fontFamily: "monospace",
+      }}
       className={cn(
-        "relative rounded-md px-1.5 py-0.5",
-        "font-mono text-[0.85em]",
-        "bg-muted/60 text-foreground/80",
-        "border border-border/40",
-        "whitespace-nowrap",
+        "text-xs bg-muted/50 p-1 rounded-sm font-semibold",
+        "overflow-hidden max-w-2xl",
         className,
       )}
       {...props}

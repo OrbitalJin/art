@@ -12,8 +12,9 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex gap-2 p-2 flex-row h-dvh w-full bg-background font-sans antialiased">
+    <div className="relative flex gap-2 p-2 flex-row h-dvh w-full bg-background font-sans antialiased">
       <Sidebar
+        className="absolute left-4 top-4 z-20"
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />

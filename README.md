@@ -8,7 +8,7 @@
 - [x] fix markdown rendering
 - [x] toast
 - [x] aborted message
-- [ ] handle erros
+- [x] handle errors
 - [ ] auto-scroll
 - [ ] multile chats
 - [ ] persistence

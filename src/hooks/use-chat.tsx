@@ -44,9 +44,9 @@ export const useChat = () => {
     setDraftAssistant({
       id: assistantId,
       role: "assistant",
+      status: "thinking",
       content: "",
       model: model,
-      status: "streaming",
     });
 
     setIsSending(true);
@@ -55,18 +55,30 @@ export const useChat = () => {
       const stream = llm.stream(text, ids, controller.signal);
       for await (const chunk of stream) {
         if (chunk.token) {
+          setDraftAssistant((prev) => {
+            if (!prev) return prev;
+
+            return {
+              ...prev,
+              content: prev.content + chunk.token,
+              status: prev.status === "thinking" ? "streaming" : prev.status,
+            };
+          });
+        }
+
+        if (chunk.error) {
           setDraftAssistant((prev) =>
-            prev ? { ...prev, content: prev.content + chunk.token } : prev,
+            prev ? { ...prev, status: "error", error: chunk.error } : prev,
           );
         }
+
         if (chunk.isFinal) {
           setDraftAssistant(null);
         }
       }
-    } catch (error: unknown) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        console.log("Stream Aborted");
-      }
+    } catch (err) {
+      // Handle any unexpected errors that might escape the stream
+      console.error("Unexpected error in stream:", err);
     } finally {
       setAbortController(null);
       setOptimisticUser(null);
