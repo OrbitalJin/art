@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Message } from "@/lib/llm/common/memory/types";
 import { useLLM } from "@/contexts/llm-context";
 import type { MessageIDs } from "@/lib/llm/common/types";
+import { toast } from "sonner";
 
 export interface ChatError {
   message: string;
@@ -44,7 +45,8 @@ export const useChat = () => {
       id: assistantId,
       role: "assistant",
       content: "",
-      model,
+      model: model,
+      status: "streaming",
     });
 
     setIsSending(true);
@@ -62,7 +64,7 @@ export const useChat = () => {
         }
       }
     } catch (error: unknown) {
-      if (error?.name === "AbortError") {
+      if (error instanceof DOMException && error.name === "AbortError") {
         console.log("Stream Aborted");
       }
     } finally {
@@ -75,6 +77,7 @@ export const useChat = () => {
   const abortStream = useCallback(() => {
     abortController?.abort();
     setDraftAssistant(null);
+    toast.info("Stream Aborted");
   }, [abortController]);
 
   // Fetch usage

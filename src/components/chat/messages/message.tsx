@@ -33,12 +33,18 @@ const UserMessage: React.FC<Msg> = ({ content }) => {
   );
 };
 
-const AssistantMessage: React.FC<Msg> = ({ content, model }) => {
+const AssistantMessage: React.FC<Msg> = ({ content, model, status }) => {
   const { copied, copy } = useCopy(content);
+  const aborted = status === "aborted";
 
   return (
     <div className="group flex w-full flex-row gap-3 animate-in fade-in duration-100">
-      <div className="relative max-w-full min-w-0 flex-1 text-foreground/90 leading-7">
+      <div
+        className={cn(
+          "relative max-w-full min-w-0 flex-1 leading-7",
+          aborted ? "text-foreground/60" : "text-foreground/90",
+        )}
+      >
         {!content ? (
           <div className="flex items-center gap-2 py-1 text-muted-foreground">
             <Spinner />
@@ -48,11 +54,17 @@ const AssistantMessage: React.FC<Msg> = ({ content, model }) => {
           <Renderer content={content} />
         )}
 
+        {aborted && content && (
+          <div className="flex p-3 rounded-md bg-destructive/10 text-sm text-destructive">
+            Stopped by user
+          </div>
+        )}
+
         {content && (
           <div
             className={cn(
-              "flex items-center justify-between gap-2 mt-2 rounded-md opacity-0",
-              "group-hover:opacity-100",
+              "flex items-center justify-between gap-2 mt-2 rounded-md transition-opacity",
+              aborted ? "opacity-70" : "opacity-0 group-hover:opacity-100",
             )}
           >
             <Button
@@ -61,20 +73,17 @@ const AssistantMessage: React.FC<Msg> = ({ content, model }) => {
               onClick={copy}
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
             >
-              {copied ? (
-                <Check className="text-green-400" />
-              ) : (
-                <Copy className="" />
-              )}
+              {copied ? <Check className="text-green-400" /> : <Copy />}
             </Button>
-            <div className="flex flex-row items-center gap-2 text-xs text-muted-foreground">
-              <a className="flex flex-row items-center gap-1">
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
                 <Cpu size={12} /> {estimateTokens(content)} tokens
-              </a>
-              <a className={cn("flex flex-row items-center text-xs gap-1")}>
+              </span>
+              <span className="flex items-center gap-1">
                 <Sparkle size={12} />
-                <ShimmerText>{model?.key} </ShimmerText>
-              </a>
+                <ShimmerText>{model?.key}</ShimmerText>
+              </span>
             </div>
           </div>
         )}

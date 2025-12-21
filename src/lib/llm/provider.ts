@@ -45,17 +45,17 @@ export class LLMProvider implements LLMProviderIface {
       }
       yield { token: "", isFinal: true };
     } finally {
-      if (!signal?.aborted) {
-        this.memory.pushMany([
-          { id: ids.userId, role: "user", content: prompt },
-          {
-            id: ids.assistantId,
-            role: "assistant",
-            content: response.trim(),
-            model: this.model,
-          },
-        ]);
-      }
+      const aborted = signal?.aborted;
+      this.memory.pushMany([
+        { id: ids.userId, role: "user", content: prompt },
+        {
+          id: ids.assistantId,
+          role: "assistant",
+          content: response.trim(),
+          model: this.model,
+          status: aborted ? "aborted" : "complete",
+        },
+      ]);
     }
   }
 

@@ -7,7 +7,7 @@
 - [x] add wrap lines button
 - [x] fix markdown rendering
 - [x] toast
-- [ ] aborted message
+- [x] aborted message
 - [ ] handle erros
 - [ ] auto-scroll
 - [ ] multile chats
