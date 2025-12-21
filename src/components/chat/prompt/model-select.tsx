@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Models, type Model } from "@/lib/llm/common/provider";
+import { Models, type Model } from "@/lib/llm/common/types";
 
 const SelectModel = ({
   model,

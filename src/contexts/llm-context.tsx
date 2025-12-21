@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
-import type { Model } from "@/lib/llm/common/provider";
-import { LLMProvider } from "@/lib/llm/google";
+import type { Model } from "@/lib/llm/common/types";
+import { LLMProvider } from "@/lib/llm/provider";
 
 export interface LLMContextType {
   llm: LLMProvider | null;

@@ -1,4 +1,4 @@
-import type { Model } from "../provider";
+import type { Model } from "../types";
 
 export type Role = "user" | "assistant" | "system";
 

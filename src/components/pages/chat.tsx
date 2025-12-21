@@ -10,9 +10,17 @@ import { useChat } from "@/hooks/use-chat";
 import WelcomeMessage from "@/components/chat/welcome";
 
 export function ChatPage() {
-  const { messages, sendMessage, isSending, model, setModel, usage } =
-    useChat();
+  const {
+    messages,
+    sendMessage,
+    isSending,
+    model,
+    setModel,
+    usage,
+    abortStream,
+  } = useChat();
   const [prompt, setPrompt] = useState("");
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const isAtBottom = useInView(bottomRef, { threshold: 1 });
 
@@ -29,6 +37,9 @@ export function ChatPage() {
   return (
     <div className="flex-1 flex flex-col selection:bg-primary/50 selection:text-white">
       <main className="flex-1 overflow-hidden relative px-4">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
+          <TabsDemo></TabsDemo>
+        </div>
         <div className="h-full overflow-y-auto scroll-smooth">
           <ScrollArea>
             <div className="mx-auto flex min-h-full max-w-2xl flex-col justify-end py-6 gap-6">
@@ -55,6 +66,7 @@ export function ChatPage() {
         model={model}
         setModel={setModel}
         usage={usage}
+        onAbort={abortStream}
       />
     </div>
   );
@@ -88,3 +100,18 @@ const ScrollToBottomButton = ({
     </div>
   );
 };
+
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+export function TabsDemo() {
+  return (
+    <Tabs defaultValue="school">
+      <TabsList className="shadow-md backdrop-blur-2xl">
+        <TabsTrigger value="school">School</TabsTrigger>
+        <TabsTrigger value="work">Work</TabsTrigger>
+        <TabsTrigger value="personal">Personal</TabsTrigger>
+        <TabsTrigger value="private">Private</TabsTrigger>
+      </TabsList>
+    </Tabs>
+  );
+}

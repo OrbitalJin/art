@@ -3,14 +3,15 @@
 - [x] shadcn
 - [x] scroll down button
 - [x] fix chat responsiveness
-- [ ] add wrap lines button
-- [ ] fix markdown rendering
-- [ ] cancel
+- [x] cancel with abort controller
+- [x] add wrap lines button
+- [x] fix markdown rendering
 - [ ] handle erros
 - [ ] auto-scroll
 - [ ] toast
 - [ ] multile chats
 - [ ] persistence
+
 - [x] tauri
   - [x] permissions
   - [x] packages

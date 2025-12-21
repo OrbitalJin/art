@@ -16,7 +16,7 @@ export const ShimmerText: React.FC<Props> = ({
       className={cn(
         "inline-block bg-gradient-to-r from-muted-foreground via-foreground to-muted-foreground",
         "bg-[length:200%_100%] bg-clip-text text-transparent",
-        "animate-[shimmer_2s_linear_infinite]",
+        "animate-[shimmer_1s_linear_infinite]",
         className,
       )}
       {...props}

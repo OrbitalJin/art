@@ -1,6 +1,6 @@
 import { LLMContext, type LLMContextType } from "@/contexts/llm-context";
-import { Models, type Model } from "@/lib/llm/common/provider";
-import { LLMProvider } from "@/lib/llm/google";
+import { Models, type Model } from "@/lib/llm/common/types";
+import { LLMProvider } from "@/lib/llm/provider";
 import { useApp } from "@/contexts/app-context";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";

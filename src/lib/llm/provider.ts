@@ -1,9 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
-import type { Model, StreamChunk } from "./common/provider";
 import type Config from "./common/config";
 import { Memory } from "./common/memory/memory";
+import type LLMProviderIface from "./common/types";
+import type { MessageIDs, Model, StreamChunk } from "./common/types";
 
-export class LLMProvider {
+export class LLMProvider implements LLMProviderIface {
   private llm: GoogleGenAI;
   private model: Model;
   readonly memory: Memory;
@@ -16,8 +17,13 @@ export class LLMProvider {
 
   async *stream(
     prompt: string,
-    ids: { userId: string; assistantId: string },
+    ids: MessageIDs,
+    signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
+    if (signal?.aborted) {
+      throw new DOMException("Aborted", "AbortError");
+    }
+
     let response: string = "";
     const contents = this.memory.formulate(prompt);
     try {
@@ -27,6 +33,10 @@ export class LLMProvider {
       });
 
       for await (const buf of stream) {
+        if (signal?.aborted) {
+          throw new DOMException("Aborted", "AbortError");
+        }
+
         const text = buf.text ?? "";
         if (text.length > 0) {
           response += text;
@@ -35,17 +45,21 @@ export class LLMProvider {
       }
       yield { token: "", isFinal: true };
     } finally {
-      this.memory.pushMany([
-        { id: ids.userId, role: "user", content: prompt },
-        { id: ids.assistantId, role: "assistant", content: response.trim() },
-      ]);
+      if (!signal?.aborted) {
+        this.memory.pushMany([
+          { id: ids.userId, role: "user", content: prompt },
+          {
+            id: ids.assistantId,
+            role: "assistant",
+            content: response.trim(),
+            model: this.model,
+          },
+        ]);
+      }
     }
   }
 
-  async generate(
-    prompt: string,
-    ids: { userId: string; assistantId: string },
-  ): Promise<string> {
+  async generate(prompt: string, ids: MessageIDs): Promise<string> {
     const contents = this.memory.formulate(prompt);
     const response = await this.llm.models.generateContent({
       model: this.model.type,

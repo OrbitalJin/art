@@ -5,7 +5,7 @@ import { cn, estimateTokens } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import type { Message as Msg } from "@/lib/llm/common/memory/types";
 import { ShimmerText } from "@/components/ui/shimmer-text";
-import { MDRenderer } from "./md-renderer";
+import { Renderer } from "@/components/chat/messages/renderer";
 
 export const Message: React.FC<Msg> = (props) => {
   if (props.role === "system") return null;
@@ -25,8 +25,8 @@ export const Message: React.FC<Msg> = (props) => {
 const UserMessage: React.FC<Msg> = ({ content }) => {
   return (
     <div className="flex w-full flex-row-reverse gap-3 animate-in fade-in duration-100">
-      <div className="relative rounded-md border bg-muted/40 px-4 py-2 text-sm text-foreground/80 shadow-sm">
-        <MDRenderer content={content} />
+      <div className="relative rounded-md border bg-muted/40 px-4 text-sm text-foreground/80 shadow-sm">
+        <Renderer content={content} />
       </div>
     </div>
   );
@@ -34,6 +34,7 @@ const UserMessage: React.FC<Msg> = ({ content }) => {
 
 const AssistantMessage: React.FC<Msg> = ({ content, model }) => {
   const [copied, setCopied] = useState(false);
+  console.log(model);
 
   const handleMessageCopy = async () => {
     try {
@@ -51,17 +52,16 @@ const AssistantMessage: React.FC<Msg> = ({ content, model }) => {
         {!content ? (
           <div className="flex items-center gap-2 py-1 text-muted-foreground">
             <Spinner />
-            <ShimmerText className="text-sm">Thinking...</ShimmerText>
+            <ShimmerText className="text-sm">Thinking</ShimmerText>
           </div>
         ) : (
-          <MDRenderer className="text-foreground/80" content={content} />
+          <Renderer content={content} />
         )}
 
         {content && (
           <div
             className={cn(
-              "flex items-center justify-between gap-2 mt-2 rounded-md",
-              "opacity-0 transition-opacity duration-200",
+              "flex items-center justify-between gap-2 mt-2 rounded-md opacity-0",
               "group-hover:opacity-100",
             )}
           >
@@ -72,7 +72,7 @@ const AssistantMessage: React.FC<Msg> = ({ content, model }) => {
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
             >
               {copied ? (
-                <Check className="text-green-500" />
+                <Check className="text-green-400" />
               ) : (
                 <Copy className="" />
               )}
@@ -83,7 +83,7 @@ const AssistantMessage: React.FC<Msg> = ({ content, model }) => {
               </a>
               <a className={cn("flex flex-row items-center text-xs gap-1")}>
                 <Sparkle size={12} />
-                <ShimmerText>{model?.key}</ShimmerText>
+                <ShimmerText>{model?.key} </ShimmerText>
               </a>
             </div>
           </div>

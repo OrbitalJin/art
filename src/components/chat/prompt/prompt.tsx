@@ -1,13 +1,11 @@
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp, Clipboard } from "lucide-react";
+import { ArrowUp, Clipboard, Square } from "lucide-react";
 import SelectModel from "@/components/chat/prompt/model-select";
-import type { Model } from "@/lib/llm/common/provider";
 import { useEffect, useRef } from "react";
-import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
-import { MemoryUsage } from "./memory-usage";
+import type { Model } from "@/lib/llm/common/types";
 
 interface Props {
   prompt: string;
@@ -17,6 +15,7 @@ interface Props {
   model: Model;
   setModel: (model: Model) => void;
   usage: string;
+  onAbort: () => void;
 }
 
 const Prompt: React.FC<Props> = ({
@@ -26,6 +25,7 @@ const Prompt: React.FC<Props> = ({
   onSend,
   model,
   setModel,
+  onAbort,
   usage,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -80,21 +80,20 @@ const Prompt: React.FC<Props> = ({
                 <Clipboard />
               </Button>
               <SelectModel model={model} setModel={setModel} />
-              <MemoryUsage usage={usage} />
             </div>
             <Button
               variant="default"
               size="icon"
               className={cn(
                 "transition-all duration-300",
-                prompt.trim()
+                isSending || prompt.trim()
                   ? "opacity-100 scale-105"
                   : "opacity-0 scale-100 pointer-events-none",
               )}
-              onClick={onSend}
-              disabled={isSending || !prompt.trim()}
+              onClick={isSending ? onAbort : onSend}
+              disabled={!isSending && !prompt.trim()}
             >
-              {isSending ? <Spinner /> : <ArrowUp className="h-4 w-4" />}
+              {isSending ? <Square /> : <ArrowUp />}
             </Button>
           </div>
         </div>
