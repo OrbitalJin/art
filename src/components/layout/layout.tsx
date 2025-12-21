@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { CommandPalette } from "@/components/command-palette";
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner";
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -23,6 +24,7 @@ export function Layout({ children }: LayoutProps) {
       >
         {children}
       </main>
+      <Toaster position="bottom-right" expand={false} />
       <CommandPalette />
     </div>
   );

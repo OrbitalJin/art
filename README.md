@@ -6,9 +6,10 @@
 - [x] cancel with abort controller
 - [x] add wrap lines button
 - [x] fix markdown rendering
+- [x] toast
+- [ ] aborted message
 - [ ] handle erros
 - [ ] auto-scroll
-- [ ] toast
 - [ ] multile chats
 - [ ] persistence
 

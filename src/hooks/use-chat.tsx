@@ -74,6 +74,7 @@ export const useChat = () => {
 
   const abortStream = useCallback(() => {
     abortController?.abort();
+    setDraftAssistant(null);
   }, [abortController]);
 
   // Fetch usage

@@ -52,7 +52,7 @@ const Prompt: React.FC<Props> = ({
   };
 
   return (
-    <footer className="z-20 bg-transparent! px-4 pb-4">
+    <footer className="z-20 px-4 pb-4">
       <div className="mx-auto max-w-2xl">
         <div
           className={cn(

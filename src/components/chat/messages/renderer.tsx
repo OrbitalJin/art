@@ -17,7 +17,7 @@ export const Renderer: React.FC<Props> = ({ content, className }) => {
         "markdown",
         "max-w-none leading-relaxed",
         "wrap-break-word",
-        "text-foreground/80 leading-7",
+        "text-foreground/80 leading-6",
         className,
       )}
     >

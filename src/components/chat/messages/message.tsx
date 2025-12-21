@@ -1,11 +1,12 @@
 import { Copy, Check, AlertCircle, Cpu, Sparkle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import React, { useState } from "react";
+import React from "react";
 import { cn, estimateTokens } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import type { Message as Msg } from "@/lib/llm/common/memory/types";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { Renderer } from "@/components/chat/messages/renderer";
+import { useCopy } from "@/hooks/use-copy";
 
 export const Message: React.FC<Msg> = (props) => {
   if (props.role === "system") return null;
@@ -33,18 +34,7 @@ const UserMessage: React.FC<Msg> = ({ content }) => {
 };
 
 const AssistantMessage: React.FC<Msg> = ({ content, model }) => {
-  const [copied, setCopied] = useState(false);
-  console.log(model);
-
-  const handleMessageCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
-    }
-  };
+  const { copied, copy } = useCopy(content);
 
   return (
     <div className="group flex w-full flex-row gap-3 animate-in fade-in duration-100">
@@ -68,7 +58,7 @@ const AssistantMessage: React.FC<Msg> = ({ content, model }) => {
             <Button
               size="icon"
               variant="ghost"
-              onClick={handleMessageCopy}
+              onClick={copy}
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
             >
               {copied ? (

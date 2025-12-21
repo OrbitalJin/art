@@ -8,24 +8,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useCopy } from "@/hooks/use-copy";
 
 interface CodeBlockProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
 }
 
 export const CodeBlock = ({ className, children }: CodeBlockProps) => {
-  const [isCopied, setIsCopied] = useState(false);
-  const [wraps, setWraps] = useState(true);
-
   const code = String(children ?? "").replace(/\n$/, "");
   const match = /language-(\w+)/.exec(className || "");
   const language = match?.[1] ?? "text";
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(code);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
-  };
+  const [wraps, setWraps] = useState(true);
+  const { copied, copy } = useCopy(code);
 
   return (
     <div className="relative my-2 overflow-hidden rounded-md border">
@@ -50,9 +45,9 @@ export const CodeBlock = ({ className, children }: CodeBlockProps) => {
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={handleCopy}
+            onClick={copy}
           >
-            {isCopied ? (
+            {copied ? (
               <Check className="h-3 w-3 text-green-500" />
             ) : (
               <Copy className="h-3 w-3" />
