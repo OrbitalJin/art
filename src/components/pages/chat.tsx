@@ -7,12 +7,15 @@ import { ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChat } from "@/hooks/use-chat";
 import WelcomeMessage from "@/components/chat/welcome";
+import { MessageBroker } from "../chat/messages/broker";
+import { SessionSwitcher } from "../chat/sessions";
+import { useSessions } from "@/hooks/use-sessions";
 
 export function ChatPage() {
-  const { systemPrompt } = useApp();
-  const newSession = instance.create(systemPrompt);
-  const { messages, sendMessage, isSending, model, setModel, abortStream } =
-    useChat(newSession);
+  const sessionsApi = useSessions();
+  const session = sessionsApi.ensureActive();
+
+  const chat = useChat(session);
   const [prompt, setPrompt] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -24,23 +27,25 @@ export function ChatPage() {
   const handleSend = useCallback(async () => {
     const text = prompt.trim();
     if (!text) return;
-    sendMessage(text);
+    chat.sendMessage(text);
     setPrompt("");
-  }, [prompt, sendMessage]);
+  }, [prompt, chat]);
 
   return (
     <div className="flex-1 flex flex-col selection:bg-primary/50 selection:text-white">
       <main className="flex-1 overflow-hidden relative px-4">
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
-          <TabsDemo></TabsDemo>
+          <SessionSwitcher disabled={chat.isSending} {...sessionsApi} />
         </div>
         <div className="h-full overflow-y-auto scroll-smooth">
           <ScrollArea>
             <div className="mx-auto flex min-h-full max-w-2xl flex-col justify-end py-6 gap-6">
-              {messages.length === 0 ? (
+              {chat.messages.length === 0 ? (
                 <WelcomeMessage />
               ) : (
-                messages.map((msg) => <Dispatcher key={msg.id} {...msg} />)
+                chat.messages.map((msg) => (
+                  <MessageBroker key={msg.id} {...msg} />
+                ))
               )}
             </div>
           </ScrollArea>
@@ -55,11 +60,11 @@ export function ChatPage() {
       <Prompt
         prompt={prompt}
         setPrompt={setPrompt}
-        isSending={isSending}
+        isSending={chat.isSending}
         onSend={handleSend}
-        model={model}
-        setModel={setModel}
-        onAbort={abortStream}
+        model={chat.model}
+        setModel={chat.setModel}
+        onAbort={chat.abortStream}
       />
     </div>
   );
@@ -93,21 +98,3 @@ const ScrollToBottomButton = ({
     </div>
   );
 };
-
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dispatcher } from "../chat/messages/dispatcher";
-import { instance } from "@/lib/llm/common/session/store";
-import { useApp } from "@/contexts/app-context";
-
-export function TabsDemo() {
-  return (
-    <Tabs defaultValue="school">
-      <TabsList className="shadow-md backdrop-blur-2xl">
-        <TabsTrigger value="school">School</TabsTrigger>
-        <TabsTrigger value="work">Work</TabsTrigger>
-        <TabsTrigger value="personal">Personal</TabsTrigger>
-        <TabsTrigger value="private">Private</TabsTrigger>
-      </TabsList>
-    </Tabs>
-  );
-}

@@ -1,6 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
 import type Config from "./common/config";
-import { Memory } from "./common/memory/memory";
 import type LLMProviderIface from "./common/types";
 import type { MessageIDs, Model, StreamChunk } from "./common/types";
 import { LLMError } from "./common/error";
@@ -18,13 +17,13 @@ export class LLMProvider implements LLMProviderIface {
   async *stream(
     prompt: string,
     ids: MessageIDs,
-    memory: Memory,
+    session: Session,
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
     let response: string = "";
     let error: LLMError | undefined = undefined;
 
-    const contents = memory.formulate(prompt);
+    const contents = session.memory.formulate(prompt);
     try {
       const stream = await this.llm.models.generateContentStream({
         model: this.model.type,
@@ -62,7 +61,7 @@ export class LLMProvider implements LLMProviderIface {
         error,
       };
     } finally {
-      memory.pushMany([
+      session.memory.pushMany([
         { id: ids.userId, role: "user", content: prompt },
         {
           id: ids.assistantId,

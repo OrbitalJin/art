@@ -9,7 +9,7 @@
 - [x] toast
 - [x] aborted message
 - [x] handle errors
-- [ ] multile chats
+- [x] multi chats
 - [ ] persistence
 - [ ] migrate to openrouter
 - [x] tauri

@@ -5,7 +5,7 @@ import { AssistantMessage } from "./assistant";
 import { AbortedMessage } from "./aborted";
 import { ErrorMessage } from "./error";
 
-export const Dispatcher: React.FC<Message> = (props) => {
+export const MessageBroker: React.FC<Message> = (props) => {
   const aborted = props.role === "assistant" && props.status === "aborted";
   if (props.role === "system") return null;
   if (props.status === "error") return <ErrorMessage {...props} />;

@@ -53,7 +53,7 @@ export const useChat = (session: Session) => {
     setIsSending(true);
 
     try {
-      const stream = llm.stream(text, ids, session.memory, controller.signal);
+      const stream = llm.stream(text, ids, session, controller.signal);
       for await (const chunk of stream) {
         if (chunk.token) {
           setDraftAssistant((prev) => {
