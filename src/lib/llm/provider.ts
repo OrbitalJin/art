@@ -4,27 +4,27 @@ import { Memory } from "./common/memory/memory";
 import type LLMProviderIface from "./common/types";
 import type { MessageIDs, Model, StreamChunk } from "./common/types";
 import { LLMError } from "./common/error";
+import type { Session } from "./common/session/type";
 
 export class LLMProvider implements LLMProviderIface {
   private llm: GoogleGenAI;
   private model: Model;
-  readonly memory: Memory;
 
   constructor(config: Config) {
     this.llm = new GoogleGenAI({ apiKey: config.apiKey });
-    this.memory = new Memory(config.systemPrompt);
     this.model = config.model;
   }
 
   async *stream(
     prompt: string,
     ids: MessageIDs,
+    memory: Memory,
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
     let response: string = "";
     let error: LLMError | undefined = undefined;
 
-    const contents = this.memory.formulate(prompt);
+    const contents = memory.formulate(prompt);
     try {
       const stream = await this.llm.models.generateContentStream({
         model: this.model.type,
@@ -62,7 +62,7 @@ export class LLMProvider implements LLMProviderIface {
         error,
       };
     } finally {
-      this.memory.pushMany([
+      memory.pushMany([
         { id: ids.userId, role: "user", content: prompt },
         {
           id: ids.assistantId,
@@ -80,12 +80,12 @@ export class LLMProvider implements LLMProviderIface {
     }
   }
 
-  async usage(): Promise<string> {
+  async usage(session: Session): Promise<string> {
     const limit = await this.llm.models
       .get({ model: this.model.type })
       .then((res) => res.inputTokenLimit as number);
 
-    const used = this.memory.getUsageEstimate();
+    const used = session.memory.getUsageEstimate();
     return `${((used / limit) * 100).toFixed(1)}%`;
   }
 }

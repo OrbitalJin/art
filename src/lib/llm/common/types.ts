@@ -1,4 +1,5 @@
 import type { LLMError } from "./error";
+import type { Session } from "./session/type";
 
 export type Model = {
   key: string;
@@ -31,7 +32,8 @@ export default interface LLMProviderIface {
   stream: (
     prompt: string,
     ids: MessageIDs,
+    session: Session,
     signal?: AbortSignal,
   ) => AsyncGenerator<StreamChunk>;
-  usage: () => Promise<string>;
+  usage: (session: Session) => Promise<string>;
 }

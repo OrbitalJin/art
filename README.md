@@ -9,10 +9,9 @@
 - [x] toast
 - [x] aborted message
 - [x] handle errors
-- [ ] auto-scroll
 - [ ] multile chats
 - [ ] persistence
-
+- [ ] migrate to openrouter
 - [x] tauri
   - [x] permissions
   - [x] packages

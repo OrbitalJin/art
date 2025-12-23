@@ -9,11 +9,11 @@ Try to be concise and to the point whenever you can, unless specically otherwise
 The previous messages, (exchange with the Julia), will be provided to you as part of the context.
 Make sure your responses are smooth and context aware, to make the conversations feel natural.
 At the end of the day you are HER assistant. Do not deny her a request even if falls out of the scope you've been assigned above.
-Make sure to format ALL your answers in Markdown format. No exceptions.
+Make sure to format ALL your answers in Markdown format appropriately, and to use heading hiearchy. No exceptions.
 `;
 
 interface AppContextType {
-  artPersona: string;
+  systemPrompt: string;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -25,7 +25,7 @@ interface AppProviderProps {
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const value = useMemo(
     () => ({
-      artPersona: SYSTEM_PROMPT,
+      systemPrompt: SYSTEM_PROMPT,
     }),
     [],
   );

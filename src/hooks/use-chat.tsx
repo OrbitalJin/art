@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Message } from "@/lib/llm/common/memory/types";
-import { useLLM } from "@/contexts/llm-context";
 import type { MessageIDs } from "@/lib/llm/common/types";
+import { useLLM } from "@/contexts/llm-context";
 import { toast } from "sonner";
+import type { Session } from "@/lib/llm/common/session/type";
 
 export interface ChatError {
   message: string;
   error: string;
 }
 
-export const useChat = () => {
+export const useChat = (session: Session) => {
   const { llm, model, setModel } = useLLM();
-
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
   const [baseMessages, setBaseMessages] = useState<readonly Message[]>([]);
@@ -21,6 +21,7 @@ export const useChat = () => {
   const [usage, setUsage] = useState<string>("");
 
   const sendMessage = async (text: string) => {
+    if (!session.memory) throw new Error("Memory not initialized");
     if (!llm) throw new Error("LLM not initialized");
 
     abortController?.abort();
@@ -52,7 +53,7 @@ export const useChat = () => {
     setIsSending(true);
 
     try {
-      const stream = llm.stream(text, ids, controller.signal);
+      const stream = llm.stream(text, ids, session.memory, controller.signal);
       for await (const chunk of stream) {
         if (chunk.token) {
           setDraftAssistant((prev) => {
@@ -95,14 +96,14 @@ export const useChat = () => {
   // Fetch usage
   useEffect(() => {
     if (!llm) return;
-    llm.usage().then(setUsage);
-  }, [llm]);
+    llm.usage(session).then(setUsage);
+  }, [llm, session]);
 
   // Subscribe to memory
   useEffect(() => {
-    if (!llm) return;
-    return llm.memory.subscribe(setBaseMessages);
-  }, [llm]);
+    if (!session) return;
+    return session.memory.subscribe(setBaseMessages);
+  }, [session]);
 
   // project memory opmistically
   const messages = useMemo(() => {

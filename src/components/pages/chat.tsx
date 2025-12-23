@@ -9,8 +9,10 @@ import { useChat } from "@/hooks/use-chat";
 import WelcomeMessage from "@/components/chat/welcome";
 
 export function ChatPage() {
+  const { systemPrompt } = useApp();
+  const newSession = instance.create(systemPrompt);
   const { messages, sendMessage, isSending, model, setModel, abortStream } =
-    useChat();
+    useChat(newSession);
   const [prompt, setPrompt] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -94,6 +96,8 @@ const ScrollToBottomButton = ({
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dispatcher } from "../chat/messages/dispatcher";
+import { instance } from "@/lib/llm/common/session/store";
+import { useApp } from "@/contexts/app-context";
 
 export function TabsDemo() {
   return (
