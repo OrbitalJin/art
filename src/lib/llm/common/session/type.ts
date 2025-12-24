@@ -6,6 +6,11 @@ export interface Session {
   memory: Memory;
 }
 
+export interface SessionSnapshot {
+  sessions: Session[];
+  activeId: string | null;
+}
+
 export interface SessionStoreIface {
   create: (title?: string, systemPrompt?: string) => Session;
   delete: (id: string) => void;

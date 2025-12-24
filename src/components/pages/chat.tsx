@@ -1,21 +1,17 @@
 import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "../ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import Prompt from "@/components/chat/prompt/prompt";
 import { useInView } from "@/hooks/use-in-view";
 import { ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChat } from "@/hooks/use-chat";
 import WelcomeMessage from "@/components/chat/welcome";
-import { MessageBroker } from "../chat/messages/broker";
-import { SessionSwitcher } from "../chat/sessions";
-import { useSessions } from "@/hooks/use-sessions";
+import { MessageBroker } from "@/components/chat/messages/broker";
+import { SessionSwitcher } from "@/components/chat/sessions-switcher";
 
 export function ChatPage() {
-  const sessionsApi = useSessions();
-  const session = sessionsApi.ensureActive();
-
-  const chat = useChat(session);
+  const chat = useChat();
   const [prompt, setPrompt] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -35,7 +31,7 @@ export function ChatPage() {
     <div className="flex-1 flex flex-col selection:bg-primary/50 selection:text-white">
       <main className="flex-1 overflow-hidden relative px-4">
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
-          <SessionSwitcher disabled={chat.isSending} {...sessionsApi} />
+          <SessionSwitcher disabled={chat.isSending} />
         </div>
         <div className="h-full overflow-y-auto scroll-smooth">
           <ScrollArea>

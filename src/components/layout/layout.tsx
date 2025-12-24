@@ -13,11 +13,11 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="relative flex gap-2 p-2 flex-row h-dvh w-full bg-background font-sans antialiased">
-      <Sidebar
-        className="absolute left-4 top-4 z-20"
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+      {/* <Sidebar */}
+      {/*   className="absolute left-4 top-4 z-20" */}
+      {/*   collapsed={sidebarCollapsed} */}
+      {/*   onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} */}
+      {/* /> */}
       <main
         className={cn(
           "flex-1 flex transition-all duration-300 border rounded-md",

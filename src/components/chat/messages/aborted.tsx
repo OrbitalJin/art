@@ -62,7 +62,7 @@ export const AbortedMessage: React.FC<Message> = ({ content, model }) => {
             </div>
           </AccordionTrigger>
 
-          <AccordionContent className="border rounded-md border-t-0 border-destructive/20 p-0">
+          <AccordionContent className="border border-t-0 border-destructive/20 p-0 rounded-b-md">
             <div className="p-2">
               <Renderer content={content} />
             </div>
@@ -71,7 +71,7 @@ export const AbortedMessage: React.FC<Message> = ({ content, model }) => {
               className="
                 flex items-center justify-between gap-2
                 transition-opacity bg-card/50 p-2
-              border-t border-destructive/20
+              border-t border-destructive/20 rounded-b-md
               "
             >
               <Button

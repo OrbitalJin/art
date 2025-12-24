@@ -10,6 +10,8 @@
 - [x] aborted message
 - [x] handle errors
 - [x] multi chats
+- [ ] command palette based navigation
+- [ ] sidebar for chats
 - [ ] persistence
 - [ ] migrate to openrouter
 - [x] tauri

@@ -3,14 +3,15 @@ import type { Message } from "@/lib/llm/common/memory/types";
 import type { MessageIDs } from "@/lib/llm/common/types";
 import { useLLM } from "@/contexts/llm-context";
 import { toast } from "sonner";
-import type { Session } from "@/lib/llm/common/session/type";
+import { useSessions } from "@/contexts/sessions-context";
 
 export interface ChatError {
   message: string;
   error: string;
 }
 
-export const useChat = (session: Session) => {
+export const useChat = () => {
+  const { active: session } = useSessions();
   const { llm, model, setModel } = useLLM();
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
@@ -18,10 +19,9 @@ export const useChat = (session: Session) => {
   const [optimisticUser, setOptimisticUser] = useState<Message | null>(null);
   const [draftAssistant, setDraftAssistant] = useState<Message | null>(null);
   const [isSending, setIsSending] = useState(false);
-  const [usage, setUsage] = useState<string>("");
 
   const sendMessage = async (text: string) => {
-    if (!session.memory) throw new Error("Memory not initialized");
+    if (!session?.memory) throw new Error("Memory not initialized");
     if (!llm) throw new Error("LLM not initialized");
 
     abortController?.abort();
@@ -93,12 +93,6 @@ export const useChat = (session: Session) => {
     toast.info("Stream Aborted");
   }, [abortController]);
 
-  // Fetch usage
-  useEffect(() => {
-    if (!llm) return;
-    llm.usage(session).then(setUsage);
-  }, [llm, session]);
-
   // Subscribe to memory
   useEffect(() => {
     if (!session) return;
@@ -121,7 +115,6 @@ export const useChat = (session: Session) => {
     sendMessage,
     model,
     setModel,
-    usage,
     abortStream,
   };
 };

@@ -9,8 +9,8 @@ const WelcomeMessage = () => {
       )}
     >
       <div className="max-w-md space-y-2">
-        <h2 className="text-xl font-semibold">How can I help you?</h2>
-        <p className="text-sm text-muted-foreground">
+        <h2 className="text-3xl font-semibold">How can I help you?</h2>
+        <p className="text text-muted-foreground">
           I'm ready to assist with your tasks.
         </p>
       </div>

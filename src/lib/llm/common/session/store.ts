@@ -1,10 +1,14 @@
-import type { Session, SessionStoreIface } from "./type";
+import type { Session, SessionSnapshot, SessionStoreIface } from "./type";
 import { Memory } from "../memory/memory";
 
 export class SessionStore implements SessionStoreIface {
   private sessions = new Map<string, Session>();
   private listeners = new Set<() => void>();
   private activeId: string | null = null;
+  private snapshot: SessionSnapshot = {
+    sessions: [],
+    activeId: null,
+  };
 
   constructor() {
     if (this.sessions.size === 0) {
@@ -55,10 +59,20 @@ export class SessionStore implements SessionStoreIface {
     this.emit();
   }
 
+  getSnapshot(): SessionSnapshot {
+    return this.snapshot;
+  }
+
+  private updateSnapshot() {
+    this.snapshot = {
+      sessions: Array.from(this.sessions.values()),
+      activeId: this.activeId,
+    };
+  }
+
   emit() {
-    for (const listener of this.listeners) {
-      listener();
-    }
+    this.updateSnapshot();
+    for (const listener of this.listeners) listener();
   }
 
   subscribe(listener: () => void) {

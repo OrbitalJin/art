@@ -1,24 +1,15 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
-import type { Session } from "@/lib/llm/common/session/type";
 import { cn } from "@/lib/utils";
+import { useSessions } from "@/contexts/sessions-context";
 
 interface Props {
   disabled?: boolean;
-  sessions: Session[];
-  activeId: string | null;
-  switchToById: (id: string) => void;
-  create: (title?: string, systemPrompt?: string) => Session;
 }
 
-export const SessionSwitcher: React.FC<Props> = ({
-  disabled,
-  sessions,
-  activeId,
-  switchToById,
-  create,
-}) => {
+export const SessionSwitcher: React.FC<Props> = ({ disabled }) => {
+  const { activeId, sessions, switchToById, create } = useSessions();
   if (!activeId) return null;
 
   return (

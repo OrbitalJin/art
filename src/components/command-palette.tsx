@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, MessageSquare, Palette } from "lucide-react";
+import { Home, MessageCircle, MessageCirclePlus, Palette } from "lucide-react";
 import {
   CommandDialog,
   CommandInput,
@@ -12,8 +12,10 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { useTheme } from "./providers/theme-provider";
+import { useSessions } from "@/contexts/sessions-context";
 
 export function CommandPalette() {
+  const { create } = useSessions();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
@@ -28,10 +30,25 @@ export function CommandPalette() {
     {
       path: "/chat",
       label: "Chat",
-      icon: MessageSquare,
+      icon: MessageCircle,
       shortcut: "Alt+2",
     },
   ];
+
+  const handleQuickChat = () => {
+    create("Quick Chat");
+    handleNavigate("/chat");
+  };
+
+  const handleThemeToggle = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+    setOpen(false);
+  };
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    setOpen(false);
+  };
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -50,19 +67,17 @@ export function CommandPalette() {
       }
 
       if (e.key === "t" && (e.metaKey || e.ctrlKey)) {
-        setTheme(theme === "light" ? "dark" : "light");
-        setOpen(false);
+        handleThemeToggle();
+      }
+
+      if (e.key === "n" && e.ctrlKey && e.metaKey) {
+        handleQuickChat();
       }
     };
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   });
-
-  const handleNavigate = (path: string) => {
-    navigate(path);
-    setOpen(false);
-  };
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen} title="Command Palette">
@@ -90,16 +105,15 @@ export function CommandPalette() {
         <CommandSeparator />
 
         <CommandGroup heading="Quick Actions">
-          <CommandItem
-            value="toggle theme"
-            onSelect={() => {
-              setTheme(theme === "light" ? "dark" : "light");
-              setOpen(false);
-            }}
-          >
+          <CommandItem value="toggle theme" onSelect={handleThemeToggle}>
             <Palette className="mr-2 h-4 w-4" />
             Toggle Theme
             <CommandShortcut>Ctrl+T</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="quick chat" onSelect={handleQuickChat}>
+            <MessageCirclePlus className="mr-2 h-4 w-4" />
+            Quick Chat
+            <CommandShortcut>Ctrl+N</CommandShortcut>
           </CommandItem>
         </CommandGroup>
       </CommandList>
