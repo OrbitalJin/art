@@ -18,7 +18,7 @@ export class SessionStore implements SessionStoreIface {
 
   create(title?: string, systemPrompt?: string): Session {
     const session: Session = {
-      title: title ?? "New Chat",
+      title: title ?? "New Session",
       id: crypto.randomUUID(),
       memory: new Memory(systemPrompt),
     };
@@ -39,6 +39,7 @@ export class SessionStore implements SessionStoreIface {
   delete(id: string) {
     const hit = this.sessions.has(id);
     if (hit) this.sessions.delete(id);
+    this.emit();
   }
 
   list(): Session[] {

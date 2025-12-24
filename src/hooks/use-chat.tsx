@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import type { Message } from "@/lib/llm/common/memory/types";
 import type { MessageIDs } from "@/lib/llm/common/types";
 import { useLLM } from "@/contexts/llm-context";
@@ -11,23 +11,32 @@ export interface ChatError {
 }
 
 export const useChat = () => {
-  const { active: session } = useSessions();
-  const { llm, model, setModel } = useLLM();
-  const [abortController, setAbortController] =
-    useState<AbortController | null>(null);
-  const [baseMessages, setBaseMessages] = useState<readonly Message[]>([]);
   const [optimisticUser, setOptimisticUser] = useState<Message | null>(null);
   const [draftAssistant, setDraftAssistant] = useState<Message | null>(null);
+  const [abortCtrler, setAbortCtrler] = useState<AbortController | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const { active: session } = useSessions();
+  const { llm, model, setModel } = useLLM();
+
+  const baseMessages: readonly Message[] = useSyncExternalStore(
+    (callback) => (session ? session.memory.subscribe(callback) : () => {}),
+    () => (session ? session.memory.getSnapshot() : []),
+    () => [],
+  );
+
+  const usage = useSyncExternalStore(
+    (callback) => (session ? session.memory.subscribe(callback) : () => {}),
+    () => (session ? llm?.usage(session) : 0),
+  );
 
   const sendMessage = async (text: string) => {
-    if (!session?.memory) throw new Error("Memory not initialized");
+    if (!session) throw new Error("No session selected");
     if (!llm) throw new Error("LLM not initialized");
 
-    abortController?.abort();
+    abortCtrler?.abort();
 
     const controller = new AbortController();
-    setAbortController(controller);
+    setAbortCtrler(controller);
 
     const userId = crypto.randomUUID();
     const assistantId = crypto.randomUUID();
@@ -78,28 +87,20 @@ export const useChat = () => {
         }
       }
     } catch (err) {
-      // Handle any unexpected errors that might escape the stream
       console.error("Unexpected error in stream:", err);
     } finally {
-      setAbortController(null);
+      setAbortCtrler(null);
       setOptimisticUser(null);
       setIsSending(false);
     }
   };
 
   const abortStream = useCallback(() => {
-    abortController?.abort();
-    setDraftAssistant(null);
+    abortCtrler?.abort();
     toast.info("Stream Aborted");
-  }, [abortController]);
+  }, [abortCtrler]);
 
-  // Subscribe to memory
-  useEffect(() => {
-    if (!session) return;
-    return session.memory.subscribe(setBaseMessages);
-  }, [session]);
-
-  // project memory opmistically
+  // Project memory optimistically
   const messages = useMemo(() => {
     const result: Message[] = [...baseMessages];
 
@@ -116,5 +117,6 @@ export const useChat = () => {
     model,
     setModel,
     abortStream,
+    usage: usage as string,
   };
 };

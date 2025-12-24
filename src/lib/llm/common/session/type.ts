@@ -20,6 +20,7 @@ export interface SessionStoreIface {
   setActive: (id: string) => void;
   getActive: () => Session | undefined;
   updateTitle: (id: string, title: string) => void;
+  getSnapshot: () => SessionSnapshot;
 
   subscribe: (listener: () => void) => void;
   emit: () => void;

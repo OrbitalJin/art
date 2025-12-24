@@ -9,10 +9,11 @@ interface SessionsContextValue {
   active: Session | null;
   activeId: string | null;
 
-  create: (title?: string) => Session;
   switchTo: (session: Session) => void;
   updateTitle: (id: string, title: string) => void;
   switchToById: (id: string) => void;
+  deleteSession: (id: string) => void;
+  createSession: (title?: string) => Session;
 }
 
 const SessionsContext = createContext<SessionsContextValue | null>(null);
@@ -29,8 +30,12 @@ export const SessionsContextProvider: React.FC<{
   const { activeId, sessions } = snapshot;
   const active = activeId != null ? (store.get(activeId) ?? null) : null;
 
-  const create = (title?: string, systemPrompt?: string): Session => {
+  const createSession = (title?: string, systemPrompt?: string): Session => {
     return store.create(title, systemPrompt);
+  };
+
+  const deleteSession = (id: string) => {
+    store.delete(id);
   };
 
   const switchTo = (session: Session) => {
@@ -47,13 +52,14 @@ export const SessionsContextProvider: React.FC<{
 
   const value = React.useMemo(
     () => ({
-      create,
       active,
       sessions,
       switchTo,
       activeId,
       updateTitle,
       switchToById,
+      createSession,
+      deleteSession,
     }),
     [sessions, activeId, active],
   );

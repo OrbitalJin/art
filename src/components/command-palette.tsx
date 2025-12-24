@@ -15,7 +15,7 @@ import { useTheme } from "./providers/theme-provider";
 import { useSessions } from "@/contexts/sessions-context";
 
 export function CommandPalette() {
-  const { create } = useSessions();
+  const { createSession } = useSessions();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
@@ -36,7 +36,7 @@ export function CommandPalette() {
   ];
 
   const handleQuickChat = () => {
-    create("Quick Chat");
+    createSession("Quick Session");
     handleNavigate("/chat");
   };
 
@@ -110,9 +110,9 @@ export function CommandPalette() {
             Toggle Theme
             <CommandShortcut>Ctrl+T</CommandShortcut>
           </CommandItem>
-          <CommandItem value="quick chat" onSelect={handleQuickChat}>
+          <CommandItem value="quick session" onSelect={handleQuickChat}>
             <MessageCirclePlus className="mr-2 h-4 w-4" />
-            Quick Chat
+            Quick Session
             <CommandShortcut>Ctrl+N</CommandShortcut>
           </CommandItem>
         </CommandGroup>

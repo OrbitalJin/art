@@ -4,16 +4,19 @@ import type { Session } from "./session/type";
 export type Model = {
   key: string;
   type: "gemma-3-27b-it" | "gemini-2.5-flash";
+  limit: number;
 };
 
 export const Models: Model[] = [
   {
     key: "Art Genesis",
     type: "gemma-3-27b-it",
+    limit: 128000,
   },
   {
     key: "Art Turbo",
     type: "gemini-2.5-flash",
+    limit: 1000000,
   },
 ] as const;
 
@@ -35,5 +38,5 @@ export default interface LLMProviderIface {
     session: Session,
     signal?: AbortSignal,
   ) => AsyncGenerator<StreamChunk>;
-  usage: (session: Session) => Promise<string>;
+  usage: (session: Session) => string;
 }

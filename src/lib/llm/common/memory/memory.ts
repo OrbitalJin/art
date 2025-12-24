@@ -23,7 +23,7 @@ export class Memory {
     this.systemPrompt = systemPrompt ?? DEFAULT_SYSTEM_PROMPT;
   }
 
-  read(): readonly Message[] {
+  getSnapshot(): readonly Message[] {
     return this.messages;
   }
 
@@ -45,7 +45,7 @@ export class Memory {
 
   subscribe(listener: Listener) {
     this.listeners.add(listener);
-    listener(this.read());
+    listener(this.getSnapshot());
 
     return () => {
       this.listeners.delete(listener);
@@ -53,7 +53,7 @@ export class Memory {
   }
 
   private emit() {
-    const snapshot = this.read();
+    const snapshot = this.getSnapshot();
     for (const listener of this.listeners) {
       listener(snapshot);
     }

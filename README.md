@@ -9,9 +9,13 @@
 - [x] toast
 - [x] aborted message
 - [x] handle errors
-- [x] multi chats
+- [x] multi sessions
+- [x] sidebar for sessions
+- [ ] lazy load sessions
+- [ ] rename chat
+- [ ] use-chat context
+- [ ] regenerate chat title
 - [ ] command palette based navigation
-- [ ] sidebar for chats
 - [ ] persistence
 - [ ] migrate to openrouter
 - [x] tauri

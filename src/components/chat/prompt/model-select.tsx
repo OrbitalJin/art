@@ -10,13 +10,13 @@ import {
 } from "@/components/ui/select";
 import { Models, type Model } from "@/lib/llm/common/types";
 
-const SelectModel = ({
-  model,
-  setModel,
-}: {
+interface Props {
+  disabled?: boolean;
   model: Model;
   setModel: (model: Model) => void;
-}) => {
+}
+
+export const SelectModel: React.FC<Props> = ({ model, setModel, disabled }) => {
   const handleSelect = useCallback(
     (key: string) => {
       const m = Models.find((m) => m.key === key);
@@ -26,7 +26,7 @@ const SelectModel = ({
   );
 
   return (
-    <Select value={model.key} onValueChange={handleSelect}>
+    <Select value={model.key} onValueChange={handleSelect} disabled={disabled}>
       <SelectTrigger
         className="
         w-[140px] h-8 text-xs
@@ -47,5 +47,3 @@ const SelectModel = ({
     </Select>
   );
 };
-
-export default SelectModel;

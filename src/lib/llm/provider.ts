@@ -79,12 +79,8 @@ export class LLMProvider implements LLMProviderIface {
     }
   }
 
-  async usage(session: Session): Promise<string> {
-    const limit = await this.llm.models
-      .get({ model: this.model.type })
-      .then((res) => res.inputTokenLimit as number);
-
+  usage(session: Session): string {
     const used = session.memory.getUsageEstimate();
-    return `${((used / limit) * 100).toFixed(1)}%`;
+    return `${((used / this.model.limit) * 100).toFixed(1)}%`;
   }
 }

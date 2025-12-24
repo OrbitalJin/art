@@ -1,11 +1,12 @@
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, Clipboard, Square } from "lucide-react";
-import SelectModel from "@/components/chat/prompt/model-select";
+import { SelectModel } from "@/components/chat/prompt/model-select";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import type { Model } from "@/lib/llm/common/types";
+import { AutoScrollToggle } from "./auto-scroll";
 
 interface Props {
   prompt: string;
@@ -15,6 +16,9 @@ interface Props {
   model: Model;
   setModel: (model: Model) => void;
   onAbort: () => void;
+  setAutoScroll: (value: boolean) => void;
+  autoScroll: boolean;
+  disabled?: boolean;
 }
 
 const Prompt: React.FC<Props> = ({
@@ -25,6 +29,9 @@ const Prompt: React.FC<Props> = ({
   model,
   setModel,
   onAbort,
+  setAutoScroll,
+  autoScroll,
+  disabled,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -74,10 +81,18 @@ const Prompt: React.FC<Props> = ({
 
           <div className="flex justify-between items-center px-1">
             <div className="flex flex-row gap-2">
+              <AutoScrollToggle
+                setAutoScroll={setAutoScroll}
+                autoScroll={autoScroll}
+              />
               <Button variant="outline" size="icon" onClick={handlePaste}>
                 <Clipboard />
               </Button>
-              <SelectModel model={model} setModel={setModel} />
+              <SelectModel
+                model={model}
+                setModel={setModel}
+                disabled={disabled}
+              />
             </div>
             <Button
               variant="default"
