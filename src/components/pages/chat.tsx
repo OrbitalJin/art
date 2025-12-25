@@ -1,15 +1,14 @@
 import { useCallback, useRef, useState } from "react";
 import Prompt from "@/components/chat/prompt/prompt";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { useChat } from "@/hooks/use-chat";
 import WelcomeMessage from "@/components/chat/welcome";
 import { MessageBroker } from "@/components/chat/messages/broker";
 import { ChatSidebar } from "@/components/chat/sidebar/sidebar.tsx";
 import { ScrollToBottomButton } from "../chat/scroll-to-bottom";
+import { useChat } from "@/contexts/chat-context";
 
 export function ChatPage() {
   const chat = useChat();
-  const [prompt, setPrompt] = useState("");
   const [autoScroll, setAutoScroll] = useState<boolean>(false);
   const [atBottom, setAtBottom] = useState(true);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
@@ -22,11 +21,7 @@ export function ChatPage() {
   };
 
   const handleSend = useCallback(async () => {
-    const text = prompt.trim();
-    if (!text) return;
-    chat.sendMessage(text);
-    setPrompt("");
-
+    chat.send();
     setTimeout(() => {
       virtuosoRef.current?.scrollToIndex({
         index: chat.messages.length - 1,
@@ -34,11 +29,11 @@ export function ChatPage() {
         align: "end",
       });
     }, 10);
-  }, [prompt, chat, autoScroll]);
+  }, [chat, autoScroll]);
 
   return (
     <div className="relative flex-1 flex flex-row">
-      <ChatSidebar disabled={chat.isSending} usage={chat.usage} />
+      <ChatSidebar />
       <div className="flex-1 flex flex-col selection:bg-primary/50 selection:text-white min-w-0">
         <div className="flex-1 overflow-hidden relative px-4 flex flex-col">
           {chat.messages.length === 0 && <WelcomeMessage />}
@@ -63,8 +58,6 @@ export function ChatPage() {
         </div>
 
         <Prompt
-          prompt={prompt}
-          setPrompt={setPrompt}
           isSending={chat.isSending}
           onSend={handleSend}
           model={chat.model}

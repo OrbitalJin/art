@@ -1,6 +1,6 @@
 interface Props {
   code: string;
-  onExpand(): void;
+  onExpand?: () => void;
 }
 
 export const CodeBlockPreview = ({ code, onExpand }: Props) => {
@@ -9,7 +9,12 @@ export const CodeBlockPreview = ({ code, onExpand }: Props) => {
       className="p-4 cursor-pointer hover:bg-muted/5 transition-colors relative"
       onClick={onExpand}
     >
-      <pre className="text-sm font-mono text-muted-foreground/60 overflow-hidden pointer-events-none select-none opacity-70">
+      <pre
+        className="text-sm text-muted-foreground/60 overflow-hidden pointer-events-none select-none opacity-70"
+        style={{
+          fontFamily: "monospace",
+        }}
+      >
         {code}
       </pre>
 

@@ -7,10 +7,9 @@ import { Button } from "@/components/ui/button";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import type { Model } from "@/lib/llm/common/types";
 import { AutoScrollToggle } from "./auto-scroll";
+import { useChat } from "@/contexts/chat-context";
 
 interface Props {
-  prompt: string;
-  setPrompt: (v: string) => void;
   isSending: boolean;
   onSend: () => void;
   model: Model;
@@ -22,8 +21,6 @@ interface Props {
 }
 
 const Prompt: React.FC<Props> = ({
-  prompt,
-  setPrompt,
   isSending,
   onSend,
   model,
@@ -33,6 +30,7 @@ const Prompt: React.FC<Props> = ({
   autoScroll,
   disabled,
 }) => {
+  const { prompt, setPrompt } = useChat();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {

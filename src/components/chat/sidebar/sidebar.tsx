@@ -4,32 +4,22 @@ import { Button } from "@/components/ui/button";
 import { PanelRight, Plus } from "lucide-react";
 import { SessionList } from "./session/list";
 import { useSessions } from "@/contexts/sessions-context";
+import { useChat } from "@/contexts/chat-context";
 
-interface Props {
-  disabled?: boolean;
-  className?: string;
-  usage?: string;
-}
-
-export const ChatSidebar: React.FC<Props> = ({
-  disabled,
-  className,
-  usage,
-}) => {
+export const ChatSidebar: React.FC = () => {
   const [open, setOpen] = useState(false);
+  const { isSending, usage } = useChat();
 
   return (
     <>
-      {/* 1. Mobile Trigger */}
-      <div className={cn("lg:hidden fixed top-4 left-4 z-50", className)}>
+      <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
           variant="outline"
           size="icon"
-          disabled={disabled}
+          disabled={isSending}
           onClick={() => setOpen(true)}
           className={cn(
             "bg-background/80 backdrop-blur shadow-sm transition-all duration-300",
-            // Hide the trigger when sidebar is open to reduce clutter
             open && "opacity-0 pointer-events-none scale-90",
           )}
         >
@@ -65,7 +55,7 @@ export const ChatSidebar: React.FC<Props> = ({
         )}
       >
         <SidebarContent
-          disabled={disabled}
+          disabled={isSending}
           usage={usage}
           onSessionSwitch={() => setOpen(false)}
         />
@@ -77,10 +67,9 @@ export const ChatSidebar: React.FC<Props> = ({
           "hidden lg:flex flex-col w-[260px]",
           "rounded-xl border bg-card/70 backdrop-blur",
           "m-2 shadow-sm",
-          className,
         )}
       >
-        <SidebarContent disabled={disabled} usage={usage} />
+        <SidebarContent disabled={isSending} usage={usage} />
       </aside>
     </>
   );

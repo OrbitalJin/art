@@ -13,8 +13,8 @@
 - [x] sidebar for sessions
 - [x] lazy load sessions
 - [x] fix session switcing edge cases (deleting all)
-- [x] rename session
-- [ ] use-chat context
+- [x] use-chat context
+- [ ] rename session
 - [ ] re/generate chat title
 - [ ] command palette based navigation
 - [ ] persistence
