@@ -12,8 +12,8 @@
 - [x] multi sessions
 - [x] sidebar for sessions
 - [x] lazy load sessions
-- [ ] rename chat
-- [ ] fix session switcing edge cases (deleting all)
+- [x] fix session switcing edge cases (deleting all)
+- [ ] rename session
 - [ ] use-chat context
 - [ ] re/generate chat title
 - [ ] command palette based navigation

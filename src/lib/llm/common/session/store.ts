@@ -37,8 +37,20 @@ export class SessionStore implements SessionStoreIface {
   }
 
   delete(id: string) {
-    const hit = this.sessions.has(id);
-    if (hit) this.sessions.delete(id);
+    if (!this.sessions.has(id)) return;
+
+    this.sessions.delete(id);
+
+    if (id === this.activeId) {
+      const next = this.sessions.values().next(id);
+      this.activeId = next ? (next.value?.id as string) : null;
+    }
+
+    if (this.sessions.size === 0) {
+      const session = this.create();
+      this.activeId = session.id;
+    }
+
     this.emit();
   }
 
