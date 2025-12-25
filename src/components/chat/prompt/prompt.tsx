@@ -57,7 +57,7 @@ const Prompt: React.FC<Props> = ({
   };
 
   return (
-    <footer className="z-20 px-4 pb-4">
+    <footer className="z-20 px-4 pb-2 bg-transparent!">
       <div className="mx-auto max-w-2xl">
         <div
           className={cn(
@@ -67,6 +67,7 @@ const Prompt: React.FC<Props> = ({
           )}
         >
           <Textarea
+            autoFocus
             ref={textareaRef}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}

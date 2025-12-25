@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Prism } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
@@ -6,9 +6,13 @@ interface Props {
   code: string;
   language: string;
   wraps: boolean;
+  onReady?: () => void;
 }
 
-const LazyPrism: React.FC<Props> = ({ code, language, wraps }) => {
+const LazyPrism: React.FC<Props> = ({ code, language, wraps, onReady }) => {
+  useEffect(() => {
+    onReady?.();
+  }, [onReady]);
   return (
     <Prism
       style={oneDark}

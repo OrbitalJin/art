@@ -2,7 +2,7 @@ import type React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
-import { CodeBlock } from "@/components/chat/messages/code/block";
+import { CodeBlock } from "@/components/chat/messages/code/block/block";
 import { InlineCode } from "@/components/chat/messages/code/inline";
 import { memo } from "react";
 

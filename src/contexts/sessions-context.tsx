@@ -7,6 +7,7 @@ import React, {
   useSyncExternalStore,
   useTransition,
 } from "react";
+import { toast } from "sonner";
 
 const store = new SessionStore();
 
@@ -64,6 +65,7 @@ export const SessionsContextProvider: React.FC<{
 
   const updateTitle = useCallback((id: string, title: string) => {
     store.updateTitle(id, title);
+    toast.success("Session title updated");
   }, []);
 
   const value = React.useMemo(

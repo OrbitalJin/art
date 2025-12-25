@@ -15,6 +15,7 @@ export const AssistantMessage: React.FC<Message> = ({
   const { copied, copy } = useCopy(content);
   const isThinking = status === "thinking";
   const hasContent = content.length > 0;
+  const isStreaming = status === "streaming";
 
   return (
     <div className="group flex w-full gap-3 animate-in fade-in duration-100">
@@ -26,7 +27,7 @@ export const AssistantMessage: React.FC<Message> = ({
           </div>
         )}
 
-        {hasContent && <Renderer content={content} />}
+        {hasContent && <Renderer content={content} isStreaming={isStreaming} />}
 
         {hasContent && (
           <div className="flex items-center justify-between mt-2 opacity-0 group-hover:opacity-100">

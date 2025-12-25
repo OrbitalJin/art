@@ -16,7 +16,7 @@ export function ChatPage() {
 
   const scrollToBottom = () => {
     virtuosoRef.current?.scrollToIndex({
-      index: chat.messages.length - 1,
+      index: chat.messages.length,
       behavior: "smooth",
     });
   };
@@ -30,8 +30,8 @@ export function ChatPage() {
     setTimeout(() => {
       virtuosoRef.current?.scrollToIndex({
         index: chat.messages.length - 1,
-        align: "end",
         behavior: autoScroll ? "smooth" : "auto",
+        align: "end",
       });
     }, 10);
   }, [prompt, chat, autoScroll]);
@@ -45,7 +45,6 @@ export function ChatPage() {
           <Virtuoso
             ref={virtuosoRef}
             className="h-full"
-            followOutput="auto"
             data={chat.messages}
             defaultItemHeight={60}
             initialTopMostItemIndex={0}

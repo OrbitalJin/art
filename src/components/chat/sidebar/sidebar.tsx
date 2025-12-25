@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { PanelRight, Plus } from "lucide-react";
-import { SessionList } from "./session-list";
+import { SessionList } from "./session/list";
 import { useSessions } from "@/contexts/sessions-context";
 
 interface Props {
@@ -22,37 +20,58 @@ export const ChatSidebar: React.FC<Props> = ({
 
   return (
     <>
-      <div className={cn("lg:hidden fixed top-4 left-4 z-30", className)}>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              disabled={disabled}
-              className="bg-background/80 backdrop-blur"
-            >
-              <PanelRight className="h-5 w-5" />
-              <span className="sr-only">Toggle Sidebar</span>
-            </Button>
-          </SheetTrigger>
-
-          <SheetContent
-            side="left"
-            className={cn(
-              "w-[70%] max-w-[320px] p-0",
-              "border-r bg-card/70 backdrop-blur-lg",
-              "[&>button]:hidden",
-            )}
-          >
-            <SidebarContent
-              disabled={disabled}
-              usage={usage}
-              onSelectSession={() => setOpen(false)}
-            />
-          </SheetContent>
-        </Sheet>
+      {/* 1. Mobile Trigger */}
+      <div className={cn("lg:hidden fixed top-4 left-4 z-50", className)}>
+        <Button
+          variant="outline"
+          size="icon"
+          disabled={disabled}
+          onClick={() => setOpen(true)}
+          className={cn(
+            "bg-background/80 backdrop-blur shadow-sm transition-all duration-300",
+            // Hide the trigger when sidebar is open to reduce clutter
+            open && "opacity-0 pointer-events-none scale-90",
+          )}
+        >
+          <PanelRight className="h-5 w-5" />
+          <span className="sr-only">Open Sidebar</span>
+        </Button>
       </div>
 
+      {/* 2. Backdrop (Click outside to close) */}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 lg:hidden transition-all duration-500 ease-in-out",
+          open
+            ? "bg-black/20 backdrop-blur-[2px] opacity-100"
+            : "bg-transparent opacity-0 pointer-events-none",
+        )}
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* 3. Zen-style Floating Sidebar */}
+      <div
+        className={cn(
+          "fixed top-4 bottom-4 left-4 z-50 lg:hidden",
+          "w-[85%] max-w-[320px] flex flex-col",
+
+          "rounded-xl border bg-card/90 backdrop-blur-xl shadow-2xl",
+
+          "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          open
+            ? "translate-x-0 opacity-100 scale-100"
+            : "-translate-x-[120%] opacity-0 scale-95",
+        )}
+      >
+        <SidebarContent
+          disabled={disabled}
+          usage={usage}
+          onSessionSwitch={() => setOpen(false)}
+        />
+      </div>
+
+      {/* 4. Desktop Sidebar (Static) */}
       <aside
         className={cn(
           "hidden lg:flex flex-col w-[260px]",
@@ -70,25 +89,27 @@ export const ChatSidebar: React.FC<Props> = ({
 interface SidebarContentProps {
   disabled?: boolean;
   usage?: string;
-  onSelectSession?: () => void;
+  onSessionSwitch?: () => void;
 }
 
 const SidebarContent: React.FC<SidebarContentProps> = ({
   disabled,
   usage,
-  onSelectSession,
+  onSessionSwitch,
 }) => {
   const { createSession } = useSessions();
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-hidden rounded-xl">
       {/* Header */}
-      <div className="flex items-center justify-between px-2 py-2 border-b">
-        <span className="text-sm font-semibold tracking-tight">Sessions</span>
-
+      <div className="flex items-center justify-between px-3 py-3 border-b bg-card/50">
+        <span className="text-sm font-semibold tracking-tight px-1">
+          Sessions
+        </span>
         <Button
           size="icon"
           variant="ghost"
+          className="h-8 w-8"
           disabled={disabled}
           onClick={() => createSession()}
         >
@@ -97,22 +118,20 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       </div>
 
       {/* Session list */}
-      <ScrollArea className="flex-1 px-2 py-2">
-        <SessionList disabled={disabled} onSelect={onSelectSession} />
-      </ScrollArea>
+      <SessionList disabled={disabled} onSessionSwitch={onSessionSwitch} />
 
       {/* Footer */}
-      <div className="border-t">
+      <div className="border-t bg-card/50">
         <UsageIndicator usage={usage} />
-
-        <div className="p-3 pt-2">
+        <div className="p-3 pt-0">
           <Button
-            className="w-full gap-2"
+            variant="outline"
+            className="w-full gap-2 justify-start pl-3"
             disabled={disabled}
             onClick={() => createSession()}
           >
             <Plus className="h-4 w-4" />
-            New session
+            New chat
           </Button>
         </div>
       </div>
@@ -124,15 +143,14 @@ const UsageIndicator = ({ usage }: { usage?: string }) => {
   if (!usage) return null;
 
   return (
-    <div className="px-3 py-2 space-y-1">
+    <div className="px-4 py-3 space-y-2">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>Memory</span>
-        <span className="font-medium text-foreground/80">{usage}</span>
+        <span className="font-medium text-foreground">{usage}</span>
       </div>
-
-      <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+      <div className="h-1.5 w-full rounded-full bg-muted/50 overflow-hidden">
         <div
-          className="h-full bg-primary/70 transition-all"
+          className="h-full bg-primary/80 transition-all duration-500 ease-out"
           style={{ width: usage }}
         />
       </div>
