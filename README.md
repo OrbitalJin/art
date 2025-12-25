@@ -14,7 +14,8 @@
 - [x] lazy load sessions
 - [x] fix session switcing edge cases (deleting all)
 - [x] use-chat context
-- [ ] rename session
+- [x] rename session
+- [ ] breakdown chat into message list & layout
 - [ ] re/generate chat title
 - [ ] command palette based navigation
 - [ ] persistence

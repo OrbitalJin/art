@@ -18,7 +18,7 @@ export const CodeBlockPreview = ({ code, onExpand }: Props) => {
         {code}
       </pre>
 
-      <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-background/10 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-6 bg-linear-to-t from-background/10 to-transparent" />
     </div>
   );
 };

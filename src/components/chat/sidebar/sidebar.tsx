@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { PanelRight, Plus } from "lucide-react";
-import { SessionList } from "./session/list";
-import { useSessions } from "@/contexts/sessions-context";
+import { PanelRight } from "lucide-react";
 import { useChat } from "@/contexts/chat-context";
+import { SidebarContent } from "./content";
 
 export const ChatSidebar: React.FC = () => {
   const [open, setOpen] = useState(false);
-  const { isSending, usage } = useChat();
+  const { isSending } = useChat();
 
   return (
     <>
@@ -54,11 +53,7 @@ export const ChatSidebar: React.FC = () => {
             : "-translate-x-[120%] opacity-0 scale-95",
         )}
       >
-        <SidebarContent
-          disabled={isSending}
-          usage={usage}
-          onSessionSwitch={() => setOpen(false)}
-        />
+        <SidebarContent onSessionSwitch={() => setOpen(false)} />
       </div>
 
       {/* 4. Desktop Sidebar (Static) */}
@@ -69,80 +64,8 @@ export const ChatSidebar: React.FC = () => {
           "m-2 shadow-sm",
         )}
       >
-        <SidebarContent disabled={isSending} usage={usage} />
+        <SidebarContent />
       </aside>
     </>
-  );
-};
-
-interface SidebarContentProps {
-  disabled?: boolean;
-  usage?: string;
-  onSessionSwitch?: () => void;
-}
-
-const SidebarContent: React.FC<SidebarContentProps> = ({
-  disabled,
-  usage,
-  onSessionSwitch,
-}) => {
-  const { createSession } = useSessions();
-
-  return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl">
-      {/* Header */}
-      <div className="flex items-center justify-between px-3 py-3 border-b bg-card/50">
-        <span className="text-sm font-semibold tracking-tight px-1">
-          Sessions
-        </span>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-8 w-8"
-          disabled={disabled}
-          onClick={() => createSession()}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Session list */}
-      <SessionList disabled={disabled} onSessionSwitch={onSessionSwitch} />
-
-      {/* Footer */}
-      <div className="border-t bg-card/50">
-        <UsageIndicator usage={usage} />
-        <div className="p-3 pt-0">
-          <Button
-            variant="outline"
-            className="w-full gap-2 justify-start pl-3"
-            disabled={disabled}
-            onClick={() => createSession()}
-          >
-            <Plus className="h-4 w-4" />
-            New chat
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const UsageIndicator = ({ usage }: { usage?: string }) => {
-  if (!usage) return null;
-
-  return (
-    <div className="px-4 py-3 space-y-2">
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>Memory</span>
-        <span className="font-medium text-foreground">{usage}</span>
-      </div>
-      <div className="h-1.5 w-full rounded-full bg-muted/50 overflow-hidden">
-        <div
-          className="h-full bg-primary/80 transition-all duration-500 ease-out"
-          style={{ width: usage }}
-        />
-      </div>
-    </div>
   );
 };
