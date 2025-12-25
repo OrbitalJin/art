@@ -5,32 +5,17 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
-import type { Model } from "@/lib/llm/common/types";
 import { AutoScrollToggle } from "./auto-scroll";
 import { useChat } from "@/contexts/chat-context";
 
 interface Props {
-  isSending: boolean;
-  onSend: () => void;
-  model: Model;
-  setModel: (model: Model) => void;
-  onAbort: () => void;
   setAutoScroll: (value: boolean) => void;
   autoScroll: boolean;
-  disabled?: boolean;
 }
 
-const Prompt: React.FC<Props> = ({
-  isSending,
-  onSend,
-  model,
-  setModel,
-  onAbort,
-  setAutoScroll,
-  autoScroll,
-  disabled,
-}) => {
-  const { prompt, setPrompt } = useChat();
+const Prompt: React.FC<Props> = ({ setAutoScroll, autoScroll }) => {
+  const { model, setModel, abortStream, isSending, prompt, setPrompt, send } =
+    useChat();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -45,7 +30,7 @@ const Prompt: React.FC<Props> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      onSend();
+      send();
     }
   };
 
@@ -90,7 +75,7 @@ const Prompt: React.FC<Props> = ({
               <SelectModel
                 model={model}
                 setModel={setModel}
-                disabled={disabled}
+                disabled={isSending}
               />
             </div>
             <Button
@@ -102,7 +87,7 @@ const Prompt: React.FC<Props> = ({
                   ? "opacity-100 scale-105"
                   : "opacity-0 scale-100 pointer-events-none",
               )}
-              onClick={isSending ? onAbort : onSend}
+              onClick={isSending ? abortStream : send}
               disabled={!isSending && !prompt.trim()}
             >
               {isSending ? <Square /> : <ArrowUp />}

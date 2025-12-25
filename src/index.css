@@ -446,7 +446,7 @@ body {
 
   /* Headings */
   .markdown h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 700;
     margin: 1.25rem 0;
   }
@@ -458,7 +458,7 @@ body {
   }
 
   .markdown h3 {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 600;
     margin: 0.75rem 0;
   }

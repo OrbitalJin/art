@@ -15,7 +15,8 @@
 - [x] fix session switcing edge cases (deleting all)
 - [x] use-chat context
 - [x] rename session
-- [ ] breakdown chat into message list & layout
+- [x] breakdown chat into message list & layout
+- [ ] give system prompt more context
 - [ ] re/generate chat title
 - [ ] command palette based navigation
 - [ ] persistence

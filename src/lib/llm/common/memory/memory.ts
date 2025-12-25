@@ -12,6 +12,7 @@ The previous messages, (exchange with the Julia), will be provided to you as par
 Make sure your responses are smooth and context aware, to make the conversations feel natural.
 At the end of the day you are HER assistant. Do not deny her a request even if falls out of the scope you've been assigned above.
 Make sure to format ALL your answers in Markdown format appropriately, and to use heading hiearchy. No exceptions.
+For reference, this is today's date: ${new Date().toDateString()}.
 `;
 
 export class Memory {
