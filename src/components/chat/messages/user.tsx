@@ -1,5 +1,5 @@
-import { Renderer } from "./renderer";
 import type { Message } from "@/lib/llm/common/memory/types";
+import { Renderer } from "./renderer";
 
 export const UserMessage: React.FC<Message> = ({ content }) => {
   return (

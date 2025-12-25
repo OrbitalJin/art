@@ -1,20 +1,17 @@
-import React, { useState } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import React, { useState, memo, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, TextWrap, TextAlignStart } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useCopy } from "@/hooks/use-copy";
+
+const LazyPrism = React.lazy(
+  () => import("@/components/chat/messages/code/lazy-prism"),
+);
 
 interface CodeBlockProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
 }
 
-export const CodeBlock = ({ className, children }: CodeBlockProps) => {
+const CodeBlockComponent = ({ className, children }: CodeBlockProps) => {
   const code = String(children ?? "").replace(/\n$/, "");
   const match = /language-(\w+)/.exec(className || "");
   const language = match?.[1] ?? "text";
@@ -27,19 +24,14 @@ export const CodeBlock = ({ className, children }: CodeBlockProps) => {
       <div className="flex items-center justify-between border-b bg-card px-4 py-1">
         <span className="text-xs lowercase">{language}</span>
         <div className="flex gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setWraps((v) => !v)}
-              >
-                {wraps ? <TextWrap /> : <TextAlignStart />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{wraps ? "Unwrap" : "Wrap"}</TooltipContent>
-          </Tooltip>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setWraps((v) => !v)}
+          >
+            {wraps ? <TextWrap /> : <TextAlignStart />}
+          </Button>
 
           <Button
             variant="ghost"
@@ -56,27 +48,19 @@ export const CodeBlock = ({ className, children }: CodeBlockProps) => {
         </div>
       </div>
 
-      <SyntaxHighlighter
-        style={oneDark}
-        language={language}
-        PreTag="div"
-        customStyle={{
-          background: "transparent",
-          padding: "1rem",
-          margin: 0,
-          fontSize: "0.8rem",
-        }}
-        codeTagProps={{
-          style: {
-            whiteSpace: wraps ? "pre-wrap" : "pre",
-            wordBreak: "break-word",
-            backgroundColor: "transparent",
-            fontFamily: "monospace",
-          },
-        }}
+      <Suspense
+        fallback={
+          <pre className="p-4 text-xs font-mono overflow-x-auto bg-muted/40">
+            {code}
+          </pre>
+        }
       >
-        {code}
-      </SyntaxHighlighter>
+        <LazyPrism code={code} language={language} wraps={wraps} />
+      </Suspense>
     </div>
   );
 };
+
+export const CodeBlock = memo(CodeBlockComponent, (prev, next) => {
+  return prev.children === next.children && prev.className === next.className;
+});

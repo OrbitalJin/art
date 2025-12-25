@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useCallback, useRef, useState } from "react";
 import Prompt from "@/components/chat/prompt/prompt";
-import { useInView } from "@/hooks/use-in-view";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useChat } from "@/hooks/use-chat";
 import WelcomeMessage from "@/components/chat/welcome";
 import { MessageBroker } from "@/components/chat/messages/broker";
@@ -12,29 +11,14 @@ export function ChatPage() {
   const chat = useChat();
   const [prompt, setPrompt] = useState("");
   const [autoScroll, setAutoScroll] = useState<boolean>(false);
-
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  // Use the ScrollArea viewport as the root for IntersectionObserver
-  const scrollViewport = scrollAreaRef.current?.querySelector(
-    '[data-slot="scroll-area-viewport"]',
-  );
-  const isAtBottom = useInView(bottomRef, {
-    threshold: 0.1,
-    root: scrollViewport as HTMLElement | null,
-  });
+  const [atBottom, setAtBottom] = useState(true);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const scrollToBottom = () => {
-    const viewport = scrollAreaRef.current?.querySelector(
-      '[data-slot="scroll-area-viewport"]',
-    ) as HTMLElement;
-    if (viewport) {
-      viewport.scrollTo({
-        top: viewport.scrollHeight,
-        behavior: "smooth",
-      });
-    }
+    virtuosoRef.current?.scrollToIndex({
+      index: chat.messages.length - 1,
+      behavior: "smooth",
+    });
   };
 
   const handleSend = useCallback(async () => {
@@ -42,35 +26,39 @@ export function ChatPage() {
     if (!text) return;
     chat.sendMessage(text);
     setPrompt("");
-  }, [prompt, chat]);
 
-  useEffect(() => {
-    if (!autoScroll) return;
-    scrollToBottom();
-  }, [chat.messages.length, autoScroll]);
+    setTimeout(() => {
+      virtuosoRef.current?.scrollToIndex({
+        index: chat.messages.length - 1,
+        align: "end",
+        behavior: autoScroll ? "smooth" : "auto",
+      });
+    }, 10);
+  }, [prompt, chat, autoScroll]);
 
   return (
     <div className="relative flex-1 flex flex-row">
       <ChatSidebar disabled={chat.isSending} usage={chat.usage} />
-      <div className="flex-1 flex flex-col selection:bg-primary/50 selection:text-white">
-        <div className="flex-1 overflow-hidden relative px-4">
-          <ScrollArea
-            ref={scrollAreaRef}
-            className="flex flex-col mx-auto min-h-full max-w-2xl justify-end h-full"
-          >
-            <div className="flex flex-col gap-2 p-2">
-              {chat.messages.length === 0 ? (
-                <WelcomeMessage />
-              ) : (
-                chat.messages.map((msg) => (
-                  <MessageBroker key={msg.id} {...msg} />
-                ))
-              )}
-              <div ref={bottomRef} className="h-0" />
-            </div>
-          </ScrollArea>
+      <div className="flex-1 flex flex-col selection:bg-primary/50 selection:text-white min-w-0">
+        <div className="flex-1 overflow-hidden relative px-4 flex flex-col">
+          {chat.messages.length === 0 && <WelcomeMessage />}
+          <Virtuoso
+            ref={virtuosoRef}
+            className="h-full"
+            followOutput="auto"
+            data={chat.messages}
+            defaultItemHeight={60}
+            initialTopMostItemIndex={0}
+            atBottomStateChange={setAtBottom}
+            overscan={200}
+            itemContent={(index, msg) => (
+              <div className="py-4 max-w-2xl mx-auto">
+                <MessageBroker key={index} {...msg} />
+              </div>
+            )}
+          />
           <ScrollToBottomButton
-            isVisible={!isAtBottom}
+            isVisible={!atBottom}
             onClick={scrollToBottom}
           />
         </div>

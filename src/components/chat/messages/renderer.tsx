@@ -4,13 +4,14 @@ import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { CodeBlock } from "@/components/chat/messages/code/block";
 import { InlineCode } from "@/components/chat/messages/code/inline";
+import { memo } from "react";
 
 interface Props {
   content: string;
   className?: string;
 }
 
-export const Renderer: React.FC<Props> = ({ content, className }) => {
+const RendererComponent: React.FC<Props> = ({ content, className }) => {
   return (
     <div
       className={cn(
@@ -73,3 +74,7 @@ export const Renderer: React.FC<Props> = ({ content, className }) => {
     </div>
   );
 };
+
+export const Renderer = memo(RendererComponent, (prev, next) => {
+  return prev.content === next.content;
+});

@@ -11,10 +11,11 @@
 - [x] handle errors
 - [x] multi sessions
 - [x] sidebar for sessions
-- [ ] lazy load sessions
+- [x] lazy load sessions
 - [ ] rename chat
+- [ ] fix session switcing edge cases (deleting all)
 - [ ] use-chat context
-- [ ] regenerate chat title
+- [ ] re/generate chat title
 - [ ] command palette based navigation
 - [ ] persistence
 - [ ] migrate to openrouter

@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PanelRight, Plus } from "lucide-react";
 import { SessionList } from "./session-list";
@@ -25,11 +19,9 @@ export const ChatSidebar: React.FC<Props> = ({
   usage,
 }) => {
   const [open, setOpen] = useState(false);
-  const { createSession } = useSessions();
 
   return (
     <>
-      {/* Mobile trigger */}
       <div className={cn("lg:hidden fixed top-4 left-4 z-30", className)}>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
@@ -46,33 +38,21 @@ export const ChatSidebar: React.FC<Props> = ({
 
           <SheetContent
             side="left"
-            className={cn("w-[70%] max-w-[320px] p-0", "[&>button]:hidden")}
+            className={cn(
+              "w-[70%] max-w-[320px] p-0",
+              "border-r bg-card/70 backdrop-blur-lg",
+              "[&>button]:hidden",
+            )}
           >
-            <SheetHeader className="border-b px-4 py-3">
-              <SheetTitle className="flex items-center justify-between">
-                <span className="text-sm font-semibold">Chats</span>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => createSession()}
-                  disabled={disabled}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </SheetTitle>
-            </SheetHeader>
-
-            <ScrollArea className="h-[calc(100vh-56px)] px-2 py-3">
-              <SessionList
-                disabled={disabled}
-                onSelect={() => setOpen(false)}
-              />
-            </ScrollArea>
+            <SidebarContent
+              disabled={disabled}
+              usage={usage}
+              onSelectSession={() => setOpen(false)}
+            />
           </SheetContent>
         </Sheet>
       </div>
 
-      {/* Desktop sidebar */}
       <aside
         className={cn(
           "hidden lg:flex flex-col w-[260px]",
@@ -81,40 +61,62 @@ export const ChatSidebar: React.FC<Props> = ({
           className,
         )}
       >
-        <div className="flex items-center justify-between px-2 py-2 border-b">
-          <span className="text-sm font-semibold tracking-tight ml-2">
-            Sessions
-          </span>
+        <SidebarContent disabled={disabled} usage={usage} />
+      </aside>
+    </>
+  );
+};
+
+interface SidebarContentProps {
+  disabled?: boolean;
+  usage?: string;
+  onSelectSession?: () => void;
+}
+
+const SidebarContent: React.FC<SidebarContentProps> = ({
+  disabled,
+  usage,
+  onSelectSession,
+}) => {
+  const { createSession } = useSessions();
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-2 py-2 border-b">
+        <span className="text-sm font-semibold tracking-tight">Sessions</span>
+
+        <Button
+          size="icon"
+          variant="ghost"
+          disabled={disabled}
+          onClick={() => createSession()}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Session list */}
+      <ScrollArea className="flex-1 px-2 py-2">
+        <SessionList disabled={disabled} onSelect={onSelectSession} />
+      </ScrollArea>
+
+      {/* Footer */}
+      <div className="border-t">
+        <UsageIndicator usage={usage} />
+
+        <div className="p-3 pt-2">
           <Button
-            size="icon"
-            variant="ghost"
+            className="w-full gap-2"
             disabled={disabled}
             onClick={() => createSession()}
           >
             <Plus className="h-4 w-4" />
+            New session
           </Button>
         </div>
-
-        <ScrollArea className="flex-1 ">
-          <SessionList disabled={disabled} />
-        </ScrollArea>
-
-        <div className="border-t">
-          <UsageIndicator usage={usage} />
-
-          <div className="p-3 pt-2">
-            <Button
-              className="w-full gap-2"
-              disabled={disabled}
-              onClick={() => createSession()}
-            >
-              <Plus className="h-4 w-4" />
-              New session
-            </Button>
-          </div>
-        </div>
-      </aside>
-    </>
+      </div>
+    </div>
   );
 };
 
@@ -131,7 +133,7 @@ const UsageIndicator = ({ usage }: { usage?: string }) => {
       <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
         <div
           className="h-full bg-primary/70 transition-all"
-          style={{ width: usage ?? "0%" }}
+          style={{ width: usage }}
         />
       </div>
     </div>

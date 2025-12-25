@@ -19,10 +19,15 @@ interface Props {
 }
 
 export const SessionList: React.FC<Props> = ({ disabled, onSelect }) => {
-  const { activeId, sessions, switchToById, deleteSession } = useSessions();
+  const { activeId, sessions, switchTo, deleteSession } = useSessions();
+
+  const handleSwitch = (id: string) => {
+    switchTo(id);
+    onSelect?.();
+  };
 
   return (
-    <div className="flex flex-col gap-2 p-2">
+    <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-2">
         <span className="text-xs font-medium text-muted-foreground px-2 py-1.5">
           Recent
@@ -33,18 +38,18 @@ export const SessionList: React.FC<Props> = ({ disabled, onSelect }) => {
             const isActive = activeId === session.id;
 
             return (
-              <Button
+              <div
                 key={session.id}
-                variant={isActive ? "secondary" : "ghost"}
                 className={cn(
+                  "flex flex-row items-center p-2 text-sm rounded-md",
+                  "rounded-md hover:bg-primary/20 transition-colors",
                   "group relative justify-start gap-2 h-11 font-normal pr-9",
-                  isActive && "font-medium text-foreground",
+                  isActive && "bg-primary/10 font-medium text-foreground",
                   !isActive && "text-muted-foreground hover:text-foreground",
+                  disabled && "pointer-events-none opacity-60",
                 )}
-                disabled={disabled}
                 onClick={() => {
-                  switchToById(session.id);
-                  onSelect?.();
+                  handleSwitch(session.id);
                 }}
               >
                 {isActive ? (
@@ -57,8 +62,9 @@ export const SessionList: React.FC<Props> = ({ disabled, onSelect }) => {
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className={cn(
                         "absolute right-8 opacity-0 transition-opacity",
                         "group-hover:opacity-100 hover:bg-accent",
@@ -69,15 +75,16 @@ export const SessionList: React.FC<Props> = ({ disabled, onSelect }) => {
                       }}
                       disabled={disabled}
                     >
-                      <TextCursor className="h-2 w-2 text-muted-foreground hover:text-destructive" />
-                    </button>
+                      <TextCursor className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent>Rename Session</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className={cn(
                         "absolute right-2 opacity-0 transition-opacity",
                         "group-hover:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md p-1",
@@ -89,11 +96,11 @@ export const SessionList: React.FC<Props> = ({ disabled, onSelect }) => {
                       disabled={disabled}
                     >
                       <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                    </button>
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent>Delete Session</TooltipContent>
                 </Tooltip>
-              </Button>
+              </div>
             );
           })}
         </div>

@@ -1,6 +1,12 @@
 import { SessionStore } from "@/lib/llm/common/session/store";
 import type { Session, SessionSnapshot } from "@/lib/llm/common/session/type";
-import React, { createContext, useContext, useSyncExternalStore } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useSyncExternalStore,
+  useTransition,
+} from "react";
 
 const store = new SessionStore();
 
@@ -8,10 +14,10 @@ interface SessionsContextValue {
   sessions: Session[];
   active: Session | null;
   activeId: string | null;
+  isPending: boolean;
 
-  switchTo: (session: Session) => void;
+  switchTo: (id: string) => void;
   updateTitle: (id: string, title: string) => void;
-  switchToById: (id: string) => void;
   deleteSession: (id: string) => void;
   createSession: (title?: string) => Session;
 }
@@ -21,6 +27,8 @@ const SessionsContext = createContext<SessionsContextValue | null>(null);
 export const SessionsContextProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
+  const [isPending, startTransition] = useTransition();
+
   const snapshot: SessionSnapshot = useSyncExternalStore(
     (listener) => store.subscribe(listener),
     () => store.getSnapshot(),
@@ -30,25 +38,33 @@ export const SessionsContextProvider: React.FC<{
   const { activeId, sessions } = snapshot;
   const active = activeId != null ? (store.get(activeId) ?? null) : null;
 
-  const createSession = (title?: string, systemPrompt?: string): Session => {
-    return store.create(title, systemPrompt);
-  };
+  const createSession = useCallback(
+    (title?: string, systemPrompt?: string): Session => {
+      let created!: Session;
+      startTransition(() => {
+        created = store.create(title, systemPrompt);
+      });
 
-  const deleteSession = (id: string) => {
-    store.delete(id);
-  };
+      return created;
+    },
+    [],
+  );
 
-  const switchTo = (session: Session) => {
-    store.setActive(session.id);
-  };
+  const deleteSession = useCallback((id: string) => {
+    startTransition(() => {
+      store.delete(id);
+    });
+  }, []);
 
-  const switchToById = (id: string) => {
-    store.setActive(id);
-  };
+  const switchTo = useCallback((id: string) => {
+    startTransition(() => {
+      store.setActive(id);
+    });
+  }, []);
 
-  const updateTitle = (id: string, title: string) => {
+  const updateTitle = useCallback((id: string, title: string) => {
     store.updateTitle(id, title);
-  };
+  }, []);
 
   const value = React.useMemo(
     () => ({
@@ -57,11 +73,20 @@ export const SessionsContextProvider: React.FC<{
       switchTo,
       activeId,
       updateTitle,
-      switchToById,
+      isPending,
       createSession,
       deleteSession,
     }),
-    [sessions, activeId, active],
+    [
+      sessions,
+      activeId,
+      active,
+      isPending,
+      createSession,
+      switchTo,
+      deleteSession,
+      updateTitle,
+    ],
   );
 
   return (

@@ -70,7 +70,7 @@ export function CommandPalette() {
         handleThemeToggle();
       }
 
-      if (e.key === "n" && e.ctrlKey && e.metaKey) {
+      if (e.key === "n" && (e.ctrlKey || e.metaKey)) {
         handleQuickChat();
       }
     };
