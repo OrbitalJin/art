@@ -1,19 +1,18 @@
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp, Clipboard, Square } from "lucide-react";
+import { ArrowUp, Clipboard, Code, Square } from "lucide-react";
 import { SelectModel } from "@/components/chat/prompt/model-select";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
-import { AutoScrollToggle } from "./auto-scroll";
 import { useChat } from "@/contexts/chat-context";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-interface Props {
-  setAutoScroll: (value: boolean) => void;
-  autoScroll: boolean;
-}
-
-const Prompt: React.FC<Props> = ({ setAutoScroll, autoScroll }) => {
+export const Prompt = () => {
   const { model, setModel, abortStream, isSending, prompt, setPrompt, send } =
     useChat();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -32,6 +31,11 @@ const Prompt: React.FC<Props> = ({ setAutoScroll, autoScroll }) => {
       e.preventDefault();
       send();
     }
+  };
+
+  const handlePasteCode = async () => {
+    const content = await readText();
+    setPrompt(prompt + "\n```\n" + content + "```");
   };
 
   const handlePaste = async () => {
@@ -57,7 +61,7 @@ const Prompt: React.FC<Props> = ({ setAutoScroll, autoScroll }) => {
             placeholder="Message..."
             className={cn(
               "bg-transparent! border-0 shadow-none resize-none p-2",
-              "min-h-[40px] max-h-[200px]",
+              "min-h-[80px] max-h-[200px]",
               "text-foreground/80 placeholder:text-muted-foreground focus-visible:ring-0",
             )}
             onKeyDown={handleKeyDown}
@@ -65,18 +69,28 @@ const Prompt: React.FC<Props> = ({ setAutoScroll, autoScroll }) => {
 
           <div className="flex justify-between items-center px-1">
             <div className="flex flex-row gap-2">
-              <AutoScrollToggle
-                setAutoScroll={setAutoScroll}
-                autoScroll={autoScroll}
-              />
-              <Button variant="outline" size="icon" onClick={handlePaste}>
-                <Clipboard />
-              </Button>
               <SelectModel
                 model={model}
                 setModel={setModel}
                 disabled={isSending}
               />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => {
+                      handlePasteCode();
+                    }}
+                  >
+                    <Code />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Paste Code</TooltipContent>
+              </Tooltip>
+              <Button variant="outline" size="icon" onClick={handlePaste}>
+                <Clipboard />
+              </Button>
             </div>
             <Button
               variant="default"
@@ -98,5 +112,3 @@ const Prompt: React.FC<Props> = ({ setAutoScroll, autoScroll }) => {
     </footer>
   );
 };
-
-export default Prompt;

@@ -19,10 +19,7 @@ export const AbortedMessage: React.FC<Message> = ({ content, model }) => {
 
   if (!hasContent) {
     return (
-      <div
-        className="flex w-full animate-in fade-in duration-100
-        "
-      >
+      <div className="flex w-full animate-in fade-in duration-100 select-auto">
         <div
           className={cn(
             "flex w-full items-center gap-2 rounded-md",

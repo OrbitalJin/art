@@ -34,7 +34,7 @@ export const SelectModel: React.FC<Props> = ({ model, setModel, disabled }) => {
       >
         <SelectValue placeholder="Model" />
       </SelectTrigger>
-      <SelectContent align="end">
+      <SelectContent side="top">
         <SelectGroup>
           <SelectLabel className="text-xs">Available Models</SelectLabel>
           {Models.map((m) => (

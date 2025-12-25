@@ -8,7 +8,7 @@ export const ErrorMessage: React.FC<Message> = ({ error }) => {
         className="
         flex items-center gap-2 rounded-md w-full
         border border-destructive/20 bg-destructive/10 
-        px-4 py-2 text-sm text-destructive"
+        px-4 py-2 text-sm text-destructive select-auto"
       >
         <AlertCircle className="h-4 w-4" />
         <span>Error: {error?.type}</span>
