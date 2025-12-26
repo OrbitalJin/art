@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import {
   Select,
   SelectContent,
@@ -8,25 +7,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Models, type Model } from "@/lib/llm/common/types";
+import { Models } from "@/lib/ai/common/types";
+import { useChat } from "@/contexts/chat-context";
 
-interface Props {
-  disabled?: boolean;
-  model: Model;
-  setModel: (model: Model) => void;
-}
+export const SelectModel = () => {
+  const { model, session, setSessionModel } = useChat();
 
-export const SelectModel: React.FC<Props> = ({ model, setModel, disabled }) => {
-  const handleSelect = useCallback(
-    (key: string) => {
+  const handleSelect = (key: string) => {
+    if (session) {
       const m = Models.find((m) => m.key === key);
-      if (m) setModel(m);
-    },
-    [setModel],
-  );
+      if (m) setSessionModel(session.id, m);
+    }
+  };
 
   return (
-    <Select value={model.key} onValueChange={handleSelect} disabled={disabled}>
+    <Select value={model.key} onValueChange={handleSelect} disabled={false}>
       <SelectTrigger
         className="
         w-[140px] h-8 text-xs

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Copy, Sparkle, Cpu } from "lucide-react";
 import { estimateTokens } from "@/lib/utils";
 import { Renderer } from "./renderer";
-import type { Message } from "@/lib/llm/common/memory/types";
+import type { Message } from "@/lib/ai/store/types";
 
 export const AssistantMessage: React.FC<Message> = ({
   content,

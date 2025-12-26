@@ -1,21 +1,31 @@
-import { useLLM } from "@/contexts/llm-context";
-import { useSessions } from "@/contexts/sessions-context";
-import { prompts } from "@/lib/utils";
+import { useAI } from "@/contexts/ai-context";
+import { prompts } from "@/lib/ai/common/prompts";
+import { useSessionStore } from "@/lib/ai/store/use-session-store";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const useGenerateTitle = () => {
-  const { llm } = useLLM();
-  const { getSession } = useSessions();
+  const { ai } = useAI();
+  const sessions = useSessionStore((state) => state.sessions);
+  const updateTitle = useSessionStore((state) => state.updateTitle);
   const [generating, setGenerating] = useState(false);
 
   const generateTitle = async (sessionId: string) => {
-    const session = getSession(sessionId);
-    if (!llm) return;
-    if (!session) return;
+    const session = sessions.find((s) => s.id === sessionId);
+    if (!session || !ai || generating) return;
+
     setGenerating(true);
     try {
-      const title = await llm.gen(prompts.gen.title, session);
-      return title;
+      const title =
+        (await ai.gen(prompts.gen.title, session.messages)) || "New Session";
+
+      if (title && title.trim()) {
+        updateTitle(sessionId, title.trim());
+        return title.trim();
+      }
+    } catch (err) {
+      console.error("Title generation failed", err);
+      toast.error("Failed to generate title");
     } finally {
       setGenerating(false);
     }

@@ -7,7 +7,6 @@ import {
   Loader2,
   TextCursor,
 } from "lucide-react";
-import { useSessions } from "@/contexts/sessions-context";
 
 import {
   DropdownMenu,
@@ -20,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useGenerateTitle } from "@/hooks/use-generate-title";
+import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { toast } from "sonner";
 
 interface Props {
   id: string;
@@ -36,17 +37,21 @@ export const SessionListItem: React.FC<Props> = ({
   disabled,
   onSwitch,
 }) => {
-  const { switchTo, deleteSession, updateTitle } = useSessions();
   const { generating, generateTitle } = useGenerateTitle();
+  const { setActive, deleteSession } = useSessionStore();
 
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
+
+  const handleDelete = () => {
+    deleteSession(id);
+    toast.success("Session deleted successfully");
+  };
 
   const handleGenerate = async () => {
     const title = await generateTitle(id);
     if (title) {
       setText(title);
-      updateTitle(id, title);
     }
   };
 
@@ -56,7 +61,6 @@ export const SessionListItem: React.FC<Props> = ({
       setEditing(false);
       return;
     }
-    updateTitle(id, text);
     setEditing(false);
   };
 
@@ -73,7 +77,7 @@ export const SessionListItem: React.FC<Props> = ({
       )}
       onClick={() => {
         if (!editing && !generating) {
-          switchTo(id);
+          setActive(id);
           onSwitch?.();
         }
       }}
@@ -150,7 +154,7 @@ export const SessionListItem: React.FC<Props> = ({
 
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                onSelect={() => deleteSession(id)}
+                onSelect={handleDelete}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 <span>Delete</span>

@@ -12,10 +12,10 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { useTheme } from "./providers/theme-provider";
-import { useSessions } from "@/contexts/sessions-context";
+import { useSessionStore } from "@/lib/ai/store/use-session-store";
 
 export function CommandPalette() {
-  const { createSession } = useSessions();
+  const { createSession } = useSessionStore();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();

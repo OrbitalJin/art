@@ -1,6 +1,9 @@
 - [x] Tailwindcsss
 - [x] react
 - [x] shadcn
+- [x] tauri
+  - [x] permissions
+  - [x] packages
 - [x] scroll down button
 - [x] fix chat responsiveness
 - [x] cancel with abort controller
@@ -18,9 +21,6 @@
 - [x] breakdown chat into message list & layout
 - [x] give system prompt more context
 - [x] re/generate chat title
+- [x] persistence
 - [ ] command palette based navigation
-- [ ] persistence
 - [ ] migrate to openrouter
-- [x] tauri
-  - [x] permissions
-  - [x] packages

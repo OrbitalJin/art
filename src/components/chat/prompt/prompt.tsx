@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 
 export const Prompt = () => {
-  const { model, setModel, abortStream, isSending, prompt, setPrompt, send } =
+  const { model, abortStream, isSending, prompt, setPrompt, sendMessage } =
     useChat();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -29,7 +29,7 @@ export const Prompt = () => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      send();
+      sendMessage(prompt);
     }
   };
 
@@ -69,11 +69,7 @@ export const Prompt = () => {
 
           <div className="flex justify-between items-center px-1">
             <div className="flex flex-row gap-2">
-              <SelectModel
-                model={model}
-                setModel={setModel}
-                disabled={isSending}
-              />
+              <SelectModel />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -101,7 +97,7 @@ export const Prompt = () => {
                   ? "opacity-100 scale-105"
                   : "opacity-0 scale-100 pointer-events-none",
               )}
-              onClick={isSending ? abortStream : send}
+              onClick={isSending ? abortStream : () => sendMessage(prompt)}
               disabled={!isSending && !prompt.trim()}
             >
               {isSending ? <Square /> : <ArrowUp />}

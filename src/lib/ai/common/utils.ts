@@ -1,4 +1,4 @@
-import { LLMError } from "./error";
+import { AIError } from "./types";
 
 export function withTimeout(userSignal?: AbortSignal, timeoutMs = 30_000) {
   const controller = new AbortController();
@@ -8,7 +8,7 @@ export function withTimeout(userSignal?: AbortSignal, timeoutMs = 30_000) {
     userSignal.addEventListener(
       "abort",
       () => {
-        controller.abort(new LLMError("aborted", "Request aborted"));
+        controller.abort(new AIError("aborted", "Request aborted"));
       },
       { once: true },
     );
@@ -16,7 +16,7 @@ export function withTimeout(userSignal?: AbortSignal, timeoutMs = 30_000) {
 
   // Timeout → LLMError(timeout)
   const timeoutId = setTimeout(() => {
-    controller.abort(new LLMError("timeout", "The request timed out.", true));
+    controller.abort(new AIError("timeout", "The request timed out.", true));
   }, timeoutMs);
 
   return {

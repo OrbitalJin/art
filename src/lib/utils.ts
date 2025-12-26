@@ -13,14 +13,3 @@ export function estimateTokens(text: string): number {
   const charCount = cleaned.replace(/\s+/g, " ").length;
   return Math.ceil(charCount / 4);
 }
-
-export const prompts = {
-  gen: {
-    title: `
-        Act as a conversation titler. 
-        Summarize the provided text into a title of exactly 4 to 5 word. 
-        Use Title Case. Provide only the title without quotes or preamble.
-        If no content is provided to you, return "New Session".
-    `,
-  },
-};

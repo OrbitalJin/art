@@ -1,24 +1,28 @@
 import React, { createContext, useContext } from "react";
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
-import type { Model } from "@/lib/llm/common/types";
-import type { Message } from "@/lib/llm/common/memory/types";
-import type { MessageIDs } from "@/lib/llm/common/types";
-import { useLLM } from "@/contexts/llm-context";
+import { useCallback, useMemo, useState } from "react";
+import { DefaultModel, type Model } from "@/lib/ai/common/types";
+import { useAI } from "@/contexts/ai-context";
 import { toast } from "sonner";
-import { useSessions } from "@/contexts/sessions-context";
+import type { Message, MessageStatus, Session } from "@/lib/ai/store/types";
+import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { prompts } from "@/lib/ai/common/prompts";
+
+interface Incoming {
+  content: string;
+  status: MessageStatus;
+}
 
 interface ChatContextValues {
-  messages: readonly Message[];
+  messages: Message[];
   isSending: boolean;
   prompt: string;
   model: Model;
-  usage: string;
+  session: Session | undefined;
 
-  sendMessage: (text: string) => void;
   setPrompt: (value: string) => void;
-  setModel: (model: Model) => void;
+  sendMessage: (text: string) => Promise<void>;
   abortStream: () => void;
-  send: () => void;
+  setSessionModel: (id: string, model: Model) => void;
 }
 
 const ChatContext = createContext<ChatContextValues | null>(null);
@@ -26,127 +30,152 @@ const ChatContext = createContext<ChatContextValues | null>(null);
 export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [optimisticUser, setOptimisticUser] = useState<Message | null>(null);
-  const [draftAssistant, setDraftAssistant] = useState<Message | null>(null);
-  const [abortCtrler, setAbortCtrler] = useState<AbortController | null>(null);
-  const [isSending, setIsSending] = useState(false);
+  const activeId = useSessionStore((state) => state.activeId);
+  const sessions = useSessionStore((state) => state.sessions);
+  const addMessage = useSessionStore((state) => state.addMessage);
+  const setSessionModel = useSessionStore((state) => state.setSessionModel);
+  const activeSession = sessions.find((s) => s.id === activeId);
+
   const [prompt, setPrompt] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [incoming, setIncoming] = useState<Incoming>({
+    content: "",
+    status: "thinking",
+  });
 
-  const { active: session } = useSessions();
-  const { llm, model, setModel } = useLLM();
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
 
-  const baseMessages: readonly Message[] = useSyncExternalStore(
-    (callback) => (session ? session.memory.subscribe(callback) : () => {}),
-    () => (session ? session.memory.getSnapshot() : []),
-    () => [],
-  );
-
-  const usage = useSyncExternalStore(
-    (callback) => (session ? session.memory.subscribe(callback) : () => {}),
-    () => (session ? llm?.usage(session) : 0),
-  );
-
-  const send = async () => {
-    const text = prompt.trim();
-    if (!text) return;
-    await sendMessage(text);
-  };
+  const { ai } = useAI();
 
   const sendMessage = async (text: string) => {
-    if (!session) throw new Error("No session selected");
-    if (!llm) throw new Error("LLM not initialized");
+    if (!activeId || !ai) return;
 
-    abortCtrler?.abort();
-
-    const controller = new AbortController();
-    setAbortCtrler(controller);
-
-    const userId = crypto.randomUUID();
-    const assistantId = crypto.randomUUID();
-    const ids: MessageIDs = {
-      userId: userId,
-      assistantId: assistantId,
-    };
-
-    setOptimisticUser({
-      id: userId,
+    addMessage(activeId, {
+      id: crypto.randomUUID(),
       role: "user",
       content: text,
+      status: "complete",
     });
 
-    setDraftAssistant({
-      id: assistantId,
-      role: "assistant",
-      status: "thinking",
-      content: "",
-      model: model,
-    });
-
-    setIsSending(true);
     setPrompt("");
+    setIsSending(true);
+
+    const controller = new AbortController();
+    setAbortController(controller);
+
+    let fullResponse = "";
+    let status: MessageStatus = "streaming";
 
     try {
-      const stream = llm.stream(text, ids, session, controller.signal);
-      for await (const chunk of stream) {
-        if (chunk.token) {
-          setDraftAssistant((prev) => {
-            if (!prev) return prev;
+      const stream = ai.stream(
+        text,
+        activeSession?.messages || [],
+        prompts.system,
+        activeSession?.preferredModel,
+        controller.signal,
+      );
 
-            return {
-              ...prev,
-              content: prev.content + chunk.token,
-              status: prev.status === "thinking" ? "streaming" : prev.status,
-            };
-          });
+      for await (const chunk of stream) {
+        if (chunk.error) {
+          if (chunk.error.type === "aborted") {
+            status = "aborted";
+            setIncoming((prev) => ({
+              content: prev.content,
+              status: "aborted",
+            }));
+          } else if (chunk.error.type === "network") {
+            status = "error";
+            setIncoming((prev) => ({
+              content: prev.content,
+              status: "error",
+            }));
+            toast.error("Network error occurred");
+          }
+          break;
         }
 
-        if (chunk.error) {
-          setDraftAssistant((prev) =>
-            prev ? { ...prev, status: "error", error: chunk.error } : prev,
-          );
+        if (chunk.token) {
+          fullResponse += chunk.token;
+          setIncoming((prev) => ({
+            content: prev.content + chunk.token,
+            status: "streaming",
+          }));
         }
 
         if (chunk.isFinal) {
-          setDraftAssistant(null);
+          if (status === "streaming") {
+            status = "complete";
+          }
+          setIncoming((prev) => ({
+            content: prev.content,
+            status: status,
+          }));
         }
       }
-    } catch (err) {
-      console.error("Unexpected error in stream:", err);
     } finally {
-      setAbortCtrler(null);
-      setOptimisticUser(null);
+      if (status !== "error" || fullResponse.trim()) {
+        addMessage(activeId, {
+          id: crypto.randomUUID(),
+          role: "model",
+          content: fullResponse.trim(),
+          status: status,
+          model: activeSession?.preferredModel,
+        });
+      }
+
       setIsSending(false);
+      setAbortController(null);
+      setIncoming({ content: "", status: "complete" });
     }
   };
 
   const abortStream = useCallback(() => {
-    abortCtrler?.abort();
-    toast.info("Stream Aborted");
-  }, [abortCtrler]);
+    if (abortController) {
+      setIncoming((prev) => ({
+        content: prev.content,
+        status: "aborted",
+      }));
+      abortController.abort();
+      toast.info("Stream Aborted");
+    }
+  }, [abortController]);
 
-  // Project memory optimistically
   const messages = useMemo(() => {
-    const result: Message[] = [...baseMessages];
+    const base = activeSession?.messages || [];
 
-    if (optimisticUser) result.push(optimisticUser);
-    if (draftAssistant) result.push(draftAssistant);
-
-    return result;
-  }, [baseMessages, optimisticUser, draftAssistant]);
+    if (isSending) {
+      return [
+        ...base,
+        {
+          id: "streaming-response",
+          role: "model",
+          content: incoming.content,
+          status: incoming.status,
+          model: activeSession?.preferredModel,
+        } as Message,
+      ];
+    }
+    return base;
+  }, [
+    activeSession?.messages,
+    activeSession?.preferredModel,
+    isSending,
+    incoming,
+  ]);
 
   return (
     <ChatContext.Provider
       value={{
-        prompt,
         messages,
         isSending,
-        model,
+        prompt,
         setPrompt,
-        abortStream,
-        send,
         sendMessage,
-        setModel,
-        usage: usage as string,
+        abortStream,
+        setSessionModel,
+        model: activeSession?.preferredModel || DefaultModel,
+        session: activeSession,
       }}
     >
       {children}
@@ -154,10 +183,10 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export const useChat = (): ChatContextValues => {
+export const useChat = () => {
   const context = useContext(ChatContext);
   if (!context) {
-    throw new Error("useChat must be called within a ChatContextProvider");
+    throw new Error("useChat must be used within a ChatContextProvider");
   }
   return context;
 };

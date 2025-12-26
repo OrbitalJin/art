@@ -1,4 +1,4 @@
-import { useSessions } from "@/contexts/sessions-context";
+import { useSessionStore } from "@/lib/ai/store/use-session-store";
 import { SessionListItem } from "./item";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const SessionList: React.FC<Props> = ({ disabled, onSessionSwitch }) => {
-  const { sessions, activeId } = useSessions();
+  const { sessions, activeId } = useSessionStore();
 
   return (
     <ScrollArea className="flex-1 px-2 pt-2 overflow-y-hidden">
