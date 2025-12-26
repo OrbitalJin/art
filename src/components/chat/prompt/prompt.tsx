@@ -35,7 +35,7 @@ export const Prompt = () => {
 
   const handlePasteCode = async () => {
     const content = await readText();
-    setPrompt(prompt + "\n```\n" + content + "```");
+    setPrompt(prompt + "\n```txt\n" + content + "```");
   };
 
   const handlePaste = async () => {

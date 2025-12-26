@@ -15,8 +15,7 @@ export const InlineCode = ({
         fontFamily: "monospace",
       }}
       className={cn(
-        "text-xs bg-muted/50 p-1 rounded-sm font-semibold",
-        "overflow-hidden max-w-2xl",
+        "text-xs bg-muted/50 p-1 rounded-sm font-semibold overflow-hidden",
         className,
       )}
       {...props}

@@ -79,6 +79,16 @@ export class LLMProvider implements LLMProviderIface {
     }
   }
 
+  async gen(prompt: string, session: Session): Promise<string> {
+    const content = session.memory.history();
+    return (await this.llm.models
+      .generateContent({
+        model: this.model.type,
+        contents: prompt + content,
+      })
+      .then((res) => res.text)) as string;
+  }
+
   usage(session: Session): string {
     const used = session.memory.getUsageEstimate();
     return `${((used / this.model.limit) * 100).toFixed(1)}%`;

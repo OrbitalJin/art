@@ -32,7 +32,10 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
 
             if (!isBlock) {
               return (
-                <InlineCode className={className} {...props}>
+                <InlineCode
+                  className={cn("overflow-x-auto", className)}
+                  {...props}
+                >
                   {children}
                 </InlineCode>
               );

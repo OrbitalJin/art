@@ -1,19 +1,25 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  MessageCircle,
-  MessageCircleDashed,
-  Pencil,
   Trash2,
+  MoreVertical,
+  Sparkles,
+  Loader2,
+  TextCursor,
 } from "lucide-react";
 import { useSessions } from "@/contexts/sessions-context";
 
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuShortcut,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ShimmerText } from "@/components/ui/shimmer-text";
+import { useGenerateTitle } from "@/hooks/use-generate-title";
 
 interface Props {
   id: string;
@@ -31,8 +37,18 @@ export const SessionListItem: React.FC<Props> = ({
   onSwitch,
 }) => {
   const { switchTo, deleteSession, updateTitle } = useSessions();
+  const { generating, generateTitle } = useGenerateTitle();
+
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
+
+  const handleGenerate = async () => {
+    const title = await generateTitle(id);
+    if (title) {
+      setText(title);
+      updateTitle(id, title);
+    }
+  };
 
   const handleSubmit = () => {
     if (!text.trim()) {
@@ -40,96 +56,110 @@ export const SessionListItem: React.FC<Props> = ({
       setEditing(false);
       return;
     }
-
     updateTitle(id, text);
     setEditing(false);
   };
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild disabled={disabled || editing}>
-        <div
-          tabIndex={0}
-          className={cn(
-            "flex items-center gap-2 px-3 py-3 text-sm rounded-md select-none",
-            "group relative transition-colors outline-none hover:bg-primary/15",
-            active && "bg-primary/10 font-medium text-foreground",
-            !active &&
-              "text-muted-foreground hover:text-foreground hover:bg-primary/20",
-            disabled && "pointer-events-none opacity-60",
-          )}
-          onClick={() => {
-            if (!editing) {
-              switchTo(id);
-              onSwitch?.();
-            }
-          }}
-          onKeyDown={(e) => {
-            if (editing || disabled) return;
+    <div
+      tabIndex={0}
+      className={cn(
+        "group relative flex items-center h-[45px] w-full gap-2 rounded-md px-3 ",
+        "text-sm select-none transition-all outline-none",
+        "hover:bg-accent hover:text-accent-foreground cursor-pointer",
+        active &&
+          "bg-accent/80 font-medium text-accent-foreground ring-1 ring-inset ring-foreground/5",
+        disabled && "pointer-events-none opacity-60",
+      )}
+      onClick={() => {
+        if (!editing && !generating) {
+          switchTo(id);
+          onSwitch?.();
+        }
+      }}
+      onKeyDown={(e) => {
+        if (editing || disabled || generating) return;
+        if (e.key === "F2") {
+          e.preventDefault();
+          setEditing(true);
+        }
+        if ((e.key === "Delete" || e.key === "Backspace") && !active) {
+          e.preventDefault();
+          deleteSession(id);
+        }
+      }}
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        {generating ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
+            <ShimmerText className="truncate">Generating title...</ShimmerText>
+          </>
+        ) : editing ? (
+          <input
+            type="text"
+            value={text}
+            autoFocus
+            onChange={(e) => setText(e.target.value)}
+            onBlur={handleSubmit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSubmit();
+              if (e.key === "Escape") {
+                setText(title);
+                setEditing(false);
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full bg-transparent border-none outline-none focus:ring-0 p-0"
+          />
+        ) : (
+          <span className="truncate block w-[220px] text-left">{title}</span>
+        )}
+      </div>
 
-            if (e.key === "F2") {
-              e.preventDefault();
-              setEditing(true);
-            }
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center">
+        {!editing && !generating && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem
+                onSelect={handleGenerate}
+                className="text-primary focus:text-primary focus:bg-primary/10"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                <span>Auto-generate title</span>
+              </DropdownMenuItem>
 
-            if ((e.key === "Delete" || e.key === "Backspace") && !active) {
-              e.preventDefault();
-              deleteSession(id);
-            }
-          }}
-        >
-          {active ? (
-            <MessageCircle className="h-4 w-4 shrink-0 opacity-70" />
-          ) : (
-            <MessageCircleDashed className="h-4 w-4 shrink-0 opacity-70" />
-          )}
+              <DropdownMenuSeparator />
 
-          {editing ? (
-            <input
-              type="text"
-              value={text}
-              autoFocus
-              onChange={(e) => setText(e.target.value)}
-              onBlur={handleSubmit}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSubmit();
-                }
-                if (e.key === "Escape") {
-                  setText(title);
-                  setEditing(false);
-                }
-              }}
-              onClick={(e) => e.stopPropagation()}
-              className="flex-1 bg-transparent border-none outline-none focus:ring-0 text-primary"
-            />
-          ) : (
-            <span className="truncate flex-1">{title}</span>
-          )}
-        </div>
-      </ContextMenuTrigger>
+              <DropdownMenuItem onSelect={() => setEditing(true)}>
+                <TextCursor className="mr-2 h-4 w-4" />
+                <span>Rename</span>
+                <DropdownMenuShortcut>F2</DropdownMenuShortcut>
+              </DropdownMenuItem>
 
-      <ContextMenuContent>
-        <ContextMenuItem
-          onSelect={() => {
-            setEditing(true);
-          }}
-        >
-          <Pencil className="mr-2 h-4 w-4" />
-          Rename
-          <span className="ml-auto text-xs opacity-60">F2</span>
-        </ContextMenuItem>
-
-        <ContextMenuItem
-          className="text-destructive focus:text-destructive"
-          onSelect={() => deleteSession(id)}
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete
-          <span className="ml-auto text-xs opacity-60">Del</span>
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                onSelect={() => deleteSession(id)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete</span>
+                <DropdownMenuShortcut>Del</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
+    </div>
   );
 };

@@ -32,6 +32,7 @@ export type MessageIDs = {
 };
 
 export default interface LLMProviderIface {
+  gen: (prompt: string, session: Session) => Promise<string>;
   stream: (
     prompt: string,
     ids: MessageIDs,

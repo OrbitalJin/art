@@ -16,8 +16,8 @@
 - [x] use-chat context
 - [x] rename session
 - [x] breakdown chat into message list & layout
-- [ ] give system prompt more context
-- [ ] re/generate chat title
+- [x] give system prompt more context
+- [x] re/generate chat title
 - [ ] command palette based navigation
 - [ ] persistence
 - [ ] migrate to openrouter

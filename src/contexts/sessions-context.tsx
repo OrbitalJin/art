@@ -5,7 +5,6 @@ import React, {
   useCallback,
   useContext,
   useSyncExternalStore,
-  useTransition,
 } from "react";
 import { toast } from "sonner";
 
@@ -15,9 +14,9 @@ interface SessionsContextValue {
   sessions: Session[];
   active: Session | null;
   activeId: string | null;
-  isPending: boolean;
 
   switchTo: (id: string) => void;
+  getSession: (id: string) => Session | undefined;
   updateTitle: (id: string, title: string) => void;
   deleteSession: (id: string) => void;
   createSession: (title?: string) => Session;
@@ -28,8 +27,6 @@ const SessionsContext = createContext<SessionsContextValue | null>(null);
 export const SessionsContextProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const [isPending, startTransition] = useTransition();
-
   const snapshot: SessionSnapshot = useSyncExternalStore(
     (listener) => store.subscribe(listener),
     () => store.getSnapshot(),
@@ -41,31 +38,26 @@ export const SessionsContextProvider: React.FC<{
 
   const createSession = useCallback(
     (title?: string, systemPrompt?: string): Session => {
-      let created!: Session;
-      startTransition(() => {
-        created = store.create(title, systemPrompt);
-      });
-
-      return created;
+      return store.create(title, systemPrompt);
     },
     [],
   );
 
   const deleteSession = useCallback((id: string) => {
-    startTransition(() => {
-      store.delete(id);
-    });
+    store.delete(id);
   }, []);
 
   const switchTo = useCallback((id: string) => {
-    startTransition(() => {
-      store.setActive(id);
-    });
+    store.setActive(id);
   }, []);
 
   const updateTitle = useCallback((id: string, title: string) => {
     store.updateTitle(id, title);
     toast.success("Session title updated");
+  }, []);
+
+  const getSession = useCallback((id: string) => {
+    return store.get(id);
   }, []);
 
   const value = React.useMemo(
@@ -74,20 +66,20 @@ export const SessionsContextProvider: React.FC<{
       sessions,
       switchTo,
       activeId,
+      getSession,
       updateTitle,
-      isPending,
       createSession,
       deleteSession,
     }),
     [
+      active,
       sessions,
       activeId,
-      active,
-      isPending,
-      createSession,
       switchTo,
-      deleteSession,
+      getSession,
       updateTitle,
+      createSession,
+      deleteSession,
     ],
   );
 
