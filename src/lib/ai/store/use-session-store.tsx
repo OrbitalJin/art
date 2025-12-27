@@ -1,10 +1,23 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
-import type { Message, Session, SessionState } from "@/lib/ai/store/types";
 import { DefaultModel, type Model } from "@/lib/ai/common/types";
+import type { Message, Session } from "@/lib/ai/store/types";
 import { sessionStorage } from "@/lib/ai/store/adapter";
 
+export interface SessionState {
+  sessions: Session[];
+  activeId: string | null;
+
+  ensureDefaultSession: () => void;
+  getSession: (id: string) => Session | undefined;
+  deleteSession: (id: string) => void;
+  createSession: (title?: string) => void;
+  setActive: (id: string) => void;
+  addMessage: (sessionId: string, message: Message) => void;
+  updateTitle: (sessionId: string, newTitle: string) => void;
+  setSessionModel: (sessionId: string, model: Model) => void;
+}
 export const useSessionStore = create<SessionState>()(
   persist(
     (set, get) => ({
@@ -20,10 +33,10 @@ export const useSessionStore = create<SessionState>()(
             messages: [],
             preferredModel: DefaultModel,
           };
-          return {
+          set({
             sessions: [newSession],
             activeId: newSession.id,
-          };
+          });
         }
       },
 

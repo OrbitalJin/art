@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from "react";
 import { useCallback, useMemo, useState } from "react";
-import { DefaultModel, type Model } from "@/lib/ai/common/types";
+import { AIError, DefaultModel, type Model } from "@/lib/ai/common/types";
 import { useAI } from "@/contexts/ai-context";
 import { toast } from "sonner";
 import type { Message, MessageStatus, Session } from "@/lib/ai/store/types";
@@ -66,6 +66,7 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
 
     let fullResponse = "";
     let status: MessageStatus = "streaming";
+    let error: AIError | undefined;
 
     try {
       const stream = ai.stream(
@@ -92,7 +93,7 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
             }));
             toast.error("Network error occurred");
           }
-          break;
+          error = chunk.error;
         }
 
         if (chunk.token) {
@@ -121,6 +122,16 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
           content: fullResponse.trim(),
           status: status,
           model: activeSession?.preferredModel,
+          error: error,
+        });
+      } else {
+        addMessage(activeId, {
+          id: crypto.randomUUID(),
+          role: "model",
+          content: "",
+          status: status,
+          model: activeSession?.preferredModel,
+          error: error,
         });
       }
 

@@ -1,4 +1,23 @@
+import type { Session } from "../store/types";
+import { prompts } from "./prompts";
 import { AIError } from "./types";
+
+export function estimateTokens(text: string): number {
+  const cleaned = text.trim();
+  if (!cleaned) return 0;
+
+  // Penalize whitespace a bit less
+  const charCount = cleaned.replace(/\s+/g, " ").length;
+  return Math.ceil(charCount / 4);
+}
+
+export const estimateUsage = (session: Session): string => {
+  const messages = session.messages
+    .map((m) => `${m.role}: ${m.content}`)
+    .join("\n");
+  const tokens = estimateTokens(`user: ${prompts.system}\n` + messages);
+  return `${((tokens / session.preferredModel.limit) * 100).toFixed(1)}%`;
+};
 
 export function withTimeout(userSignal?: AbortSignal, timeoutMs = 30_000) {
   const controller = new AbortController();

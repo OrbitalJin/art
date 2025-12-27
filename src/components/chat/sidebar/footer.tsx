@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/contexts/chat-context";
+import { useUsage } from "@/hooks/use-usage";
 import { useSessionStore } from "@/lib/ai/store/use-session-store";
 import { Plus } from "lucide-react";
 
@@ -10,7 +11,8 @@ interface Props {
 export const SidebarFooter: React.FC<Props> = () => {
   const { createSession } = useSessionStore();
   const { isSending } = useChat();
-  const usage = "50%";
+  const { usage } = useUsage();
+
   return (
     <div className="border-t bg-card/50">
       <UsageIndicator usage={usage} />

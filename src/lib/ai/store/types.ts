@@ -1,4 +1,4 @@
-import type { Model } from "@/lib/ai/common/types";
+import type { AIError, Model } from "@/lib/ai/common/types";
 
 export type MessageStatus =
   | "thinking"
@@ -12,6 +12,7 @@ export interface Message {
   role: "user" | "model" | "system" | "error";
   content: string;
   status: MessageStatus;
+  error?: AIError;
   model?: Model;
 }
 
@@ -20,18 +21,4 @@ export interface Session {
   title: string;
   messages: Message[];
   preferredModel: Model;
-}
-
-export interface SessionState {
-  sessions: Session[];
-  activeId: string | null;
-
-  ensureDefaultSession: () => void;
-  getSession: (id: string) => Session | undefined;
-  deleteSession: (id: string) => void;
-  createSession: (title?: string) => void;
-  setActive: (id: string) => void;
-  addMessage: (sessionId: string, message: Message) => void;
-  updateTitle: (sessionId: string, newTitle: string) => void;
-  setSessionModel: (sessionId: string, model: Model) => void;
 }

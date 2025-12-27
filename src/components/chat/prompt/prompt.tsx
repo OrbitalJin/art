@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 
 export const Prompt = () => {
-  const { model, abortStream, isSending, prompt, setPrompt, sendMessage } =
-    useChat();
+  const { abortStream, isSending, prompt, setPrompt, sendMessage } = useChat();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {

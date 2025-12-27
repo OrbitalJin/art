@@ -91,11 +91,4 @@ export class AIProvider {
 
     return result.text as string;
   }
-
-  estimateUsage(history: Message[], currentPrompt: string): string {
-    const totalChars =
-      history.reduce((acc, m) => acc + m.content.length, 0) +
-      currentPrompt.length;
-    return `${(totalChars / 4000).toFixed(1)}%`;
-  }
 }
