@@ -11,9 +11,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useStreamingState } from "@/hooks/use-streaming-state";
 
 export const Prompt = () => {
-  const { abortStream, isSending, prompt, setPrompt, sendMessage } = useChat();
+  const { abortStream, prompt, setPrompt, sendMessage } = useChat();
+  const { isCurrentSessionStreaming } = useStreamingState();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -92,14 +94,18 @@ export const Prompt = () => {
               size="icon"
               className={cn(
                 "transition-all duration-300",
-                isSending || prompt.trim()
+                isCurrentSessionStreaming || prompt.trim()
                   ? "opacity-100 scale-105"
                   : "opacity-0 scale-100 pointer-events-none",
               )}
-              onClick={isSending ? abortStream : () => sendMessage(prompt)}
-              disabled={!isSending && !prompt.trim()}
+              onClick={
+                isCurrentSessionStreaming
+                  ? abortStream
+                  : () => sendMessage(prompt)
+              }
+              disabled={!isCurrentSessionStreaming && !prompt.trim()}
             >
-              {isSending ? <Square /> : <ArrowUp />}
+              {isCurrentSessionStreaming ? <Square /> : <ArrowUp />}
             </Button>
           </div>
         </div>

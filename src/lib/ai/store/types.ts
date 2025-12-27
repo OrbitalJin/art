@@ -23,4 +23,5 @@ export interface Session {
   preferredModel: Model;
   createdAt: number;
   updatedAt: number;
+  active?: boolean;
 }

@@ -1,16 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { useChat } from "@/contexts/chat-context";
 import { useUsage } from "@/hooks/use-usage";
 import { useSessionStore } from "@/lib/ai/store/use-session-store";
 import { Plus } from "lucide-react";
 
-interface Props {
-  disabled?: boolean;
-}
-
-export const SidebarFooter: React.FC<Props> = () => {
+export const SidebarFooter = () => {
   const { createSession } = useSessionStore();
-  const { isSending } = useChat();
   const { usage } = useUsage();
 
   return (
@@ -20,7 +14,6 @@ export const SidebarFooter: React.FC<Props> = () => {
         <Button
           variant="outline"
           className="w-full gap-2 justify-start pl-3"
-          disabled={isSending}
           onClick={() => createSession()}
         >
           <Plus className="h-4 w-4" />

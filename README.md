@@ -22,6 +22,7 @@
 - [x] give system prompt more context
 - [x] re/generate chat title
 - [x] persistence
-- [ ] fix deleting activeId issue
+- [x] fix deleting activeId issue
+- [ ] Rename Chat context
 - [ ] command palette based navigation
 - [ ] migrate to openrouter

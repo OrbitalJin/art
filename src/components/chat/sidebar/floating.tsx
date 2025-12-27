@@ -29,8 +29,8 @@ export const FloatingSidebar: React.FC = () => {
       <div
         className={cn(
           "absolute top-2 bottom-2 left-2 z-50 lg:hidden",
-          "w-[85%] max-w-[320px] flex flex-col",
-          "rounded-xl border bg-card/90 backdrop-blur-xl shadow-2xl",
+          "w-[85%] max-w-[350px] flex flex-col",
+          "rounded-xl border bg-card/50 backdrop-blur-xl shadow-xl hover:border-primary/40",
           "transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           open
             ? "translate-x-0 opacity-100 scale-100"

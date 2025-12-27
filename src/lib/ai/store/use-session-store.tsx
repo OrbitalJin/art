@@ -45,6 +45,12 @@ export const useSessionStore = create<SessionState>()(
             sessions: [newSession],
             activeId: newSession.id,
           });
+        } else {
+          if (!state.activeId) {
+            set({
+              activeId: state.sessions[0].id,
+            });
+          }
         }
       },
 
@@ -80,18 +86,21 @@ export const useSessionStore = create<SessionState>()(
 
           let newActiveId = state.activeId;
           if (state.activeId === id) {
-            // Get most recent session as new active session (same logic as UI)
-            const sortedByRecent = [...newSessions].sort((a, b) => b.updatedAt - a.updatedAt);
-            newActiveId = sortedByRecent[0].id;
+            newActiveId = newSessions[0].id;
             toast.success("Active session deleted, switched to most recent.");
           } else {
             toast.success("Session deleted successfully.");
           }
 
-          console.log('deleteSession: activeId changed from', state.activeId, 'to', newActiveId);
-          return { 
+          console.log(
+            "deleteSession: activeId changed from",
+            state.activeId,
+            "to",
+            newActiveId,
+          );
+          return {
             sessions: newSessions, // Remove sorting - let UI handle it
-            activeId: newActiveId 
+            activeId: newActiveId,
           };
         });
       },

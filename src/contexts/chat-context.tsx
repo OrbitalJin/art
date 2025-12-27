@@ -13,11 +13,12 @@ interface Incoming {
 }
 
 interface ChatContextValues {
+  streamingSession: string | null;
+  session: Session | undefined;
   messages: Message[];
   isSending: boolean;
   prompt: string;
   model: Model;
-  session: Session | undefined;
 
   setPrompt: (value: string) => void;
   sendMessage: (text: string) => Promise<void>;
@@ -25,19 +26,21 @@ interface ChatContextValues {
   setSessionModel: (id: string, model: Model) => void;
 }
 
-const ChatContext = createContext<ChatContextValues | null>(null);
+const chatContext = createContext<ChatContextValues | null>(null);
 
 export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const activeId = useSessionStore((state) => state.activeId);
-  const sessions = useSessionStore((state) => state.sessions);
   const addMessage = useSessionStore((state) => state.addMessage);
   const setSessionModel = useSessionStore((state) => state.setSessionModel);
-  const activeSession = sessions.find((s) => s.id === activeId);
+  const activeId = useSessionStore((state) => state.activeId);
+  const activeSession = useSessionStore((state) =>
+    state.sessions.find((s) => s.id === activeId),
+  );
 
   const [prompt, setPrompt] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [streamingSession, setStreamingSession] = useState<string | null>(null);
   const [incoming, setIncoming] = useState<Incoming>({
     content: "",
     status: "thinking",
@@ -51,6 +54,8 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
   const sendMessage = async (text: string) => {
     if (!activeId || !ai) return;
 
+    setStreamingSession(activeId);
+
     addMessage(activeId, {
       id: crypto.randomUUID(),
       role: "user",
@@ -60,6 +65,7 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
 
     setPrompt("");
     setIsSending(true);
+    setIncoming({ content: "", status: "thinking" });
 
     const controller = new AbortController();
     setAbortController(controller);
@@ -137,7 +143,7 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setIsSending(false);
       setAbortController(null);
-      setIncoming({ content: "", status: "complete" });
+      setStreamingSession(null);
     }
   };
 
@@ -155,7 +161,7 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
   const messages = useMemo(() => {
     const base = activeSession?.messages || [];
 
-    if (isSending) {
+    if (isSending && streamingSession === activeId) {
       return [
         ...base,
         {
@@ -173,10 +179,12 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
     activeSession?.preferredModel,
     isSending,
     incoming,
+    activeId,
+    streamingSession,
   ]);
 
   return (
-    <ChatContext.Provider
+    <chatContext.Provider
       value={{
         messages,
         isSending,
@@ -185,17 +193,18 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
         sendMessage,
         abortStream,
         setSessionModel,
+        streamingSession,
         model: activeSession?.preferredModel || DefaultModel,
         session: activeSession,
       }}
     >
       {children}
-    </ChatContext.Provider>
+    </chatContext.Provider>
   );
 };
 
 export const useChat = () => {
-  const context = useContext(ChatContext);
+  const context = useContext(chatContext);
   if (!context) {
     throw new Error("useChat must be used within a ChatContextProvider");
   }

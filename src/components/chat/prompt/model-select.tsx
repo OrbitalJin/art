@@ -9,9 +9,11 @@ import {
 } from "@/components/ui/select";
 import { Models } from "@/lib/ai/common/types";
 import { useChat } from "@/contexts/chat-context";
+import { useStreamingState } from "@/hooks/use-streaming-state";
 
 export const SelectModel = () => {
   const { model, session, setSessionModel } = useChat();
+  const { isCurrentSessionStreaming } = useStreamingState();
 
   const handleSelect = (key: string) => {
     if (session) {
@@ -21,7 +23,11 @@ export const SelectModel = () => {
   };
 
   return (
-    <Select value={model.key} onValueChange={handleSelect} disabled={false}>
+    <Select
+      value={model.key}
+      onValueChange={handleSelect}
+      disabled={isCurrentSessionStreaming}
+    >
       <SelectTrigger
         className="
         w-[140px] h-8 text-xs
