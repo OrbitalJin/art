@@ -4,6 +4,19 @@ import { create } from "zustand";
 import { DefaultModel, type Model } from "@/lib/ai/common/types";
 import type { Message, Session } from "@/lib/ai/store/types";
 import { sessionStorage } from "@/lib/ai/store/adapter";
+import { toast } from "sonner";
+
+const createNewSession = (title?: string): Session => {
+  const date = Date.now();
+  return {
+    id: crypto.randomUUID(),
+    title: title ?? "New Session",
+    messages: [],
+    preferredModel: DefaultModel,
+    createdAt: date,
+    updatedAt: date,
+  };
+};
 
 export interface SessionState {
   sessions: Session[];
@@ -27,12 +40,7 @@ export const useSessionStore = create<SessionState>()(
       ensureDefaultSession: () => {
         const state = get();
         if (state.sessions.length === 0) {
-          const newSession: Session = {
-            id: crypto.randomUUID(),
-            title: "New Session",
-            messages: [],
-            preferredModel: DefaultModel,
-          };
+          const newSession = createNewSession();
           set({
             sessions: [newSession],
             activeId: newSession.id,
@@ -52,12 +60,7 @@ export const useSessionStore = create<SessionState>()(
         })),
 
       createSession: (title?: string) => {
-        const newSession: Session = {
-          id: crypto.randomUUID(),
-          title: title || "New Session",
-          messages: [],
-          preferredModel: DefaultModel,
-        };
+        const newSession = createNewSession(title);
 
         set((state) => ({
           sessions: [newSession, ...state.sessions],
@@ -70,20 +73,26 @@ export const useSessionStore = create<SessionState>()(
           const newSessions = state.sessions.filter((s) => s.id !== id);
 
           if (newSessions.length === 0) {
-            const defaultSession: Session = {
-              id: crypto.randomUUID(),
-              title: "New Session",
-              messages: [],
-              preferredModel: DefaultModel,
-            };
+            const defaultSession = createNewSession();
+            toast.success("No sessions left. Created a new one.");
             return { sessions: [defaultSession], activeId: defaultSession.id };
           }
 
           let newActiveId = state.activeId;
           if (state.activeId === id) {
-            newActiveId = newSessions.length > 0 ? newSessions[0].id : null;
+            // Get most recent session as new active session (same logic as UI)
+            const sortedByRecent = [...newSessions].sort((a, b) => b.updatedAt - a.updatedAt);
+            newActiveId = sortedByRecent[0].id;
+            toast.success("Active session deleted, switched to most recent.");
+          } else {
+            toast.success("Session deleted successfully.");
           }
-          return { sessions: newSessions, activeId: newActiveId };
+
+          console.log('deleteSession: activeId changed from', state.activeId, 'to', newActiveId);
+          return { 
+            sessions: newSessions, // Remove sorting - let UI handle it
+            activeId: newActiveId 
+          };
         });
       },
 
@@ -106,6 +115,7 @@ export const useSessionStore = create<SessionState>()(
               return {
                 ...session,
                 messages: [...session.messages, message],
+                updatedAt: Date.now(),
               };
             }
             return session;

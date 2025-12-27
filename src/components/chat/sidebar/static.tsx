@@ -7,7 +7,7 @@ export const StaticSidebar: React.FC = () => {
     <aside
       className={cn(
         "hidden lg:flex flex-col w-[300px]",
-        "rounded-xl border bg-card/70 backdrop-blur",
+        "rounded-md border bg-card/70 backdrop-blur",
         "m-2 shadow-sm shrink-0",
       )}
     >

@@ -9,11 +9,14 @@ interface Props {
 
 export const SessionList: React.FC<Props> = ({ disabled, onSessionSwitch }) => {
   const { sessions, activeId } = useSessionStore();
+  
+  // Ensure sessions are sorted by most recent first for consistency
+  const sortedSessions = [...sessions].sort((a, b) => b.updatedAt - a.updatedAt);
 
   return (
     <ScrollArea className="flex-1 px-2 pt-2 overflow-y-hidden">
       <div className="space-y-1">
-        {sessions.map((session) => (
+        {sortedSessions.map((session) => (
           <SessionListItem
             key={session.id}
             id={session.id}

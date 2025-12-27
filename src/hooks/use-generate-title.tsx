@@ -6,13 +6,12 @@ import { toast } from "sonner";
 
 export const useGenerateTitle = () => {
   const { ai } = useAI();
-  const sessions = useSessionStore((state) => state.sessions);
-  const updateTitle = useSessionStore((state) => state.updateTitle);
   const [generating, setGenerating] = useState(false);
+  const sessions = useSessionStore((state) => state.sessions);
 
   const generateTitle = async (sessionId: string) => {
     const session = sessions.find((s) => s.id === sessionId);
-    if (!session || !ai || generating) return;
+    if (!session || !ai || generating) return setGenerating(false);
 
     setGenerating(true);
     try {
@@ -20,7 +19,6 @@ export const useGenerateTitle = () => {
         (await ai.gen(prompts.gen.title, session.messages)) || "New Session";
 
       if (title && title.trim()) {
-        updateTitle(sessionId, title.trim());
         return title.trim();
       }
     } catch (err) {

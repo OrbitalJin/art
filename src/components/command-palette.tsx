@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, MessageCircle, MessageCirclePlus, Palette } from "lucide-react";
+import {
+  LayoutDashboard,
+  MessageCircle,
+  MessageCirclePlus,
+  Palette,
+} from "lucide-react";
 import {
   CommandDialog,
   CommandInput,
@@ -24,12 +29,12 @@ export function CommandPalette() {
     {
       path: "/",
       label: "Dashboard",
-      icon: Home,
+      icon: LayoutDashboard,
       shortcut: "Alt+1",
     },
     {
       path: "/chat",
-      label: "Chat",
+      label: "Sessions",
       icon: MessageCircle,
       shortcut: "Alt+2",
     },

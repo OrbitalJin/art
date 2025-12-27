@@ -15,13 +15,10 @@ export const FloatingSidebar: React.FC = () => {
 
   return (
     <>
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <SidebarToggle open={open} setOpen={setOpen} />
-      </div>
-
+      <SidebarToggle open={open} setOpen={setOpen} />
       <div
         className={cn(
-          "fixed inset-0 z-40 lg:hidden transition-all duration-500 ease-in-out",
+          "absolute inset-0 z-40 lg:hidden transition-all duration-500 ease-in-out",
           open
             ? "bg-black/10 backdrop-blur-[2px] opacity-100"
             : "bg-transparent opacity-0 pointer-events-none",
@@ -31,10 +28,10 @@ export const FloatingSidebar: React.FC = () => {
 
       <div
         className={cn(
-          "fixed top-4 bottom-4 left-4 z-50 lg:hidden",
+          "absolute top-2 bottom-2 left-2 z-50 lg:hidden",
           "w-[85%] max-w-[320px] flex flex-col",
           "rounded-xl border bg-card/90 backdrop-blur-xl shadow-2xl",
-          "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          "transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           open
             ? "translate-x-0 opacity-100 scale-100"
             : "-translate-x-[120%] opacity-0 scale-95",
@@ -67,7 +64,7 @@ const SidebarToggle: React.FC<ToggleProps> = ({ open, setOpen }) => {
   }, [open, setOpen]);
 
   return (
-    <div className="lg:hidden fixed top-4 left-4 z-50">
+    <div className="lg:hidden absolute top-2 left-2 z-50">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

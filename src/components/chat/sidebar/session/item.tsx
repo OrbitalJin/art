@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   Trash2,
@@ -38,10 +38,15 @@ export const SessionListItem: React.FC<Props> = ({
   onSwitch,
 }) => {
   const { generating, generateTitle } = useGenerateTitle();
-  const { setActive, deleteSession } = useSessionStore();
+  const { setActive, deleteSession, updateTitle } = useSessionStore();
 
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
+
+  // Sync text state when title prop changes (e.g., when session is renamed externally)
+  useEffect(() => {
+    setText(title);
+  }, [title]);
 
   const handleDelete = () => {
     deleteSession(id);
@@ -52,6 +57,7 @@ export const SessionListItem: React.FC<Props> = ({
     const title = await generateTitle(id);
     if (title) {
       setText(title);
+      updateTitle(id, title);
     }
   };
 
@@ -61,6 +67,7 @@ export const SessionListItem: React.FC<Props> = ({
       setEditing(false);
       return;
     }
+    updateTitle(id, text.trim());
     setEditing(false);
   };
 

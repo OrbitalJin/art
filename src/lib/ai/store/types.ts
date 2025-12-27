@@ -21,4 +21,6 @@ export interface Session {
   title: string;
   messages: Message[];
   preferredModel: Model;
+  createdAt: number;
+  updatedAt: number;
 }
