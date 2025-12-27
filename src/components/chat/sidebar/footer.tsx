@@ -1,25 +1,39 @@
+import { Plus, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
 import { useUsage } from "@/hooks/use-usage";
 import { useSessionStore } from "@/lib/ai/store/use-session-store";
-import { Plus } from "lucide-react";
+import { useTradeSession } from "@/hooks/use-trade-session";
 
 export const SidebarFooter = () => {
-  const { createSession } = useSessionStore();
+  const { create } = useSessionStore();
   const { usage } = useUsage();
 
   return (
     <div className="border-t bg-card/50">
       <UsageIndicator usage={usage} />
-      <div className="p-3 pt-0">
-        <Button
-          variant="outline"
-          className="w-full gap-2 justify-start pl-3"
-          onClick={() => createSession()}
-        >
-          <Plus className="h-4 w-4" />
-          New session
-        </Button>
-      </div>
+      <ExportButton />
+    </div>
+  );
+};
+
+export const ExportButton = () => {
+  const { exportCurrentSession, importSession } = useTradeSession();
+
+  return (
+    <div className="flex gap-2 p-2 ">
+      <Button
+        className="flex-1"
+        variant="outline"
+        onClick={exportCurrentSession}
+      >
+        <Upload className="h-4 w-4 mr-2" />
+        Export
+      </Button>
+      <Button className="flex-1" variant="outline" onClick={importSession}>
+        <Download className="h-4 w-4 mr-2" />
+        Import
+      </Button>
     </div>
   );
 };
@@ -28,7 +42,7 @@ const UsageIndicator = ({ usage }: { usage?: string }) => {
   if (!usage) return null;
 
   return (
-    <div className="px-4 py-3 space-y-2">
+    <div className="px-4 py-3 space-y-2 border-b">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>Memory</span>
         <span className="font-medium text-foreground">{usage}</span>

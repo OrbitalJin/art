@@ -28,7 +28,7 @@ export function Layout({ children }: LayoutProps) {
       >
         {children}
       </main>
-      <Toaster position="top-right" expand={false} />
+      <Toaster position="top-center" expand={false} />
       <CommandPalette />
     </div>
   );

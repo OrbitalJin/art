@@ -1,4 +1,4 @@
-import type { AIError, Model } from "@/lib/ai/common/types";
+import type { Model } from "@/lib/ai/common/types";
 
 export type MessageStatus =
   | "thinking"
@@ -12,7 +12,7 @@ export interface Message {
   role: "user" | "model" | "system" | "error";
   content: string;
   status: MessageStatus;
-  error?: AIError;
+  errMsg?: string;
   model?: Model;
 }
 

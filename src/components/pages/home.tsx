@@ -19,7 +19,7 @@ export function HomePage() {
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto bg-linear-to-br from-background via-background to-muted/20">
+    <div className="flex-1 flex flex-col overflow-y-auto bg-linear-to-br from-background via-background to-muted/20 rounded-md">
       <div className="max-w-7xl mx-auto w-full px-6 py-8">
         {/* Header */}
         <div className="mb-8">

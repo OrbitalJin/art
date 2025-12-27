@@ -20,7 +20,7 @@ import { useTheme } from "./providers/theme-provider";
 import { useSessionStore } from "@/lib/ai/store/use-session-store";
 
 export function CommandPalette() {
-  const { createSession } = useSessionStore();
+  const { create } = useSessionStore();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
@@ -41,7 +41,7 @@ export function CommandPalette() {
   ];
 
   const handleQuickChat = () => {
-    createSession("Quick Session");
+    create("Quick Session");
     handleNavigate("/chat");
   };
 

@@ -148,10 +148,10 @@ const Menu: React.FC<MenuProps> = ({
   updateTitle,
   generateTitle,
 }) => {
-  const deleteSession = useSessionStore((s) => s.deleteSession);
+  const deleteFn = useSessionStore((s) => s.deleteFn);
   const handleDelete = (e?: React.SyntheticEvent) => {
     e?.stopPropagation();
-    deleteSession(id);
+    deleteFn(id);
   };
 
   const handleGenerate = async () => {

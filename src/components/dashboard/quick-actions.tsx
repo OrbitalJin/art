@@ -7,10 +7,10 @@ import { useSessionStore } from "@/lib/ai/store/use-session-store";
 
 export function QuickActions() {
   const navigate = useNavigate();
-  const createSession = useSessionStore((state) => state.createSession);
+  const create = useSessionStore((state) => state.create);
 
   const handleNewChat = () => {
-    createSession();
+    create();
     navigate("/chat");
   };
 
@@ -24,7 +24,7 @@ export function QuickActions() {
         <Plus className="h-6 w-6" />
         <span className="font-medium">New Chat</span>
       </Button>
-      
+
       <Link to="/chat" className="block">
         <Button
           variant="outline"
@@ -41,7 +41,9 @@ export function QuickActions() {
         className="h-24 flex-col gap-2 hover:bg-muted/50"
         size="lg"
         onClick={() => {
-          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
+          window.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "k", ctrlKey: true }),
+          );
         }}
       >
         <Search className="h-6 w-6" />

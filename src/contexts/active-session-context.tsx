@@ -130,7 +130,6 @@ export const ActiveSessionContextProvider: React.FC<{
           content: fullResponse.trim(),
           status: status,
           model: activeSession?.preferredModel,
-          error: error,
         });
       } else {
         addMessage(activeId, {
@@ -139,7 +138,7 @@ export const ActiveSessionContextProvider: React.FC<{
           content: "",
           status: status,
           model: activeSession?.preferredModel,
-          error: error,
+          errMsg: error?.type,
         });
       }
 

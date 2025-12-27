@@ -9,7 +9,7 @@ interface Props {
 export const SessionList: React.FC<Props> = ({ onSessionSwitch }) => {
   const activeId = useSessionStore((s) => s.activeId);
   const sessions = useSessionStore((s) =>
-    s.sessions.sort((a, b) => a.updatedAt - b.updatedAt),
+    s.sessions.sort((a, b) => b.updatedAt - a.updatedAt),
   );
 
   return (

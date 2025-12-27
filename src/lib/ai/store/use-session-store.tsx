@@ -22,11 +22,12 @@ export interface SessionState {
   sessions: Session[];
   activeId: string | null;
 
-  ensureDefaultSession: () => void;
-  getSession: (id: string) => Session | undefined;
-  deleteSession: (id: string) => void;
-  createSession: (title?: string) => void;
+  importFn: (s: Session) => void;
   setActive: (id: string) => void;
+  ensureDefault: () => void;
+  deleteFn: (id: string) => void;
+  create: (title?: string) => void;
+  get: (id: string) => Session | undefined;
   addMessage: (sessionId: string, message: Message) => void;
   updateTitle: (sessionId: string, newTitle: string) => void;
   setSessionModel: (sessionId: string, model: Model) => void;
@@ -37,7 +38,19 @@ export const useSessionStore = create<SessionState>()(
       sessions: [],
       activeId: null,
 
-      ensureDefaultSession: () => {
+      importFn: (orphan: Session) => {
+        const state = get();
+        const duplicate = state.sessions.find((s) => s.id === orphan.id);
+        if (duplicate) {
+          orphan.id = crypto.randomUUID();
+          toast.warning("Conflicting session id detected.");
+        }
+        set({
+          sessions: [...state.sessions, orphan],
+        });
+      },
+
+      ensureDefault: () => {
         const state = get();
         if (state.sessions.length === 0) {
           const newSession = createNewSession();
@@ -54,7 +67,7 @@ export const useSessionStore = create<SessionState>()(
         }
       },
 
-      getSession: (id: string) => {
+      get: (id: string) => {
         return get().sessions.find((s) => s.id === id);
       },
 
@@ -65,7 +78,7 @@ export const useSessionStore = create<SessionState>()(
           ),
         })),
 
-      createSession: (title?: string) => {
+      create: (title?: string) => {
         const newSession = createNewSession(title);
 
         set((state) => ({
@@ -74,7 +87,7 @@ export const useSessionStore = create<SessionState>()(
         }));
       },
 
-      deleteSession: (id: string) => {
+      deleteFn: (id: string) => {
         set((state: SessionState) => {
           const newSessions = state.sessions.filter((s) => s.id !== id);
 
@@ -92,14 +105,8 @@ export const useSessionStore = create<SessionState>()(
             toast.success("Session deleted successfully.");
           }
 
-          console.log(
-            "deleteSession: activeId changed from",
-            state.activeId,
-            "to",
-            newActiveId,
-          );
           return {
-            sessions: newSessions, // Remove sorting - let UI handle it
+            sessions: newSessions,
             activeId: newActiveId,
           };
         });
@@ -112,9 +119,12 @@ export const useSessionStore = create<SessionState>()(
       updateTitle: (id: string, newTitle: string) => {
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) =>
-            session.id === id ? { ...session, title: newTitle } : session,
+            session.id === id
+              ? { ...session, title: newTitle, updatedAt: Date.now() }
+              : session,
           ),
         }));
+        toast.success("Session title updated successfully.");
       },
 
       addMessage: (id: string, message: Message) => {
@@ -142,7 +152,7 @@ export const useSessionStore = create<SessionState>()(
         }
 
         if (state) {
-          state.ensureDefaultSession();
+          state.ensureDefault();
         }
       },
     },

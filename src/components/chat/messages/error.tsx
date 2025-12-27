@@ -1,7 +1,7 @@
 import { AlertCircle } from "lucide-react";
 import type { Message } from "@/lib/ai/store/types";
 
-export const ErrorMessage: React.FC<Message> = ({ error }) => {
+export const ErrorMessage: React.FC<Message> = ({ errMsg }) => {
   return (
     <div className="flex w-full py-4">
       <div
@@ -11,7 +11,7 @@ export const ErrorMessage: React.FC<Message> = ({ error }) => {
         p-4 text-sm text-destructive select-auto"
       >
         <AlertCircle className="h-4 w-4" />
-        <span>Error: {error?.type}</span>
+        <span>Error: {errMsg}</span>
       </div>
     </div>
   );

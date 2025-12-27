@@ -7,6 +7,13 @@
     "core:default",
     "store:default",
     "clipboard-manager:allow-write-text",
-    "clipboard-manager:allow-read-text"
+    "clipboard-manager:allow-read-text",
+    "dialog:default",
+    "fs:default",
+    "fs:allow-app-read",
+    "fs:allow-app-read-recursive",
+    "fs:allow-appcache-read",
+    "fs:allow-appcache-read-recursive",
+    "fs:allow-appconfig-read"
   ]
 }

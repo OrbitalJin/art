@@ -24,6 +24,6 @@
 - [x] persistence
 - [x] fix deleting activeId issue
 - [x] Rename Chat context
-- [ ] Implement export/import for sessions
+- [x] Implement export/import for sessions
 - [ ] command palette based navigation
 - [ ] migrate to openrouter
