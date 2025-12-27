@@ -25,5 +25,6 @@
 - [x] fix deleting activeId issue
 - [x] Rename Chat context
 - [x] Implement export/import for sessions
+- [ ] Store api key in storage instead of env
 - [ ] command palette based navigation
 - [ ] migrate to openrouter

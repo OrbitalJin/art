@@ -1,5 +1,5 @@
 import { useSessionStore } from "@/lib/ai/store/use-session-store";
-import { BarChart3, MessagesSquare, Send, TrendingUp } from "lucide-react";
+import { BarChart3, MessagesSquare, Send } from "lucide-react";
 import { useMemo } from "react";
 
 interface QuickStats {
