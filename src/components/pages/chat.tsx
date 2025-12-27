@@ -1,11 +1,11 @@
-import { useChat } from "@/contexts/chat-context";
+import { useActiveSession } from "@/contexts/active-session-context";
 import { MessageList } from "../chat/messages/list";
 import { FloatingSidebar } from "../chat/sidebar/floating";
 import { StaticSidebar } from "../chat/sidebar/static";
 import { Prompt } from "@/components/chat/prompt/prompt";
 
 export function ChatPage() {
-  const chat = useChat();
+  const chat = useActiveSession();
 
   return (
     <div className="relative flex-1 flex flex-row select-none">

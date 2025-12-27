@@ -1,11 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
 import { Download } from "lucide-react";
-// import { toast } from "sonner";
 
 export const ExportButton = () => {
-  const { activeId } = useSessionStore();
-
   // const handleExportSession = () => {
   //   if (activeId) {
   //     const jsonData = exportSession(activeId);
@@ -18,7 +14,7 @@ export const ExportButton = () => {
 
   return (
     <div className="flex gap-2 p-2 border-t">
-      <Button size="sm" variant="outline" disabled={!activeId}>
+      <Button size="sm" variant="outline">
         <Download className="h-4 w-4 mr-2" />
         Export Session
       </Button>

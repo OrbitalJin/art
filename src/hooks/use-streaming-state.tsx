@@ -1,10 +1,10 @@
-import { useChat } from "@/contexts/chat-context";
+import { useActiveSession } from "@/contexts/active-session-context";
 import { useSessionStore } from "@/lib/ai/store/use-session-store";
 import { useCallback, useMemo } from "react";
 
 export const useStreamingState = () => {
   const activeId = useSessionStore((state) => state.activeId);
-  const { isSending, streamingSession } = useChat();
+  const { isSending, streamingSession } = useActiveSession();
 
   const isSessionStreaming = useCallback(
     (sessionId: string) => {

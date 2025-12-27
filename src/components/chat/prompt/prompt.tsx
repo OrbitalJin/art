@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
-import { useChat } from "@/contexts/chat-context";
+import { useActiveSession } from "@/contexts/active-session-context";
 import {
   Tooltip,
   TooltipContent,
@@ -14,7 +14,7 @@ import {
 import { useStreamingState } from "@/hooks/use-streaming-state";
 
 export const Prompt = () => {
-  const { abortStream, prompt, setPrompt, sendMessage } = useChat();
+  const { prompt, abortStream, setPrompt, sendMessage } = useActiveSession();
   const { isCurrentSessionStreaming } = useStreamingState();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -36,7 +36,7 @@ export const Prompt = () => {
 
   const handlePasteCode = async () => {
     const content = await readText();
-    setPrompt(prompt + "\n```txt\n" + content + "```");
+    setPrompt(prompt + "\n```txt\n" + content + "\n```");
   };
 
   const handlePaste = async () => {

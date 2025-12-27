@@ -8,11 +8,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Models } from "@/lib/ai/common/types";
-import { useChat } from "@/contexts/chat-context";
 import { useStreamingState } from "@/hooks/use-streaming-state";
+import { useActiveSession } from "@/contexts/active-session-context";
 
 export const SelectModel = () => {
-  const { model, session, setSessionModel } = useChat();
+  const { model, session, setSessionModel } = useActiveSession();
   const { isCurrentSessionStreaming } = useStreamingState();
 
   const handleSelect = (key: string) => {

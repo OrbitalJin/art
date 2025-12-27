@@ -23,6 +23,7 @@
 - [x] re/generate chat title
 - [x] persistence
 - [x] fix deleting activeId issue
-- [ ] Rename Chat context
+- [x] Rename Chat context
+- [ ] Implement export/import for sessions
 - [ ] command palette based navigation
 - [ ] migrate to openrouter

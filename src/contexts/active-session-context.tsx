@@ -12,7 +12,7 @@ interface Incoming {
   status: MessageStatus;
 }
 
-interface ChatContextValues {
+interface ActiveSessionContextValues {
   streamingSession: string | null;
   session: Session | undefined;
   messages: Message[];
@@ -26,11 +26,13 @@ interface ChatContextValues {
   setSessionModel: (id: string, model: Model) => void;
 }
 
-const chatContext = createContext<ChatContextValues | null>(null);
+const activeSessionContext = createContext<ActiveSessionContextValues | null>(
+  null,
+);
 
-export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const ActiveSessionContextProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
   const addMessage = useSessionStore((state) => state.addMessage);
   const setSessionModel = useSessionStore((state) => state.setSessionModel);
   const activeId = useSessionStore((state) => state.activeId);
@@ -184,7 +186,7 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
   ]);
 
   return (
-    <chatContext.Provider
+    <activeSessionContext.Provider
       value={{
         messages,
         isSending,
@@ -199,12 +201,12 @@ export const ChatContextProvider: React.FC<{ children: React.ReactNode }> = ({
       }}
     >
       {children}
-    </chatContext.Provider>
+    </activeSessionContext.Provider>
   );
 };
 
-export const useChat = () => {
-  const context = useContext(chatContext);
+export const useActiveSession = () => {
+  const context = useContext(activeSessionContext);
   if (!context) {
     throw new Error("useChat must be used within a ChatContextProvider");
   }
