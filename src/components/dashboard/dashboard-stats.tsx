@@ -1,43 +1,33 @@
-import { BarChart3, TrendingUp, Activity } from "lucide-react";
 import { useSessionStore } from "@/lib/ai/store/use-session-store";
-import { useEffect, useState } from "react";
+import { BarChart3, MessagesSquare, Send, TrendingUp } from "lucide-react";
+import { useMemo } from "react";
 
 interface QuickStats {
   totalSessions: number;
+  messagesSent: number;
   totalMessages: number;
-  lastActive: string;
-  activeToday: boolean;
 }
 
 export function DashboardStats() {
   const sessions = useSessionStore((state) => state.sessions);
-  const [stats, setStats] = useState<QuickStats>({
-    totalSessions: 0,
-    totalMessages: 0,
-    lastActive: "Never",
-    activeToday: false,
-  });
 
-  useEffect(() => {
-    const totalMessages = sessions.reduce((acc, session) => acc + session.messages.length, 0);
-    const lastSession = sessions[0];
-    const lastActiveTime = lastSession?.messages.length > 0 
-      ? new Date(lastSession.messages[lastSession.messages.length - 1].id.substring(0, 8)).toLocaleDateString()
-      : "Never";
+  const stats = useMemo<QuickStats>(() => {
+    const messagesSent = sessions.reduce(
+      (acc, session) =>
+        acc + session.messages.filter((m) => m.role === "user").length,
+      0,
+    );
 
-    const activeToday = lastSession?.messages.some(msg => {
-      const msgDate = new Date(msg.id.substring(0, 8));
-      return msgDate.toDateString() === new Date().toDateString();
-    }) || false;
+    const totalMessages = sessions.reduce(
+      (acc, session) => acc + session.messages.length,
+      0,
+    );
 
-    const newStats = {
+    return {
       totalSessions: sessions.length,
       totalMessages,
-      lastActive: lastActiveTime,
-      activeToday,
+      messagesSent,
     };
-
-    setStats(newStats);
   }, [sessions]);
 
   return (
@@ -57,10 +47,10 @@ export function DashboardStats() {
       <div className="bg-card rounded-xl border p-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-            <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <Send className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold">{stats.totalMessages}</p>
+            <p className="text-2xl font-bold">{stats.messagesSent}</p>
             <p className="text-sm text-muted-foreground">Messages Sent</p>
           </div>
         </div>
@@ -69,13 +59,11 @@ export function DashboardStats() {
       <div className="bg-card rounded-xl border p-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-            <Activity className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <MessagesSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold">
-              {stats.activeToday ? "Active" : "Idle"}
-            </p>
-            <p className="text-sm text-muted-foreground">Today</p>
+            <p className="text-2xl font-bold">{stats.totalMessages}</p>
+            <p className="text-sm text-muted-foreground">Total Messages</p>
           </div>
         </div>
       </div>

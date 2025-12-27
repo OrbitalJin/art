@@ -23,15 +23,14 @@ export function RecentSessions({ maxSessions = 3 }: RecentSessionsProps) {
   return (
     <div className="bg-card rounded-xl border p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Clock className="h-5 w-5 text-muted-foreground" />
-          Recent Conversations
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          Recent Sessions
         </h2>
         <Badge variant="secondary" className="text-xs">
           {sessions.length} total
         </Badge>
       </div>
-      
+
       {recentSessions.length > 0 ? (
         <div className="space-y-3">
           {recentSessions.map((session) => (
@@ -48,7 +47,11 @@ export function RecentSessions({ maxSessions = 3 }: RecentSessionsProps) {
                   {session.messages.length} messages
                 </p>
               </div>
-              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
                 Open
               </Button>
             </div>
