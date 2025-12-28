@@ -40,13 +40,15 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     toast.success("API key saved successfully");
   };
 
-  const handleBlur = () => {
-    setValue(apiKey);
-    setShowKey(false);
-  };
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(state) => {
+        onOpenChange(state);
+        setValue(apiKey);
+        setShowKey(false);
+      }}
+    >
       <DialogContent className="max-w-4xl p-0 gap-0">
         <DialogHeader className="border-b px-6 py-4">
           <DialogTitle>Settings</DialogTitle>
@@ -92,7 +94,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       placeholder="sk-..."
                       value={value}
                       onChange={(e) => setValue(e.target.value)}
-                      onBlur={handleBlur}
                     />
                     <Button onClick={saveApiKey}>
                       <Save />
