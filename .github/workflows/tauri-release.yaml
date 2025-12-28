@@ -7,7 +7,7 @@ on:
 jobs:
   publish-tauri:
     permissions:
-      contents: write # Important: required to create a GitHub release
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -16,28 +16,38 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+
+      # 1. Install Bun
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+
       - uses: swatinem/rust-cache@v2
         with:
-          # Caches the target directory
           target-dir: target
-          # Set the key to include the platform and architecture
-          key: ${{ runner.os }}-${{ matrix.platform }}}-cargo
+          key: ${{ runner.os }}-${{ matrix.platform }}-cargo
+
+      # 2. Setup Node (Still needed by some Tauri internals/tooling)
       - uses: actions/setup-node@v4
         with:
           node-version: lts
+          cache: "bun" # Setup-node supports bun caching!
 
+      # 3. Install dependencies with Bun
       - name: Install app dependencies
-        run: yarn install # Or pnpm install, yarn install
+        run: bun install
+
+      # 4. (Optional) If you have a build script in package.json, 
+      # tauri-action will use it, but ensure your tauri.conf.json 
+      # "beforeBuildCommand" uses "bun run build" instead of npm/yarn.
 
       - name: Build and release the Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # Your app's bundle identifier
           bundleIdentifier: com.horijin.dev
-          # Set your dist path, if it is not the default
-          # distPath: ../dist
