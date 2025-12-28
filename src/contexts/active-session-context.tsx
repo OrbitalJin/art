@@ -1,213 +1,182 @@
-import React, { createContext, useContext } from "react";
-import { useCallback, useMemo, useState } from "react";
-import { AIError, DefaultModel, type Model } from "@/lib/ai/common/types";
-import { useAI } from "@/contexts/ai-context";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
-import type { Message, MessageStatus, Session } from "@/lib/ai/store/types";
+import { useAI } from "@/contexts/ai-context";
 import { useSessionStore } from "@/lib/ai/store/use-session-store";
 import { prompts } from "@/lib/ai/common/prompts";
+import type { Message, MessageStatus } from "@/lib/ai/store/types";
+import { useAIStream } from "@/hooks/use-ai-stream";
+import {
+  createModelMessage,
+  createUserMessage,
+} from "@/lib/ai/common/message-factories";
+import type { Model } from "@/lib/ai/common/types";
 
-interface Incoming {
+interface StreamState {
   content: string;
   status: MessageStatus;
 }
 
 interface ActiveSessionContextValues {
-  streamingSession: string | null;
-  session: Session | undefined;
+  streamingSessionId: string | null;
   messages: Message[];
   isSending: boolean;
   prompt: string;
-  model: Model;
 
   setPrompt: (value: string) => void;
   sendMessage: (text: string) => Promise<void>;
   abortStream: () => void;
-  setSessionModel: (id: string, model: Model) => void;
 }
 
-const activeSessionContext = createContext<ActiveSessionContextValues | null>(
+const ActiveSessionContext = createContext<ActiveSessionContextValues | null>(
   null,
 );
 
-export const ActiveSessionContextProvider: React.FC<{
+export const ActiveSessionProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const addMessage = useSessionStore((state) => state.addMessage);
-  const setSessionModel = useSessionStore((state) => state.setSessionModel);
-  const activeId = useSessionStore((state) => state.activeId);
-  const activeSession = useSessionStore((state) =>
-    state.sessions.find((s) => s.id === activeId),
+  const { ai } = useAI();
+  const { activeId, sessions, addMessage } = useSessionStore();
+
+  const activeSession = useMemo(
+    () => sessions.find((s) => s.id === activeId),
+    [sessions, activeId],
   );
 
   const [prompt, setPrompt] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [streamingSession, setStreamingSession] = useState<string | null>(null);
-  const [incoming, setIncoming] = useState<Incoming>({
+  const [streamingSessionId, setStreamingSessionId] = useState<string | null>(
+    null,
+  );
+  const [streamState, setStreamState] = useState<StreamState>({
     content: "",
     status: "thinking",
   });
 
-  const [abortController, setAbortController] =
-    useState<AbortController | null>(null);
+  const { stream, abort } = useAIStream({
+    ai,
+    onToken: (token) => {
+      setStreamState((prev) => ({
+        content: prev.content + token,
+        status: "streaming",
+      }));
+    },
+    onComplete: ({ content, status, errorType }) => {
+      if (!activeId) return;
 
-  const { ai } = useAI();
+      if (status === "error") {
+        toast.error("Network error occurred");
+      }
 
-  const sendMessage = async (text: string) => {
-    if (!activeId || !ai) return;
-
-    setStreamingSession(activeId);
-
-    addMessage(activeId, {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: text,
-      status: "complete",
-    });
-
-    setPrompt("");
-    setIsSending(true);
-    setIncoming({ content: "", status: "thinking" });
-
-    const controller = new AbortController();
-    setAbortController(controller);
-
-    let fullResponse = "";
-    let status: MessageStatus = "streaming";
-    let error: AIError | undefined;
-
-    try {
-      const stream = ai.stream(
-        text,
-        activeSession?.messages || [],
-        prompts.system,
-        activeSession?.preferredModel,
-        controller.signal,
+      addMessage(
+        activeId,
+        createModelMessage(
+          content,
+          status,
+          activeSession?.preferredModel,
+          errorType,
+        ),
       );
 
-      for await (const chunk of stream) {
-        if (chunk.error) {
-          if (chunk.error.type === "aborted") {
-            status = "aborted";
-            setIncoming((prev) => ({
-              content: prev.content,
-              status: "aborted",
-            }));
-          } else if (chunk.error.type === "network") {
-            status = "error";
-            setIncoming((prev) => ({
-              content: prev.content,
-              status: "error",
-            }));
-            toast.error("Network error occurred");
-          }
-          error = chunk.error;
-        }
-
-        if (chunk.token) {
-          fullResponse += chunk.token;
-          setIncoming((prev) => ({
-            content: prev.content + chunk.token,
-            status: "streaming",
-          }));
-        }
-
-        if (chunk.isFinal) {
-          if (status === "streaming") {
-            status = "complete";
-          }
-          setIncoming((prev) => ({
-            content: prev.content,
-            status: status,
-          }));
-        }
-      }
-    } finally {
-      if (status !== "error" || fullResponse.trim()) {
-        addMessage(activeId, {
-          id: crypto.randomUUID(),
-          role: "model",
-          content: fullResponse.trim(),
-          status: status,
-          model: activeSession?.preferredModel,
-        });
-      } else {
-        addMessage(activeId, {
-          id: crypto.randomUUID(),
-          role: "model",
-          content: "",
-          status: status,
-          model: activeSession?.preferredModel,
-          errMsg: error?.type,
-        });
-      }
-
       setIsSending(false);
-      setAbortController(null);
-      setStreamingSession(null);
-    }
-  };
+      setStreamingSessionId(null);
+    },
+  });
 
   const abortStream = useCallback(() => {
-    if (abortController) {
-      setIncoming((prev) => ({
-        content: prev.content,
-        status: "aborted",
-      }));
-      abortController.abort();
-      toast.info("Stream Aborted");
-    }
-  }, [abortController]);
+    setStreamState((prev) => ({ ...prev, status: "aborted" }));
+    abort();
+    toast.info("Stream aborted");
+  }, [abort]);
+
+  const sendMessage = useCallback(
+    async (text: string) => {
+      if (!activeId || !ai) return;
+
+      if (isSending) {
+        toast.info("Please wait for the current stream to finish");
+        return;
+      }
+
+      if (!text.trim()) {
+        toast.warning("Please enter a message");
+        return;
+      }
+
+      addMessage(activeId, createUserMessage(text));
+
+      setPrompt("");
+      setIsSending(true);
+      setStreamingSessionId(activeId);
+      setStreamState({ content: "", status: "thinking" });
+
+      await stream({
+        text,
+        messages: activeSession?.messages || [],
+        systemPrompt: prompts.system,
+        model: activeSession?.preferredModel as Model,
+      });
+    },
+    [activeId, ai, isSending, activeSession, addMessage, stream],
+  );
 
   const messages = useMemo(() => {
     const base = activeSession?.messages || [];
 
-    if (isSending && streamingSession === activeId) {
+    if (isSending && streamingSessionId === activeId) {
       return [
         ...base,
         {
           id: "streaming-response",
           role: "model",
-          content: incoming.content,
-          status: incoming.status,
+          content: streamState.content,
+          status: streamState.status,
           model: activeSession?.preferredModel,
         } as Message,
       ];
     }
+
     return base;
   }, [
     activeSession?.messages,
     activeSession?.preferredModel,
     isSending,
-    incoming,
+    streamState,
     activeId,
-    streamingSession,
+    streamingSessionId,
   ]);
 
+  const value = useMemo(
+    () => ({
+      messages,
+      isSending,
+      prompt,
+      streamingSessionId,
+      setPrompt,
+      sendMessage,
+      abortStream,
+    }),
+    [messages, isSending, prompt, streamingSessionId, sendMessage, abortStream],
+  );
+
   return (
-    <activeSessionContext.Provider
-      value={{
-        messages,
-        isSending,
-        prompt,
-        setPrompt,
-        sendMessage,
-        abortStream,
-        setSessionModel,
-        streamingSession,
-        model: activeSession?.preferredModel || DefaultModel,
-        session: activeSession,
-      }}
-    >
+    <ActiveSessionContext.Provider value={value}>
       {children}
-    </activeSessionContext.Provider>
+    </ActiveSessionContext.Provider>
   );
 };
 
 export const useActiveSession = () => {
-  const context = useContext(activeSessionContext);
+  const context = useContext(ActiveSessionContext);
   if (!context) {
-    throw new Error("useChat must be used within a ChatContextProvider");
+    throw new Error(
+      "useActiveSession must be used within ActiveSessionProvider",
+    );
   }
   return context;
 };

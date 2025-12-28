@@ -1,4 +1,4 @@
-import { Clock, MessageSquare } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSessionStore } from "@/lib/ai/store/use-session-store";

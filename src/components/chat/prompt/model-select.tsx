@@ -7,13 +7,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Models } from "@/lib/ai/common/types";
+import { Models, type Model } from "@/lib/ai/common/types";
 import { useStreamingState } from "@/hooks/use-streaming-state";
-import { useActiveSession } from "@/contexts/active-session-context";
+import { useSessionStore } from "@/lib/ai/store/use-session-store";
 
 export const SelectModel = () => {
-  const { model, session, setSessionModel } = useActiveSession();
+  const setSessionModel = useSessionStore((store) => store.setSessionModel);
+  const session = useSessionStore((state) =>
+    state.sessions.find((s) => s.id === state.activeId),
+  );
   const { isCurrentSessionStreaming } = useStreamingState();
+  const model = session?.preferredModel as Model;
 
   const handleSelect = (key: string) => {
     if (session) {

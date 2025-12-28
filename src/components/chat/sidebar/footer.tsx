@@ -1,12 +1,10 @@
-import { Plus, Download, Upload } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { useUsage } from "@/hooks/use-usage";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
 import { useTradeSession } from "@/hooks/use-trade-session";
 
 export const SidebarFooter = () => {
-  const { create } = useSessionStore();
   const { usage } = useUsage();
 
   return (
