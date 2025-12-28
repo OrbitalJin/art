@@ -16,8 +16,6 @@ import { useCopy } from "@/hooks/use-copy";
 
 type SettingsTab = "chat";
 
-// "AIzaSyAJcnLZB8M1oSjm8X58Fyjx2nh2qTWv4nA"
-
 interface SettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -32,10 +30,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { copied, copy } = useCopy(value);
 
   const saveApiKey = () => {
-    if (!value) {
-      setValue(apiKey);
-      return;
-    }
     setApiKey(value);
     toast.success("API key saved successfully");
   };
