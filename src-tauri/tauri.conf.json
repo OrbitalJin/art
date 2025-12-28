@@ -12,12 +12,13 @@
   "app": {
     "windows": [
       {
-        "decorations": false,
         "label": "main",
         "title": "art",
         "width": 800,
         "height": 600,
-        "fullscreen": false
+        "fullscreen": false,
+        "transparent": true,
+        "decorations": false
       }
     ],
     "security": {
