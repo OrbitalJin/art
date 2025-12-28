@@ -3,7 +3,9 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
-import { LayoutDashboard, MessageCircle } from "lucide-react";
+import { LayoutDashboard, MessageCircle, Settings2 } from "lucide-react";
+import { SettingsDialog } from "./settings-dialog";
+import { useState } from "react";
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -11,15 +13,26 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
+  const [open, setOpen] = useState<boolean>(false);
   return (
     <div className="relative flex flex-row h-screen w-screen bg-background font-sans antialiased p-2 gap-2">
-      <aside className="flex flex-col items-center h-full border rounded-md p-2 gap-2">
-        <Button size="icon" variant="outline" onClick={() => navigate("/")}>
-          <LayoutDashboard />
+      <aside className="flex flex-col items-center justify-between h-full border rounded-md p-2 gap-2">
+        <div className="flex flex-col gap-2">
+          <Button size="icon" variant="outline" onClick={() => navigate("/")}>
+            <LayoutDashboard />
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => navigate("/chat")}
+          >
+            <MessageCircle />
+          </Button>
+        </div>
+        <Button size="icon" variant="outline" onClick={() => setOpen(!open)}>
+          <Settings2 />
         </Button>
-        <Button size="icon" variant="outline" onClick={() => navigate("/chat")}>
-          <MessageCircle />
-        </Button>
+        <SettingsDialog open={open} onOpenChange={setOpen} />
       </aside>
       <main
         className={cn(

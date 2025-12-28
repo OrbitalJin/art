@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { createContext, useContext } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { AIProvider } from "@/lib/ai/provider";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { toast } from "sonner";
 
 export interface AIContextType {
   ai: AIProvider | null;
@@ -12,15 +13,12 @@ const AIContext = createContext<AIContextType | null>(null);
 export const AIContextProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [apiKey, setApiKey] = useState<string>("");
-  useEffect(() => {
-    invoke<string>("get_env_var", { key: "GOOGLE_API_KEY" })
-      .then(setApiKey)
-      .catch((err) => console.log(err));
-  }, []);
-
+  const apiKey = useSettingsStore((state) => state.apiKey);
   const ai = useMemo(() => {
-    if (!apiKey) return null;
+    if (!apiKey) {
+      toast.error("API key is not set");
+      return null;
+    }
 
     return new AIProvider(apiKey);
   }, [apiKey]);
