@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Check, Copy, Eye, EyeOff, MessageCircle, Save } from "lucide-react";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
@@ -74,7 +73,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="apiKey">API Key</Label>
+                  <p className="font-semibold">API Key</p>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
