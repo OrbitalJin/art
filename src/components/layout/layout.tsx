@@ -61,7 +61,7 @@ const SideBar = () => {
               />
             </button>
             <button
-              onClick={() => appWindow.maximize()}
+              onClick={() => appWindow.toggleMaximize()}
               className="group relative flex items-center justify-center"
             >
               <Circle
