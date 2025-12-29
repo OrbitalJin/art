@@ -6,6 +6,8 @@ import {
   Sparkles,
   Loader2,
   TextCursor,
+  Pin,
+  PinOff,
 } from "lucide-react";
 
 import {
@@ -26,6 +28,7 @@ interface Props {
   id: string;
   title: string;
   active: boolean;
+  pinned: boolean;
   onSwitch?: () => void;
 }
 
@@ -33,6 +36,7 @@ export const SessionListItem: React.FC<Props> = ({
   id,
   title,
   active,
+  pinned,
   onSwitch,
 }) => {
   const { isSessionStreaming } = useStreamingState();
@@ -107,7 +111,11 @@ export const SessionListItem: React.FC<Props> = ({
         ) : isSessionStreaming(id) ? (
           <ShimmerText>{title}</ShimmerText>
         ) : (
-          <span className="truncate block w-[220px] text-left">{title}</span>
+          <>
+            <span className="truncate block max-w-[240px] text-left">
+              {title}
+            </span>
+          </>
         )}
       </div>
 
@@ -120,6 +128,7 @@ export const SessionListItem: React.FC<Props> = ({
             <Menu
               id={id}
               title={title}
+              pinned={pinned}
               setText={setText}
               setEditing={setEditing}
               updateTitle={updateTitle}
@@ -135,6 +144,7 @@ export const SessionListItem: React.FC<Props> = ({
 interface MenuProps {
   id: string;
   title: string;
+  pinned: boolean;
   setText: (text: string) => void;
   setEditing: (value: boolean) => void;
   updateTitle: (id: string, title: string) => void;
@@ -143,12 +153,15 @@ interface MenuProps {
 
 const Menu: React.FC<MenuProps> = ({
   id,
+  pinned,
   setText,
   setEditing,
   updateTitle,
   generateTitle,
 }) => {
+  const togglePin = useSessionStore((s) => s.togglePin);
   const deleteFn = useSessionStore((s) => s.deleteFn);
+
   const handleDelete = (e?: React.SyntheticEvent) => {
     e?.stopPropagation();
     deleteFn(id);
@@ -184,6 +197,16 @@ const Menu: React.FC<MenuProps> = ({
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
+
+        <DropdownMenuItem onSelect={() => togglePin(id)}>
+          {pinned ? (
+            <Pin className="mr-2 h-4 w-4" />
+          ) : (
+            <PinOff className="mr-2 h-4 w-4" />
+          )}
+          <span>{pinned ? "Unpin" : "Pin"}</span>
+          <DropdownMenuShortcut>F1</DropdownMenuShortcut>
+        </DropdownMenuItem>
 
         <DropdownMenuItem onSelect={() => setEditing(true)}>
           <TextCursor className="mr-2 h-4 w-4" />

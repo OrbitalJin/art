@@ -24,4 +24,5 @@ export interface Session {
   createdAt: number;
   updatedAt: number;
   active?: boolean;
+  pinned?: boolean;
 }

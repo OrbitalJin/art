@@ -22,6 +22,7 @@ export interface SessionState {
   sessions: Session[];
   activeId: string | null;
 
+  togglePin: (id: string) => void;
   importFn: (s: Session) => void;
   setActive: (id: string) => void;
   ensureDefault: () => void;
@@ -37,6 +38,17 @@ export const useSessionStore = create<SessionState>()(
     (set, get) => ({
       sessions: [],
       activeId: null,
+
+      togglePin: (id: string) => {
+        const state = get();
+        const session = state.sessions.find((s) => s.id === id);
+        if (!session) return toast.error("Session not found");
+        session.pinned = !session.pinned;
+        toast.success(
+          `Session ${!session.pinned ? "unpinned" : "pinned"} successfully.`,
+        );
+        set({ sessions: [...state.sessions] });
+      },
 
       importFn: (orphan: Session) => {
         const state = get();
