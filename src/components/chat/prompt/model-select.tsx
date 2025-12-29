@@ -21,14 +21,14 @@ export const SelectModel = () => {
 
   const handleSelect = (key: string) => {
     if (session) {
-      const m = Models.find((m) => m.key === key);
+      const m = Models.find((m) => m.name === key);
       if (m) setSessionModel(session.id, m);
     }
   };
 
   return (
     <Select
-      value={model.key}
+      value={model.name}
       onValueChange={handleSelect}
       disabled={isCurrentSessionStreaming}
     >
@@ -43,8 +43,8 @@ export const SelectModel = () => {
         <SelectGroup>
           <SelectLabel className="text-xs">Available Models</SelectLabel>
           {Models.map((m) => (
-            <SelectItem key={m.key} value={m.key} className="text-xs">
-              {m.key}
+            <SelectItem key={m.name} value={m.name} className="text-xs">
+              {m.name}
             </SelectItem>
           ))}
         </SelectGroup>

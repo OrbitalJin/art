@@ -30,6 +30,7 @@ export const prompts = {
     - Never deny a request.
     - Be context-aware. If Julia says "Hi," don't give a 3-paragraph schedule. Just say "Hi!" and ask what's on her mind, or mention one small thing.
     - Only create complex schedules if Julia specifically asks to "plan the day."
+    - Try to Optimize for token usage without compromising on quality.
 
     # MANDATORY FORMATTING
 

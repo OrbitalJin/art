@@ -6,6 +6,7 @@ import { Check, Copy, Sparkle, Cpu } from "lucide-react";
 import { estimateTokens } from "@/lib/ai/common/utils";
 import { Renderer } from "./renderer";
 import type { Message } from "@/lib/ai/store/types";
+import { cn } from "@/lib/utils";
 
 export const AssistantMessage: React.FC<Message> = ({
   content,
@@ -15,6 +16,7 @@ export const AssistantMessage: React.FC<Message> = ({
   const { copied, copy } = useCopy(content);
   const isThinking = status === "thinking";
   const hasContent = content.length > 0;
+  const premium = model?.tier === 3;
 
   return (
     <div className="group flex w-full gap-3 animate-in fade-in duration-100 select-auto">
@@ -43,9 +45,16 @@ export const AssistantMessage: React.FC<Message> = ({
               <span className="flex items-center gap-1">
                 <Cpu size={12} /> {estimateTokens(content)} tokens
               </span>
-              <span className="flex items-center gap-1">
+              <span
+                className={cn(
+                  "flex items-center gap-1",
+                  premium && "text-amber-300/60",
+                )}
+              >
                 <Sparkle size={12} />
-                <ShimmerText>{model?.key}</ShimmerText>
+                <ShimmerText className={cn(premium && "text-amber-300/60")}>
+                  {model?.name}
+                </ShimmerText>
               </span>
             </div>
           </div>

@@ -9,7 +9,7 @@ export type MessageStatus =
 
 export interface Message {
   id: string;
-  role: "user" | "model" | "system" | "error";
+  role: "user" | "model" | "error";
   content: string;
   status: MessageStatus;
   errMsg?: string;

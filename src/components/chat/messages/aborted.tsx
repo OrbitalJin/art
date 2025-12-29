@@ -87,7 +87,7 @@ export const AbortedMessage: React.FC<Message> = ({ content, model }) => {
                 </span>
                 <span className="flex items-center gap-1">
                   <Sparkle size={12} />
-                  <ShimmerText>{model?.key}</ShimmerText>
+                  <ShimmerText>{model?.name}</ShimmerText>
                 </span>
               </div>
             </div>

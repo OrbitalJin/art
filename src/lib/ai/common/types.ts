@@ -1,13 +1,24 @@
+export type ModelTier = 1 | 2 | 3;
+
+export type ModelType =
+  | "gemma-3-27b-it"
+  | "gemini-2.0-flash-lite"
+  | "gemini-2.5-flash-lite"
+  | "gemini-2.5-flash"
+  | "gemini-3-flash-preview";
+
 export type Model = {
-  key: string;
-  type: "gemma-3-27b-it" | "gemini-2.5-flash";
+  tier: ModelTier;
+  name: "Genesis" | "Bloom" | "Eden";
+  type: ModelType;
   limit: number;
 };
 
-export const Models: Model[] = [
-  { key: "Art Genesis", type: "gemma-3-27b-it", limit: 128000 },
-  { key: "Art Turbo", type: "gemini-2.5-flash", limit: 1000000 },
-] as const;
+export const Models = [
+  { tier: 1, name: "Genesis", type: "gemma-3-27b-it", limit: 124_000 },
+  { tier: 2, name: "Bloom", type: "gemma-3-27b-it", limit: 124_000 },
+  { tier: 3, name: "Eden", type: "gemini-2.5-flash", limit: 1_000_000 },
+] as const satisfies readonly Model[];
 
 export const DefaultModel = Models[0];
 
