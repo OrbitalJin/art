@@ -77,13 +77,6 @@ export const SessionListItem: React.FC<Props> = ({
           onSwitch?.();
         }
       }}
-      onKeyDown={(e) => {
-        if (editing || generating) return;
-        if (e.key === "F2") {
-          e.preventDefault();
-          setEditing(true);
-        }
-      }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {generating ? (
@@ -205,13 +198,11 @@ const Menu: React.FC<MenuProps> = ({
             <PinOff className="mr-2 h-4 w-4" />
           )}
           <span>{pinned ? "Unpin" : "Pin"}</span>
-          <DropdownMenuShortcut>F1</DropdownMenuShortcut>
         </DropdownMenuItem>
 
         <DropdownMenuItem onSelect={() => setEditing(true)}>
           <TextCursor className="mr-2 h-4 w-4" />
           <span>Rename</span>
-          <DropdownMenuShortcut>F2</DropdownMenuShortcut>
         </DropdownMenuItem>
 
         <DropdownMenuItem

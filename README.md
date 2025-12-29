@@ -27,5 +27,6 @@
 - [x] Implement export/import for sessions
 - [x] Store api key in storage instead of env
 - [x] Pinnable sessions
+- [x] Collapsible chat sidebar at all times
 - [ ] command palette based navigation
 - [ ] migrate to openrouter
