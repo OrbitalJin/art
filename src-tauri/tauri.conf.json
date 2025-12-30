@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "Art",
-        "width": 800,
-        "height": 600,
+        "minWidth": 400,
+        "minHeight": 600,
         "fullscreen": false,
         "transparent": true,
         "decorations": false

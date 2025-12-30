@@ -15,7 +15,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuShortcut,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -105,7 +104,7 @@ export const SessionListItem: React.FC<Props> = ({
           <ShimmerText>{title}</ShimmerText>
         ) : (
           <>
-            <span className="truncate block max-w-[240px] text-left">
+            <span className="truncate block max-w-[240px] text-left text-foreground/80">
               {title}
             </span>
           </>

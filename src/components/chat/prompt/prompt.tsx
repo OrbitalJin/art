@@ -22,8 +22,7 @@ export const Prompt = () => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
-      const newHeight = Math.min(textarea.scrollHeight, 200);
-      textarea.style.height = `${newHeight}px`;
+      textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [prompt]);
 
@@ -41,7 +40,7 @@ export const Prompt = () => {
 
   const handlePaste = async () => {
     const content = await readText();
-    setPrompt(content);
+    setPrompt(prompt + content);
   };
 
   return (
@@ -62,7 +61,7 @@ export const Prompt = () => {
             placeholder="Message..."
             className={cn(
               "bg-transparent! border-0 shadow-none resize-none p-2",
-              "min-h-[80px] max-h-[200px]",
+              "min-h-[80px] max-h-[250px] lg:max-h-[400px]",
               "text-foreground/80 placeholder:text-muted-foreground focus-visible:ring-0",
             )}
             onKeyDown={handleKeyDown}

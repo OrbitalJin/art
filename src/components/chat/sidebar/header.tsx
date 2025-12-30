@@ -1,22 +1,29 @@
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { PanelLeftClose, Plus } from "lucide-react";
 import { useSessionStore } from "@/lib/ai/store/use-session-store";
 
-export const SidebarHeader = () => {
+interface Props {
+  onClose?: () => void;
+}
+
+export const SidebarHeader: React.FC<Props> = ({ onClose }) => {
   const { create } = useSessionStore();
   return (
-    <div className="flex items-center justify-between px-3 py-3 border-b bg-card/50">
-      <span className="text-sm font-semibold tracking-tight px-1">
-        Sessions
-      </span>
-      <Button
-        size="icon"
-        variant="ghost"
-        className="h-8 w-8"
-        onClick={() => create("New Session")}
-      >
-        <Plus className="h-4 w-4" />
-      </Button>
+    <div className="flex flex-col">
+      <div className="flex border-b p-2 gap-2">
+        <Button
+          variant="outline"
+          className="flex-1 items-center"
+          onClick={() => create("New Session")}
+        >
+          <Plus className="h-4 w-4" /> New Session
+        </Button>
+        {onClose && (
+          <Button variant="outline" size="icon" onClick={onClose}>
+            <PanelLeftClose />
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
