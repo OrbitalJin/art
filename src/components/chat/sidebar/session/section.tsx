@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronRight, MessageCircle, Pin } from "lucide-react";
+import { ChevronRight, MessageCircle, Pin } from "lucide-react";
 
 interface Props {
   title: string;
