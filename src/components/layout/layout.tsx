@@ -19,16 +19,53 @@ interface LayoutProps {
 
 const appWindow = getCurrentWindow();
 
+export function Layout({ children }: LayoutProps) {
+  return (
+    <>
+      <div
+        className={cn(
+          "relative flex flex-row h-screen w-screen bg-background",
+          "font-sans antialiased p-2 gap-2 select-none",
+        )}
+      >
+        <main
+          className={cn(
+            "flex-1 flex transition-all duration-300 border rounded-md",
+          )}
+        >
+          {children}
+        </main>
+        <SideBar />
+      </div>
+      <Toaster position="top-center" expand={false} />
+      <CommandPalette />
+    </>
+  );
+}
+
 const SideBar = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState<boolean>(false);
   const location = useLocation();
 
+  const handleToggleMaximize = async () => {
+    await appWindow.toggleMaximize();
+  };
+
+  const handleCloseWindow = async () => {
+    await appWindow.close();
+  };
+
+  const handleMinimizeWindow = async () => {
+    await appWindow.minimize();
+  };
+
   const isSelected = (path: string): boolean => {
     return location.pathname === path;
   };
+
   return (
-    <div data-tauri-drag-region className="flex flex-col h-full gap-2">
+    <div className="flex flex-col h-full gap-2">
       <aside
         className={cn(
           "flex flex-col items-center w-[60px] h-full",
@@ -36,21 +73,11 @@ const SideBar = () => {
           "py-3 transition-all duration-300",
         )}
       >
+        {/* Window controls */}
         <div className="flex flex-col gap-4 items-center mb-4">
           <div className="flex gap-1 px-2">
             <button
-              onClick={() => appWindow.close()}
-              className="group relative flex items-center justify-center"
-            >
-              <Circle
-                className={cn(
-                  "h-3 w-3 fill-red-500 text-red-500",
-                  "transition-transform group-hover:scale-110",
-                )}
-              />
-            </button>
-            <button
-              onClick={() => appWindow.minimize()}
+              onClick={handleMinimizeWindow}
               className="group relative flex items-center justify-center"
             >
               <Circle
@@ -60,8 +87,9 @@ const SideBar = () => {
                 )}
               />
             </button>
+
             <button
-              onClick={() => appWindow.toggleMaximize()}
+              onClick={handleToggleMaximize}
               className="group relative flex items-center justify-center"
             >
               <Circle
@@ -71,9 +99,29 @@ const SideBar = () => {
                 )}
               />
             </button>
+
+            <button
+              onClick={handleCloseWindow}
+              className="group relative flex items-center justify-center"
+            >
+              <Circle
+                className={cn(
+                  "h-3 w-3 fill-red-500 text-red-500",
+                  "transition-transform group-hover:scale-110",
+                )}
+              />
+            </button>
           </div>
 
-          <div className="w-8 h-px bg-border/50" />
+          <div
+            aria-hidden
+            data-tauri-drag-region
+            className="flex flex-col gap-1 w-full px-3"
+          >
+            <div className="h-px flex-1 border-t" />
+            <div className="h-px flex-1 border-t" />
+            <div className="h-px flex-1 border-t" />
+          </div>
         </div>
 
         <nav className="flex flex-col gap-2 flex-1 w-full px-2 items-center">
@@ -100,6 +148,7 @@ const SideBar = () => {
           </Button>
         </nav>
 
+        {/* Footer */}
         <div className="flex flex-col gap-2 px-2 mt-auto">
           <Button
             size="icon"
@@ -113,28 +162,10 @@ const SideBar = () => {
           >
             <Settings2 size={20} />
           </Button>
+
           <SettingsDialog open={open} onOpenChange={setOpen} />
         </div>
       </aside>
     </div>
   );
 };
-
-export function Layout({ children }: LayoutProps) {
-  return (
-    <>
-      <div className="relative flex flex-row h-screen w-screen bg-background font-sans antialiased p-2 gap-2 select-none">
-        <main
-          className={cn(
-            "flex-1 flex transition-all duration-300 border rounded-md",
-          )}
-        >
-          {children}
-        </main>
-        <SideBar />
-      </div>
-      <Toaster position="top-center" expand={false} />
-      <CommandPalette />
-    </>
-  );
-}

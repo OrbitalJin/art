@@ -408,6 +408,14 @@ body {
 @layer base {
   * {
     @apply border-border outline-ring/50;
+
+    [data-tauri-drag-region] {
+      cursor: grab;
+    }
+
+    [data-tauri-drag-region]:active {
+      cursor: grabbing;
+    }
   }
 
   body {
