@@ -1,12 +1,11 @@
 import { useActiveSession } from "@/contexts/active-session-context";
-import { MessageList } from "../chat/messages/list";
-import { StaticSidebar } from "../chat/sidebar/static";
+import { MessageList } from "@/components/chat/messages/list";
+import { StaticSidebar } from "@/components/chat/sidebar/static";
 import { Prompt } from "@/components/chat/prompt/prompt";
-import { FloatingSidebar } from "../chat/sidebar/floating";
+import { FloatingSidebar } from "@/components/chat/sidebar/floating";
 
-export function ChatPage() {
+export const Chat = () => {
   const chat = useActiveSession();
-
   return (
     <div className="relative flex-1 flex flex-row select-none">
       <StaticSidebar />
@@ -17,4 +16,4 @@ export function ChatPage() {
       </div>
     </div>
   );
-}
+};

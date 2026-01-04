@@ -16,7 +16,8 @@ export const useGenerateTitle = () => {
     setGenerating(true);
     try {
       const title =
-        (await ai.gen(prompts.gen.title, session.messages)) || "New Session";
+        (await ai.genWithContext(prompts.gen.title, session.messages)) ||
+        "New Session";
 
       if (title && title.trim()) {
         return title.trim();

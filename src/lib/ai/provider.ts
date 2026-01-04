@@ -67,7 +67,22 @@ export class AIProvider {
     }
   }
 
-  async gen(
+  async gen(prompt: string, model: Model = DefaultModel): Promise<string> {
+    const contents = [
+      {
+        role: "user",
+        parts: [{ text: prompt }],
+      },
+    ];
+    const result = await this.llm.models.generateContent({
+      model: model.type,
+      contents: contents,
+    });
+
+    return result.text as string;
+  }
+
+  async genWithContext(
     prompt: string,
     history: Message[],
     model: Model = DefaultModel,

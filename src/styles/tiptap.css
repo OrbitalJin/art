@@ -1,0 +1,141 @@
+@reference "./index.css";
+
+.tiptap {
+  @apply font-sans text-base leading-relaxed text-foreground outline-none min-h-full selection:bg-primary/30;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+
+  :first-child {
+    margin-top: 0;
+  }
+
+  p.is-empty::before,
+  h1.is-empty::before,
+  h2.is-empty::before,
+  h3.is-empty::before {
+    content: attr(data-placeholder);
+    @apply text-muted-foreground/50 pointer-events-none float-left h-0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-semibold leading-tight mt-8 mb-4;
+  }
+
+  h1 {
+    @apply text-3xl;
+  }
+
+  h2 {
+    @apply text-2xl border-b border-border pb-1;
+  }
+
+  h3 {
+    @apply text-xl;
+  }
+
+  p {
+    @apply my-4;
+  }
+
+  :not(pre)>code {
+    @apply text-sm bg-muted px-1.5 py-0.5 rounded text-primary;
+    @apply before:opacity-30 after:opacity-30;
+    font-family: monospace;
+  }
+
+  ul,
+  ol {
+    @apply pl-6 my-5;
+
+    li {
+      @apply my-1.5;
+
+      p {
+        @apply my-1;
+      }
+    }
+  }
+
+  ul {
+    @apply list-disc;
+  }
+
+  ol {
+    @apply list-decimal;
+  }
+
+  /* --------------------------------------------------------
+     Task list specific styles (Obsidian Style)
+     -------------------------------------------------------- */
+  ul[data-type="taskList"] {
+    @apply list-none p-0 ml-0;
+
+    li {
+      @apply flex items-start my-2;
+
+      >label {
+        @apply flex-none mr-3 select-none mt-1;
+
+        input[type="checkbox"] {
+          @apply w-4 h-4 rounded border-2 border-muted-foreground/40 bg-background cursor-pointer transition-all;
+          @apply checked:bg-primary checked:border-primary;
+          appearance: none;
+          position: relative;
+
+          &:checked::after {
+            content: "o";
+            @apply absolute inset-0 flex items-center justify-center text-[10px] text-primary-foreground font-bold;
+          }
+        }
+      }
+
+      >div {
+        @apply flex-auto;
+      }
+
+      /* Strike through text when checked */
+      &[data-checked="true"]>div {
+        @apply opacity-50 line-through decoration-muted-foreground;
+      }
+    }
+
+    /* Nested task lists */
+    ul[data-type="taskList"] {
+      @apply my-0 ml-4;
+    }
+  }
+
+  pre {
+    @apply bg-card/50 border border-border rounded-md p-4 my-6 font-mono text-sm overflow-x-auto;
+
+    code {
+      @apply bg-transparent p-0 text-foreground;
+      @apply before:content-none after:content-none;
+      font-family: monospace;
+    }
+  }
+
+  blockquote {
+    @apply border-l-4 border-primary/40 pl-4 py-1 my-6 italic text-muted-foreground;
+  }
+
+  hr {
+    @apply border-none border-t border-border my-10;
+  }
+
+  table {
+    @apply w-full border-collapse my-6 text-sm;
+
+    th,
+    td {
+      @apply border border-border p-2 text-left;
+    }
+
+    th {
+      @apply bg-muted font-semibold;
+    }
+  }
+}

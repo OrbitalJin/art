@@ -1,49 +1,35 @@
-import { CommandPalette } from "@/components/command-palette";
-import { cn } from "@/lib/utils";
-import { Toaster } from "@/components/ui/sonner";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "../ui/button";
 import {
   Circle,
   LayoutDashboard,
   MessageCircle,
+  Notebook,
   Settings2,
+  type LucideIcon,
 } from "lucide-react";
 import { SettingsDialog } from "./settings-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useState } from "react";
-
-interface LayoutProps {
-  children?: React.ReactNode;
-}
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { CommandPalette } from "@/components/command-palette";
 
 const appWindow = getCurrentWindow();
 
-export function Layout({ children }: LayoutProps) {
-  return (
-    <>
-      <div
-        className={cn(
-          "relative flex flex-row h-screen w-screen bg-background",
-          "font-sans antialiased p-2 gap-2 select-none",
-        )}
-      >
-        <main
-          className={cn(
-            "flex-1 flex transition-all duration-300 border rounded-md",
-          )}
-        >
-          {children}
-        </main>
-        <SideBar />
-      </div>
-      <Toaster position="top-center" expand={false} />
-      <CommandPalette />
-    </>
-  );
+export interface NavigationItem {
+  href: string;
+  name: string;
+  description: string;
+  icon: LucideIcon;
+  shortcut: string;
 }
 
-const SideBar = () => {
+export const Sidebar = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState<boolean>(false);
   const location = useLocation();
@@ -64,6 +50,31 @@ const SideBar = () => {
     return location.pathname === path;
   };
 
+  const items: NavigationItem[] = [
+    {
+      href: "/",
+      name: "Dashboard",
+      description: "Dashboard",
+      icon: LayoutDashboard,
+      shortcut: "Alt+1",
+    },
+    {
+      href: "/chat",
+      name: "Chat",
+      description: "Chat",
+      icon: MessageCircle,
+      shortcut: "Alt+2",
+    },
+
+    {
+      icon: Notebook,
+      name: "Notes",
+      description: "Notes",
+      href: "/notes",
+      shortcut: "Alt+3",
+    },
+  ];
+
   return (
     <div className="flex flex-col h-full gap-2">
       <aside
@@ -74,7 +85,7 @@ const SideBar = () => {
         )}
       >
         {/* Window controls */}
-        <div className="flex flex-col gap-4 items-center mb-4">
+        <div className="flex flex-col gap-3 items-center">
           <div className="flex gap-1 px-2">
             <button
               onClick={handleMinimizeWindow}
@@ -116,7 +127,7 @@ const SideBar = () => {
           <div
             aria-hidden
             data-tauri-drag-region
-            className="flex flex-col gap-1 w-full px-3"
+            className="flex flex-col gap-1 w-full p-3"
           >
             <div className="h-px flex-1 border-t" />
             <div className="h-px flex-1 border-t" />
@@ -125,27 +136,24 @@ const SideBar = () => {
         </div>
 
         <nav className="flex flex-col gap-2 flex-1 w-full px-2 items-center">
-          <Button
-            className={cn("hover:scale-110", isSelected("/") && "text-primary")}
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/")}
-          >
-            <LayoutDashboard size={20} />
-          </Button>
-
-          <Button
-            className={cn(
-              "hover:scale-110",
-              isSelected("/chat") && "text-primary",
-            )}
-            size="icon"
-            variant="ghost"
-            onClick={() => navigate("/chat")}
-            aria-label="Chat"
-          >
-            <MessageCircle size={20} />
-          </Button>
+          {items.map((item, index) => (
+            <Tooltip>
+              <TooltipTrigger asChild key={`nav-${index}`}>
+                <Button
+                  className={cn(
+                    "hover:scale-110",
+                    isSelected(item.href) && "text-primary",
+                  )}
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(item.href)}
+                >
+                  <item.icon size={20} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">{item.description}</TooltipContent>
+            </Tooltip>
+          ))}
         </nav>
 
         {/* Footer */}
@@ -166,6 +174,7 @@ const SideBar = () => {
           <SettingsDialog open={open} onOpenChange={setOpen} />
         </div>
       </aside>
+      <CommandPalette items={items} />
     </div>
   );
 };

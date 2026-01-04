@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  MessageCircle,
-  MessageCirclePlus,
-  Palette,
-} from "lucide-react";
+import { MessageCirclePlus, Palette } from "lucide-react";
 import {
   CommandDialog,
   CommandInput,
@@ -18,27 +13,17 @@ import {
 } from "@/components/ui/command";
 import { useTheme } from "./providers/theme-provider";
 import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import type { NavigationItem } from "@/layout/sidebar";
 
-export function CommandPalette() {
+interface Props {
+  items: NavigationItem[];
+}
+
+export const CommandPalette: React.FC<Props> = ({ items }) => {
   const { create } = useSessionStore();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-
-  const navigationItems = [
-    {
-      path: "/",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      shortcut: "Alt+1",
-    },
-    {
-      path: "/chat",
-      label: "Sessions",
-      icon: MessageCircle,
-      shortcut: "Alt+2",
-    },
-  ];
 
   const handleQuickChat = () => {
     create("Quick Session");
@@ -65,8 +50,8 @@ export function CommandPalette() {
       if (e.altKey && e.key >= "1" && e.key <= "4") {
         e.preventDefault();
         const index = parseInt(e.key) - 1;
-        if (navigationItems[index]) {
-          navigate(navigationItems[index].path);
+        if (items[index]) {
+          navigate(items[index].href);
           setOpen(false);
         }
       }
@@ -91,16 +76,16 @@ export function CommandPalette() {
         <CommandEmpty>No results found.</CommandEmpty>
 
         <CommandGroup heading="Navigate">
-          {navigationItems.map((item) => {
+          {items.map((item: NavigationItem) => {
             const Icon = item.icon;
             return (
               <CommandItem
-                key={item.path}
-                value={item.label.toLowerCase()}
-                onSelect={() => handleNavigate(item.path)}
+                key={item.href}
+                value={item.name.toLowerCase()}
+                onSelect={() => handleNavigate(item.href)}
               >
                 <Icon className="mr-2 h-4 w-4" />
-                {item.label}
+                {item.description}
                 <CommandShortcut>{item.shortcut}</CommandShortcut>
               </CommandItem>
             );
@@ -124,4 +109,4 @@ export function CommandPalette() {
       </CommandList>
     </CommandDialog>
   );
-}
+};

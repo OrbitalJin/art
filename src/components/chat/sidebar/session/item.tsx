@@ -192,9 +192,9 @@ const Menu: React.FC<MenuProps> = ({
 
         <DropdownMenuItem onSelect={() => togglePin(id)}>
           {pinned ? (
-            <Pin className="mr-2 h-4 w-4" />
-          ) : (
             <PinOff className="mr-2 h-4 w-4" />
+          ) : (
+            <Pin className="mr-2 h-4 w-4" />
           )}
           <span>{pinned ? "Unpin" : "Pin"}</span>
         </DropdownMenuItem>

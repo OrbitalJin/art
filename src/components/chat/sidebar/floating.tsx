@@ -34,7 +34,7 @@ export const FloatingSidebar: React.FC = () => {
           "transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           open
             ? "translate-x-0 opacity-100 scale-100"
-            : "-translate-x-[120%] opacity-0 scale-95",
+            : "-translate-x-[120%] opacity-0 scale-85",
         )}
       >
         <SidebarContent onSessionSwitch={() => setOpen(false)} />

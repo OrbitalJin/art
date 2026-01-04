@@ -15,7 +15,7 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
   return (
     <div
       className={cn(
-        "markdown text-sm",
+        "markdown text-sm ",
         "max-w-none leading-relaxed",
         "wrap-break-word",
         "text-foreground/80 leading-6",

@@ -11,7 +11,7 @@ import {
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 
 export const StaticSidebar: React.FC = () => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -57,10 +57,8 @@ export const StaticSidebar: React.FC = () => {
         className={cn(
           "hidden lg:flex flex-col shrink-0 overflow-hidden m-2 will-change-transform",
           "rounded-xl border bg-card/50 backdrop-blur-xl shadow-xl",
-          "hover:border-primary/40 transition-all duration-300 ease-in-out",
-          open
-            ? "w-[300px] opacity-100 scale-100"
-            : "w-0 border-0 opacity-0 scale-90",
+          "hover:border-primary/40",
+          open ? "w-[300px]" : "w-0 border-0",
         )}
       >
         <div className="w-[300px] max-w-[85vw] h-full">

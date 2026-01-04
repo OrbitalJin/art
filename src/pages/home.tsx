@@ -2,9 +2,9 @@ import { useState } from "react";
 import { RecentSessions } from "@/components/dashboard/recent-sessions";
 import { DashboardStats } from "@/components/dashboard/dashboard-stats";
 import { QuickTips } from "@/components/dashboard/info-cards";
-import { ShimmerText } from "../ui/shimmer-text";
+import { ShimmerText } from "@/components/ui/shimmer-text";
 
-export function HomePage() {
+export const Home = () => {
   const [greeting] = useState(() => {
     const hour = new Date().getHours();
     return hour < 12
@@ -39,4 +39,4 @@ export function HomePage() {
       </div>
     </div>
   );
-}
+};
