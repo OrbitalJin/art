@@ -5,6 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import type { EditorStateObject } from "@/pages/notes";
 import {
   Bold,
@@ -20,13 +21,16 @@ import {
   Strikethrough,
   Underline,
   Image,
+  PictureInPicture2,
+  Highlighter,
 } from "lucide-react";
 
-interface EditorToolbarProps {
+interface Props {
   state: EditorStateObject;
+  className?: string;
 }
 
-export function EditorToolbar({ state }: EditorToolbarProps) {
+export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
   if (!state) {
     return null;
   }
@@ -43,96 +47,114 @@ export function EditorToolbar({ state }: EditorToolbarProps) {
       icon: Undo,
       label: "Undo",
       action: () => state.editor.chain().focus().undo().run(),
-      isActive: () => state.editor.can().undo(),
+      isActive: state.canUndo,
     },
     {
       icon: Redo,
       label: "Redo",
       action: () => state.editor.chain().focus().redo().run(),
-      isActive: () => state.editor.can().redo(),
+      isActive: state.canRedo,
     },
     { separator: true },
     {
       icon: Bold,
       label: "Bold",
       action: () => state.editor.chain().focus().toggleBold().run(),
-      isActive: () => state.editor.isActive("bold"),
+      isActive: state.isBold,
     },
 
     {
       icon: Italic,
       label: "Italic",
       action: () => state.editor.chain().focus().toggleItalic().run(),
-      isActive: () => state.editor.isActive("italic"),
+      isActive: state.isItalic,
     },
     {
       icon: Strikethrough,
       label: "Strikethrough",
       action: () => state.editor.chain().focus().toggleStrike().run(),
-      isActive: () => state.editor.isActive("strike"),
+      isActive: state.isStrike,
     },
     {
       icon: Underline,
       label: "Underline",
       action: () => state.editor.chain().focus().toggleUnderline().run(),
-      isActive: () => state.editor.isActive("underline"),
+      isActive: state.isUnderline,
+    },
+    {
+      icon: Highlighter,
+      label: "Highlight",
+      action: () => state.editor.chain().focus().toggleHighlight().run(),
+      isActive: state.isHighlight,
     },
     { separator: true },
     {
       icon: List,
       label: "Bullet List",
       action: () => state.editor.chain().focus().toggleBulletList().run(),
-      isActive: () => state.editor.isActive("bulletList"),
+      isActive: state.isBulletList,
     },
     {
       icon: ListOrdered,
       label: "Ordered List",
       action: () => state.editor.chain().focus().toggleOrderedList().run(),
-      isActive: () => state.editor.isActive("orderedList"),
+      isActive: state.isOrderedList,
     },
     { separator: true },
     {
       icon: Quote,
       label: "Quote",
       action: () => state.editor.chain().focus().toggleBlockquote().run(),
-      isActive: () => state.editor.isActive("blockquote"),
+      isActive: state.isBlockquote,
     },
     {
       icon: Braces,
       label: "Code Block",
       action: () => state.editor.chain().focus().toggleCodeBlock().run(),
-      isActive: () => state.editor.isActive("codeBlock"),
+      isActive: state.isCodeBlock,
     },
     {
       icon: Code,
       label: "Code",
       action: () => state.editor.chain().focus().toggleCode().run(),
-      isActive: () => state.editor.isActive("code"),
+      isActive: state.isCode,
     },
     { separator: true },
     {
       icon: Link,
       label: "Link",
       action: addLink,
-      isActive: () => state.editor.isActive("link"),
+      isActive: state.isLink,
     },
     {
       icon: Image,
       label: "Image",
       action: () => {},
-      isActive: () => false,
+      isActive: false,
+    },
+    { separator: true },
+    {
+      icon: PictureInPicture2,
+      label: "Pop out",
+      action: () => {},
+      isActive: false,
     },
   ];
 
   return (
-    <div className="flex items-center justify-center gap-1 rounded-md border bg-card/80 p-1 mx-auto">
+    <div
+      className={cn(
+        "flex items-center justify-center gap-1 rounded-md border bg-card/80 p-1 mx-auto",
+        className,
+      )}
+    >
       {toolbarItems.map((item, index) => {
         if ("separator" in item) {
           return (
             <Separator
               key={`separator-${index}`}
               orientation="vertical"
-              className="h-8"
+              className="w-px border"
             />
           );
         }
@@ -143,7 +165,7 @@ export function EditorToolbar({ state }: EditorToolbarProps) {
           <Tooltip key={label}>
             <TooltipTrigger asChild>
               <Button
-                variant={isActive() ? "secondary" : "ghost"}
+                variant={isActive ? "secondary" : "ghost"}
                 size="icon-sm"
                 onClick={action}
                 className="h-8 w-8"
@@ -159,4 +181,4 @@ export function EditorToolbar({ state }: EditorToolbarProps) {
       })}
     </div>
   );
-}
+};

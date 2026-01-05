@@ -1,9 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  BookOpen,
   Circle,
   LayoutDashboard,
   MessageCircle,
-  Notebook,
   Settings2,
   type LucideIcon,
 } from "lucide-react";
@@ -67,7 +67,7 @@ export const Sidebar = () => {
     },
 
     {
-      icon: Notebook,
+      icon: BookOpen,
       name: "Notes",
       description: "Notes",
       href: "/notes",

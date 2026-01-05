@@ -58,3 +58,14 @@
 - [ ] Theme Colors (Pinkie Pie, MLP themes!)
 - [ ] Cute Icons (Hearts, Bunnies, Ribbons)
 - [ ] Command palette based navigation
+
+### Diary
+
+- [x] Improve ui/toolbar/title bar
+- [ ] custom mentions (people, places, things, categories, etc.)
+- [ ] Persistence
+- [ ] Image support
+- [ ] sidebar with categories & @ filter
+- [ ] auto-save
+- [ ] ai features
+- [ ] popout
