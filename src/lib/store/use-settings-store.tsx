@@ -1,6 +1,6 @@
-import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { tauriStorageAdapter } from "@/lib/store/tauri-adapter";
+import { settingsStorage } from "@/lib/store/settings/adapter";
+import { create } from "zustand";
 
 interface SettingsState {
   apiKey: string;
@@ -16,7 +16,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      storage: createJSONStorage(() => tauriStorageAdapter),
+      storage: createJSONStorage(() => settingsStorage),
     },
   ),
 );

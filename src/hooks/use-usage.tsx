@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { estimateUsage } from "@/lib/ai/common/utils";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 
 export const useUsage = () => {
   const currentSession = useSessionStore((state) =>

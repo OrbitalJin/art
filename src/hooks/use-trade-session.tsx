@@ -2,8 +2,8 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { open as openFile } from "@tauri-apps/plugin-fs";
 import { toast } from "sonner";
 
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
-import type { Session } from "@/lib/ai/store/types";
+import { useSessionStore } from "@/lib/store/use-session-store";
+import type { Session } from "@/lib/store/session/types";
 
 export const useTradeSession = () => {
   const sessions = useSessionStore((state) => state.sessions);

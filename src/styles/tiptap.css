@@ -32,18 +32,8 @@
     @apply text-2xl;
   }
 
-  /* Separator: Only when an h2 follows another h2 */
-  h2~h2 {
-    @apply border-t border-border pt-8 -mt-4;
-  }
-
   h3 {
     @apply text-xl;
-  }
-
-  /* Separator: Only when an h3 follows another h3 */
-  h3~h3 {
-    @apply border-t border-border pt-8 -mt-4;
   }
 
   p {
@@ -84,10 +74,10 @@
     @apply list-none p-0 ml-0;
 
     li {
-      @apply flex items-start my-2;
+      @apply flex flex-row items-center gap-1;
 
       >label {
-        @apply flex-none mr-3 select-none mt-1;
+        @apply flex-none select-none;
 
         input[type="checkbox"] {
           @apply w-4 h-4 rounded border-2 border-muted-foreground/40 bg-background cursor-pointer transition-all;
@@ -133,7 +123,7 @@
   }
 
   hr {
-    @apply border-none border-t border-border my-10;
+    @apply border-t;
   }
 
   table {

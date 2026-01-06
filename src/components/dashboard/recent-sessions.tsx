@@ -1,7 +1,7 @@
 import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 import { useNavigate } from "react-router-dom";
 
 interface RecentSessionsProps {

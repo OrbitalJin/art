@@ -1,9 +1,9 @@
 import type { StateStorage } from "zustand/middleware";
 import { load } from "@tauri-apps/plugin-store";
 
-const tauriStore = await load("sessions.json");
+const tauriStore = await load("notes.json");
 
-export const tauriStorageAdapter: StateStorage = {
+export const noteStorage: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {
     return (await tauriStore.get(name)) || null;
   },

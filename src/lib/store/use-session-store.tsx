@@ -2,8 +2,8 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
 import { DefaultModel, type Model } from "@/lib/ai/common/types";
-import { tauriStorageAdapter } from "@/lib/store/tauri-adapter";
 import type { Message, Session } from "@/lib/store/session/types";
+import { sessionStorage } from "@/lib/store/session/adapter";
 import { toast } from "sonner";
 
 const createNewSession = (title?: string): Session => {
@@ -22,6 +22,7 @@ export interface SessionState {
   sessions: Session[];
   activeId: string | null;
 
+  togglePin: (id: string) => void;
   importFn: (s: Session) => void;
   setActive: (id: string) => void;
   ensureDefault: () => void;
@@ -37,6 +38,17 @@ export const useSessionStore = create<SessionState>()(
     (set, get) => ({
       sessions: [],
       activeId: null,
+
+      togglePin: (id: string) => {
+        const state = get();
+        const session = state.sessions.find((s) => s.id === id);
+        if (!session) return toast.error("Session not found");
+        session.pinned = !session.pinned;
+        toast.success(
+          `Session ${!session.pinned ? "unpinned" : "pinned"} successfully.`,
+        );
+        set({ sessions: [...state.sessions] });
+      },
 
       importFn: (orphan: Session) => {
         const state = get();
@@ -144,7 +156,7 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      storage: createJSONStorage(() => tauriStorageAdapter),
+      storage: createJSONStorage(() => sessionStorage),
       onRehydrateStorage: () => (state, error) => {
         if (error) {
           console.error("Error rehydrating store:", error);

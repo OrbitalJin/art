@@ -62,9 +62,9 @@
 ### Diary
 
 - [x] Improve ui/toolbar/title bar
-- [ ] custom mentions (people, places, things, categories, etc.)
-- [ ] Persistence
+- [x] Persistence
 - [ ] Image support
+- [ ] custom mentions (people, places, things, categories, etc.)
 - [ ] sidebar with categories & @ filter
 - [ ] auto-save
 - [ ] ai features

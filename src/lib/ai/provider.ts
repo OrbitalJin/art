@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import type { Model, StreamChunk } from "./common/types";
-import type { Message } from "@/lib/ai/store/types";
+import type { Message } from "@/lib/store/session/types";
 import { AIError, DefaultModel } from "./common/types";
 
 export class AIProvider {

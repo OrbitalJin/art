@@ -1,4 +1,4 @@
-import type { Message } from "@/lib/ai/store/types";
+import type { Message } from "@/lib/store/session/types";
 import { Renderer } from "./renderer";
 
 export const UserMessage: React.FC<Message> = ({ content }) => {

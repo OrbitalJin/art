@@ -3,7 +3,7 @@ import { UserMessage } from "./user";
 import { AssistantMessage } from "./assistant";
 import { AbortedMessage } from "./aborted";
 import { ErrorMessage } from "./error";
-import type { Message } from "@/lib/ai/store/types";
+import type { Message } from "@/lib/store/session/types";
 
 export const MessageBroker = memo(
   (props: Message) => {

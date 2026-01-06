@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import type { Message, MessageStatus } from "@/lib/ai/store/types";
+import type { Message, MessageStatus } from "@/lib/store/session/types";
 import type { Model } from "@/lib/ai/common/types";
 import type { AIProvider } from "@/lib/ai/provider";
 

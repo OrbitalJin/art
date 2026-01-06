@@ -1,5 +1,5 @@
 import { useActiveSession } from "@/contexts/active-session-context";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 
 export const useStreamingState = () => {
   const activeId = useSessionStore((state) => state.activeId);

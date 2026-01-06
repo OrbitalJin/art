@@ -1,6 +1,6 @@
 import { useAI } from "@/contexts/ai-context";
 import { prompts } from "@/lib/ai/common/prompts";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 import { useState } from "react";
 import { toast } from "sonner";
 

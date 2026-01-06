@@ -1,4 +1,4 @@
-import type { Message, MessageStatus } from "@/lib/ai/store/types";
+import type { Message, MessageStatus } from "@/lib/store/session/types";
 import type { Model } from "./types";
 
 export const createUserMessage = (text: string): Message => ({

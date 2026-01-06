@@ -12,10 +12,17 @@ import { EditorToolbar } from "@/components/editor/toolbar";
 import { ListKit } from "@tiptap/extension-list";
 import { Highlight } from "@tiptap/extension-highlight";
 import { TableKit } from "@tiptap/extension-table";
-import { cn } from "@/lib/utils";
-import { PanelLeftClose, Plus, Search } from "lucide-react";
+import { HorizontalRule } from "@tiptap/extension-horizontal-rule";
+import { cn, formatDate } from "@/lib/utils";
+import { PanelLeftClose, PanelLeftOpen, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNoteStore } from "@/lib/store/use-note-store";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface EditorStateObject {
   editor: Editor;
@@ -23,6 +30,7 @@ export interface EditorStateObject {
   characterCount: number;
   canUndo: boolean;
   canRedo: boolean;
+  isEditable: boolean;
   isBold: boolean;
   isItalic: boolean;
   isStrike: boolean;
@@ -34,24 +42,28 @@ export interface EditorStateObject {
   isCodeBlock: boolean;
   isCode: boolean;
   isLink: boolean;
+  content: string;
   toolbarActive: boolean;
 }
 
 export const Notes = () => {
-  const [active, setActive] = useState(false);
+  const [selectActive, setSelectActive] = useState(false);
+  const activeId = useNoteStore((state) => state.activeId);
+  const note = useNoteStore((state) => state.getFn(activeId ?? ""));
 
   const editor = useEditor({
     immediatelyRender: true,
     onSelectionUpdate: (e) => {
       const { from, to } = e.editor.state.selection;
       const text = editor.state.doc.textBetween(from, to, " ");
-      setActive(text.trim().length > 0);
+      setSelectActive(text.trim().length > 0);
     },
     extensions: [
       StarterKit,
       TableKit,
-      Highlight,
       ListKit,
+      Highlight,
+      HorizontalRule,
       Markdown.configure({
         html: true,
         transformPastedText: true,
@@ -82,10 +94,18 @@ export const Notes = () => {
         isCode: ctx.editor.isActive("code"),
         isLink: ctx.editor.isActive("link"),
         isHighlight: ctx.editor.isActive("highlight"),
-        toolbarActive: active,
+        isEditable: ctx.editor.isEditable,
+        toolbarActive: selectActive,
+        content: ctx.editor.getHTML(),
       };
     },
   });
+
+  useEffect(() => {
+    if (editor && note?.content !== undefined) {
+      editor.commands.setContent(note.content);
+    }
+  }, [activeId, note?.content, editor]);
 
   return (
     <div className="flex-1 flex flex-row p-2 gap-2">
@@ -94,7 +114,7 @@ export const Notes = () => {
         <EditorToolbar
           state={editorState}
           className={cn(
-            "absolute top-4 left-1/2 -translate-x-1/2 z-20",
+            "absolute top-0 left-1/2 -translate-x-1/2 z-20",
             "flex backdrop-blur-md  mx-auto",
             "scale-95 opacity-50 backdrop-blur-md",
             "transition-all hover:scale-100 hover:opacity-100",
@@ -102,7 +122,6 @@ export const Notes = () => {
             editorState.toolbarActive && "scale-100 opacity-100",
           )}
         />
-
         <EditorContent
           editor={editor}
           className={cn(
@@ -124,14 +143,62 @@ export const Notes = () => {
 };
 
 const Sidebar = () => {
+  const setActive = useNoteStore((state) => state.setActive);
+  const activeId = useNoteStore((state) => state.activeId);
+  const create = useNoteStore((state) => state.create);
+
+  const entries = useNoteStore((state) =>
+    state.entries.sort((a, b) => b.updatedAt - a.updatedAt),
+  );
+
+  const [open, setOpen] = useState(true);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        setOpen((v) => !v);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+  if (!open) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => setOpen(true)}
+            className={cn(
+              "bg-background/80 backdrop-blur shadow-sm transition-all duration-300",
+              open && "opacity-0 pointer-events-none scale-90",
+            )}
+          >
+            <PanelLeftOpen />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">Alt + S</TooltipContent>
+      </Tooltip>
+    );
+  }
   return (
-    <div className="flex flex-col h-full w-[350px] rounded-xl border bg-card/50">
+    <div
+      className={cn(
+        "hidden lg:flex flex-col h-full w-[380px] overflow-hidden",
+        "transition-all rounded-xl border bg-card/50",
+        "hover:border-primary/40",
+        open ? "" : "w-0 border-0",
+      )}
+    >
       <div className="flex flex-row p-2 gap-2 border-b">
-        <Button variant="outline" className="flex-1">
+        <Button variant="outline" className="flex-1" onClick={() => create()}>
           <Plus></Plus>
           New Entry
         </Button>
-        <Button size="icon" variant="outline">
+        <Button size="icon" variant="outline" onClick={() => setOpen(false)}>
           <PanelLeftClose />
         </Button>
       </div>
@@ -143,8 +210,31 @@ const Sidebar = () => {
           )}
         >
           <Search size={16} />
-          <input placeholder="Search entries..." />
+          <input
+            className="outline-none flex-1"
+            placeholder="Search entries..."
+          />
         </div>
+      </div>
+      <div className="flex flex-col gap-2 p-2 overflow-y-scroll">
+        {entries.map((entry, index) => (
+          <div
+            key={index}
+            onClick={() => {
+              setActive(entry.id);
+            }}
+            className={cn(
+              "flex flex-col p-2 gap-2",
+              "transition-colors hover:bg-accent hover:border-l hover:border-primary rounded-md",
+              activeId === entry.id && "bg-accent border-l border-primary",
+            )}
+          >
+            <p className="text-sm ">{entry.title}</p>
+            <p className="text-xs text-foreground/70">
+              {formatDate(entry.updatedAt)}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );

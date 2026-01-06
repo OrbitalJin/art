@@ -1,4 +1,4 @@
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 import { SessionListItem } from "./item";
 import { SessionSection } from "./section";
 import { ScrollArea } from "@/components/ui/scroll-area";

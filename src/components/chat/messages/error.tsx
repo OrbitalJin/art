@@ -1,5 +1,5 @@
 import { AlertCircle } from "lucide-react";
-import type { Message } from "@/lib/ai/store/types";
+import type { Message } from "@/lib/store/session/types";
 
 export const ErrorMessage: React.FC<Message> = ({ errMsg }) => {
   return (

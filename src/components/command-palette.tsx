@@ -12,7 +12,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { useTheme } from "./providers/theme-provider";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 import type { NavigationItem } from "@/layout/sidebar";
 
 interface Props {

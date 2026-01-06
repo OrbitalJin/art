@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Models, type Model } from "@/lib/ai/common/types";
 import { useStreamingState } from "@/hooks/use-streaming-state";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 
 export const SelectModel = () => {
   const setSessionModel = useSessionStore((store) => store.setSessionModel);

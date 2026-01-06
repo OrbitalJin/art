@@ -7,9 +7,9 @@ import React, {
 } from "react";
 import { toast } from "sonner";
 import { useAI } from "@/contexts/ai-context";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 import { prompts } from "@/lib/ai/common/prompts";
-import type { Message, MessageStatus } from "@/lib/ai/store/types";
+import type { Message, MessageStatus } from "@/lib/store/session/types";
 import { useAIStream } from "@/hooks/use-ai-stream";
 import {
   createModelMessage,

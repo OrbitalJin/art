@@ -1,4 +1,4 @@
-import type { Session } from "../store/types";
+import type { Session } from "@/lib/store/session/types";
 import { prompts } from "./prompts";
 import { AIError } from "./types";
 

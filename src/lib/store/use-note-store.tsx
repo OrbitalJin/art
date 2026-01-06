@@ -1,0 +1,151 @@
+import { createJSONStorage, persist } from "zustand/middleware";
+import { create } from "zustand";
+import { toast } from "sonner";
+import type { Entry } from "./notes/types";
+import { noteStorage } from "./notes/adapter";
+
+const createNewEntry = (title?: string): Entry => {
+  const date = Date.now();
+  return {
+    id: crypto.randomUUID(),
+    title: title ?? "Random Thoughts",
+    content: "",
+    createdAt: date,
+    updatedAt: date,
+  };
+};
+
+export interface State {
+  entries: Entry[];
+  activeId: string | null;
+
+  importFn: (orphan: Entry) => void;
+  setActive: (id: string) => void;
+  ensureDefault: () => void;
+  deleteFn: (id: string) => void;
+  create: (title?: string) => void;
+  getFn: (id: string) => Entry | undefined;
+  save: (entry: Entry) => void;
+  updateContet: (entryId: string, newContent: string) => void;
+  updateTitle: (entryId: string, newTitle: string) => void;
+}
+export const useNoteStore = create<State>()(
+  persist(
+    (set, get) => ({
+      entries: [],
+      activeId: null,
+
+      save(entry: Entry) {
+        set((state) => ({
+          entries: state.entries.map((s) => (s.id === entry.id ? entry : s)),
+        }));
+      },
+
+      importFn(orphan: Entry) {
+        const state = get();
+        const duplicate = state.entries.find((s) => s.id === orphan.id);
+        if (duplicate) {
+          orphan.id = crypto.randomUUID();
+          toast.warning("Conflicting entry id detected.");
+        }
+        set({
+          entries: [...state.entries, orphan],
+        });
+      },
+
+      ensureDefault() {
+        const state = get();
+        if (state.entries.length === 0) {
+          const newEntry = createNewEntry();
+          set({
+            entries: [newEntry],
+            activeId: newEntry.id,
+          });
+        } else {
+          if (!state.activeId) {
+            set({
+              activeId: state.entries[0].id,
+            });
+          }
+        }
+      },
+
+      getFn(id: string) {
+        return get().entries.find((s) => s.id === id);
+      },
+
+      create(title?: string) {
+        const state = get();
+        const newEntry = createNewEntry(title);
+        set({
+          entries: [...state.entries, newEntry],
+          activeId: newEntry.id,
+        });
+      },
+
+      deleteFn(id: string) {
+        set((state: State) => {
+          const newEntries = state.entries.filter((s) => s.id !== id);
+
+          if (newEntries.length === 0) {
+            const defaultEntry = createNewEntry();
+            toast.success("No entries left. Created a new one.");
+            return { entries: [defaultEntry], activeId: defaultEntry.id };
+          }
+
+          let newActiveId = state.activeId;
+          if (state.activeId === id) {
+            newActiveId = newEntries[0].id;
+            toast.success("Active entry deleted, switched to most recent.");
+          } else {
+            toast.success("Entry deleted successfully.");
+          }
+
+          return {
+            entries: newEntries,
+            activeId: newActiveId,
+          };
+        });
+      },
+
+      setActive(id: string) {
+        set({ activeId: id });
+      },
+      updateTitle(id: string, newTitle: string) {
+        set((state: State) => ({
+          entries: state.entries.map((entry) =>
+            entry.id === id
+              ? { ...entry, title: newTitle, updatedAt: Date.now() }
+              : entry,
+          ),
+        }));
+        toast.success("Entry title updated successfully.");
+      },
+
+      updateContet(entryId: string, newContent: string) {
+        set((state: State) => ({
+          entries: state.entries.map((entry) =>
+            entry.id === entryId
+              ? { ...entry, content: newContent, updatedAt: Date.now() }
+              : entry,
+          ),
+        }));
+        toast.success("Entry content updated successfully.");
+      },
+    }),
+    {
+      name: "note-storage",
+      storage: createJSONStorage(() => noteStorage),
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error("Error rehydrating store:", error);
+          return;
+        }
+
+        if (state) {
+          state.ensureDefault();
+        }
+      },
+    },
+  ),
+);

@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useGenerateTitle } from "@/hooks/use-generate-title";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 import { useStreamingState } from "@/hooks/use-streaming-state";
 
 interface Props {

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { PanelLeftClose, Plus } from "lucide-react";
-import { useSessionStore } from "@/lib/ai/store/use-session-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 
 interface Props {
   onClose?: () => void;

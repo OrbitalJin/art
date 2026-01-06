@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useNoteStore } from "@/lib/store/use-note-store";
 import { cn } from "@/lib/utils";
 import type { EditorStateObject } from "@/pages/notes";
 import {
@@ -23,6 +23,9 @@ import {
   Image,
   PictureInPicture2,
   Highlighter,
+  Pen,
+  BookOpen,
+  Save,
 } from "lucide-react";
 
 interface Props {
@@ -31,6 +34,9 @@ interface Props {
 }
 
 export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
+  const updateContent = useNoteStore((state) => state.updateContet);
+  const activeId = useNoteStore((state) => state.activeId);
+
   if (!state) {
     return null;
   }
@@ -141,6 +147,11 @@ export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
     },
   ];
 
+  const toggleEditable = () => {
+    state.editor.setEditable(!state.editor.isEditable);
+    state.editor.view.dispatch(state.editor.view.state.tr);
+  };
+
   return (
     <div
       className={cn(
@@ -151,11 +162,7 @@ export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
       {toolbarItems.map((item, index) => {
         if ("separator" in item) {
           return (
-            <Separator
-              key={`separator-${index}`}
-              orientation="vertical"
-              className="w-px border"
-            />
+            <div key={`separator-${index}`} className="h-6 w-px border-l" />
           );
         }
 
@@ -173,12 +180,42 @@ export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
                 <Icon className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent side="bottom">
               <p>{label}</p>
             </TooltipContent>
           </Tooltip>
         );
       })}
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon-sm" onClick={toggleEditable}>
+            {!state.isEditable ? (
+              <Pen className="h-4 w-4" />
+            ) : (
+              <BookOpen className="h-4 w-4" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p>{!state.isEditable ? "Edit" : "Preview"}</p>
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => activeId && updateContent(activeId, state.content)}
+          >
+            <Save className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p>Save</p>
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 };

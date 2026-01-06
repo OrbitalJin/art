@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import WelcomeMessage from "../welcome";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { MessageBroker } from "./broker";
-import type { Message } from "@/lib/ai/store/types";
+import type { Message } from "@/lib/store/session/types";
 import { ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
