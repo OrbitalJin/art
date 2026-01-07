@@ -13,11 +13,13 @@ import { Item } from "./item";
 export const StaticSidebar = () => {
   const create = useNoteStore((state) => state.create);
   const activeId = useNoteStore((state) => state.activeId);
-  const entries = useNoteStore((state) =>
-    state.entries.sort((a, b) => b.updatedAt - a.updatedAt),
-  );
 
   const [open, setOpen] = useState(true);
+  const [query, setQuery] = useState<string>("");
+
+  const entries = useNoteStore((state) =>
+    state.entries.sort((a, b) => b.updatedAt - a.updatedAt),
+  ).filter((entry) => entry.title.toLowerCase().includes(query.toLowerCase()));
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -77,21 +79,29 @@ export const StaticSidebar = () => {
         >
           <Search size={16} />
           <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             className="outline-none flex-1"
             placeholder="Search entries..."
           />
         </div>
       </div>
-      <div className="flex flex-col gap-1 p-2 overflow-y-scroll">
-        {entries.map((entry, index) => (
-          <Item
-            key={index}
-            id={entry.id}
-            title={entry.title}
-            active={entry.id === activeId}
-            updatedAt={entry.updatedAt}
-          />
-        ))}
+      <div className="flex flex-col gap-1 p-2 overflow-y-scroll h-full">
+        {entries.length > 0 ? (
+          entries.map((entry, index) => (
+            <Item
+              key={index}
+              id={entry.id}
+              title={entry.title}
+              active={entry.id === activeId}
+              updatedAt={entry.updatedAt}
+            />
+          ))
+        ) : (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+            No entries found
+          </div>
+        )}
       </div>
     </div>
   );
