@@ -63,9 +63,10 @@
 
 - [x] Improve ui/toolbar/title bar
 - [x] Persistence
+- [x] auto-save
+- [ ] fix rename autofocus
 - [ ] Image support
 - [ ] custom mentions (people, places, things, categories, etc.)
 - [ ] sidebar with categories & @ filter
-- [ ] auto-save
 - [ ] ai features
 - [ ] popout

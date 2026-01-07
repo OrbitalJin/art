@@ -26,7 +26,11 @@ export interface State {
   create: (title?: string) => void;
   getFn: (id: string) => Entry | undefined;
   save: (entry: Entry) => void;
-  updateContet: (entryId: string, newContent: string) => void;
+  updateContent: (
+    entryId: string,
+    newContent: string,
+    showToast: boolean,
+  ) => void;
   updateTitle: (entryId: string, newTitle: string) => void;
 }
 export const useNoteStore = create<State>()(
@@ -85,7 +89,9 @@ export const useNoteStore = create<State>()(
 
       deleteFn(id: string) {
         set((state: State) => {
-          const newEntries = state.entries.filter((s) => s.id !== id);
+          const newEntries = state.entries
+            .sort((a, b) => b.updatedAt - a.updatedAt)
+            .filter((s) => s.id !== id);
 
           if (newEntries.length === 0) {
             const defaultEntry = createNewEntry();
@@ -122,15 +128,33 @@ export const useNoteStore = create<State>()(
         toast.success("Entry title updated successfully.");
       },
 
-      updateContet(entryId: string, newContent: string) {
-        set((state: State) => ({
-          entries: state.entries.map((entry) =>
-            entry.id === entryId
-              ? { ...entry, content: newContent, updatedAt: Date.now() }
-              : entry,
-          ),
-        }));
-        toast.success("Entry content updated successfully.");
+      updateContent(
+        entryId: string,
+        newContent: string,
+        showToast: boolean = true,
+      ) {
+        set((state: State) => {
+          const updatedEntries = state.entries.map((entry) => {
+            if (entry.id === entryId) {
+              // Only update updatedAt if content actually changed
+              const contentChanged = entry.content !== newContent;
+              return {
+                ...entry,
+                content: newContent,
+                updatedAt: contentChanged ? Date.now() : entry.updatedAt,
+              };
+            }
+            return entry;
+          });
+
+          // Only show toast if content actually changed
+          const entry = state.entries.find((e) => e.id === entryId);
+          if (entry && entry.content !== newContent && showToast) {
+            toast.success("Entry content updated successfully.");
+          }
+
+          return { entries: updatedEntries };
+        });
       },
     }),
     {

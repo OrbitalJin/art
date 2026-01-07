@@ -46,6 +46,10 @@ export const SessionListItem: React.FC<Props> = ({
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
 
+  const cancel = () => {
+    setText(title);
+    setEditing(false);
+  };
   const handleSubmit = () => {
     if (!text.trim()) {
       setText(title);
@@ -89,13 +93,10 @@ export const SessionListItem: React.FC<Props> = ({
             value={text}
             autoFocus
             onChange={(e) => setText(e.target.value)}
-            onBlur={handleSubmit}
+            onBlur={cancel}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSubmit();
-              if (e.key === "Escape") {
-                setText(title);
-                setEditing(false);
-              }
+              if (e.key === "Escape") cancel();
             }}
             onClick={(e) => e.stopPropagation()}
             className="w-full bg-transparent border-none outline-none focus:ring-0 p-0"

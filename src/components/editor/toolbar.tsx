@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { cn } from "@/lib/utils";
-import type { EditorStateObject } from "@/pages/notes";
+import type { Editor } from "@tiptap/react";
 import {
   Bold,
   Italic,
@@ -25,26 +25,44 @@ import {
   Highlighter,
   Pen,
   BookOpen,
-  Save,
 } from "lucide-react";
+import { useEffect } from "react";
 
 interface Props {
-  state: EditorStateObject;
+  editor: Editor | null;
   className?: string;
 }
 
-export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
-  const updateContent = useNoteStore((state) => state.updateContet);
+export const EditorToolbar: React.FC<Props> = ({ editor, className }) => {
+  const updateContent = useNoteStore((state) => state.updateContent);
   const activeId = useNoteStore((state) => state.activeId);
 
-  if (!state) {
+  // Handle Ctrl+S Save
+  useEffect(() => {
+    const handleSave = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "s") {
+        e.preventDefault();
+        if (activeId && editor) {
+          updateContent(activeId, editor.getHTML(), true);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleSave);
+    return () => document.removeEventListener("keydown", handleSave);
+  }, [activeId, editor, updateContent]);
+
+  if (!editor) {
     return null;
   }
+
+  const toggleEditable = () => {
+    editor.setEditable(!editor.isEditable);
+  };
 
   const addLink = () => {
     const url = window.prompt("Enter URL:");
     if (url) {
-      state.editor.chain().focus().setLink({ href: url }).run();
+      editor.chain().focus().setLink({ href: url }).run();
     }
   };
 
@@ -52,85 +70,84 @@ export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
     {
       icon: Undo,
       label: "Undo",
-      action: () => state.editor.chain().focus().undo().run(),
-      isActive: state.canUndo,
+      action: () => editor.chain().focus().undo().run(),
+      isDisabled: !editor.can().undo(),
     },
     {
       icon: Redo,
       label: "Redo",
-      action: () => state.editor.chain().focus().redo().run(),
-      isActive: state.canRedo,
+      action: () => editor.chain().focus().redo().run(),
+      isDisabled: !editor.can().redo(),
     },
     { separator: true },
     {
       icon: Bold,
       label: "Bold",
-      action: () => state.editor.chain().focus().toggleBold().run(),
-      isActive: state.isBold,
+      action: () => editor.chain().focus().toggleBold().run(),
+      isActive: editor.isActive("bold"),
     },
-
     {
       icon: Italic,
       label: "Italic",
-      action: () => state.editor.chain().focus().toggleItalic().run(),
-      isActive: state.isItalic,
+      action: () => editor.chain().focus().toggleItalic().run(),
+      isActive: editor.isActive("italic"),
     },
     {
       icon: Strikethrough,
       label: "Strikethrough",
-      action: () => state.editor.chain().focus().toggleStrike().run(),
-      isActive: state.isStrike,
+      action: () => editor.chain().focus().toggleStrike().run(),
+      isActive: editor.isActive("strike"),
     },
     {
       icon: Underline,
       label: "Underline",
-      action: () => state.editor.chain().focus().toggleUnderline().run(),
-      isActive: state.isUnderline,
+      action: () => editor.chain().focus().toggleUnderline().run(),
+      isActive: editor.isActive("underline"),
     },
     {
       icon: Highlighter,
       label: "Highlight",
-      action: () => state.editor.chain().focus().toggleHighlight().run(),
-      isActive: state.isHighlight,
+      action: () => editor.chain().focus().toggleHighlight().run(),
+      isActive: editor.isActive("highlight"),
     },
     { separator: true },
     {
       icon: List,
       label: "Bullet List",
-      action: () => state.editor.chain().focus().toggleBulletList().run(),
-      isActive: state.isBulletList,
+      action: () => editor.chain().focus().toggleBulletList().run(),
+      isActive: editor.isActive("bulletList"),
     },
     {
       icon: ListOrdered,
       label: "Ordered List",
-      action: () => state.editor.chain().focus().toggleOrderedList().run(),
-      isActive: state.isOrderedList,
+      action: () => editor.chain().focus().toggleOrderedList().run(),
+      isActive: editor.isActive("orderedList"),
     },
     { separator: true },
     {
       icon: Quote,
       label: "Quote",
-      action: () => state.editor.chain().focus().toggleBlockquote().run(),
-      isActive: state.isBlockquote,
+      action: () => editor.chain().focus().toggleBlockquote().run(),
+      isActive: editor.isActive("blockquote"),
     },
     {
       icon: Braces,
       label: "Code Block",
-      action: () => state.editor.chain().focus().toggleCodeBlock().run(),
-      isActive: state.isCodeBlock,
+      action: () => editor.chain().focus().toggleCodeBlock().run(),
+      isActive: editor.isActive("codeBlock"),
     },
     {
       icon: Code,
       label: "Code",
-      action: () => state.editor.chain().focus().toggleCode().run(),
-      isActive: state.isCode,
+      action: () => editor.chain().focus().toggleCode().run(),
+      isActive: editor.isActive("code"),
     },
     { separator: true },
     {
       icon: Link,
       label: "Link",
       action: addLink,
-      isActive: state.isLink,
+      isActive: editor.isActive("link"),
     },
     {
       icon: Image,
@@ -147,11 +164,6 @@ export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
     },
   ];
 
-  const toggleEditable = () => {
-    state.editor.setEditable(!state.editor.isEditable);
-    state.editor.view.dispatch(state.editor.view.state.tr);
-  };
-
   return (
     <div
       className={cn(
@@ -160,13 +172,13 @@ export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
       )}
     >
       {toolbarItems.map((item, index) => {
-        if ("separator" in item) {
+        if (item.separator) {
           return (
             <div key={`separator-${index}`} className="h-6 w-px border-l" />
           );
         }
 
-        const { icon: Icon, label, action, isActive } = item;
+        const { icon: Icon, label, action, isActive, isDisabled } = item;
 
         return (
           <Tooltip key={label}>
@@ -175,7 +187,11 @@ export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
                 variant={isActive ? "secondary" : "ghost"}
                 size="icon-sm"
                 onClick={action}
-                className="h-8 w-8"
+                disabled={isDisabled}
+                className={cn(
+                  "h-8 w-8",
+                  isActive && "bg-muted text-muted-foreground",
+                )}
               >
                 <Icon className="h-4 w-4" />
               </Button>
@@ -190,7 +206,7 @@ export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button variant="ghost" size="icon-sm" onClick={toggleEditable}>
-            {!state.isEditable ? (
+            {!editor.isEditable ? (
               <Pen className="h-4 w-4" />
             ) : (
               <BookOpen className="h-4 w-4" />
@@ -198,22 +214,7 @@ export const EditorToolbar: React.FC<Props> = ({ state, className }) => {
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom">
-          <p>{!state.isEditable ? "Edit" : "Preview"}</p>
-        </TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => activeId && updateContent(activeId, state.content)}
-          >
-            <Save className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          <p>Save</p>
+          <p>{!editor.isEditable ? "Edit" : "Preview"}</p>
         </TooltipContent>
       </Tooltip>
     </div>
