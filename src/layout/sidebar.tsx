@@ -24,9 +24,9 @@ const appWindow = getCurrentWindow();
 export interface NavigationItem {
   href: string;
   name: string;
-  description: string;
   icon: LucideIcon;
   shortcut: string;
+  description: string;
 }
 
 export const Sidebar = () => {

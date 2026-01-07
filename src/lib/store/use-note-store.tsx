@@ -12,6 +12,8 @@ const createNewEntry = (title?: string): Entry => {
     content: "",
     createdAt: date,
     updatedAt: date,
+    lastViewedAt: date,
+    tags: [],
   };
 };
 
@@ -32,6 +34,12 @@ export interface State {
     showToast: boolean,
   ) => void;
   updateTitle: (entryId: string, newTitle: string) => void;
+  addTag: (entryId: string, tag: string) => void;
+  removeTag: (entryId: string, tag: string) => void;
+  updateTags: (entryId: string, tags: string[]) => void;
+  getAllTags: () => string[];
+  getEntriesByTag: (tag: string) => Entry[];
+  updateViewedAt: (entryId: string) => void;
 }
 export const useNoteStore = create<State>()(
   persist(
@@ -115,7 +123,17 @@ export const useNoteStore = create<State>()(
       },
 
       setActive(id: string) {
-        set({ activeId: id });
+        set((state: State) => {
+          const updatedEntries = state.entries.map((entry) =>
+            entry.id === id
+              ? { ...entry, lastViewedAt: Date.now() }
+              : entry,
+          );
+          return {
+            activeId: id,
+            entries: updatedEntries,
+          };
+        });
       },
       updateTitle(id: string, newTitle: string) {
         set((state: State) => ({
@@ -156,6 +174,78 @@ export const useNoteStore = create<State>()(
           return { entries: updatedEntries };
         });
       },
+
+      addTag(entryId: string, tag: string) {
+        set((state: State) => {
+          const updatedEntries = state.entries.map((entry) => {
+            if (entry.id === entryId) {
+              const normalizedTag = tag.trim().toLowerCase();
+              if (!entry.tags.includes(normalizedTag)) {
+                return {
+                  ...entry,
+                  tags: [...entry.tags, normalizedTag],
+                  updatedAt: Date.now(),
+                };
+              }
+            }
+            return entry;
+          });
+
+          return { entries: updatedEntries };
+        });
+      },
+
+      removeTag(entryId: string, tag: string) {
+        set((state: State) => ({
+          entries: state.entries.map((entry) =>
+            entry.id === entryId
+              ? {
+                  ...entry,
+                  tags: entry.tags.filter((t) => t !== tag.trim().toLowerCase()),
+                  updatedAt: Date.now(),
+                }
+              : entry,
+          ),
+        }));
+      },
+
+      updateTags(entryId: string, tags: string[]) {
+        set((state: State) => ({
+          entries: state.entries.map((entry) =>
+            entry.id === entryId
+              ? {
+                  ...entry,
+                  tags: tags.map((t) => t.trim().toLowerCase()).filter(Boolean),
+                  updatedAt: Date.now(),
+                }
+              : entry,
+          ),
+        }));
+      },
+
+      getAllTags() {
+        const state = get();
+        const allTags = state.entries.flatMap((entry) => entry.tags);
+        return [...new Set(allTags)].sort();
+      },
+
+      getEntriesByTag(tag: string) {
+        const state = get();
+        const normalizedTag = tag.trim().toLowerCase();
+        return state.entries.filter((entry) =>
+          entry.tags.includes(normalizedTag),
+        );
+      },
+
+      updateViewedAt(entryId: string) {
+        set((state: State) => ({
+          entries: state.entries.map((entry) =>
+            entry.id === entryId
+              ? { ...entry, lastViewedAt: Date.now() }
+              : entry,
+          ),
+        }));
+      },
     }),
     {
       name: "note-storage",
@@ -168,6 +258,12 @@ export const useNoteStore = create<State>()(
 
         if (state) {
           state.ensureDefault();
+          // Migrate existing entries to include tags and lastViewedAt fields
+          state.entries = state.entries.map((entry) => ({
+            ...entry,
+            tags: entry.tags || [],
+            lastViewedAt: entry.lastViewedAt || entry.updatedAt,
+          }));
         }
       },
     },

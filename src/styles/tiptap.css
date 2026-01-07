@@ -9,6 +9,11 @@
     margin-top: 0;
   }
 
+  .mention-highlight {
+    @apply bg-primary/20 text-primary font-medium p-1 rounded-sm border-primary/50;
+    font-family: inherit;
+  }
+
   p.is-empty::before,
   h1.is-empty::before,
   h2.is-empty::before,
@@ -67,9 +72,6 @@
     @apply list-decimal;
   }
 
-  /* --------------------------------------------------------
-     Task list specific styles (Obsidian Style)
-     -------------------------------------------------------- */
   ul[data-type="taskList"] {
     @apply list-none p-0 ml-0;
 
@@ -96,7 +98,6 @@
         @apply flex-auto;
       }
 
-      /* Strike through text when checked */
       &[data-checked="true"]>div {
         @apply opacity-50 line-through decoration-muted-foreground;
       }

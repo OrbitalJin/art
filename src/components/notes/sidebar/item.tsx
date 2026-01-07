@@ -10,16 +10,18 @@ import { cn, formatDate } from "@/lib/utils";
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { TagList } from "./tag-list";
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   id: string;
   title: string;
   active: boolean;
   updatedAt: number;
+  tags: string[];
   onSwitch?: () => void;
 }
 
-export const Item: React.FC<Props> = ({ id, title, active, updatedAt }) => {
+export const Item: React.FC<Props> = ({ id, title, active, updatedAt, tags }) => {
   const setActive = useNoteStore((state) => state.setActive);
   const deleteFn = useNoteStore((state) => state.deleteFn);
   const updateTitle = useNoteStore((state) => state.updateTitle);
@@ -77,6 +79,9 @@ export const Item: React.FC<Props> = ({ id, title, active, updatedAt }) => {
           <p className="text-sm">{title}</p>
         )}
         <p className="text-xs text-foreground/70">{formatDate(updatedAt)}</p>
+        {tags.length > 0 && (
+          <TagList tags={tags} />
+        )}
       </div>
 
       <DropdownMenu>

@@ -4,4 +4,6 @@ export interface Entry {
   content: string;
   createdAt: number;
   updatedAt: number;
+  lastViewedAt: number;
+  tags: string[];
 }

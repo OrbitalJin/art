@@ -13,6 +13,8 @@ import { useEffect, useState } from "react";
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { StaticSidebar } from "@/components/notes/sidebar/static";
 import { useDebounce } from "@/hooks/use-debounce";
+import { extractTags } from "@/lib/utils/tags";
+import { TagHighlighter } from "@/lib/extensions/tag-highlighter";
 
 export const Notes = () => {
   const [isSaving, setIsSaving] = useState(false);
@@ -20,9 +22,12 @@ export const Notes = () => {
   const activeId = useNoteStore((state) => state.activeId);
   const note = useNoteStore((state) => state.getFn(activeId ?? ""));
   const updateContent = useNoteStore((state) => state.updateContent);
+  const updateTags = useNoteStore((state) => state.updateTags);
 
   const debouncedSave = useDebounce((content: string) => {
     if (activeId) {
+      const tags = extractTags(content);
+      updateTags(activeId, tags);
       updateContent(activeId, content, false);
       setIsSaving(false);
     }
@@ -36,6 +41,7 @@ export const Notes = () => {
       ListKit,
       Highlight,
       HorizontalRule,
+      TagHighlighter,
       Markdown.configure({ html: true, transformPastedText: true }),
       CharacterCount.configure({ limit: 50000 }),
     ],
@@ -104,7 +110,6 @@ export const Notes = () => {
             {isSaving && (
               <span className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
-                <span>Saving...</span>
               </span>
             )}
           </div>
