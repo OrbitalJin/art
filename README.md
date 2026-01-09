@@ -65,8 +65,8 @@
 - [x] Persistence
 - [x] auto-save
 - [x] custom mentions (people, places, things, categories, etc.)
+- [x] Image support
+- [x] sidebar with categories & @ filter
 - [ ] fix rename autofocus
-- [ ] Image support
-- [ ] sidebar with categories & @ filter
 - [ ] ai features
 - [ ] popout

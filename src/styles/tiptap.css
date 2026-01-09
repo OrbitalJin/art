@@ -123,8 +123,43 @@
     @apply border-l-2 border-primary pl-4 text-muted-foreground;
   }
 
+  a {
+    @apply text-primary hover:underline hover:text-primary/80 transition-colors;
+    @apply hover:opacity-80;
+  }
+
   hr {
     @apply border-t;
+  }
+
+  img {
+    @apply max-w-full h-auto rounded-md my-4;
+    @apply border border-border/30;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply cursor-pointer;
+    display: inline-block;
+    user-select: none;
+    vertical-align: middle;
+    transition: outline 0.2s ease;
+  }
+
+  img.ProseMirror-selectednode {
+    outline: 3px solid hsl(var(--primary));
+  }
+
+  img:hover {
+    @apply ring-2 ring-primary/30 ring-offset-0;
+  }
+
+  .image-wrapper {
+    display: inline-block;
+    position: relative;
+  }
+
+  .image-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
   }
 
   table {

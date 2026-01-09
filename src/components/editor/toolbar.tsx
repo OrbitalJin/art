@@ -20,13 +20,15 @@ import {
   Braces,
   Strikethrough,
   Underline,
-  Image,
+  Image as ImageIcon,
   PictureInPicture2,
   Highlighter,
   Pen,
   BookOpen,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useImportImage } from "@/hooks/use-import-image";
+import { LinkDialog } from "@/components/editor/link-dialog";
 
 interface Props {
   editor: Editor | null;
@@ -36,6 +38,8 @@ interface Props {
 export const EditorToolbar: React.FC<Props> = ({ editor, className }) => {
   const updateContent = useNoteStore((state) => state.updateContent);
   const activeId = useNoteStore((state) => state.activeId);
+  const { importImage } = useImportImage();
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
 
   // Handle Ctrl+S Save
   useEffect(() => {
@@ -55,14 +59,27 @@ export const EditorToolbar: React.FC<Props> = ({ editor, className }) => {
     return null;
   }
 
+  const handleImageClick = async () => {
+    const base64 = await importImage();
+    if (base64 && editor) {
+      editor.chain().focus().setImage({ src: base64 }).run();
+    }
+  };
+
   const toggleEditable = () => {
     editor.setEditable(!editor.isEditable);
   };
 
-  const addLink = () => {
-    const url = window.prompt("Enter URL:");
-    if (url) {
+  const handleAddLink = (url: string) => {
+    if (editor) {
       editor.chain().focus().setLink({ href: url }).run();
+    }
+    setIsLinkDialogOpen(false);
+  };
+
+  const handleLinkButtonClick = () => {
+    if (editor && !editor.state.selection.empty) {
+      setIsLinkDialogOpen(true);
     }
   };
 
@@ -146,13 +163,14 @@ export const EditorToolbar: React.FC<Props> = ({ editor, className }) => {
     {
       icon: Link,
       label: "Link",
-      action: addLink,
+      action: handleLinkButtonClick,
       isActive: editor.isActive("link"),
+      isDisabled: editor.state.selection.empty,
     },
     {
-      icon: Image,
+      icon: ImageIcon,
       label: "Image",
-      action: () => {},
+      action: handleImageClick,
       isActive: false,
     },
     { separator: true },
@@ -165,58 +183,67 @@ export const EditorToolbar: React.FC<Props> = ({ editor, className }) => {
   ];
 
   return (
-    <div
-      className={cn(
-        "flex items-center justify-center gap-1 rounded-md border bg-card/80 p-1 mx-auto",
-        className,
-      )}
-    >
-      {toolbarItems.map((item, index) => {
-        if (item.separator) {
+    <>
+      <LinkDialog
+        onAddLink={handleAddLink}
+        isOpen={isLinkDialogOpen}
+        onOpenChange={setIsLinkDialogOpen}
+      />
+      <div
+        className={cn(
+          "flex items-center justify-center gap-1 rounded-md border bg-card/80 p-1 mx-auto",
+          className,
+        )}
+        >
+        {toolbarItems.map((item, index) => {
+          if (item.separator) {
+            return (
+              <div key={`separator-${index}`} className="h-6 w-px border-l" />
+            );
+          }
+
+          const { icon: Icon, label, action, isActive, isDisabled } = item;
+
+          if (!Icon) return null;
+
           return (
-            <div key={`separator-${index}`} className="h-6 w-px border-l" />
+            <Tooltip key={label}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={isActive ? "secondary" : "ghost"}
+                  size="icon-sm"
+                  onClick={action}
+                  disabled={isDisabled}
+                  className={cn(
+                    "h-8 w-8",
+                    isActive && "bg-muted text-muted-foreground",
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>{label}</p>
+              </TooltipContent>
+            </Tooltip>
           );
-        }
+        })}
 
-        const { icon: Icon, label, action, isActive, isDisabled } = item;
-
-        return (
-          <Tooltip key={label}>
-            <TooltipTrigger asChild>
-              <Button
-                variant={isActive ? "secondary" : "ghost"}
-                size="icon-sm"
-                onClick={action}
-                disabled={isDisabled}
-                className={cn(
-                  "h-8 w-8",
-                  isActive && "bg-muted text-muted-foreground",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>{label}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      })}
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon-sm" onClick={toggleEditable}>
-            {!editor.isEditable ? (
-              <Pen className="h-4 w-4" />
-            ) : (
-              <BookOpen className="h-4 w-4" />
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          <p>{!editor.isEditable ? "Edit" : "Preview"}</p>
-        </TooltipContent>
-      </Tooltip>
-    </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon-sm" onClick={toggleEditable}>
+              {!editor.isEditable ? (
+                <Pen className="h-4 w-4" />
+              ) : (
+                <BookOpen className="h-4 w-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p>{!editor.isEditable ? "Edit" : "Preview"}</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </>
   );
 };

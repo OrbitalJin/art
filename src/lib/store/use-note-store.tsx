@@ -1,15 +1,16 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 import { toast } from "sonner";
-import type { Entry } from "./notes/types";
+import type { Entry, Workspace } from "./notes/types";
 import { noteStorage } from "./notes/adapter";
 
-const createNewEntry = (title?: string): Entry => {
+const createNewEntry = (workspace: Workspace, title?: string): Entry => {
   const date = Date.now();
   return {
     id: crypto.randomUUID(),
     title: title ?? "Random Thoughts",
     content: "",
+    workspace: workspace,
     createdAt: date,
     updatedAt: date,
     lastViewedAt: date,
@@ -23,9 +24,8 @@ export interface State {
 
   importFn: (orphan: Entry) => void;
   setActive: (id: string) => void;
-  ensureDefault: () => void;
   deleteFn: (id: string) => void;
-  create: (title?: string) => void;
+  create: (workspace: Workspace, title?: string) => void;
   getFn: (id: string) => Entry | undefined;
   save: (entry: Entry) => void;
   updateContent: (
@@ -65,30 +65,13 @@ export const useNoteStore = create<State>()(
         });
       },
 
-      ensureDefault() {
-        const state = get();
-        if (state.entries.length === 0) {
-          const newEntry = createNewEntry();
-          set({
-            entries: [newEntry],
-            activeId: newEntry.id,
-          });
-        } else {
-          if (!state.activeId) {
-            set({
-              activeId: state.entries[0].id,
-            });
-          }
-        }
-      },
-
       getFn(id: string) {
         return get().entries.find((s) => s.id === id);
       },
 
-      create(title?: string) {
+      create(workspace: Workspace, title?: string) {
         const state = get();
-        const newEntry = createNewEntry(title);
+        const newEntry = createNewEntry(workspace, title);
         set({
           entries: [...state.entries, newEntry],
           activeId: newEntry.id,
@@ -97,27 +80,11 @@ export const useNoteStore = create<State>()(
 
       deleteFn(id: string) {
         set((state: State) => {
-          const newEntries = state.entries
-            .sort((a, b) => b.updatedAt - a.updatedAt)
-            .filter((s) => s.id !== id);
-
-          if (newEntries.length === 0) {
-            const defaultEntry = createNewEntry();
-            toast.success("No entries left. Created a new one.");
-            return { entries: [defaultEntry], activeId: defaultEntry.id };
-          }
-
-          let newActiveId = state.activeId;
-          if (state.activeId === id) {
-            newActiveId = newEntries[0].id;
-            toast.success("Active entry deleted, switched to most recent.");
-          } else {
-            toast.success("Entry deleted successfully.");
-          }
+          const newEntries = state.entries.filter((s) => s.id !== id);
+          toast.success("Entry deleted successfully.");
 
           return {
             entries: newEntries,
-            activeId: newActiveId,
           };
         });
       },
@@ -125,9 +92,7 @@ export const useNoteStore = create<State>()(
       setActive(id: string) {
         set((state: State) => {
           const updatedEntries = state.entries.map((entry) =>
-            entry.id === id
-              ? { ...entry, lastViewedAt: Date.now() }
-              : entry,
+            entry.id === id ? { ...entry, lastViewedAt: Date.now() } : entry,
           );
           return {
             activeId: id,
@@ -201,7 +166,9 @@ export const useNoteStore = create<State>()(
             entry.id === entryId
               ? {
                   ...entry,
-                  tags: entry.tags.filter((t) => t !== tag.trim().toLowerCase()),
+                  tags: entry.tags.filter(
+                    (t) => t !== tag.trim().toLowerCase(),
+                  ),
                   updatedAt: Date.now(),
                 }
               : entry,
@@ -250,22 +217,6 @@ export const useNoteStore = create<State>()(
     {
       name: "note-storage",
       storage: createJSONStorage(() => noteStorage),
-      onRehydrateStorage: () => (state, error) => {
-        if (error) {
-          console.error("Error rehydrating store:", error);
-          return;
-        }
-
-        if (state) {
-          state.ensureDefault();
-          // Migrate existing entries to include tags and lastViewedAt fields
-          state.entries = state.entries.map((entry) => ({
-            ...entry,
-            tags: entry.tags || [],
-            lastViewedAt: entry.lastViewedAt || entry.updatedAt,
-          }));
-        }
-      },
     },
   ),
 );

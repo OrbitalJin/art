@@ -1,3 +1,4 @@
+export type Workspace = "work" | "personal" | "research";
 export interface Entry {
   id: string;
   title: string;
@@ -5,5 +6,6 @@ export interface Entry {
   createdAt: number;
   updatedAt: number;
   lastViewedAt: number;
+  workspace: Workspace;
   tags: string[];
 }

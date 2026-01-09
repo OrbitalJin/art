@@ -21,7 +21,13 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   onSwitch?: () => void;
 }
 
-export const Item: React.FC<Props> = ({ id, title, active, updatedAt, tags }) => {
+export const Item: React.FC<Props> = ({
+  id,
+  title,
+  active,
+  updatedAt,
+  tags,
+}) => {
   const setActive = useNoteStore((state) => state.setActive);
   const deleteFn = useNoteStore((state) => state.deleteFn);
   const updateTitle = useNoteStore((state) => state.updateTitle);
@@ -54,12 +60,12 @@ export const Item: React.FC<Props> = ({ id, title, active, updatedAt, tags }) =>
         setActive(id);
       }}
       className={cn(
-        "flex flex-row p-2 gap-2 group items-center justify-between opacity-80",
+        "flex flex-row p-2 group items-center justify-between opacity-80",
         "transition-colors hover:bg-accent hover:border-l hover:border-primary rounded-md",
         active && "bg-accent border-l border-primary opacity-100",
       )}
     >
-      <div className="flex-1 flex flex-col gap-1">
+      <div className="flex-1 flex flex-col gap-2">
         {editing ? (
           <input
             autoFocus
@@ -79,9 +85,7 @@ export const Item: React.FC<Props> = ({ id, title, active, updatedAt, tags }) =>
           <p className="text-sm">{title}</p>
         )}
         <p className="text-xs text-foreground/70">{formatDate(updatedAt)}</p>
-        {tags.length > 0 && (
-          <TagList tags={tags} />
-        )}
+        {tags.length > 0 && <TagList tags={tags} />}
       </div>
 
       <DropdownMenu>

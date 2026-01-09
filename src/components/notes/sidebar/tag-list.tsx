@@ -1,16 +1,20 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TagListProps {
   tags: string[];
   maxVisible?: number;
 }
 
-export const TagList = ({ tags, maxVisible = 3 }: TagListProps) => {
+export const TagList = ({ tags, maxVisible = 2 }: TagListProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const visibleTags = isExpanded ? tags : tags.slice(0, maxVisible);
   const hiddenTagsCount = Math.max(0, tags.length - maxVisible);
 
@@ -29,7 +33,7 @@ export const TagList = ({ tags, maxVisible = 3 }: TagListProps) => {
           @{tag}
         </Badge>
       ))}
-      
+
       {hiddenTagsCount > 0 && !isExpanded && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -43,7 +47,7 @@ export const TagList = ({ tags, maxVisible = 3 }: TagListProps) => {
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-xs">
             <div className="flex flex-wrap gap-1 max-w-xs">
-              {tags.slice(maxVisible).map(tag => (
+              {tags.slice(maxVisible).map((tag) => (
                 <Badge key={tag} variant="secondary" className="text-xs">
                   @{tag}
                 </Badge>
@@ -52,7 +56,7 @@ export const TagList = ({ tags, maxVisible = 3 }: TagListProps) => {
           </TooltipContent>
         </Tooltip>
       )}
-      
+
       {isExpanded && tags.length > maxVisible && (
         <Badge
           variant="outline"

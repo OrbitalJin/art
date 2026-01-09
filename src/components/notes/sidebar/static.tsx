@@ -10,48 +10,13 @@ import {
 import { cn } from "@/lib/utils";
 import { Item } from "./item";
 import { TagFilterDropdown } from "./tag-filter-dropdown";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Workspace } from "@/lib/store/notes/types";
 
 export const StaticSidebar = () => {
   const create = useNoteStore((state) => state.create);
-  const activeId = useNoteStore((state) => state.activeId);
-  const entries = useNoteStore((state) => state.entries);
-
   const [open, setOpen] = useState(true);
-  const [query, setQuery] = useState<string>("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-
-  const allTags = useMemo(() => {
-    const allTags = entries.flatMap((entry) => entry.tags);
-    return [...new Set(allTags)].sort();
-  }, [entries]);
-
-  const tagCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    entries.forEach((entry) => {
-      entry.tags.forEach((tag) => {
-        counts[tag] = (counts[tag] || 0) + 1;
-      });
-    });
-    return counts;
-  }, [entries]);
-
-  const getTagCount = (tag: string) => tagCounts[tag] || 0;
-
-  const filteredEntries = entries.filter((entry) => {
-    const matchesSearch = entry.title
-      .toLowerCase()
-      .includes(query.toLowerCase());
-    const matchesTags =
-      selectedTags.length === 0 ||
-      selectedTags.every((tag) => entry.tags.includes(tag));
-    return matchesSearch && matchesTags;
-  });
-
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
-  };
+  const [currentTab, setCurrentTab] = useState<Workspace>("personal");
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -73,7 +38,7 @@ export const StaticSidebar = () => {
             variant="outline"
             onClick={() => setOpen(true)}
             className={cn(
-              "bg-background/80 backdrop-blur shadow-sm transition-all duration-300",
+              "hidden lg:flex bg-background/80 backdrop-blur shadow-sm transition-all duration-300",
               open && "opacity-0 pointer-events-none scale-90",
             )}
           >
@@ -94,7 +59,11 @@ export const StaticSidebar = () => {
       )}
     >
       <div className="flex flex-row p-2 gap-2 border-b">
-        <Button variant="outline" className="flex-1" onClick={() => create()}>
+        <Button
+          variant="outline"
+          className="flex-1"
+          onClick={() => create(currentTab)}
+        >
           <Plus></Plus>
           New Entry
         </Button>
@@ -102,6 +71,60 @@ export const StaticSidebar = () => {
           <PanelLeftClose />
         </Button>
       </div>
+      <SidebarContent currentTab={currentTab} setCurrentTab={setCurrentTab} />
+    </div>
+  );
+};
+
+interface SidebarContentProps {
+  currentTab: Workspace;
+  setCurrentTab: (tab: Workspace) => void;
+}
+
+const SidebarContent: React.FC<SidebarContentProps> = ({
+  currentTab,
+  setCurrentTab,
+}) => {
+  const activeId = useNoteStore((state) => state.activeId);
+  const entries = useNoteStore((state) => state.entries);
+  const [query, setQuery] = useState<string>("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  const allTags = useMemo(() => {
+    const allTags = entries.flatMap((entry) => entry.tags);
+    return [...new Set(allTags)].sort();
+  }, [entries]);
+
+  const tagCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    entries.forEach((entry) => {
+      entry.tags.forEach((tag) => {
+        counts[tag] = (counts[tag] || 0) + 1;
+      });
+    });
+    return counts;
+  }, [entries]);
+  const getTagCount = (tag: string) => tagCounts[tag] || 0;
+
+  const filteredEntries = entries.filter((entry) => {
+    const matchesSearch = entry.title
+      .toLowerCase()
+      .includes(query.toLowerCase());
+    const matchesTags =
+      selectedTags.length === 0 ||
+      selectedTags.every((tag) => entry.tags.includes(tag));
+
+    const matchesWorkspace = entry.workspace === currentTab;
+    return matchesSearch && matchesTags && matchesWorkspace;
+  });
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  };
+  return (
+    <>
       <div className="flex p-2 border-b gap-2">
         <div
           className={cn(
@@ -131,6 +154,25 @@ export const StaticSidebar = () => {
           <TooltipContent side="right">Filter by tags</TooltipContent>
         </Tooltip>
       </div>
+      <div
+        className={cn(
+          "flex-1 flex flex-row p-2 items-center border-b justify-center",
+        )}
+      >
+        <Tabs
+          className="flex-1"
+          defaultValue={currentTab}
+          onValueChange={(v) => {
+            setCurrentTab(v as Workspace);
+          }}
+        >
+          <TabsList className="flex-1 w-full">
+            <TabsTrigger value="personal">Personal</TabsTrigger>
+            <TabsTrigger value="research">Research</TabsTrigger>
+            <TabsTrigger value="work">Work</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
       <div className="flex flex-col gap-1 p-2 overflow-y-scroll h-full">
         {filteredEntries.length > 0 ? (
           filteredEntries.map((entry, index) => (
@@ -151,6 +193,6 @@ export const StaticSidebar = () => {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
