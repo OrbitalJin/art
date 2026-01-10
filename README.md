@@ -68,6 +68,8 @@
 - [x] Image support
 - [x] sidebar with categories & @ filter
 - [x] proper context menu
+- [x] resizable images
+- [ ] tauri link opener support for links
 - [ ] fix rename autofocus
 - [ ] ai features
 - [ ] popout

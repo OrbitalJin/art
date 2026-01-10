@@ -137,18 +137,45 @@
   }
 
   img {
-    @apply max-w-full h-auto rounded-md my-4;
-    @apply border border-border/30;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply max-w-full h-auto rounded-md transition-all;
     @apply cursor-pointer;
-    display: inline-block;
-    user-select: none;
-    vertical-align: middle;
-    transition: outline 0.2s ease;
+    resize: both;
+    overflow: hidden;
   }
 
-  img.ProseMirror-selectednode {
-    outline: 3px solid hsl(var(--primary));
+  img:hover {
+    @apply ring-3 ring-primary/30 ring-offset-0;
+  }
+
+  [data-resize-handle] {
+    position: absolute;
+    z-index: 10;
+
+    &:hover {
+      @apply bg-transparent cursor-nwse-resize;
+    }
+
+    &[data-resize-handle="bottom-right"] {
+      width: 8px;
+      height: 8px;
+    }
+
+    /* Edge handles */
+    &[data-resize-handle="bottom"] {
+      height: 6px;
+      left: 8px;
+      right: 8px;
+    }
+
+    &[data-resize-handle="right"] {
+      width: 6px;
+      top: 8px;
+      bottom: 8px;
+    }
+  }
+
+  [data-resize-state="true"] [data-resize-wrapper] {
+    @apply ring-3 ring-primary ring-offset-0 rounded-md;
   }
 
   table {

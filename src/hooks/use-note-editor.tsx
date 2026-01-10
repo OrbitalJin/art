@@ -46,6 +46,10 @@ export const useNoteEditor = () => {
         },
         resize: {
           enabled: true,
+          directions: ["bottom-right"],
+          minWidth: 100,
+          minHeight: 100,
+          alwaysPreserveAspectRatio: true,
         },
       }),
       TagHighlighter,

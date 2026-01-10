@@ -21,6 +21,7 @@ const createNewEntry = (workspace: Workspace, title?: string): Entry => {
 export interface State {
   entries: Entry[];
   activeId: string | null;
+  currentWorkspace: Workspace;
 
   importFn: (orphan: Entry) => void;
   setActive: (id: string) => void;
@@ -41,12 +42,30 @@ export interface State {
   changeWorkspace: (id: string, workspace: Workspace) => void;
   getEntriesByTag: (tag: string) => Entry[];
   updateViewedAt: (entryId: string) => void;
+  setWorkspace: (workspace: Workspace) => void;
+  ensureDefaultNote: () => void;
 }
+
 export const useNoteStore = create<State>()(
   persist(
     (set, get) => ({
       entries: [],
       activeId: null,
+      currentWorkspace: "personal",
+
+      ensureDefaultNote: () => {
+        const { entries, currentWorkspace } = get();
+        if (entries.length === 0) {
+          const defaultNote = createNewEntry(currentWorkspace, "Welcome Note");
+          set({
+            entries: [defaultNote],
+            activeId: defaultNote.id,
+          });
+        }
+      },
+
+      setWorkspace: (workspace: Workspace) =>
+        set({ currentWorkspace: workspace }),
 
       save(entry: Entry) {
         set((state) => ({
@@ -76,6 +95,7 @@ export const useNoteStore = create<State>()(
         set({
           entries: [...state.entries, newEntry],
           activeId: newEntry.id,
+          currentWorkspace: workspace,
         });
       },
 
@@ -86,20 +106,23 @@ export const useNoteStore = create<State>()(
 
           return {
             entries: newEntries,
+            activeId: state.activeId === id ? null : state.activeId,
           };
         });
+        get().ensureDefaultNote();
       },
 
       setActive(id: string) {
-        set((state: State) => {
-          const updatedEntries = state.entries.map((entry) =>
-            entry.id === id ? { ...entry, lastViewedAt: Date.now() } : entry,
-          );
-          return {
-            activeId: id,
-            entries: updatedEntries,
-          };
-        });
+        const entry = get().entries.find((e) => e.id === id);
+        if (!entry) return;
+
+        set((state: State) => ({
+          activeId: id,
+          currentWorkspace: entry.workspace,
+          entries: state.entries.map((e) =>
+            e.id === id ? { ...e, lastViewedAt: Date.now() } : e,
+          ),
+        }));
       },
 
       updateTitle(id: string, newTitle: string) {
@@ -115,6 +138,8 @@ export const useNoteStore = create<State>()(
 
       changeWorkspace(id: string, workspace: Workspace) {
         set((state: State) => ({
+          currentWorkspace:
+            state.activeId === id ? workspace : state.currentWorkspace,
           entries: state.entries.map((entry) =>
             entry.id === id
               ? { ...entry, workspace: workspace, updatedAt: Date.now() }
@@ -123,15 +148,10 @@ export const useNoteStore = create<State>()(
         }));
       },
 
-      updateContent(
-        entryId: string,
-        newContent: string,
-        showToast: boolean = true,
-      ) {
+      updateContent(entryId: string, newContent: string, showToast = true) {
         set((state: State) => {
           const updatedEntries = state.entries.map((entry) => {
             if (entry.id === entryId) {
-              // Only update updatedAt if content actually changed
               const contentChanged = entry.content !== newContent;
               return {
                 ...entry,
@@ -142,7 +162,6 @@ export const useNoteStore = create<State>()(
             return entry;
           });
 
-          // Only show toast if content actually changed
           const entry = state.entries.find((e) => e.id === entryId);
           if (entry && entry.content !== newContent && showToast) {
             toast.success("Entry content updated successfully.");
@@ -153,8 +172,8 @@ export const useNoteStore = create<State>()(
       },
 
       addTag(entryId: string, tag: string) {
-        set((state: State) => {
-          const updatedEntries = state.entries.map((entry) => {
+        set((state: State) => ({
+          entries: state.entries.map((entry) => {
             if (entry.id === entryId) {
               const normalizedTag = tag.trim().toLowerCase();
               if (!entry.tags.includes(normalizedTag)) {
@@ -166,10 +185,8 @@ export const useNoteStore = create<State>()(
               }
             }
             return entry;
-          });
-
-          return { entries: updatedEntries };
-        });
+          }),
+        }));
       },
 
       removeTag(entryId: string, tag: string) {
@@ -229,6 +246,15 @@ export const useNoteStore = create<State>()(
     {
       name: "note-storage",
       storage: createJSONStorage(() => noteStorage),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.ensureDefaultNote();
+          if (state.activeId) {
+            const active = state.entries.find((e) => e.id === state.activeId);
+            if (active) state.currentWorkspace = active.workspace;
+          }
+        }
+      },
     },
   ),
 );

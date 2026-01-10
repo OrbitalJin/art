@@ -7,11 +7,13 @@ import { FloatingSidebar } from "@/components/notes/sidebar/floating";
 import { EditorContextMenu } from "@/components/editor/context-menu";
 import { useNoteEditor } from "@/hooks/use-note-editor";
 import { EditorContent } from "@tiptap/react";
+import { useNoteStore } from "@/lib/store/use-note-store";
 
 export const Notes = () => {
   const { isDisabled, editor, isSaving, wordCount, charCount } =
     useNoteEditor();
-  const [currentTab, setCurrentTab] = useState<Workspace>("personal");
+  const currentWorkspace = useNoteStore((state) => state.currentWorkspace);
+  const [currentTab, setCurrentTab] = useState<Workspace>(currentWorkspace);
 
   if (!editor) return null;
 
@@ -29,10 +31,10 @@ export const Notes = () => {
           editor={editor}
           className={cn(
             "w-full h-full overflow-y-scroll max-w-3xl",
-            "justify-center mx-auto",
+            "justify-center mx-auto p-1",
           )}
         >
-          <EditorContent editor={editor} className="w-full h-full pt-12" />
+          <EditorContent editor={editor} className="w-full h-full py-12" />
         </EditorContextMenu>
 
         <div className="absolute bottom-0 right-2">
@@ -42,9 +44,7 @@ export const Notes = () => {
             <span>{charCount} characters</span>
 
             {isSaving && (
-              <span className="flex items-center gap-1">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
-              </span>
+              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
             )}
           </div>
         </div>

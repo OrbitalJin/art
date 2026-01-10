@@ -95,6 +95,7 @@ export const EditorContextMenu: React.FC<Props> = ({
         };
       }
       return {
+        hasSelection: !ctx.editor.state.selection.empty,
         canUndo: ctx.editor.can().undo(),
         canRedo: ctx.editor.can().redo(),
         isBold: ctx.editor.isActive("bold"),
@@ -335,7 +336,6 @@ export const EditorContextMenu: React.FC<Props> = ({
             <React.Fragment key={groupIndex}>
               {group.map((item) => {
                 if ("items" in item) {
-                  // SubMenuItem
                   return (
                     <ContextMenuSub key={item.label}>
                       <ContextMenuSubTrigger
@@ -371,7 +371,6 @@ export const EditorContextMenu: React.FC<Props> = ({
                     </ContextMenuSub>
                   );
                 } else {
-                  // MenuItem
                   return (
                     <ContextMenuItem
                       key={item.label}
