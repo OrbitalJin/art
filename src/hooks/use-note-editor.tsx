@@ -15,7 +15,6 @@ import { extractTags } from "@/lib/utils/tags";
 import { TagHighlighter } from "@/lib/extensions/tag-highlighter";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { EditorState } from "@tiptap/pm/state";
 
 export const useNoteEditor = () => {
   const activeId = useNoteStore((state) => state.activeId);

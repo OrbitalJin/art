@@ -272,5 +272,5 @@ export const getMenuGroups = (
           },
         ]
       : null,
-  ].filter(Boolean);
+  ].filter(Boolean) as any[][];
 };
