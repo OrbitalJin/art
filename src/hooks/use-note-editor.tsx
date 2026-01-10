@@ -1,4 +1,4 @@
-import { useEditor, useEditorState } from "@tiptap/react";
+import { createDocument, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import { CharacterCount } from "@tiptap/extension-character-count";
@@ -15,6 +15,7 @@ import { extractTags } from "@/lib/utils/tags";
 import { TagHighlighter } from "@/lib/extensions/tag-highlighter";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { EditorState } from "@tiptap/pm/state";
 
 export const useNoteEditor = () => {
   const activeId = useNoteStore((state) => state.activeId);
@@ -112,7 +113,13 @@ export const useNoteEditor = () => {
     if (!editor || !activeId || !note) return;
     const currentContent = editor.getHTML();
     if (currentContent !== note.content) {
-      editor.commands.setContent(note.content);
+      editor.view.updateState(
+        EditorState.create({
+          doc: createDocument(note.content, editor.schema),
+          schema: editor.schema,
+          plugins: editor.state.plugins,
+        }),
+      );
     }
   }, [activeId, editor, note]);
 

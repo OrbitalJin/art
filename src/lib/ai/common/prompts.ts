@@ -1,26 +1,39 @@
+export const TONES = [
+  { value: "professional", label: "Professional" },
+  { value: "casual", label: "Casual" },
+  { value: "concise", label: "Concise" },
+  { value: "detailed", label: "Detailed" },
+  { value: "formal", label: "Formal" },
+  { value: "friendly", label: "Friendly" },
+];
+
 export const prompts = {
   textkit: {
     summarize: (text: string, tone: string, instructions?: string) => `
-        Act as Art, the productivity companion. 
-        TASK: Summarize the text provided.
+        TASK: Summarize the text provided. DON'T say anything else.
         TONE: ${tone || "Professional and concise"}
         INSTRUCTIONS: ${instructions || "None"}
         REQUIREMENTS: Focus on key takeaways. Use Markdown for structure.
         CONTENT: ${text}
     `,
     rephrase: (text: string, tone: string, instructions?: string) => `
-        Act as Art, the productivity companion. 
-        TASK: Rewrite and rephrase the text provided.
+        TASK: Rewrite and rephrase the text provided. DON'T say anything else.
         TONE: ${tone || "Natural and clear"}
         INSTRUCTIONS: ${instructions || "None"}
         REQUIREMENTS: Improve flow and impact while keeping the original meaning.
         CONTENT: ${text}
     `,
     translate: (text: string, language: string, instructions?: string) => `
-        Act as Art, the productivity companion. 
-        TASK: Translate the text provided into ${language || "English"}.
+        TASK: Translate the text provided into ${language || "English"}. DON'T say anything else.
         INSTRUCTIONS: ${instructions || "None"}
         REQUIREMENTS: Ensure natural phrasing and cultural accuracy.
+        CONTENT: ${text}
+    `,
+    bullet: (text: string, tone: string, instructions?: string) => `
+        TASK: Generate a bullet point list from the text provided. DON'T say anything else.
+        TONE: ${tone || "Professional and concise"}
+        INSTRUCTIONS: ${instructions || "None"}
+        REQUIREMENTS: Focus on key takeaways. Use Markdown for structure.
         CONTENT: ${text}
     `,
   },

@@ -23,7 +23,7 @@ function useAIOperation<T extends string[]>(
   return { execute, generating };
 }
 
-export const useTextKit = () => {
+export const useTextActions = () => {
   const { ai } = useAI();
 
   const summary = useAIOperation(
@@ -44,10 +44,17 @@ export const useTextKit = () => {
     },
   );
 
+  const bullet = useAIOperation(
+    async (text: string, tone: string, instructions?: string) => {
+      return await ai?.gen(prompts.textkit.bullet(text, tone, instructions));
+    },
+  );
+
   return {
     summarize: summary,
     translate: translation,
     repharse: repharse,
+    bullet: bullet,
     isBusy: summary.generating || translation.generating,
   };
 };
