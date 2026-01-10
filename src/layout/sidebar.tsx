@@ -93,7 +93,7 @@ export const Sidebar = () => {
             >
               <Circle
                 className={cn(
-                  "h-3 w-3 fill-yellow-500 text-yellow-500",
+                  "h-3 w-3 fill-yellow-300 text-yellow-300",
                   "transition-transform group-hover:scale-110",
                 )}
               />
@@ -105,7 +105,7 @@ export const Sidebar = () => {
             >
               <Circle
                 className={cn(
-                  "h-3 w-3 fill-green-500 text-green-500",
+                  "h-3 w-3 fill-green-300 text-green-300",
                   "transition-transform group-hover:scale-110",
                 )}
               />
@@ -117,7 +117,7 @@ export const Sidebar = () => {
             >
               <Circle
                 className={cn(
-                  "h-3 w-3 fill-red-500 text-red-500",
+                  "h-3 w-3 fill-red-300 text-red-300",
                   "transition-transform group-hover:scale-110",
                 )}
               />

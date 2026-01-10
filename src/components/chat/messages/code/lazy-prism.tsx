@@ -1,6 +1,6 @@
 import React from "react";
 import { Prism } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface Props {
   code: string;
@@ -12,7 +12,7 @@ const LazyPrism: React.FC<Props> = ({ code, language, wraps }) => {
   return (
     <div className="text-sm p-1">
       <Prism
-        style={oneDark}
+        style={dracula}
         language={language}
         PreTag="div"
         customStyle={{

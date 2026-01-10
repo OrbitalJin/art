@@ -38,6 +38,7 @@ export interface State {
   removeTag: (entryId: string, tag: string) => void;
   updateTags: (entryId: string, tags: string[]) => void;
   getAllTags: () => string[];
+  changeWorkspace: (id: string, workspace: Workspace) => void;
   getEntriesByTag: (tag: string) => Entry[];
   updateViewedAt: (entryId: string) => void;
 }
@@ -100,6 +101,7 @@ export const useNoteStore = create<State>()(
           };
         });
       },
+
       updateTitle(id: string, newTitle: string) {
         set((state: State) => ({
           entries: state.entries.map((entry) =>
@@ -109,6 +111,16 @@ export const useNoteStore = create<State>()(
           ),
         }));
         toast.success("Entry title updated successfully.");
+      },
+
+      changeWorkspace(id: string, workspace: Workspace) {
+        set((state: State) => ({
+          entries: state.entries.map((entry) =>
+            entry.id === id
+              ? { ...entry, workspace: workspace, updatedAt: Date.now() }
+              : entry,
+          ),
+        }));
       },
 
       updateContent(

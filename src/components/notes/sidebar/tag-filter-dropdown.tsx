@@ -40,7 +40,7 @@ export const TagFilterDropdown = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80 p-0" align="start">
-        <div className="p-3 border-b">
+        <div className="p-2 border-b">
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -52,7 +52,7 @@ export const TagFilterDropdown = ({
           </div>
         </div>
 
-        <div className="max-h-64 overflow-y-auto">
+        <div className="max-h-64 overflow-y-auto gap-2 p-2 text-primary">
           {filteredTags.length > 0 ? (
             filteredTags.map((tag) => (
               <DropdownMenuItem
@@ -61,7 +61,7 @@ export const TagFilterDropdown = ({
                   e.preventDefault();
                   onTagToggle(tag);
                 }}
-                className="flex items-center justify-between"
+                className="flex items-center justify-between p-2"
               >
                 <span>@{tag}</span>
                 <div className="flex items-center gap-2">

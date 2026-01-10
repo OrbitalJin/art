@@ -67,6 +67,7 @@
 - [x] custom mentions (people, places, things, categories, etc.)
 - [x] Image support
 - [x] sidebar with categories & @ filter
+- [x] proper context menu
 - [ ] fix rename autofocus
 - [ ] ai features
 - [ ] popout

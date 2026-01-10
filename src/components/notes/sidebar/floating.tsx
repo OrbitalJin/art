@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { PanelRight } from "lucide-react";
-import { SidebarContent } from "./content";
+import { PanelLeftOpen } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { SidebarContent } from "@/components/notes/sidebar/content";
+import type { Workspace } from "@/lib/store/notes/types";
 
-export const FloatingSidebar: React.FC = () => {
+interface Props {
+  currentTab: Workspace;
+  setCurrentTab: (tab: Workspace) => void;
+}
+
+export const FloatingSidebar: React.FC<Props> = ({
+  currentTab,
+  setCurrentTab,
+}) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -37,7 +46,11 @@ export const FloatingSidebar: React.FC = () => {
             : "-translate-x-[120%] opacity-0 scale-85",
         )}
       >
-        <SidebarContent onSessionSwitch={() => setOpen(false)} />
+        <SidebarContent
+          setOpen={setOpen}
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+        />
       </div>
     </>
   );
@@ -76,7 +89,7 @@ const SidebarToggle: React.FC<ToggleProps> = ({ open, setOpen }) => {
               open && "opacity-0 pointer-events-none scale-90",
             )}
           >
-            <PanelRight className="h-5 w-5" />
+            <PanelLeftOpen className="h-5 w-5" />
             <span className="sr-only">Open Sidebar (Alt+S)</span>
           </Button>
         </TooltipTrigger>

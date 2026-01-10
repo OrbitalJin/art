@@ -2,15 +2,30 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-import { MoreVertical, TextCursor, Trash2 } from "lucide-react";
+import {
+  ArrowRightLeft,
+  MoreVertical,
+  TextCursor,
+  Trash2,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { TagList } from "./tag-list";
+import { WORKSPACES } from "@/lib/store/notes/types";
+import { ShimmerText } from "@/components/ui/shimmer-text";
+import { useGenerateNoteTitle } from "@/hooks/use-generate-note-title";
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   id: string;
@@ -28,9 +43,12 @@ export const Item: React.FC<Props> = ({
   updatedAt,
   tags,
 }) => {
+  const changeWorkspace = useNoteStore((state) => state.changeWorkspace);
+  const updateTitle = useNoteStore((state) => state.updateTitle);
   const setActive = useNoteStore((state) => state.setActive);
   const deleteFn = useNoteStore((state) => state.deleteFn);
-  const updateTitle = useNoteStore((state) => state.updateTitle);
+  const { generating, generateTitle } = useGenerateNoteTitle();
+
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
 
@@ -57,16 +75,29 @@ export const Item: React.FC<Props> = ({
   return (
     <div
       onClick={() => {
-        setActive(id);
+        if (!editing && !generating) {
+          setActive(id);
+        }
       }}
       className={cn(
         "flex flex-row p-2 group items-center justify-between opacity-80",
         "transition-colors hover:bg-accent hover:border-l hover:border-primary rounded-md",
-        active && "bg-accent border-l border-primary opacity-100",
+        editing && "text-accent-foreground",
+        active &&
+          "bg-accent/80 font-medium ring-1 ring-inset ring-foreground/5",
       )}
     >
       <div className="flex-1 flex flex-col gap-2">
-        {editing ? (
+        {generating ? (
+          <>
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
+              <ShimmerText className="text-sm truncate">
+                Generating title...
+              </ShimmerText>
+            </div>
+          </>
+        ) : editing ? (
           <input
             autoFocus
             value={text}
@@ -93,15 +124,53 @@ export const Item: React.FC<Props> = ({
           <Button
             variant="ghost"
             size="icon"
-            className="
-            h-7 w-7 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 
-            data-[state=open]:opacity-100 transition-opacity"
+            className={cn(
+              "h-7 w-7 transition-opacity",
+              editing || generating
+                ? "opacity-0 pointer-events-none"
+                : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100",
+            )}
           >
             <MoreVertical className="h-4 w-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuItem
+            onSelect={async () => {
+              const newTitle = await generateTitle(id);
+              if (newTitle) {
+                setText(newTitle);
+                updateTitle(id, newTitle);
+              }
+            }}
+            className="text-primary focus:text-primary focus:bg-primary/10"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            <span>Auto-generate title</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger onSelect={handleEdit}>
+              <ArrowRightLeft className="mr-2 h-4 w-4" />
+              <span>Move to</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                {WORKSPACES.map((workspace) => (
+                  <DropdownMenuItem
+                    key={workspace}
+                    onSelect={() => changeWorkspace(id, workspace)}
+                  >
+                    {workspace.charAt(0).toUpperCase() + workspace.slice(1)}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+
           <DropdownMenuItem onSelect={handleEdit}>
             <TextCursor className="mr-2 h-4 w-4" />
             <span>Rename</span>
