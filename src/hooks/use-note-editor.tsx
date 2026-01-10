@@ -7,12 +7,14 @@ import { Highlight } from "@tiptap/extension-highlight";
 import { TableKit } from "@tiptap/extension-table";
 import { HorizontalRule } from "@tiptap/extension-horizontal-rule";
 import Image from "@tiptap/extension-image";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { useDebounce } from "@/hooks/use-debounce";
 import { extractTags } from "@/lib/utils/tags";
 import { TagHighlighter } from "@/lib/extensions/tag-highlighter";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export const useNoteEditor = () => {
   const activeId = useNoteStore((state) => state.activeId);
@@ -59,6 +61,19 @@ export const useNoteEditor = () => {
     editorProps: {
       attributes: {
         class: "tiptap focus:outline-none",
+      },
+      handleClick: (_, __, event) => {
+        const target = event.target as HTMLElement;
+        const link = target.closest("a");
+
+        if (link && link.href) {
+          event.preventDefault();
+          openUrl(link.href);
+          toast.info("Opening link...");
+          return true;
+        }
+
+        return false;
       },
       handlePaste: (view, event) => {
         if (!event.clipboardData) return false;

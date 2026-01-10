@@ -1,9 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  BookOpen,
+  Book,
   Circle,
+  BookOpen,
   LayoutDashboard,
+  LayoutTemplate,
   MessageCircle,
+  MessageCircleDashed,
   Settings2,
   type LucideIcon,
 } from "lucide-react";
@@ -25,6 +28,7 @@ export interface NavigationItem {
   href: string;
   name: string;
   icon: LucideIcon;
+  activeIcon: LucideIcon;
   shortcut: string;
   description: string;
 }
@@ -56,18 +60,21 @@ export const Sidebar = () => {
       name: "Dashboard",
       description: "Dashboard",
       icon: LayoutDashboard,
+      activeIcon: LayoutTemplate,
       shortcut: "Alt+1",
     },
     {
       href: "/chat",
       name: "Chat",
       description: "Chat",
-      icon: MessageCircle,
+      icon: MessageCircleDashed,
+      activeIcon: MessageCircle,
       shortcut: "Alt+2",
     },
 
     {
-      icon: BookOpen,
+      icon: Book,
+      activeIcon: BookOpen,
       name: "Notes",
       description: "Notes",
       href: "/notes",
@@ -141,14 +148,18 @@ export const Sidebar = () => {
               <TooltipTrigger asChild key={`nav-${index}`}>
                 <Button
                   className={cn(
-                    "hover:scale-110",
+                    "hover:scale-110 transition-all",
                     isSelected(item.href) && "text-primary",
                   )}
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate(item.href)}
                 >
-                  <item.icon size={20} />
+                  {isSelected(item.href) ? (
+                    <item.activeIcon size={20} />
+                  ) : (
+                    <item.icon size={20} />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="left">{item.description}</TooltipContent>
