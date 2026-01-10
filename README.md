@@ -70,6 +70,9 @@
 - [x] proper context menu
 - [x] resizable images
 - [x] tauri link opener support for links
+- [x] fix char count no tupating on switching
+- [ ] battle test ai features and simplify the dialog Logic
+- [ ] add "as context" feature
 - [ ] fix rename autofocus
 - [ ] ai features
 - [ ] popout

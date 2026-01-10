@@ -15,7 +15,7 @@ import {
   MoreVertical,
   TextCursor,
   Trash2,
-  Sparkles,
+  Sparkle,
   Loader2,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
@@ -146,15 +146,15 @@ export const Item: React.FC<Props> = ({
             }}
             className="text-primary focus:text-primary focus:bg-primary/10"
           >
-            <Sparkles className="mr-2 h-4 w-4" />
-            <span>Auto-generate title</span>
+            <Sparkle className="h-4 w-4" />
+            <span>Generate title</span>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
           <DropdownMenuSub>
             <DropdownMenuSubTrigger onSelect={handleEdit}>
-              <ArrowRightLeft className="mr-2 h-4 w-4" />
+              <ArrowRightLeft className="h-4 w-4" />
               <span>Move to</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
@@ -172,7 +172,7 @@ export const Item: React.FC<Props> = ({
           </DropdownMenuSub>
 
           <DropdownMenuItem onSelect={handleEdit}>
-            <TextCursor className="mr-2 h-4 w-4" />
+            <TextCursor className="h-4 w-4" />
             <span>Rename</span>
           </DropdownMenuItem>
 
@@ -183,7 +183,7 @@ export const Item: React.FC<Props> = ({
               e.preventDefault();
             }}
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
             <span>Delete</span>
           </DropdownMenuItem>
         </DropdownMenuContent>

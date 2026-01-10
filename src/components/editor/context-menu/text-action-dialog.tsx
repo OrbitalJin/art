@@ -18,12 +18,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TONES } from "@/lib/ai/common/prompts";
+import type { AIActions } from "@/lib/types";
 
 interface Props {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onProcess: (tone: string, instructions?: string) => void;
-  action: "summarize" | "rephrase" | "bullet";
+  action: AIActions;
   isProcessing?: boolean;
 }
 
@@ -56,7 +57,9 @@ export const TextActionDialog = ({
       ? "Summarize the selected text with your preferred tone and style."
       : action === "rephrase"
         ? "Rephrase the selected text while keeping the original meaning."
-        : "Generate a bullet point list of the selected text with your preferred tone and style.";
+        : action === "bullet"
+          ? "Generate a bullet point list of the selected text with your preferred tone and style."
+          : "Organize the selected text with your preferred tone and style.";
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

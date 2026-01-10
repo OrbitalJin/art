@@ -4,13 +4,12 @@ import { useNoteStore } from "@/lib/store/use-note-store";
 import { useImportImage } from "@/hooks/use-import-image";
 import { useTextActions } from "@/hooks/use-text-actions";
 import { toast } from "sonner";
+import type { AIActions } from "@/lib/types";
 
 export const useEditorActions = (editor: Editor | null) => {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [isActonDialogOpen, setIsActionDialogOpen] = useState(false);
-  const [textAction, setTextAction] = useState<
-    "summarize" | "rephrase" | "bullet" | null
-  >(null);
+  const [textAction, setTextAction] = useState<AIActions | null>(null);
 
   const updateContent = useNoteStore((state) => state.updateContent);
   const activeId = useNoteStore((state) => state.activeId);
@@ -38,7 +37,9 @@ export const useEditorActions = (editor: Editor | null) => {
         ? "Summarizing"
         : textAction === "rephrase"
           ? "Rephrasing"
-          : "Generating Bullet Points";
+          : textAction === "bullet"
+            ? "Generating Bullet Points"
+            : "Organizing";
     const toastId = toast.loading(`${toastTitle}...`);
 
     try {

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   Trash2,
   MoreVertical,
-  Sparkles,
+  Sparkle,
   Loader2,
   TextCursor,
   Pin,
@@ -185,23 +185,23 @@ const Menu: React.FC<MenuProps> = ({
           onSelect={handleGenerate}
           className="text-primary focus:text-primary focus:bg-primary/10"
         >
-          <Sparkles className="mr-2 h-4 w-4" />
-          <span>Auto-generate title</span>
+          <Sparkle className="h-4 w-4" />
+          <span>Generate title</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
         <DropdownMenuItem onSelect={() => togglePin(id)}>
           {pinned ? (
-            <PinOff className="mr-2 h-4 w-4" />
+            <PinOff className="h-4 w-4" />
           ) : (
-            <Pin className="mr-2 h-4 w-4" />
+            <Pin className="h-4 w-4" />
           )}
           <span>{pinned ? "Unpin" : "Pin"}</span>
         </DropdownMenuItem>
 
         <DropdownMenuItem onSelect={() => setEditing(true)}>
-          <TextCursor className="mr-2 h-4 w-4" />
+          <TextCursor className="h-4 w-4" />
           <span>Rename</span>
         </DropdownMenuItem>
 
@@ -209,7 +209,7 @@ const Menu: React.FC<MenuProps> = ({
           className="text-destructive focus:text-destructive focus:bg-destructive/10"
           onClick={handleDelete}
         >
-          <Trash2 className="mr-2 h-4 w-4" />
+          <Trash2 className="h-4 w-4" />
           <span>Delete</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

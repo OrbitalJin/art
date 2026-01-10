@@ -113,12 +113,14 @@ export const useNoteEditor = () => {
     if (!editor || !activeId || !note) return;
     const currentContent = editor.getHTML();
     if (currentContent !== note.content) {
-      editor.view.updateState(
-        EditorState.create({
-          doc: createDocument(note.content, editor.schema),
-          schema: editor.schema,
-          plugins: editor.state.plugins,
-        }),
+      editor.view.dispatch(
+        editor.state.tr
+          .replaceWith(
+            0,
+            editor.state.doc.content.size,
+            createDocument(note.content, editor.schema).content,
+          )
+          .setMeta("addToHistory", false),
       );
     }
   }, [activeId, editor, note]);

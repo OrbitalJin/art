@@ -10,30 +10,37 @@ export const TONES = [
 export const prompts = {
   textkit: {
     summarize: (text: string, tone: string, instructions?: string) => `
-        TASK: Summarize the text provided. DON'T say anything else.
+        TASK: Summarize the text provided.
         TONE: ${tone || "Professional and concise"}
         INSTRUCTIONS: ${instructions || "None"}
-        REQUIREMENTS: Focus on key takeaways. Use Markdown for structure.
+        REQUIREMENTS: Focus on key takeaways. Use Markdown for structure. DON'T say anything else.
         CONTENT: ${text}
     `,
     rephrase: (text: string, tone: string, instructions?: string) => `
-        TASK: Rewrite and rephrase the text provided. DON'T say anything else.
+        TASK: Rewrite and rephrase the text provided.
         TONE: ${tone || "Natural and clear"}
         INSTRUCTIONS: ${instructions || "None"}
-        REQUIREMENTS: Improve flow and impact while keeping the original meaning.
+        REQUIREMENTS: Improve flow and impact while keeping the original meaning. DON'T say anything else.
         CONTENT: ${text}
     `,
     translate: (text: string, language: string, instructions?: string) => `
-        TASK: Translate the text provided into ${language || "English"}. DON'T say anything else.
+        TASK: Translate the text provided into ${language || "English"}.
         INSTRUCTIONS: ${instructions || "None"}
-        REQUIREMENTS: Ensure natural phrasing and cultural accuracy.
+        REQUIREMENTS: Ensure natural phrasing and cultural accuracy. DON'T say anything else.
         CONTENT: ${text}
     `,
     bullet: (text: string, tone: string, instructions?: string) => `
-        TASK: Generate a bullet point list from the text provided. DON'T say anything else.
+        TASK: Generate a bullet point list from the text provided.
         TONE: ${tone || "Professional and concise"}
         INSTRUCTIONS: ${instructions || "None"}
-        REQUIREMENTS: Focus on key takeaways. Use Markdown for structure.
+        REQUIREMENTS: Focus on key takeaways. Use Markdown for structure. DON'T say anything else.
+        CONTENT: ${text}
+    `,
+    organize: (text: string, tone: string, instructions?: string) => `
+        TASK: Re-organize the document provided, fix formatting, and improve structure using list, checklists, tables, headers, etc.
+        TONE: ${tone || "Professional and concise"}
+        INSTRUCTIONS: ${instructions || "None"}
+        REQUIREMENTS: Focus on key takeaways. Use Markdown for structure. DON'T say anything else.
         CONTENT: ${text}
     `,
   },

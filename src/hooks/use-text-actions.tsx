@@ -50,11 +50,18 @@ export const useTextActions = () => {
     },
   );
 
+  const organize = useAIOperation(
+    async (text: string, tone: string, instructions?: string) => {
+      return await ai?.gen(prompts.textkit.organize(text, tone, instructions));
+    },
+  );
+
   return {
     summarize: summary,
     translate: translation,
     repharse: repharse,
     bullet: bullet,
+    organize,
     isBusy: summary.generating || translation.generating,
   };
 };

@@ -25,10 +25,16 @@ import {
   SquarePlus,
   ArrowDownWideNarrow,
   TextSelect,
+  Rainbow,
 } from "lucide-react";
+import type { Actions, EditorState } from "@/lib/types";
 
-export const getMenuGroups = (editor: Editor, state: any, actions: any) => {
-  const groups = [
+export const getMenuGroups = (
+  editor: Editor,
+  state: EditorState,
+  actions: Actions,
+) => {
+  return [
     // Group 1: History
     [
       {
@@ -220,46 +226,51 @@ export const getMenuGroups = (editor: Editor, state: any, actions: any) => {
         ],
       },
     ],
-  ];
-
-  // Group 6: AI Actions (Only if text is selected)
-  if (state.hasSelection) {
-    groups.push([
-      {
-        icon: TextSelect,
-        label: "Actions",
-        items: [
+    state.hasSelection
+      ? [
           {
-            icon: ArrowDownWideNarrow,
-            label: "Summarize",
-            action: () => {
-              actions.dialogs.ai.setAction("summarize");
-              actions.dialogs.ai.setOpen(true);
-            },
-            isDisabled: actions.isBusy,
+            icon: TextSelect,
+            label: "AI Actions",
+            items: [
+              {
+                icon: ArrowDownWideNarrow,
+                label: "Summarize",
+                action: () => {
+                  actions.dialogs.ai.setAction("summarize");
+                  actions.dialogs.ai.setOpen(true);
+                },
+                isDisabled: actions.isBusy && !state.hasSelection,
+              },
+              {
+                icon: ListRestart,
+                label: "Rephrase",
+                action: () => {
+                  actions.dialogs.ai.setAction("rephrase");
+                  actions.dialogs.ai.setOpen(true);
+                },
+                isDisabled: actions.isBusy && !state.hasSelection,
+              },
+              {
+                icon: List,
+                label: "Convert to Bullets",
+                action: () => {
+                  actions.dialogs.ai.setAction("bullet");
+                  actions.dialogs.ai.setOpen(true);
+                },
+                isDisabled: actions.isBusy && !state.hasSelection,
+              },
+              {
+                icon: Rainbow,
+                label: "Organize Content",
+                action: () => {
+                  actions.dialogs.ai.setAction("organize");
+                  actions.dialogs.ai.setOpen(true);
+                },
+                isDisabled: actions.isBusy && !state.hasSelection,
+              },
+            ],
           },
-          {
-            icon: ListRestart,
-            label: "Rephrase",
-            action: () => {
-              actions.dialogs.ai.setAction("rephrase");
-              actions.dialogs.ai.setOpen(true);
-            },
-            isDisabled: actions.isBusy,
-          },
-          {
-            icon: List,
-            label: "Bullet",
-            action: () => {
-              actions.dialogs.ai.setAction("bullet");
-              actions.dialogs.ai.setOpen(true);
-            },
-            isDisabled: actions.isBusy,
-          },
-        ],
-      },
-    ]);
-  }
-
-  return groups;
+        ]
+      : null,
+  ].filter(Boolean);
 };
