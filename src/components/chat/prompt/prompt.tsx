@@ -69,6 +69,9 @@ export const Prompt = () => {
 
           <div className="flex justify-between items-center px-1">
             <div className="flex flex-row gap-2">
+              <Button variant="outline" size="icon" onClick={handlePaste}>
+                <Clipboard />
+              </Button>
               <SelectModel />
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -84,9 +87,6 @@ export const Prompt = () => {
                 </TooltipTrigger>
                 <TooltipContent>Paste Code</TooltipContent>
               </Tooltip>
-              <Button variant="outline" size="icon" onClick={handlePaste}>
-                <Clipboard />
-              </Button>
 
               <Tooltip>
                 <TooltipTrigger asChild>

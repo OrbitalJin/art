@@ -9,20 +9,9 @@ import {
 } from "@/components/ui/tooltip";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { SidebarContent } from "@/components/notes/sidebar/content";
-import type { Workspace } from "@/lib/store/notes/types";
 
-interface Props {
-  currentTab: Workspace;
-  onTagClick?: (tag: string) => void;
-  setCurrentTab: (tab: Workspace) => void;
-}
-
-export const FloatingSidebar: React.FC<Props> = ({
-  currentTab,
-  setCurrentTab,
-}) => {
+export const FloatingSidebar = () => {
   const [open, setOpen] = useState(false);
-
   return (
     <>
       <SidebarToggle open={open} setOpen={setOpen} />
@@ -47,11 +36,7 @@ export const FloatingSidebar: React.FC<Props> = ({
             : "-translate-x-[120%] opacity-0 scale-85",
         )}
       >
-        <SidebarContent
-          setOpen={setOpen}
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-        />
+        <SidebarContent onClose={setOpen} />
       </div>
     </>
   );

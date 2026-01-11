@@ -20,7 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { CommandPalette } from "@/components/command-palette";
+import { Command } from "@/components/command";
 
 const appWindow = getCurrentWindow();
 
@@ -185,7 +185,7 @@ export const Sidebar = () => {
           <SettingsDialog open={open} onOpenChange={setOpen} />
         </div>
       </aside>
-      <CommandPalette items={items} />
+      <Command items={items} />
     </div>
   );
 };

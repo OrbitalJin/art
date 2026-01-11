@@ -1,27 +1,18 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { useNoteEditor } from "@/contexts/note-editor-context";
 
 interface TagListProps {
   tags: string[];
   active: boolean;
-  onTagClick?: (tag: string) => void;
   maxVisible?: number;
 }
 
-export const TagList = ({
-  tags,
-  active,
-  onTagClick,
-  maxVisible = 2,
-}: TagListProps) => {
+export const TagList = ({ tags, active, maxVisible = 2 }: TagListProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { handleTagClick } = useNoteEditor();
 
   const visibleTags = isExpanded ? tags : tags.slice(0, maxVisible);
   const hiddenTagsCount = Math.max(0, tags.length - maxVisible);
@@ -40,38 +31,20 @@ export const TagList = ({
           key={tag}
           variant="secondary"
           className="text-xs px-1.5 py-0.5 hover:bg-primary/20 transition-colors cursor-default"
-          onClick={() => onTagClick?.(tag)}
+          onClick={() => handleTagClick(tag)}
         >
           @{tag}
         </Badge>
       ))}
 
       {hiddenTagsCount > 0 && !isExpanded && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge
-              variant="outline"
-              className="text-xs px-1.5 py-0.5 cursor-pointer hover:bg-primary/10 transition-colors"
-              onClick={() => setIsExpanded(true)}
-            >
-              +{hiddenTagsCount} more
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-xs">
-            <div className="flex flex-wrap gap-1 max-w-xs">
-              {tags.slice(maxVisible).map((tag) => (
-                <Badge
-                  key={tag}
-                  onClick={() => onTagClick?.(tag)}
-                  variant="secondary"
-                  className="text-xs"
-                >
-                  @{tag}
-                </Badge>
-              ))}
-            </div>
-          </TooltipContent>
-        </Tooltip>
+        <Badge
+          variant="outline"
+          className="text-xs px-1.5 py-0.5 cursor-pointer hover:bg-primary/10 transition-colors"
+          onClick={() => setIsExpanded(true)}
+        >
+          +{hiddenTagsCount} more
+        </Badge>
       )}
 
       {isExpanded && tags.length > maxVisible && (

@@ -17,12 +17,14 @@ import {
   Trash2,
   Sparkle,
   Loader2,
+  PinOff,
+  Pin,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { TagList } from "./tag-list";
+import { TagList } from "@/components/notes/sidebar/entry/tag/list";
 import { WORKSPACES } from "@/lib/store/notes/types";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useGenerateNoteTitle } from "@/hooks/use-generate-note-title";
@@ -30,10 +32,10 @@ import { useGenerateNoteTitle } from "@/hooks/use-generate-note-title";
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   id: string;
   title: string;
+  pinned?: boolean;
   active: boolean;
   updatedAt: number;
   tags: string[];
-  onTagClick?: (tag: string) => void;
   onSwitch?: () => void;
 }
 
@@ -41,14 +43,15 @@ export const Item: React.FC<Props> = ({
   id,
   title,
   active,
+  pinned,
   updatedAt,
-  onTagClick,
   tags,
 }) => {
   const changeWorkspace = useNoteStore((state) => state.changeWorkspace);
   const updateTitle = useNoteStore((state) => state.updateTitle);
   const setActive = useNoteStore((state) => state.setActive);
   const deleteFn = useNoteStore((state) => state.deleteFn);
+  const togglePin = useNoteStore((state) => state.togglePin);
   const { generating, generateTitle } = useGenerateNoteTitle();
 
   const [editing, setEditing] = useState(false);
@@ -118,9 +121,7 @@ export const Item: React.FC<Props> = ({
           <p className="text-sm">{title}</p>
         )}
         <p className="text-xs text-foreground/70">{formatDate(updatedAt)}</p>
-        {tags.length > 0 && (
-          <TagList onTagClick={onTagClick} active={active} tags={tags} />
-        )}
+        {tags.length > 0 && <TagList active={active} tags={tags} />}
       </div>
 
       <DropdownMenu>
@@ -174,6 +175,15 @@ export const Item: React.FC<Props> = ({
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
+
+          <DropdownMenuItem onSelect={() => togglePin(id)}>
+            {pinned ? (
+              <PinOff className="h-4 w-4" />
+            ) : (
+              <Pin className="h-4 w-4" />
+            )}
+            <span>{pinned ? "Unpin" : "Pin"}</span>
+          </DropdownMenuItem>
 
           <DropdownMenuItem onSelect={handleEdit}>
             <TextCursor className="h-4 w-4" />

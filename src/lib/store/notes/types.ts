@@ -7,6 +7,7 @@ export interface Entry {
   content: string;
   createdAt: number;
   updatedAt: number;
+  pinned?: boolean;
   lastViewedAt: number;
   workspace: Workspace;
   tags: string[];

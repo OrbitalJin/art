@@ -1,3 +1,5 @@
+import { Editor } from "@tiptap/react";
+import { createContext, useContext } from "react";
 import { createDocument, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
@@ -15,14 +17,34 @@ import { extractTags } from "@/lib/utils/tags";
 import { TagHighlighter } from "@/lib/extensions/tag-highlighter";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { Workspace } from "@/lib/store/notes/types";
 
-export const useNoteEditor = () => {
+interface NoteEditorContextValue {
+  editor: Editor;
+  wordCount: number;
+  charCount: number;
+  isSaving: boolean;
+  isDisabled: boolean;
+  currentTab: Workspace;
+  setCurrentTab: (tab: Workspace) => void;
+  handleTagClick: (tag: string) => void;
+}
+
+const NoteEditorContext = createContext<NoteEditorContextValue | null>(null);
+
+interface Props {
+  children: React.ReactNode;
+}
+
+export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
   const activeId = useNoteStore((state) => state.activeId);
   const note = useNoteStore((state) => state.getFn(activeId ?? ""));
   const updateContent = useNoteStore((state) => state.updateContent);
   const updateTags = useNoteStore((state) => state.updateTags);
   const isDisabled = useNoteStore((state) => state.entries.length === 0);
   const [isSaving, setIsSaving] = useState(false);
+  const currentWorkspace = useNoteStore((state) => state.currentWorkspace);
+  const [currentTab, setCurrentTab] = useState<Workspace>(currentWorkspace);
 
   const debouncedSave = useDebounce((content: string) => {
     if (activeId) {
@@ -147,7 +169,7 @@ export const useNoteEditor = () => {
     let foundPos = -1;
 
     editor.state.doc.descendants((node, pos) => {
-      if (foundPos !== -1) return false; // Stop searching if found
+      if (foundPos !== -1) return false;
       if (node.isText && node.text?.includes(searchTerm)) {
         const index = node.text.indexOf(searchTerm);
         foundPos = pos + index;
@@ -168,13 +190,28 @@ export const useNoteEditor = () => {
       toast.error(`Tag ${searchTerm} not found in content`);
     }
   };
+  return (
+    <NoteEditorContext.Provider
+      value={{
+        editor,
+        wordCount,
+        charCount,
+        isSaving,
+        isDisabled,
+        handleTagClick,
+        currentTab,
+        setCurrentTab,
+      }}
+    >
+      {children}
+    </NoteEditorContext.Provider>
+  );
+};
 
-  return {
-    editor,
-    wordCount,
-    charCount,
-    isSaving,
-    isDisabled,
-    handleTagClick,
-  };
+export const useNoteEditor = () => {
+  const context = useContext(NoteEditorContext);
+  if (!context) {
+    throw new Error("useNoteEditor must be used within NoteEditorProvider");
+  }
+  return context;
 };

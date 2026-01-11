@@ -63,19 +63,19 @@
 
 - [x] Improve ui/toolbar/title bar
 - [x] Persistence
-- [x] auto-save
-- [x] custom mentions (people, places, things, categories, etc.)
+- [x] Auto-save
+- [x] Custom mentions (people, places, things, categories, etc.)
 - [x] Image support
-- [x] sidebar with categories & @ filter
-- [x] proper context menu
-- [x] resizable images
-- [x] tauri link opener support for links
-- [x] fix char count no tupating on switching
-- [x] jump to tag on click on entry list
-- [x] lower opacity of sidebar toggle
-- [ ] pin notes
-- [ ] battle test ai features and simplify the dialog Logic
-- [ ] add "as context" feature
-- [ ] fix rename autofocus
-- [ ] ai features
-- [ ] popout
+- [x] Sidebar with categories & @ filter
+- [x] Proper context menu
+- [x] Resizable images
+- [x] Tauri link opener support for links
+- [x] Fix char count updating on switching
+- [x] Jump to tag on click on entry list
+- [x] Lower opacity of sidebar toggle
+- [x] Trade (import/export)
+- [x] Pin notes
+- [ ] Add "as context" feature
+- [ ] AI features
+- [ ] Battle test AI features & simplify dialog logic
+- [ ] Popout

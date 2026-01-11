@@ -7,20 +7,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { Workspace } from "@/lib/store/notes/types";
 import { SidebarContent } from "@/components/notes/sidebar/content";
 
-interface Props {
-  currentTab: Workspace;
-  onTagClick?: (tag: string) => void;
-  setCurrentTab: (tab: Workspace) => void;
-}
-
-export const StaticSidebar: React.FC<Props> = ({
-  currentTab,
-  onTagClick,
-  setCurrentTab,
-}) => {
+export const StaticSidebar = () => {
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
@@ -55,7 +44,7 @@ export const StaticSidebar: React.FC<Props> = ({
     );
   }
   return (
-    <div
+    <aside
       className={cn(
         "hidden lg:flex flex-col h-full w-[380px] overflow-hidden",
         "transition-all rounded-xl border bg-card/50",
@@ -63,12 +52,7 @@ export const StaticSidebar: React.FC<Props> = ({
         open ? "" : "w-0 border-0",
       )}
     >
-      <SidebarContent
-        setOpen={setOpen}
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        onTagClick={onTagClick}
-      />
-    </div>
+      <SidebarContent onClose={setOpen} />
+    </aside>
   );
 };

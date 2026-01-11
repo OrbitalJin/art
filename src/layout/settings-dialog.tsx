@@ -8,10 +8,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Check, Copy, Eye, EyeOff, MessageCircle, Save } from "lucide-react";
+import { Eye, EyeOff, MessageCircle, Save } from "lucide-react";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
-import { useCopy } from "@/hooks/use-copy";
 
 type SettingsTab = "chat";
 
@@ -26,7 +25,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const setApiKey = useSettingsStore((state) => state.setApiKey);
   const [showKey, setShowKey] = React.useState(false);
   const [value, setValue] = React.useState(apiKey);
-  const { copied, copy } = useCopy(value);
 
   const saveApiKey = () => {
     setApiKey(value);
@@ -75,24 +73,22 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <div className="space-y-2">
                   <p className="font-semibold">API Key</p>
                   <div className="flex gap-2">
+                    <Input
+                      id="apiKey"
+                      type={showKey ? "text" : "password"}
+                      placeholder="..."
+                      value={value}
+                      onChange={(e) => setValue(e.target.value)}
+                    />
+
                     <Button
                       variant="outline"
                       onClick={() => setShowKey((v) => !v)}
                     >
                       {showKey ? <EyeOff /> : <Eye />}
                     </Button>
-                    <Input
-                      id="apiKey"
-                      type={showKey ? "text" : "password"}
-                      placeholder="sk-..."
-                      value={value}
-                      onChange={(e) => setValue(e.target.value)}
-                    />
                     <Button onClick={saveApiKey}>
                       <Save />
-                    </Button>
-                    <Button variant="outline" onClick={copy}>
-                      {copied ? <Check /> : <Copy />}
                     </Button>
                   </div>
                 </div>

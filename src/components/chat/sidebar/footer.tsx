@@ -45,7 +45,7 @@ const UsageIndicator = ({ usage }: { usage?: string }) => {
         <span>Memory</span>
         <span className="font-medium text-foreground">{usage}</span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-muted/50 overflow-hidden">
+      <div className="h-1.5 w-full rounded-full bg-foreground/5 overflow-hidden">
         <div
           className="h-full bg-primary/80 transition-all duration-500 ease-out"
           style={{ width: usage }}

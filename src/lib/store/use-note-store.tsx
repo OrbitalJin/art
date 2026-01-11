@@ -23,6 +23,7 @@ export interface State {
   activeId: string | null;
   currentWorkspace: Workspace;
 
+  togglePin: (id: string) => void;
   importFn: (orphan: Entry) => void;
   setActive: (id: string) => void;
   deleteFn: (id: string) => void;
@@ -43,7 +44,6 @@ export interface State {
   getEntriesByTag: (tag: string) => Entry[];
   updateViewedAt: (entryId: string) => void;
   setWorkspace: (workspace: Workspace) => void;
-  ensureDefaultNote: () => void;
 }
 
 export const useNoteStore = create<State>()(
@@ -52,17 +52,6 @@ export const useNoteStore = create<State>()(
       entries: [],
       activeId: null,
       currentWorkspace: "personal",
-
-      ensureDefaultNote: () => {
-        const { entries, currentWorkspace } = get();
-        if (entries.length === 0) {
-          const defaultNote = createNewEntry(currentWorkspace, "Welcome Note");
-          set({
-            entries: [defaultNote],
-            activeId: defaultNote.id,
-          });
-        }
-      },
 
       setWorkspace: (workspace: Workspace) =>
         set({ currentWorkspace: workspace }),
@@ -112,7 +101,6 @@ export const useNoteStore = create<State>()(
             activeId: state.activeId === id ? null : state.activeId,
           };
         });
-        get().ensureDefaultNote();
       },
 
       setActive(id: string) {
@@ -222,6 +210,20 @@ export const useNoteStore = create<State>()(
         }));
       },
 
+      togglePin(entryId: string) {
+        set((state: State) => ({
+          entries: state.entries.map((entry) =>
+            entry.id === entryId
+              ? {
+                  ...entry,
+                  pinned: !entry.pinned,
+                  updatedAt: Date.now(),
+                }
+              : entry,
+          ),
+        }));
+      },
+
       getAllTags() {
         const state = get();
         const allTags = state.entries.flatMap((entry) => entry.tags);
@@ -249,13 +251,11 @@ export const useNoteStore = create<State>()(
     {
       name: "note-storage",
       storage: createJSONStorage(() => noteStorage),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.ensureDefaultNote();
-          if (state.activeId) {
-            const active = state.entries.find((e) => e.id === state.activeId);
-            if (active) state.currentWorkspace = active.workspace;
-          }
+      onRehydrateStorage: () => (store) => {
+        if (!store) return;
+        const entries = store.entries;
+        if (entries.length !== 0) {
+          store.setActive(entries[0].id);
         }
       },
     },

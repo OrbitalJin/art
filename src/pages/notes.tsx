@@ -1,66 +1,49 @@
 import "@/styles/tiptap.css";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 import { StaticSidebar } from "@/components/notes/sidebar/static";
-import type { Workspace } from "@/lib/store/notes/types";
 import { FloatingSidebar } from "@/components/notes/sidebar/floating";
 import { EditorContextMenu } from "@/components/editor/context-menu/context-menu";
-import { useNoteEditor } from "@/hooks/use-note-editor";
 import { EditorContent } from "@tiptap/react";
-import { useNoteStore } from "@/lib/store/use-note-store";
 import { Command } from "@/components/notes/command";
+import { useNoteEditor } from "@/contexts/note-editor-context";
 
 export const Notes = () => {
-  const { isDisabled, editor, isSaving, wordCount, charCount, handleTagClick } =
+  const { isDisabled, editor, isSaving, wordCount, charCount } =
     useNoteEditor();
-  const currentWorkspace = useNoteStore((state) => state.currentWorkspace);
-  const [currentTab, setCurrentTab] = useState<Workspace>(currentWorkspace);
-
-  if (!editor) return null;
 
   return (
-    <>
-      <div className="relative flex-1 flex flex-row p-2 gap-2">
-        <StaticSidebar
-          onTagClick={handleTagClick}
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-        />
-        <FloatingSidebar
-          onTagClick={handleTagClick}
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-        />
-        <div
+    <div className="relative flex-1 flex flex-row p-2 gap-2">
+      <Command editor={editor} />
+      <StaticSidebar />
+      <FloatingSidebar />
+      <div
+        className={cn(
+          "relative flex h-full w-full flex-col overflow-hidden",
+          isDisabled && "pointer-events-none opacity-80",
+        )}
+      >
+        <EditorContextMenu
+          editor={editor}
           className={cn(
-            "relative flex h-full w-full flex-col overflow-hidden",
-            isDisabled && "pointer-events-none opacity-80",
+            "w-full h-full overflow-y-scroll max-w-3xl",
+            "justify-center mx-auto p-1",
           )}
         >
-          <EditorContextMenu
-            editor={editor}
-            className={cn(
-              "w-full h-full overflow-y-scroll max-w-3xl",
-              "justify-center mx-auto p-1",
+          <EditorContent editor={editor} className="w-full h-full py-12" />
+        </EditorContextMenu>
+
+        <div className="absolute bottom-0 right-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card border rounded-md px-2 py-1">
+            <span>{wordCount} words</span>
+            <span>•</span>
+            <span>{charCount} characters</span>
+
+            {isSaving && (
+              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
             )}
-          >
-            <EditorContent editor={editor} className="w-full h-full py-12" />
-          </EditorContextMenu>
-
-          <div className="absolute bottom-0 right-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card border rounded-md px-2 py-1">
-              <span>{wordCount} words</span>
-              <span>•</span>
-              <span>{charCount} characters</span>
-
-              {isSaving && (
-                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-              )}
-            </div>
           </div>
         </div>
       </div>
-      <Command editor={editor} />
-    </>
+    </div>
   );
 };
