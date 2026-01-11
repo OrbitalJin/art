@@ -1,5 +1,5 @@
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp, Asterisk, Clipboard, Code, Square } from "lucide-react";
+import { ArrowUp, Clipboard, Code, Square } from "lucide-react";
 import { SelectModel } from "@/components/chat/prompt/model-select";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useStreamingState } from "@/hooks/use-streaming-state";
+import { ContextPicker } from "./context-picker";
 
 export const Prompt = () => {
   const { prompt, abortStream, setPrompt, sendMessage } = useActiveSession();
@@ -88,14 +89,7 @@ export const Prompt = () => {
                 <TooltipContent>Paste Code</TooltipContent>
               </Tooltip>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Asterisk />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Add context</TooltipContent>
-              </Tooltip>
+              <ContextPicker />
             </div>
             <Button
               variant="default"

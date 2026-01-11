@@ -169,15 +169,17 @@ const Menu: React.FC<MenuProps> = ({
   };
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger>
         <Button
           variant="ghost"
           size="icon"
           className="h-7 w-7 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
           onClick={(e) => e.stopPropagation()}
         >
-          <MoreVertical className="h-4 w-4" />
-          <span className="sr-only">Open menu</span>
+          <span>
+            <MoreVertical className="h-4 w-4" />
+            <span className="sr-only">Open menu</span>
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">

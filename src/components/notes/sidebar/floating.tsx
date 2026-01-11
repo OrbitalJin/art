@@ -65,7 +65,7 @@ const SidebarToggle: React.FC<ToggleProps> = ({ open, setOpen }) => {
   return (
     <div className="lg:hidden absolute top-2 left-2 z-50">
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger>
           <Button
             variant="outline"
             size="icon"

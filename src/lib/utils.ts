@@ -5,6 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const formatDateAsAgo = (timestamp: number) => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+  if (diffHours < 1) return "Just now";
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 48) return "Yesterday";
+  return date.toLocaleDateString();
+};
+
 export function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
   const months = [

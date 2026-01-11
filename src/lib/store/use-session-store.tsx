@@ -12,6 +12,7 @@ const createNewSession = (title?: string): Session => {
     id: crypto.randomUUID(),
     title: title ?? "New Session",
     messages: [],
+    contextNotes: [],
     preferredModel: DefaultModel,
     createdAt: date,
     updatedAt: date,
@@ -22,13 +23,16 @@ export interface SessionState {
   sessions: Session[];
   activeId: string | null;
 
+  addContextNote: (id: string, noteId: string) => void;
+  removeContextNote: (id: string, noteId: string) => void;
+  clearContextNotes: (id: string) => void;
   togglePin: (id: string) => void;
   importFn: (s: Session) => void;
   setActive: (id: string) => void;
   ensureDefault: () => void;
   deleteFn: (id: string) => void;
   create: (title?: string) => void;
-  get: (id: string) => Session | undefined;
+  getFn: (id: string) => Session | undefined;
   addMessage: (sessionId: string, message: Message) => void;
   updateTitle: (sessionId: string, newTitle: string) => void;
   setSessionModel: (sessionId: string, model: Model) => void;
@@ -38,6 +42,45 @@ export const useSessionStore = create<SessionState>()(
     (set, get) => ({
       sessions: [],
       activeId: null,
+
+      withinContext: (id: string, noteId: string): boolean => {
+        return get().getFn(id)?.contextNotes.includes(noteId) ?? false;
+      },
+
+      addContextNote: (id: string, noteId: string) => {
+        if (!noteId) return;
+
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? { ...session, contextNotes: [...session.contextNotes, noteId] }
+              : session,
+          ),
+        }));
+      },
+
+      removeContextNote: (id: string, noteId: string) => {
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? {
+                  ...session,
+                  contextNotes: session.contextNotes.filter(
+                    (n) => n !== noteId,
+                  ),
+                }
+              : session,
+          ),
+        }));
+      },
+
+      clearContextNotes: (id: string) => {
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id ? { ...session, contextNotes: [] } : session,
+          ),
+        }));
+      },
 
       togglePin: (id: string) => {
         const state = get();
@@ -79,7 +122,7 @@ export const useSessionStore = create<SessionState>()(
         }
       },
 
-      get: (id: string) => {
+      getFn: (id: string) => {
         return get().sessions.find((s) => s.id === id);
       },
 
@@ -162,8 +205,13 @@ export const useSessionStore = create<SessionState>()(
           console.error("Error rehydrating store:", error);
           return;
         }
-
         if (state) {
+          state.sessions = state.sessions.map((session) => ({
+            ...session,
+            contextNotes: Array.isArray(session.contextNotes)
+              ? session.contextNotes
+              : [],
+          }));
           state.ensureDefault();
         }
       },

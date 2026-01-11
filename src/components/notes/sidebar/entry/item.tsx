@@ -125,7 +125,7 @@ export const Item: React.FC<Props> = ({
       </div>
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger>
           <Button
             variant="ghost"
             size="icon"

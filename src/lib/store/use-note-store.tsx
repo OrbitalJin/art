@@ -166,7 +166,7 @@ export const useNoteStore = create<State>()(
         set((state: State) => ({
           entries: state.entries.map((entry) => {
             if (entry.id === entryId) {
-              const normalizedTag = tag.trim().toLowerCase();
+              const normalizedTag = tag.trim();
               if (!entry.tags.includes(normalizedTag)) {
                 return {
                   ...entry,
@@ -186,9 +186,7 @@ export const useNoteStore = create<State>()(
             entry.id === entryId
               ? {
                   ...entry,
-                  tags: entry.tags.filter(
-                    (t) => t !== tag.trim().toLowerCase(),
-                  ),
+                  tags: entry.tags.filter((t) => t !== tag.trim()),
                   updatedAt: Date.now(),
                 }
               : entry,
@@ -202,7 +200,7 @@ export const useNoteStore = create<State>()(
             entry.id === entryId
               ? {
                   ...entry,
-                  tags: tags.map((t) => t.trim().toLowerCase()).filter(Boolean),
+                  tags: tags.map((t) => t.trim()).filter(Boolean),
                   updatedAt: Date.now(),
                 }
               : entry,
@@ -229,7 +227,7 @@ export const useNoteStore = create<State>()(
 
       getEntriesByTag(tag: string) {
         const state = get();
-        const normalizedTag = tag.trim().toLowerCase();
+        const normalizedTag = tag.trim();
         return state.entries.filter((entry) =>
           entry.tags.includes(normalizedTag),
         );

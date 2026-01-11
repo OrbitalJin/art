@@ -3,8 +3,6 @@ import {
   Book,
   Circle,
   BookOpen,
-  LayoutDashboard,
-  LayoutTemplate,
   MessageCircle,
   MessageCircleDashed,
   Settings2,
@@ -135,9 +133,9 @@ export const Sidebar = () => {
         </div>
 
         <nav className="flex flex-col gap-2 flex-1 w-full px-2 items-center">
-          {items.map((item, index) => (
-            <Tooltip>
-              <TooltipTrigger asChild key={`nav-${index}`}>
+          {items.map((item) => (
+            <Tooltip key={item.href}>
+              <TooltipTrigger asChild>
                 <Button
                   className={cn(
                     "hover:scale-110 transition-all",

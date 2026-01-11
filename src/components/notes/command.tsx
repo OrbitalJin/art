@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { MessageCirclePlus, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useEditorState } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import {
@@ -14,7 +14,6 @@ import {
 import { getMenuGroups } from "@/lib/schema/editor-menu";
 import { useEditorActions } from "@/hooks/use-editor-actions";
 import { cn } from "@/lib/utils";
-import { useNoteStore } from "@/lib/store/use-note-store";
 
 interface MenuItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -79,7 +78,6 @@ export const Command: React.FC<Props> = ({ editor }) => {
   const [submenuItems, setSubmenuItems] = useState<MenuItem[]>([]);
   const [submenuTitle, setSubmenuTitle] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const create = useNoteStore((state) => state.create);
 
   const actions = useEditorActions(editor || null);
 
