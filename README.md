@@ -76,7 +76,7 @@
 - [x] Trade (import/export)
 - [x] Pin notes
 - [x] Add "as context" feature
-- [ ] take contextual notes into account in context window calculation
-- [ ] LLM features
+- [x] take contextual notes into account in context window calculation
+- [x] LLM features
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout
