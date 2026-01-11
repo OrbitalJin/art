@@ -2,14 +2,14 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, X, AtSign } from "lucide-react";
+import { Search, AtSign } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface TagFilterDropdownProps {
   allTags: string[];
@@ -40,7 +40,7 @@ export const TagFilterDropdown = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80 p-0" align="start">
-        <div className="p-2 border-b">
+        <div className="p-2">
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -52,27 +52,31 @@ export const TagFilterDropdown = ({
           </div>
         </div>
 
-        <div className="max-h-64 overflow-y-auto gap-2 p-2 text-primary">
+        <DropdownMenuSeparator />
+
+        <div className=" flex flex-col max-h-64 overflow-y-auto gap-2 p-2 text-primary">
           {filteredTags.length > 0 ? (
             filteredTags.map((tag) => (
-              <DropdownMenuItem
+              <div
                 key={tag}
-                onSelect={(e) => {
-                  e.preventDefault();
+                onClick={() => {
                   onTagToggle(tag);
                 }}
-                className="flex items-center justify-between p-2"
+                className={cn(
+                  "flex items-center justify-between p-2 rounded-md",
+                  "hover:bg-accent/50 hover:ring-1 hover:ring-primary/50",
+                  "cursor-pointer transition-all",
+                  selectedTags.includes(tag) &&
+                    "bg-primary/10 ring-1 ring-primary/50",
+                )}
               >
                 <span>@{tag}</span>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="h-5 px-1.5 text-xs">
                     {getTagCount(tag)}
                   </Badge>
-                  {selectedTags.includes(tag) && (
-                    <X size={12} className="text-muted-foreground" />
-                  )}
                 </div>
-              </DropdownMenuItem>
+              </div>
             ))
           ) : (
             <div className="px-3 py-4 text-sm text-muted-foreground text-center">
@@ -84,16 +88,19 @@ export const TagFilterDropdown = ({
         {selectedTags.length > 0 && (
           <>
             <DropdownMenuSeparator />
-            <div className="p-2">
+            <div className="flex items-center justify-between p-2 bg-muted/10">
               <Button
                 variant="ghost"
                 size="sm"
+                className="text-xs h-8 text-muted-foreground hover:text-destructive"
                 onClick={onClearAll}
-                className="w-full justify-start text-sm"
               >
-                <X size={14} className="mr-2" />
-                Clear all filters
+                Clear selection
               </Button>
+              <p className="text-[10px] text-muted-foreground px-2">
+                {selectedTags.length.toString() + " "}
+                selected
+              </p>
             </div>
           </>
         )}

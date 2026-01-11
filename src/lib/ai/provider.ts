@@ -21,12 +21,13 @@ export class AIProvider {
     prompt: string,
     history: Message[],
     systemPrompt?: string,
+    context?: string,
     model: Model = DefaultModel,
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
     let error: AIError | undefined = undefined;
     const contents = [
-      { role: "user", parts: [{ text: systemPrompt }] },
+      { role: "user", parts: [{ text: systemPrompt + "\n" + context }] },
       ...this.formatHistory(history),
       { role: "user", parts: [{ text: prompt }] },
     ];

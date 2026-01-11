@@ -13,7 +13,8 @@ import {
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn, formatDateAsAgo } from "@/lib/utils";
-import { Asterisk, Check, Search } from "lucide-react";
+import { BookPlus, Check, Search } from "lucide-react";
+import { useState } from "react";
 
 export const ContextPicker = () => {
   const activeId = useSessionStore((state) => state.activeId);
@@ -24,6 +25,8 @@ export const ContextPicker = () => {
 
   const entries = useNoteStore((state) => state.entries);
 
+  const [query, setQuery] = useState<string>("");
+
   const withinContext = (sessionId: string, noteId: string) => {
     if (!activeId) return false;
     const session = sessions.find((s) => s.id === sessionId);
@@ -31,11 +34,19 @@ export const ContextPicker = () => {
     return session.contextNotes.includes(noteId);
   };
 
-  const filtered = entries
-    .sort((a, b) => {
-      return b.lastViewedAt - a.lastViewedAt;
-    })
+  const selecteNotes = entries.filter((entry) =>
+    withinContext(activeId!, entry.id),
+  );
+
+  const recentNotes = entries
+    .sort((a, b) => b.lastViewedAt - a.lastViewedAt)
     .slice(0, 3);
+
+  const filtered = !query
+    ? Array.from(new Set([...selecteNotes, ...recentNotes]))
+    : entries.filter((entry) =>
+        entry.title.toLowerCase().includes(query.toLowerCase()),
+      );
 
   const handleToggleContextNote = (noteId: string) => {
     if (activeId) {
@@ -63,9 +74,9 @@ export const ContextPicker = () => {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="outline" size="icon" className="relative">
-              <Asterisk className="h-4 w-4" />
+              <BookPlus className="h-4 w-4" />
               {entries.some((e) => withinContext(activeId, e.id)) && (
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
+                <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-primary" />
               )}
             </Button>
           </TooltipTrigger>
@@ -84,6 +95,9 @@ export const ContextPicker = () => {
           <div className="flex items-center gap-2 p-2 rounded-md border">
             <Search className="h-3.5 w-3.5 text-muted-foreground" />
             <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoFocus
               placeholder="Search notes..."
               className="bg-transparent outline-none flex-1 text-sm"
             />
@@ -116,7 +130,13 @@ export const ContextPicker = () => {
                     {entry.title}
                   </p>
                   {isSelected ? (
-                    <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground animate-in zoom-in-75 duration-200">
+                    <div
+                      className={cn(
+                        "flex items-center justify-center h-5 w-5",
+                        "rounded-full bg-primary text-primary-foreground",
+                        "animate-in zoom-in-75 duration-200",
+                      )}
+                    >
                       <Check className="h-3 w-3" />
                     </div>
                   ) : (

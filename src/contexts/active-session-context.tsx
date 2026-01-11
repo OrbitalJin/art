@@ -16,6 +16,7 @@ import {
   createUserMessage,
 } from "@/lib/ai/common/message-factories";
 import type { Model } from "@/lib/ai/common/types";
+import { useConversationContext } from "@/hooks/use-conversation-context";
 
 interface StreamState {
   content: string;
@@ -42,7 +43,6 @@ export const ActiveSessionProvider: React.FC<{
 }> = ({ children }) => {
   const { ai } = useAI();
   const { activeId, sessions, addMessage } = useSessionStore();
-
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeId),
     [sessions, activeId],
@@ -57,6 +57,8 @@ export const ActiveSessionProvider: React.FC<{
     content: "",
     status: "thinking",
   });
+
+  const context = useConversationContext(activeSession);
 
   const { stream, abort } = useAIStream({
     ai,
@@ -119,10 +121,11 @@ export const ActiveSessionProvider: React.FC<{
         text,
         messages: activeSession?.messages || [],
         systemPrompt: prompts.system,
+        context: context,
         model: activeSession?.preferredModel as Model,
       });
     },
-    [activeId, ai, isSending, activeSession, addMessage, stream],
+    [activeId, ai, isSending, activeSession, addMessage, stream, context],
   );
 
   const messages = useMemo(() => {

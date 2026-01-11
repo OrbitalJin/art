@@ -1,3 +1,5 @@
+import type { Entry } from "@/lib/store/notes/types";
+
 export const TONES = [
   { value: "professional", label: "Professional" },
   { value: "casual", label: "Casual" },
@@ -43,6 +45,15 @@ export const prompts = {
         REQUIREMENTS: Focus on key takeaways. Use Markdown for structure. DON'T say anything else.
         CONTENT: ${text}
     `,
+  },
+
+  format: {
+    notesAsContext: (notes: Entry[]) => {
+      const context = notes
+        .map((note) => `# ${note.title}\n${note.content}`)
+        .join("\n\n");
+      return `[NOTES CONTEXT]\n\n${context}[END OF NOTES CONTEXT]`;
+    },
   },
 
   gen: {

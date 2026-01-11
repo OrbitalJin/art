@@ -13,6 +13,7 @@ interface StreamArgs {
   text: string;
   messages: Message[];
   systemPrompt: string;
+  context?: string;
   model: Model;
 }
 
@@ -30,7 +31,7 @@ export const useAIStream = ({ ai, onToken, onComplete }: UseAIStreamArgs) => {
   }, []);
 
   const stream = useCallback(
-    async ({ text, messages, systemPrompt, model }: StreamArgs) => {
+    async ({ text, messages, systemPrompt, context, model }: StreamArgs) => {
       if (!ai) return;
 
       const controller = new AbortController();
@@ -45,6 +46,7 @@ export const useAIStream = ({ ai, onToken, onComplete }: UseAIStreamArgs) => {
           text,
           messages,
           systemPrompt,
+          context,
           model,
           controller.signal,
         );
