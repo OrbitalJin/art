@@ -1,4 +1,4 @@
-import type { Model } from "@/lib/ai/common/types";
+import type { Model } from "@/lib/llm/common/types";
 
 export type MessageStatus =
   | "thinking"

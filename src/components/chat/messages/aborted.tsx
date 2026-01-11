@@ -2,7 +2,7 @@ import { Copy, Check, Cpu, Sparkle, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import React from "react";
 import { cn } from "@/lib/utils";
-import { estimateTokens } from "@/lib/ai/common/utils";
+import { estimateTokens } from "@/lib/llm/common/utils";
 import type { Message } from "@/lib/store/session/types";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { Renderer } from "@/components/chat/messages/renderer";

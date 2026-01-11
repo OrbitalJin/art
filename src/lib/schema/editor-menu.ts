@@ -214,8 +214,8 @@ export const getMenuGroups = (
                 icon: ArrowDownWideNarrow,
                 label: "Summarize",
                 action: () => {
-                  actions.dialogs.ai.setAction("summarize");
-                  actions.dialogs.ai.setOpen(true);
+                  actions.dialogs.llm.setAction("summarize");
+                  actions.dialogs.llm.setOpen(true);
                 },
                 isDisabled: actions.isBusy && !state.hasSelection,
               },
@@ -223,8 +223,8 @@ export const getMenuGroups = (
                 icon: ListRestart,
                 label: "Rephrase",
                 action: () => {
-                  actions.dialogs.ai.setAction("rephrase");
-                  actions.dialogs.ai.setOpen(true);
+                  actions.dialogs.llm.setAction("rephrase");
+                  actions.dialogs.llm.setOpen(true);
                 },
                 isDisabled: actions.isBusy && !state.hasSelection,
               },
@@ -232,8 +232,8 @@ export const getMenuGroups = (
                 icon: List,
                 label: "Convert to Bullets",
                 action: () => {
-                  actions.dialogs.ai.setAction("bullet");
-                  actions.dialogs.ai.setOpen(true);
+                  actions.dialogs.llm.setAction("bullet");
+                  actions.dialogs.llm.setOpen(true);
                 },
                 isDisabled: actions.isBusy && !state.hasSelection,
               },
@@ -241,8 +241,8 @@ export const getMenuGroups = (
                 icon: Rainbow,
                 label: "Organize Content",
                 action: () => {
-                  actions.dialogs.ai.setAction("organize");
-                  actions.dialogs.ai.setOpen(true);
+                  actions.dialogs.llm.setAction("organize");
+                  actions.dialogs.llm.setOpen(true);
                 },
                 isDisabled: actions.isBusy && !state.hasSelection,
               },

@@ -1,9 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 import type { Model, StreamChunk } from "./common/types";
 import type { Message } from "@/lib/store/session/types";
-import { AIError, DefaultModel } from "./common/types";
+import { LLMError, DefaultModel } from "./common/types";
 
-export class AIProvider {
+export class LLMProvider {
   private llm: GoogleGenAI;
 
   constructor(apiKey: string) {
@@ -25,7 +25,7 @@ export class AIProvider {
     model: Model = DefaultModel,
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
-    let error: AIError | undefined = undefined;
+    let error: LLMError | undefined = undefined;
     const contents = [
       { role: "user", parts: [{ text: systemPrompt + "\n" + context }] },
       ...this.formatHistory(history),
@@ -40,7 +40,7 @@ export class AIProvider {
 
       for await (const buf of stream) {
         if (signal?.aborted) {
-          throw new AIError("aborted", "Stream was aborted by user", false);
+          throw new LLMError("aborted", "Stream was aborted by user", false);
         }
 
         const text = buf.text ?? "";
@@ -48,12 +48,12 @@ export class AIProvider {
       }
       yield { token: "", isFinal: true };
     } catch (err: unknown) {
-      if (err instanceof AIError) {
+      if (err instanceof LLMError) {
         error = err;
       } else if (err instanceof Error && err.name === "AbortError") {
-        error = new AIError("aborted", "Stream was aborted", false);
+        error = new LLMError("aborted", "Stream was aborted", false);
       } else {
-        error = new AIError(
+        error = new LLMError(
           "network",
           err instanceof Error ? err.message : "Network error",
           true,

@@ -6,16 +6,16 @@ import React, {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { useAI } from "@/contexts/ai-context";
+import { useLLM } from "@/contexts/llm-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { prompts } from "@/lib/ai/common/prompts";
+import { prompts } from "@/lib/llm/common/prompts";
 import type { Message, MessageStatus } from "@/lib/store/session/types";
-import { useAIStream } from "@/hooks/use-ai-stream";
+import { useLLMStream } from "@/hooks/use-llm-stream";
 import {
   createModelMessage,
   createUserMessage,
-} from "@/lib/ai/common/message-factories";
-import type { Model } from "@/lib/ai/common/types";
+} from "@/lib/llm/common/message-factories";
+import type { Model } from "@/lib/llm/common/types";
 import { useConversationContext } from "@/hooks/use-conversation-context";
 
 interface StreamState {
@@ -41,7 +41,7 @@ const ActiveSessionContext = createContext<ActiveSessionContextValues | null>(
 export const ActiveSessionProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { ai } = useAI();
+  const { llm } = useLLM();
   const { activeId, sessions, addMessage } = useSessionStore();
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeId),
@@ -60,8 +60,8 @@ export const ActiveSessionProvider: React.FC<{
 
   const context = useConversationContext(activeSession);
 
-  const { stream, abort } = useAIStream({
-    ai,
+  const { stream, abort } = useLLMStream({
+    llm,
     onToken: (token) => {
       setStreamState((prev) => ({
         content: prev.content + token,
@@ -98,7 +98,7 @@ export const ActiveSessionProvider: React.FC<{
 
   const sendMessage = useCallback(
     async (text: string) => {
-      if (!activeId || !ai) return;
+      if (!activeId || !llm) return;
 
       if (isSending) {
         toast.info("Please wait for the current stream to finish");
@@ -125,7 +125,7 @@ export const ActiveSessionProvider: React.FC<{
         model: activeSession?.preferredModel as Model,
       });
     },
-    [activeId, ai, isSending, activeSession, addMessage, stream, context],
+    [activeId, llm, isSending, activeSession, addMessage, stream, context],
   );
 
   const messages = useMemo(() => {

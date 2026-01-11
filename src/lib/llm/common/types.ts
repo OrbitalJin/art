@@ -25,10 +25,10 @@ export const DefaultModel = Models[0];
 export type StreamChunk = {
   token: string;
   isFinal?: boolean;
-  error?: AIError;
+  error?: LLMError;
 };
 
-export type AIErrorType =
+export type LLMErrorType =
   | "aborted"
   | "timeout"
   | "network"
@@ -36,11 +36,11 @@ export type AIErrorType =
   | "provider"
   | "unknown";
 
-export class AIError extends Error {
-  readonly type: AIErrorType;
+export class LLMError extends Error {
+  readonly type: LLMErrorType;
   readonly retryable: boolean;
 
-  constructor(type: AIErrorType, message: string, retryable = false) {
+  constructor(type: LLMErrorType, message: string, retryable = false) {
     super(message);
     this.name = "LLMError";
     this.type = type;

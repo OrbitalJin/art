@@ -3,7 +3,7 @@ import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Sparkle, Cpu } from "lucide-react";
-import { estimateTokens } from "@/lib/ai/common/utils";
+import { estimateTokens } from "@/lib/llm/common/utils";
 import { Renderer } from "./renderer";
 import type { Message } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";

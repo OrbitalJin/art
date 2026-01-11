@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import type { Message, MessageStatus } from "@/lib/store/session/types";
-import type { Model } from "@/lib/ai/common/types";
-import type { AIProvider } from "@/lib/ai/provider";
+import type { Model } from "@/lib/llm/common/types";
+import type { LLMProvider } from "@/lib/llm/llm-provider";
 
 interface StreamResult {
   content: string;
@@ -17,13 +17,13 @@ interface StreamArgs {
   model: Model;
 }
 
-interface UseAIStreamArgs {
-  ai: AIProvider | null;
+interface UseLLMStreamArgs {
+  llm: LLMProvider | null;
   onToken: (token: string) => void;
   onComplete: (result: StreamResult) => void;
 }
 
-export const useAIStream = ({ ai, onToken, onComplete }: UseAIStreamArgs) => {
+export const useLLMStream = ({ llm, onToken, onComplete }: UseLLMStreamArgs) => {
   const controllerRef = useRef<AbortController | null>(null);
 
   const abort = useCallback(() => {
@@ -32,7 +32,7 @@ export const useAIStream = ({ ai, onToken, onComplete }: UseAIStreamArgs) => {
 
   const stream = useCallback(
     async ({ text, messages, systemPrompt, context, model }: StreamArgs) => {
-      if (!ai) return;
+      if (!llm) return;
 
       const controller = new AbortController();
       controllerRef.current = controller;
@@ -42,7 +42,7 @@ export const useAIStream = ({ ai, onToken, onComplete }: UseAIStreamArgs) => {
       let errorType: string | undefined;
 
       try {
-        const stream = ai.stream(
+        const stream = llm.stream(
           text,
           messages,
           systemPrompt,
@@ -76,7 +76,7 @@ export const useAIStream = ({ ai, onToken, onComplete }: UseAIStreamArgs) => {
         });
       }
     },
-    [ai, onToken, onComplete],
+    [llm, onToken, onComplete],
   );
 
   return { stream, abort };

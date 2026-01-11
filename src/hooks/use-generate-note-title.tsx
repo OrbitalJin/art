@@ -1,16 +1,16 @@
-import { useAI } from "@/contexts/ai-context";
+import { useLLM } from "@/contexts/llm-context";
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export const useGenerateNoteTitle = () => {
-  const { ai } = useAI();
+  const { llm } = useLLM();
   const [generating, setGenerating] = useState(false);
   const notes = useNoteStore((state) => state.entries);
 
   const generateTitle = async (noteId: string) => {
     const note = notes.find((n) => n.id === noteId);
-    if (!note || !ai || generating) return;
+    if (!note || !llm || generating) return;
 
     setGenerating(true);
     try {
@@ -22,15 +22,15 @@ export const useGenerateNoteTitle = () => {
       `;
 
       const title =
-        (await ai.genWithContext(prompt, [{ id: "1", role: "user", content: note.content, status: "complete" }])) ||
+        (await llm.genWithContext(prompt, [{ id: "1", role: "user", content: note.content, status: "complete" }])) ||
         "Untitled Note";
 
       if (title && title.trim()) {
         return title.trim();
       }
     } catch (err) {
-      console.error("Title generation failed", err);
-      toast.error("Failed to generate title");
+      console.error("Title generation fllmled", err);
+      toast.error("Fllmled to generate title");
     } finally {
       setGenerating(false);
     }

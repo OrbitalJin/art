@@ -85,10 +85,10 @@ export const EditorContextMenu: React.FC<Props> = ({
       />
 
       <TextActionDialog
-        isOpen={actions.dialogs.ai.open}
-        onOpenChange={actions.dialogs.ai.setOpen}
+        isOpen={actions.dialogs.llm.open}
+        onOpenChange={actions.dialogs.llm.setOpen}
         onProcess={actions.handlers.handleAiProcess}
-        action={actions.dialogs.ai.action || "summarize"}
+        action={actions.dialogs.llm.action || "summarize"}
         isProcessing={actions.isBusy}
       />
     </>

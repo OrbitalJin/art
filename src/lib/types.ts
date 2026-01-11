@@ -1,10 +1,12 @@
-export type AIActions = "summarize" | "rephrase" | "bullet" | "organize";
+export type LLMActions = "summarize" | "rephrase" | "bullet" | "organize";
 
 export type Actions = {
   dialogs: {
-    ai: {
-      setAction: (action: AIActions) => void;
+    llm: {
+      open: boolean;
       setOpen: (open: boolean) => void;
+      action: LLMActions | null;
+      setAction: (action: LLMActions | null) => void;
     };
     link: {
       setOpen: (open: boolean) => void;

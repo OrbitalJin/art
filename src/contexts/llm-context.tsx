@@ -1,16 +1,16 @@
 import { useEffect, useMemo } from "react";
 import { createContext, useContext } from "react";
-import { AIProvider } from "@/lib/ai/provider";
+import { LLMProvider } from "@/lib/llm/llm-provider";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
 
-export interface AIContextType {
-  ai: AIProvider | null;
+export interface LLMContextType {
+  llm: LLMProvider | null;
 }
 
-const AIContext = createContext<AIContextType | null>(null);
+const LLMContext = createContext<LLMContextType | null>(null);
 
-export const AIContextProvider: React.FC<{ children: React.ReactNode }> = ({
+export const LLMContextProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const apiKey = useSettingsStore((state) => state.apiKey);
@@ -21,19 +21,19 @@ export const AIContextProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [apiKey]);
 
-  const ai = useMemo(() => {
+  const llm = useMemo(() => {
     if (apiKey === "") return null;
 
-    return new AIProvider(apiKey);
+    return new LLMProvider(apiKey);
   }, [apiKey]);
 
-  const value: AIContextType = { ai };
+  const value: LLMContextType = { llm };
 
-  return <AIContext.Provider value={value}>{children}</AIContext.Provider>;
+  return <LLMContext.Provider value={value}>{children}</LLMContext.Provider>;
 };
 
-export const useAI = () => {
-  const context = useContext(AIContext);
+export const useLLM = () => {
+  const context = useContext(LLMContext);
   if (!context) {
     throw new Error("useLLM must be wrapped in a LLMContextProvider");
   }

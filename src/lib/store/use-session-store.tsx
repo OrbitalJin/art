@@ -1,7 +1,7 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
-import { DefaultModel, type Model } from "@/lib/ai/common/types";
+import { DefaultModel, type Model } from "@/lib/llm/common/types";
 import type { Message, Session } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { toast } from "sonner";

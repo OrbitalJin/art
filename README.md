@@ -75,7 +75,8 @@
 - [x] Lower opacity of sidebar toggle
 - [x] Trade (import/export)
 - [x] Pin notes
-- [ ] Add "as context" feature
-- [ ] AI features
-- [ ] Battle test AI features & simplify dialog logic
+- [x] Add "as context" feature
+- [ ] take contextual notes into account in context window calculation
+- [ ] LLM features
+- [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout

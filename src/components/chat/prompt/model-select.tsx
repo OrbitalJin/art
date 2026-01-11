@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Models, type Model } from "@/lib/ai/common/types";
+import { Models, type Model } from "@/lib/llm/common/types";
 import { useStreamingState } from "@/hooks/use-streaming-state";
 import { useSessionStore } from "@/lib/store/use-session-store";
 

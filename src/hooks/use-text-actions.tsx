@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { useAI } from "@/contexts/ai-context";
-import { prompts } from "@/lib/ai/common/prompts";
+import { useLLM } from "@/contexts/llm-context";
+import { prompts } from "@/lib/llm/common/prompts";
 
 function useAIOperation<T extends string[]>(
   operation: (...args: T) => Promise<string | undefined>,
@@ -24,35 +24,35 @@ function useAIOperation<T extends string[]>(
 }
 
 export const useTextActions = () => {
-  const { ai } = useAI();
+  const { llm } = useLLM();
 
   const summary = useAIOperation(
     async (text: string, tone: string, instructions?: string) => {
-      return await ai?.gen(prompts.textkit.summarize(text, tone, instructions));
+      return await llm?.gen(prompts.textkit.summarize(text, tone, instructions));
     },
   );
 
   const repharse = useAIOperation(
     async (text: string, tone: string, instructions?: string) => {
-      return await ai?.gen(prompts.textkit.rephrase(text, tone, instructions));
+      return await llm?.gen(prompts.textkit.rephrase(text, tone, instructions));
     },
   );
 
   const translation = useAIOperation(
     async (text: string, targetLanguage: string) => {
-      return await ai?.gen(prompts.textkit.translate(text, targetLanguage));
+      return await llm?.gen(prompts.textkit.translate(text, targetLanguage));
     },
   );
 
   const bullet = useAIOperation(
     async (text: string, tone: string, instructions?: string) => {
-      return await ai?.gen(prompts.textkit.bullet(text, tone, instructions));
+      return await llm?.gen(prompts.textkit.bullet(text, tone, instructions));
     },
   );
 
   const organize = useAIOperation(
     async (text: string, tone: string, instructions?: string) => {
-      return await ai?.gen(prompts.textkit.organize(text, tone, instructions));
+      return await llm?.gen(prompts.textkit.organize(text, tone, instructions));
     },
   );
 

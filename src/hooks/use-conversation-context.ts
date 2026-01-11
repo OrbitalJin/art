@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNoteStore } from "@/lib/store/use-note-store";
-import { prompts } from "@/lib/ai/common/prompts";
+import { prompts } from "@/lib/llm/common/prompts";
 import type { Entry } from "@/lib/store/notes/types";
 import type { Session } from "@/lib/store/session/types";
 

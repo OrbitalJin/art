@@ -4,12 +4,12 @@ import { useNoteStore } from "@/lib/store/use-note-store";
 import { useImportImage } from "@/hooks/use-import-image";
 import { useTextActions } from "@/hooks/use-text-actions";
 import { toast } from "sonner";
-import type { AIActions } from "@/lib/types";
+import type { LLMActions } from "@/lib/types";
 
 export const useEditorActions = (editor: Editor | null) => {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [isActonDialogOpen, setIsActionDialogOpen] = useState(false);
-  const [textAction, setTextAction] = useState<AIActions | null>(null);
+  const [textAction, setTextAction] = useState<LLMActions | null>(null);
 
   const updateContent = useNoteStore((state) => state.updateContent);
   const activeId = useNoteStore((state) => state.activeId);
@@ -76,7 +76,7 @@ export const useEditorActions = (editor: Editor | null) => {
   return {
     dialogs: {
       link: { open: isLinkDialogOpen, setOpen: setIsLinkDialogOpen },
-      ai: {
+      llm: {
         open: isActonDialogOpen,
         setOpen: setIsActionDialogOpen,
         action: textAction,

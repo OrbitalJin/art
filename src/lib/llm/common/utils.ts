@@ -1,6 +1,6 @@
 import type { Session } from "@/lib/store/session/types";
 import { prompts } from "./prompts";
-import { AIError } from "./types";
+import { LLMError } from "./types";
 
 export function estimateTokens(text: string): number {
   const cleaned = text.trim();
@@ -27,7 +27,7 @@ export function withTimeout(userSignal?: AbortSignal, timeoutMs = 30_000) {
     userSignal.addEventListener(
       "abort",
       () => {
-        controller.abort(new AIError("aborted", "Request aborted"));
+        controller.abort(new LLMError("aborted", "Request aborted"));
       },
       { once: true },
     );
@@ -35,7 +35,7 @@ export function withTimeout(userSignal?: AbortSignal, timeoutMs = 30_000) {
 
   // Timeout → LLMError(timeout)
   const timeoutId = setTimeout(() => {
-    controller.abort(new AIError("timeout", "The request timed out.", true));
+    controller.abort(new LLMError("timeout", "The request timed out.", true));
   }, timeoutMs);
 
   return {

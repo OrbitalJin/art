@@ -17,14 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TONES } from "@/lib/ai/common/prompts";
-import type { AIActions } from "@/lib/types";
+import { TONES } from "@/lib/llm/common/prompts";
+import type { LLMActions } from "@/lib/types";
 
 interface Props {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onProcess: (tone: string, instructions?: string) => void;
-  action: AIActions;
+  action: LLMActions;
   isProcessing?: boolean;
 }
 
