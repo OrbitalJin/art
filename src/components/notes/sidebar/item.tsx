@@ -33,6 +33,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   active: boolean;
   updatedAt: number;
   tags: string[];
+  onTagClick?: (tag: string) => void;
   onSwitch?: () => void;
 }
 
@@ -41,6 +42,7 @@ export const Item: React.FC<Props> = ({
   title,
   active,
   updatedAt,
+  onTagClick,
   tags,
 }) => {
   const changeWorkspace = useNoteStore((state) => state.changeWorkspace);
@@ -116,7 +118,9 @@ export const Item: React.FC<Props> = ({
           <p className="text-sm">{title}</p>
         )}
         <p className="text-xs text-foreground/70">{formatDate(updatedAt)}</p>
-        {tags.length > 0 && <TagList tags={tags} />}
+        {tags.length > 0 && (
+          <TagList onTagClick={onTagClick} active={active} tags={tags} />
+        )}
       </div>
 
       <DropdownMenu>

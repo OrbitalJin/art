@@ -12,11 +12,13 @@ import { SidebarContent } from "@/components/notes/sidebar/content";
 
 interface Props {
   currentTab: Workspace;
+  onTagClick?: (tag: string) => void;
   setCurrentTab: (tab: Workspace) => void;
 }
 
 export const StaticSidebar: React.FC<Props> = ({
   currentTab,
+  onTagClick,
   setCurrentTab,
 }) => {
   const [open, setOpen] = useState(true);
@@ -41,7 +43,7 @@ export const StaticSidebar: React.FC<Props> = ({
             variant="outline"
             onClick={() => setOpen(true)}
             className={cn(
-              "hidden lg:flex bg-background/80 backdrop-blur shadow-sm transition-all duration-300",
+              "hidden lg:flex bg-background/80 backdrop-blur shadow-sm transition-all duration-300 opacity-70",
               open && "opacity-0 pointer-events-none scale-90",
             )}
           >
@@ -65,6 +67,7 @@ export const StaticSidebar: React.FC<Props> = ({
         setOpen={setOpen}
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
+        onTagClick={onTagClick}
       />
     </div>
   );

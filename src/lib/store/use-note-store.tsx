@@ -26,7 +26,7 @@ export interface State {
   importFn: (orphan: Entry) => void;
   setActive: (id: string) => void;
   deleteFn: (id: string) => void;
-  create: (workspace: Workspace, title?: string) => void;
+  create: (workspace?: Workspace, title?: string) => void;
   getFn: (id: string) => Entry | undefined;
   save: (entry: Entry) => void;
   updateContent: (
@@ -89,9 +89,12 @@ export const useNoteStore = create<State>()(
         return get().entries.find((s) => s.id === id);
       },
 
-      create(workspace: Workspace, title?: string) {
+      create(workspace?: Workspace, title?: string) {
         const state = get();
-        const newEntry = createNewEntry(workspace, title);
+        const newEntry = createNewEntry(
+          workspace || state.currentWorkspace,
+          title,
+        );
         set({
           entries: [...state.entries, newEntry],
           activeId: newEntry.id,

@@ -8,9 +8,10 @@ import { EditorContextMenu } from "@/components/editor/context-menu/context-menu
 import { useNoteEditor } from "@/hooks/use-note-editor";
 import { EditorContent } from "@tiptap/react";
 import { useNoteStore } from "@/lib/store/use-note-store";
+import { Command } from "@/components/notes/command";
 
 export const Notes = () => {
-  const { isDisabled, editor, isSaving, wordCount, charCount } =
+  const { isDisabled, editor, isSaving, wordCount, charCount, handleTagClick } =
     useNoteEditor();
   const currentWorkspace = useNoteStore((state) => state.currentWorkspace);
   const [currentTab, setCurrentTab] = useState<Workspace>(currentWorkspace);
@@ -18,37 +19,48 @@ export const Notes = () => {
   if (!editor) return null;
 
   return (
-    <div className="relative flex-1 flex flex-row py-2 gap-2">
-      <StaticSidebar currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      <FloatingSidebar currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      <div
-        className={cn(
-          "relative flex h-full w-full flex-col overflow-hidden",
-          isDisabled && "pointer-events-none opacity-80",
-        )}
-      >
-        <EditorContextMenu
-          editor={editor}
+    <>
+      <div className="relative flex-1 flex flex-row p-2 gap-2">
+        <StaticSidebar
+          onTagClick={handleTagClick}
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+        />
+        <FloatingSidebar
+          onTagClick={handleTagClick}
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+        />
+        <div
           className={cn(
-            "w-full h-full overflow-y-scroll max-w-3xl",
-            "justify-center mx-auto p-1",
+            "relative flex h-full w-full flex-col overflow-hidden",
+            isDisabled && "pointer-events-none opacity-80",
           )}
         >
-          <EditorContent editor={editor} className="w-full h-full py-12" />
-        </EditorContextMenu>
-
-        <div className="absolute bottom-0 right-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card border rounded-md px-2 py-1">
-            <span>{wordCount} words</span>
-            <span>•</span>
-            <span>{charCount} characters</span>
-
-            {isSaving && (
-              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+          <EditorContextMenu
+            editor={editor}
+            className={cn(
+              "w-full h-full overflow-y-scroll max-w-3xl",
+              "justify-center mx-auto p-1",
             )}
+          >
+            <EditorContent editor={editor} className="w-full h-full py-12" />
+          </EditorContextMenu>
+
+          <div className="absolute bottom-0 right-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card border rounded-md px-2 py-1">
+              <span>{wordCount} words</span>
+              <span>•</span>
+              <span>{charCount} characters</span>
+
+              {isSaving && (
+                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      <Command editor={editor} />
+    </>
   );
 };

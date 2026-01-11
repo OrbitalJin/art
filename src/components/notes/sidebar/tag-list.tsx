@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -8,10 +9,17 @@ import {
 
 interface TagListProps {
   tags: string[];
+  active: boolean;
+  onTagClick?: (tag: string) => void;
   maxVisible?: number;
 }
 
-export const TagList = ({ tags, maxVisible = 2 }: TagListProps) => {
+export const TagList = ({
+  tags,
+  active,
+  onTagClick,
+  maxVisible = 2,
+}: TagListProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -23,12 +31,16 @@ export const TagList = ({ tags, maxVisible = 2 }: TagListProps) => {
   }
 
   return (
-    <div className="flex flex-wrap gap-1" ref={containerRef}>
+    <div
+      className={cn(!active && "pointer-events-none", "flex flex-wrap gap-1")}
+      ref={containerRef}
+    >
       {visibleTags.map((tag) => (
         <Badge
           key={tag}
           variant="secondary"
           className="text-xs px-1.5 py-0.5 hover:bg-primary/20 transition-colors cursor-default"
+          onClick={() => onTagClick?.(tag)}
         >
           @{tag}
         </Badge>
@@ -48,7 +60,12 @@ export const TagList = ({ tags, maxVisible = 2 }: TagListProps) => {
           <TooltipContent side="top" className="max-w-xs">
             <div className="flex flex-wrap gap-1 max-w-xs">
               {tags.slice(maxVisible).map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
+                <Badge
+                  key={tag}
+                  onClick={() => onTagClick?.(tag)}
+                  variant="secondary"
+                  className="text-xs"
+                >
                   @{tag}
                 </Badge>
               ))}

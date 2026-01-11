@@ -71,6 +71,9 @@
 - [x] resizable images
 - [x] tauri link opener support for links
 - [x] fix char count no tupating on switching
+- [x] jump to tag on click on entry list
+- [x] lower opacity of sidebar toggle
+- [ ] pin notes
 - [ ] battle test ai features and simplify the dialog Logic
 - [ ] add "as context" feature
 - [ ] fix rename autofocus

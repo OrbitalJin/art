@@ -16,12 +16,14 @@ import { Button } from "@/components/ui/button";
 interface Props {
   setOpen: (open: boolean) => void;
   currentTab: Workspace;
+  onTagClick?: (tag: string) => void;
   setCurrentTab: (tab: Workspace) => void;
 }
 
 export const SidebarContent: React.FC<Props> = ({
   setOpen,
   currentTab,
+  onTagClick,
   setCurrentTab,
 }) => {
   const activeId = useNoteStore((state) => state.activeId);
@@ -138,6 +140,7 @@ export const SidebarContent: React.FC<Props> = ({
               active={entry.id === activeId}
               updatedAt={entry.updatedAt}
               tags={entry.tags}
+              onTagClick={onTagClick}
             />
           ))
         ) : (

@@ -1,4 +1,3 @@
-// lib/editor-menu-schema.ts
 import { Editor } from "@tiptap/react";
 import {
   Bold,
@@ -8,8 +7,6 @@ import {
   ListOrdered,
   Quote,
   Link,
-  Undo,
-  Redo,
   Braces,
   Strikethrough,
   Underline,
@@ -35,25 +32,6 @@ export const getMenuGroups = (
   actions: Actions,
 ) => {
   return [
-    // Group 1: History
-    [
-      {
-        icon: Undo,
-        label: "Undo",
-        shortcut: "⌘Z",
-        action: () => editor.chain().focus().undo().run(),
-        isDisabled: !state.canUndo,
-      },
-      {
-        icon: Redo,
-        label: "Redo",
-        shortcut: "⌘⇧Z",
-        action: () => editor.chain().focus().redo().run(),
-        isDisabled: !state.canRedo,
-      },
-    ],
-
-    // Group 2: Text Formatting
     [
       {
         icon: Bold,
@@ -230,7 +208,7 @@ export const getMenuGroups = (
       ? [
           {
             icon: TextSelect,
-            label: "AI Actions",
+            label: "Actions",
             items: [
               {
                 icon: ArrowDownWideNarrow,

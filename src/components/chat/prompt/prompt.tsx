@@ -1,5 +1,5 @@
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp, Clipboard, Code, Square } from "lucide-react";
+import { ArrowUp, Asterisk, Clipboard, Code, Square } from "lucide-react";
 import { SelectModel } from "@/components/chat/prompt/model-select";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
@@ -87,6 +87,15 @@ export const Prompt = () => {
               <Button variant="outline" size="icon" onClick={handlePaste}>
                 <Clipboard />
               </Button>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Asterisk />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Add context</TooltipContent>
+              </Tooltip>
             </div>
             <Button
               variant="default"

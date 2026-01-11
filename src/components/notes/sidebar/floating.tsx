@@ -13,6 +13,7 @@ import type { Workspace } from "@/lib/store/notes/types";
 
 interface Props {
   currentTab: Workspace;
+  onTagClick?: (tag: string) => void;
   setCurrentTab: (tab: Workspace) => void;
 }
 
@@ -85,7 +86,7 @@ const SidebarToggle: React.FC<ToggleProps> = ({ open, setOpen }) => {
             size="icon"
             onClick={() => setOpen(true)}
             className={cn(
-              "bg-background/80 backdrop-blur shadow-sm transition-all duration-300",
+              "bg-background/80 backdrop-blur shadow-sm transition-all duration-300 opacity-70",
               open && "opacity-0 pointer-events-none scale-90",
             )}
           >

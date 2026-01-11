@@ -140,11 +140,41 @@ export const useNoteEditor = () => {
     }),
   });
 
+  const handleTagClick = (tag: string) => {
+    if (!editor) return;
+
+    const searchTerm = `@${tag}`;
+    let foundPos = -1;
+
+    editor.state.doc.descendants((node, pos) => {
+      if (foundPos !== -1) return false; // Stop searching if found
+      if (node.isText && node.text?.includes(searchTerm)) {
+        const index = node.text.indexOf(searchTerm);
+        foundPos = pos + index;
+        return false;
+      }
+    });
+
+    if (foundPos !== -1) {
+      editor
+        .chain()
+        .focus()
+        .setTextSelection({
+          from: foundPos,
+          to: foundPos + searchTerm.length,
+        })
+        .run();
+    } else {
+      toast.error(`Tag ${searchTerm} not found in content`);
+    }
+  };
+
   return {
     editor,
     wordCount,
     charCount,
     isSaving,
     isDisabled,
+    handleTagClick,
   };
 };

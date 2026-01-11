@@ -34,7 +34,7 @@ export const StaticSidebar: React.FC = () => {
             variant="outline"
             onClick={() => setOpen((v) => !v)}
             className={cn(
-              "hidden lg:flex bg-background/80 backdrop-blur shadow-sm transition-all m-2",
+              "hidden lg:flex bg-background/80 backdrop-blur shadow-sm transition-all m-2 opacity-70",
             )}
           >
             <PanelLeftOpen className="h-5 w-5" />
