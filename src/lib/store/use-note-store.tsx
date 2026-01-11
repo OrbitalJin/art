@@ -210,18 +210,15 @@ export const useNoteStore = create<State>()(
         }));
       },
 
-      togglePin(entryId: string) {
-        set((state: State) => ({
-          entries: state.entries.map((entry) =>
-            entry.id === entryId
-              ? {
-                  ...entry,
-                  pinned: !entry.pinned,
-                  updatedAt: Date.now(),
-                }
-              : entry,
-          ),
-        }));
+      togglePin(id: string) {
+        const state = get();
+        const session = state.entries.find((e) => e.id === id);
+        if (!session) return toast.error("Session not found");
+        session.pinned = !session.pinned;
+        toast.success(
+          `Entry ${!session.pinned ? "unpinned" : "pinned"} successfully.`,
+        );
+        set({ entries: [...state.entries] });
       },
 
       getAllTags() {

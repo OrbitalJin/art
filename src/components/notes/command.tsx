@@ -136,17 +136,6 @@ export const Command: React.FC<Props> = ({ editor }) => {
 
   const renderMainView = () => (
     <>
-      <CommandGroup heading="Quick Actions">
-        <CommandItem value="new" onSelect={() => {
-          create();
-          setOpen(false);
-        }}>
-          <MessageCirclePlus className="mr-2 h-4 w-4" />
-          New Entry
-        </CommandItem>
-      </CommandGroup>
-
-      <CommandGroup heading="Editor"></CommandGroup>
       {editor &&
         menuGroups.map((group, idx) => (
           <CommandGroup key={idx}>
@@ -171,7 +160,11 @@ export const Command: React.FC<Props> = ({ editor }) => {
           Back
         </CommandItem>
         {submenuItems.map((item) => (
-          <CommandItemRenderer key={item.label} item={item} onClose={() => setOpen(false)} />
+          <CommandItemRenderer
+            key={item.label}
+            item={item}
+            onClose={() => setOpen(false)}
+          />
         ))}
       </CommandGroup>
     </>

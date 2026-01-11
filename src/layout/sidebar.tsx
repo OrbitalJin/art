@@ -56,20 +56,12 @@ export const Sidebar = () => {
 
   const items: NavigationItem[] = [
     {
-      href: "/",
-      name: "Dashboard",
-      description: "Dashboard",
-      icon: LayoutDashboard,
-      activeIcon: LayoutTemplate,
-      shortcut: "Alt+1",
-    },
-    {
       href: "/chat",
       name: "Chat",
       description: "Chat",
       icon: MessageCircleDashed,
       activeIcon: MessageCircle,
-      shortcut: "Alt+2",
+      shortcut: "Alt+1",
     },
 
     {
@@ -78,7 +70,7 @@ export const Sidebar = () => {
       name: "Notes",
       description: "Notes",
       href: "/notes",
-      shortcut: "Alt+3",
+      shortcut: "Alt+2",
     },
   ];
 

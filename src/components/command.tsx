@@ -88,7 +88,7 @@ export const Command: React.FC<Props> = ({ items }) => {
 
         <CommandGroup heading="Navigate">
           {items.map((item: NavigationItem) => {
-            const Icon = item.icon;
+            const Icon = item.activeIcon;
             return (
               <CommandItem
                 key={item.href}

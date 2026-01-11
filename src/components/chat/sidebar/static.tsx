@@ -55,15 +55,13 @@ export const StaticSidebar: React.FC = () => {
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col shrink-0 overflow-hidden m-2",
+        "hidden lg:flex flex-col m-2",
         "rounded-xl border bg-card/50 backdrop-blur-xl shadow-xl",
         "hover:border-primary/40",
         open ? "w-[300px]" : "w-0 border-0",
       )}
     >
-      <div className="w-[300px] max-w-[85vw] h-full">
-        <SidebarContent onClose={() => setOpen(false)} />
-      </div>
+      <SidebarContent onClose={() => setOpen(false)} />
     </aside>
   );
 };

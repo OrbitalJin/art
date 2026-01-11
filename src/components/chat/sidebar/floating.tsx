@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { PanelRight } from "lucide-react";
+import { PanelLeftOpen } from "lucide-react";
 import { SidebarContent } from "./content";
 import {
   Tooltip,
@@ -76,7 +76,7 @@ const SidebarToggle: React.FC<ToggleProps> = ({ open, setOpen }) => {
               open && "opacity-0 pointer-events-none scale-90",
             )}
           >
-            <PanelRight className="h-5 w-5" />
+            <PanelLeftOpen className="h-5 w-5" />
             <span className="sr-only">Open Sidebar (Alt+S)</span>
           </Button>
         </TooltipTrigger>
