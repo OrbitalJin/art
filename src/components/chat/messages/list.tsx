@@ -30,7 +30,7 @@ export const MessageList: React.FC<Props> = ({ messages }) => {
         data={messages}
         followOutput="smooth"
         defaultItemHeight={60}
-        initialTopMostItemIndex={0}
+        initialTopMostItemIndex={messages.length - 1}
         atBottomStateChange={setAtBottom}
         overscan={200}
         itemContent={(index, msg) => (

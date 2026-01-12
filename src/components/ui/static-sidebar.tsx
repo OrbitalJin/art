@@ -36,7 +36,7 @@ export const StaticSidebar: React.FC<StaticSidebarProps> = ({
             variant="outline"
             onClick={() => onOpenChange(true)}
             className={cn(
-              "hidden lg:flex bg-background/80 backdrop-blur shadow-sm m-2 opacity-70",
+              "hidden lg:flex bg-background/80 backdrop-blur m-2 opacity-70",
             )}
           >
             <PanelLeftOpen className="h-5 w-5" />
@@ -58,7 +58,7 @@ export const StaticSidebar: React.FC<StaticSidebarProps> = ({
     <aside
       className={cn(
         "hidden lg:flex flex-col",
-        "rounded-xl border bg-card/50 backdrop-blur-xl shadow-xl",
+        "rounded-xl border bg-card/50 backdrop-blur-xl",
         "hover:border-primary/40",
         isOpen ? `w-[${width}px]` : "w-0 border-0",
         className,

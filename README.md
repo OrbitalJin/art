@@ -82,5 +82,7 @@
 - [x] disable grammar check in inline and code blocks
 - [x] toggle between editing and reading
 - [x] copy content
+- [x] add padding at the bottom of the editor
+- [x] auto scroll to bottom in sessions
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout

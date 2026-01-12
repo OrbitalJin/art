@@ -31,11 +31,12 @@ export const Notes = () => {
         <EditorContextMenu
           editor={editor}
           className={cn(
-            "mx-auto h-full w-full max-w-3xl overflow-y-scroll",
-            "justify-center p-1 select-auto",
+            "mx-auto h-full w-full max-w-3xl overflow-y-auto",
+            "justify-center p-2 select-auto pt-12",
           )}
         >
-          <EditorContent editor={editor} className="h-full w-full py-12" />
+          <EditorContent editor={editor} className="w-full" />
+          <div aria-hidden className="h-[50vh]" />
         </EditorContextMenu>
       </div>
     </div>
