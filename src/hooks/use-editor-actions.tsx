@@ -8,7 +8,7 @@ import type { LLMActions } from "@/lib/types";
 
 export const useEditorActions = (editor: Editor | null) => {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
-  const [isActonDialogOpen, setIsActionDialogOpen] = useState(false);
+  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [textAction, setTextAction] = useState<LLMActions | null>(null);
 
   const updateContent = useNoteStore((state) => state.updateContent);
@@ -77,7 +77,7 @@ export const useEditorActions = (editor: Editor | null) => {
     dialogs: {
       link: { open: isLinkDialogOpen, setOpen: setIsLinkDialogOpen },
       llm: {
-        open: isActonDialogOpen,
+        open: isActionDialogOpen,
         setOpen: setIsActionDialogOpen,
         action: textAction,
         setAction: setTextAction,

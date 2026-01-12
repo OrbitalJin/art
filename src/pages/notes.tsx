@@ -12,7 +12,7 @@ export const Notes = () => {
     useNoteEditor();
 
   return (
-    <div className="relative flex-1 flex flex-row p-2 gap-2">
+    <div className="relative flex-1 flex flex-row gap-2 px-2 lg:px-0">
       <Command editor={editor} />
       <StaticSidebar />
       <FloatingSidebar />
@@ -32,7 +32,7 @@ export const Notes = () => {
           <EditorContent editor={editor} className="w-full h-full py-12" />
         </EditorContextMenu>
 
-        <div className="absolute bottom-0 right-2">
+        <div className="absolute bottom-2 right-2">
           <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card border rounded-md px-2 py-1">
             <span>{wordCount} words</span>
             <span>•</span>

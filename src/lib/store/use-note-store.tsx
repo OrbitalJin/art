@@ -89,6 +89,7 @@ export const useNoteStore = create<State>()(
           activeId: newEntry.id,
           currentWorkspace: workspace,
         });
+        toast.success("Entry created successfully.");
       },
 
       deleteFn(id: string) {

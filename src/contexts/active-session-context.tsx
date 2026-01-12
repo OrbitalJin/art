@@ -1,27 +1,17 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
-import { toast } from "sonner";
-import { useLLM } from "@/contexts/llm-context";
-import { useSessionStore } from "@/lib/store/use-session-store";
-import { prompts } from "@/lib/llm/common/prompts";
-import type { Message, MessageStatus } from "@/lib/store/session/types";
-import { useLLMStream } from "@/hooks/use-llm-stream";
-import {
-  createModelMessage,
-  createUserMessage,
-} from "@/lib/llm/common/message-factories";
-import type { Model } from "@/lib/llm/common/types";
-import { useConversationContext } from "@/hooks/use-conversation-context";
+ import React, {
+   createContext,
+   useCallback,
+   useContext,
+   useMemo,
+ } from "react";
+ import { toast } from "sonner";
+ import { useSessionStore } from "@/lib/store/use-session-store";
+ import type { Message } from "@/lib/store/session/types";
+ import { createUserMessage } from "@/lib/llm/common/message-factories";
+ import { useSessionState } from "@/hooks/use-session-state";
+ import { useLLMSession } from "@/hooks/use-llm-session";
 
-interface StreamState {
-  content: string;
-  status: MessageStatus;
-}
+
 
 interface ActiveSessionContextValues {
   streamingSessionId: string | null;
@@ -41,66 +31,26 @@ const ActiveSessionContext = createContext<ActiveSessionContextValues | null>(
 export const ActiveSessionProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { llm } = useLLM();
   const { activeId, sessions, addMessage } = useSessionStore();
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeId),
     [sessions, activeId],
   );
 
-  const [prompt, setPrompt] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [streamingSessionId, setStreamingSessionId] = useState<string | null>(
-    null,
-  );
-  const [streamState, setStreamState] = useState<StreamState>({
-    content: "",
-    status: "thinking",
+  const [state, dispatch] = useSessionState();
+
+  const { send, abort } = useLLMSession({
+    activeId,
+    activeSession,
+    onToken: (token: string) => dispatch({ type: "STREAM_TOKEN", payload: token }),
+    onComplete: () => dispatch({ type: "COMPLETE_STREAM" }),
   });
-
-  const context = useConversationContext(activeSession);
-
-  const { stream, abort } = useLLMStream({
-    llm,
-    onToken: (token) => {
-      setStreamState((prev) => ({
-        content: prev.content + token,
-        status: "streaming",
-      }));
-    },
-    onComplete: ({ content, status, errorType }) => {
-      if (!activeId) return;
-
-      if (status === "error") {
-        toast.error("Network error occurred");
-      }
-
-      addMessage(
-        activeId,
-        createModelMessage(
-          content,
-          status,
-          activeSession?.preferredModel,
-          errorType,
-        ),
-      );
-
-      setIsSending(false);
-      setStreamingSessionId(null);
-    },
-  });
-
-  const abortStream = useCallback(() => {
-    setStreamState((prev) => ({ ...prev, status: "aborted" }));
-    abort();
-    toast.info("Stream aborted");
-  }, [abort]);
 
   const sendMessage = useCallback(
     async (text: string) => {
-      if (!activeId || !llm) return;
+      if (!activeId) return;
 
-      if (isSending) {
+      if (state.isSending) {
         toast.info("Please wait for the current stream to finish");
         return;
       }
@@ -111,60 +61,47 @@ export const ActiveSessionProvider: React.FC<{
       }
 
       addMessage(activeId, createUserMessage(text));
-
-      setPrompt("");
-      setIsSending(true);
-      setStreamingSessionId(activeId);
-      setStreamState({ content: "", status: "thinking" });
-
-      await stream({
-        text,
-        messages: activeSession?.messages || [],
-        systemPrompt: prompts.system,
-        context: context,
-        model: activeSession?.preferredModel as Model,
-      });
+      dispatch({ type: "SET_PROMPT", payload: "" });
+      dispatch({ type: "START_SENDING", payload: activeId });
+      await send(text);
     },
-    [activeId, llm, isSending, activeSession, addMessage, stream, context],
+    [activeId, addMessage, send, dispatch, state.isSending],
   );
+
+  const abortStream = useCallback(() => {
+    dispatch({ type: "ABORT_STREAM" });
+    abort();
+    toast.info("Stream aborted");
+  }, [abort, dispatch]);
 
   const messages = useMemo(() => {
     const base = activeSession?.messages || [];
-
-    if (isSending && streamingSessionId === activeId) {
+    if (state.isSending && state.streamingSessionId === activeId) {
       return [
         ...base,
         {
           id: "streaming-response",
           role: "model",
-          content: streamState.content,
-          status: streamState.status,
+          content: state.streamState.content,
+          status: state.streamState.status,
           model: activeSession?.preferredModel,
         } as Message,
       ];
     }
-
     return base;
-  }, [
-    activeSession?.messages,
-    activeSession?.preferredModel,
-    isSending,
-    streamState,
-    activeId,
-    streamingSessionId,
-  ]);
+  }, [activeSession, state, activeId]);
 
   const value = useMemo(
     () => ({
       messages,
-      isSending,
-      prompt,
-      streamingSessionId,
-      setPrompt,
+      isSending: state.isSending,
+      prompt: state.prompt,
+      streamingSessionId: state.streamingSessionId,
+      setPrompt: (value: string) => dispatch({ type: "SET_PROMPT", payload: value }),
       sendMessage,
       abortStream,
     }),
-    [messages, isSending, prompt, streamingSessionId, sendMessage, abortStream],
+    [messages, state, sendMessage, abortStream, dispatch],
   );
 
   return (

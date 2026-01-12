@@ -76,7 +76,14 @@ export const ContextPicker = () => {
             <Button variant="outline" size="icon" className="relative">
               <BookPlus className="h-4 w-4" />
               {entries.some((e) => withinContext(activeId, e.id)) && (
-                <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-primary" />
+                <span
+                  className="
+                  absolute -top-1 -right-1 h-4 min-w-4 rounded-full 
+                  bg-primary px-1 text-[10px] text-primary-foreground 
+                  flex items-center justify-center"
+                >
+                  {selecteNotes.length}
+                </span>
               )}
             </Button>
           </TooltipTrigger>

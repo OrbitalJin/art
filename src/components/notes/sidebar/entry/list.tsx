@@ -32,43 +32,48 @@ export const EntryList: React.FC<Props> = ({ query, selectedTags }) => {
   return (
     <ScrollArea className="flex-1 px-2 pt-2 overflow-y-hidden">
       <div className="space-y-2">
-        <EntrySection
-          title="Pinned"
-          count={pinned.length}
-          isPinned={true}
-          defaultCollapsed={false}
-        >
-          {pinned.map((entry, index) => (
-            <Item
-              key={index}
-              id={entry.id}
-              pinned={entry.pinned}
-              title={entry.title}
-              active={entry.id === activeId}
-              updatedAt={entry.updatedAt}
-              tags={entry.tags}
-            />
-          ))}
-        </EntrySection>
+        {pinned.length > 0 && (
+          <EntrySection
+            title="Pinned"
+            count={pinned.length}
+            isPinned={true}
+            defaultCollapsed={false}
+          >
+            {pinned.map((entry, index) => (
+              <Item
+                key={index}
+                id={entry.id}
+                pinned={entry.pinned}
+                title={entry.title}
+                active={entry.id === activeId}
+                updatedAt={entry.updatedAt}
+                tags={entry.tags}
+              />
+            ))}
+          </EntrySection>
+        )}
 
-        <EntrySection
-          title="Notes"
-          count={regular.length}
-          defaultCollapsed={true}
-        >
-          {regular.map((entry, index) => (
-            <Item
-              key={index}
-              id={entry.id}
-              title={entry.title}
-              active={entry.id === activeId}
-              updatedAt={entry.updatedAt}
-              tags={entry.tags}
-            />
-          ))}
-        </EntrySection>
+        {regular.length > 0 && (
+          <EntrySection
+            title="Notes"
+            count={regular.length}
+            defaultCollapsed={false}
+          >
+            {regular.map((entry, index) => (
+              <Item
+                key={index}
+                id={entry.id}
+                title={entry.title}
+                active={entry.id === activeId}
+                updatedAt={entry.updatedAt}
+                tags={entry.tags}
+              />
+            ))}
+          </EntrySection>
+        )}
+
         {pinned.length === 0 && regular.length === 0 && (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          <div className="pt-[50%] flex h-full items-center justify-center text-sm text-muted-foreground">
             {query || selectedTags.length > 0
               ? "No entries found"
               : "No entries available"}

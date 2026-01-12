@@ -192,9 +192,8 @@ export const Item: React.FC<Props> = ({
 
           <DropdownMenuItem
             className="text-destructive focus:text-destructive focus:bg-destructive/10"
-            onSelect={(e) => {
+            onSelect={() => {
               deleteFn(id);
-              e.preventDefault();
             }}
           >
             <Trash2 className="h-4 w-4" />

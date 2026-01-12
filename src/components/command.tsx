@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/command";
 import { useTheme } from "@/contexts/theme-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import type { NavigationItem } from "@/layout/sidebar";
+import type { NavigationItem } from "@/components/layout/navigation";
 import { useNoteStore } from "@/lib/store/use-note-store";
 
 interface Props {

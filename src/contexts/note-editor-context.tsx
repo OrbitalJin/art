@@ -126,13 +126,13 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
     },
     onUpdate: ({ editor }) => {
       setIsSaving(true);
-      debouncedSave(editor.getHTML());
+      debouncedSave(editor.getText());
     },
   });
 
   useEffect(() => {
     if (!editor || !activeId || !note) return;
-    const currentContent = editor.getHTML();
+    const currentContent = editor.getText();
     if (currentContent !== note.content) {
       editor.view.dispatch(
         editor.state.tr
