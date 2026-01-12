@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useStreamingState } from "@/hooks/use-streaming-state";
-import { ContextPicker } from "./context-picker";
+import { ReferencePicker } from "@/components/chat/prompt/reference-picker";
 
 export const Prompt = () => {
   const { prompt, abortStream, setPrompt, sendMessage } = useActiveSession();
@@ -89,7 +89,7 @@ export const Prompt = () => {
                 <TooltipContent>Paste Code</TooltipContent>
               </Tooltip>
 
-              <ContextPicker />
+              <ReferencePicker disabled={isCurrentSessionStreaming} />
             </div>
             <Button
               variant="default"

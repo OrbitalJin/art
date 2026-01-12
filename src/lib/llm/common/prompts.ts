@@ -58,10 +58,10 @@ export const prompts = {
 
   gen: {
     title: `
-        Act as a conversation titler. 
-        Summarize the conversation above into a title of exactly 4-5 words. 
+        Act as a titler. 
+        Summarize the content above into a title of exactly 4-5 words. 
         Use Title Case. Provide only the title without quotes or preamble.
-        If no conversation is provided to you, return "New Session".
+        If no content is provided to you, return "New Session".
     `,
   },
 

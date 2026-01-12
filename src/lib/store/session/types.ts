@@ -21,7 +21,7 @@ export interface Session {
   title: string;
   messages: Message[];
   preferredModel: Model;
-  contextNotes: string[];
+  noteRefs: string[];
   createdAt: number;
   updatedAt: number;
   pinned?: boolean;

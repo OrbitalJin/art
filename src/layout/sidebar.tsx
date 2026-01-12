@@ -1,7 +1,6 @@
 import { WindowControls } from "@/components/layout/window-controls";
 import { Navigation } from "@/components/layout/navigation";
 import { SidebarFooter } from "@/components/layout/sidebar-footer";
-import { Command } from "@/components/command";
 
 export const Sidebar = () => (
   <div className="flex flex-col h-full gap-2">
@@ -10,6 +9,5 @@ export const Sidebar = () => (
       <Navigation />
       <SidebarFooter />
     </aside>
-    <Command items={[]} />
   </div>
 );

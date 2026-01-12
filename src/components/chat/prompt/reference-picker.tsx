@@ -16,26 +16,29 @@ import { cn, formatDateAsAgo } from "@/lib/utils";
 import { BookPlus, Check, Search } from "lucide-react";
 import { useState } from "react";
 
-export const ContextPicker = () => {
+interface Props {
+  disabled?: boolean;
+}
+export const ReferencePicker: React.FC<Props> = ({ disabled }) => {
   const activeId = useSessionStore((state) => state.activeId);
   const sessions = useSessionStore((state) => state.sessions);
-  const addContextNote = useSessionStore((state) => state.addContextNote);
-  const removeContextNote = useSessionStore((state) => state.removeContextNote);
-  const clearContextNotes = useSessionStore((state) => state.clearContextNotes);
+  const addNoteRef = useSessionStore((state) => state.addNoteRef);
+  const removeNoteRef = useSessionStore((state) => state.removeNoteRef);
+  const clearNoteRefs = useSessionStore((state) => state.clearNoteRefs);
 
   const entries = useNoteStore((state) => state.entries);
 
   const [query, setQuery] = useState<string>("");
 
-  const withinContext = (sessionId: string, noteId: string) => {
+  const withinRefs = (sessionId: string, noteId: string) => {
     if (!activeId) return false;
     const session = sessions.find((s) => s.id === sessionId);
     if (!session) return false;
-    return session.contextNotes.includes(noteId);
+    return session.noteRefs.includes(noteId);
   };
 
   const selecteNotes = entries.filter((entry) =>
-    withinContext(activeId!, entry.id),
+    withinRefs(activeId!, entry.id),
   );
 
   const recentNotes = entries
@@ -48,19 +51,19 @@ export const ContextPicker = () => {
         entry.title.toLowerCase().includes(query.toLowerCase()),
       );
 
-  const handleToggleContextNote = (noteId: string) => {
+  const handleToggleRef = (noteId: string) => {
     if (activeId) {
-      if (withinContext(activeId, noteId)) {
-        removeContextNote(activeId, noteId);
+      if (withinRefs(activeId, noteId)) {
+        removeNoteRef(activeId, noteId);
       } else {
-        addContextNote(activeId, noteId);
+        addNoteRef(activeId, noteId);
       }
     }
   };
 
-  const handleClearContextNote = () => {
+  const handleClearRefs = () => {
     if (activeId) {
-      clearContextNotes(activeId);
+      clearNoteRefs(activeId);
     }
   };
 
@@ -70,12 +73,12 @@ export const ContextPicker = () => {
 
   return (
     <DropdownMenu key={activeId}>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger disabled={disabled}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="outline" size="icon" className="relative">
               <BookPlus className="h-4 w-4" />
-              {entries.some((e) => withinContext(activeId, e.id)) && (
+              {entries.some((e) => withinRefs(activeId, e.id)) && (
                 <span
                   className="
                   absolute -top-1 -right-1 h-4 min-w-4 rounded-full 
@@ -87,12 +90,12 @@ export const ContextPicker = () => {
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Add context</TooltipContent>
+          <TooltipContent>Add Reference</TooltipContent>
         </Tooltip>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80 p-0 shadow-xl border-muted-foreground/20">
         <div className="flex flex-col gap-1 border-b bg-muted/30 p-3">
-          <p className="text-sm font-medium">Contextual Notes</p>
+          <p className="text-sm font-medium">Notes to reference</p>
           <p className="text-[11px] text-muted-foreground leading-tight">
             These notes will be referenced during your session.
           </p>
@@ -112,13 +115,18 @@ export const ContextPicker = () => {
         </div>
 
         <div className="flex flex-col p-2 gap-2">
+          {filtered.length === 0 && (
+            <p className="text-sm text-center text-muted-foreground">
+              No notes found
+            </p>
+          )}
           {filtered.map((entry) => {
-            const isSelected = withinContext(activeId, entry.id);
+            const isSelected = withinRefs(activeId, entry.id);
 
             return (
               <div
                 key={entry.id}
-                onClick={() => handleToggleContextNote(entry.id)}
+                onClick={() => handleToggleRef(entry.id)}
                 className={cn(
                   "flex flex-col p-2 gap-2 cursor-pointer rounded-sm transition-all duration-200 group",
                   "hover:ring-1 hover:ring-primary/20",
@@ -162,7 +170,7 @@ export const ContextPicker = () => {
                   </p>
                   {isSelected && (
                     <span className="text-[10px] font-semibold text-primary/70 uppercase tracking-tighter">
-                      In Context
+                      Referenced
                     </span>
                   )}
                 </div>
@@ -176,13 +184,12 @@ export const ContextPicker = () => {
             variant="ghost"
             size="sm"
             className="text-xs h-8 text-muted-foreground hover:text-destructive"
-            onClick={handleClearContextNote}
+            onClick={handleClearRefs}
           >
             Clear selection
           </Button>
           <p className="text-[10px] text-muted-foreground px-2">
-            {filtered.filter((e) => withinContext(activeId, e.id)).length}{" "}
-            selected
+            {filtered.filter((e) => withinRefs(activeId, e.id)).length} selected
           </p>
         </div>
       </DropdownMenuContent>

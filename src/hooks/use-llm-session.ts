@@ -5,7 +5,7 @@ import { prompts } from "@/lib/llm/common/prompts";
 import { useLLMStream } from "@/hooks/use-llm-stream";
 import { createModelMessage } from "@/lib/llm/common/message-factories";
 import type { Model } from "@/lib/llm/common/types";
-import { useConversationContext } from "@/hooks/use-conversation-context";
+import { useSessionRefs } from "@/hooks/use-session-refs";
 import { toast } from "sonner";
 import type { Session } from "@/lib/store/session/types";
 
@@ -13,7 +13,11 @@ interface UseLLMSessionProps {
   activeId: string | null;
   activeSession: Session | undefined;
   onToken: (token: string) => void;
-  onComplete: (result: { content: string; status: string; errorType?: string }) => void;
+  onComplete: (result: {
+    content: string;
+    status: string;
+    errorType?: string;
+  }) => void;
 }
 
 export const useLLMSession = ({
@@ -24,7 +28,7 @@ export const useLLMSession = ({
 }: UseLLMSessionProps) => {
   const { llm } = useLLM();
   const { addMessage } = useSessionStore();
-  const context = useConversationContext(activeSession);
+  const context = useSessionRefs(activeSession);
 
   const { stream, abort } = useLLMStream({
     llm,

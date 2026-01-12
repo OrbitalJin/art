@@ -4,14 +4,13 @@ import { prompts } from "@/lib/llm/common/prompts";
 import type { Entry } from "@/lib/store/notes/types";
 import type { Session } from "@/lib/store/session/types";
 
-export const useConversationContext = (session: Session | undefined) => {
+export const useSessionRefs = (session: Session | undefined) => {
   const getNote = useNoteStore((state) => state.getFn);
-
   return useMemo(() => {
     const contextNotes =
-      session?.contextNotes
+      session?.noteRefs
         .map(getNote)
         .filter((note): note is Entry => note !== undefined) || [];
     return prompts.format.notesAsContext(contextNotes);
-  }, [session?.contextNotes, getNote]);
+  }, [session?.noteRefs, getNote]);
 };

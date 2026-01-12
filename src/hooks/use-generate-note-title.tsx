@@ -1,4 +1,5 @@
 import { useLLM } from "@/contexts/llm-context";
+import { prompts } from "@/lib/llm/common/prompts";
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -14,23 +15,17 @@ export const useGenerateNoteTitle = () => {
 
     setGenerating(true);
     try {
-      const prompt = `
-        Act as a note titler.
-        Summarize the note content into a title of exactly 4-5 words.
-        Use Title Case. Provide only the title without quotes or preamble.
-        If no content is provided, return "Untitled Note".
-      `;
-
       const title =
-        (await llm.genWithContext(prompt, [{ id: "1", role: "user", content: note.content, status: "complete" }])) ||
-        "Untitled Note";
+        (await llm.genWithContext(prompts.gen.title, [
+          { id: "1", role: "user", content: note.content, status: "complete" },
+        ])) || "Untitled Note";
 
       if (title && title.trim()) {
         return title.trim();
       }
     } catch (err) {
-      console.error("Title generation fllmled", err);
-      toast.error("Fllmled to generate title");
+      console.error("Title generation failed", err);
+      toast.error("Failed to generate title");
     } finally {
       setGenerating(false);
     }

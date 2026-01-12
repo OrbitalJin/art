@@ -1,10 +1,24 @@
 import { useState } from "react";
 import { Editor } from "@tiptap/react";
+import { toast } from "sonner";
+
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { useImportImage } from "@/hooks/use-import-image";
 import { useTextActions } from "@/hooks/use-text-actions";
-import { toast } from "sonner";
 import type { LLMActions } from "@/lib/types";
+
+const getToastTitle = (action: LLMActions) => {
+  switch (action) {
+    case "summarize":
+      return "Summarizing";
+    case "rephrase":
+      return "Rephrasing";
+    case "bullet":
+      return "Generating Bullet Points";
+    default:
+      return "Processing";
+  }
+};
 
 export const useEditorActions = (editor: Editor | null) => {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
@@ -13,56 +27,75 @@ export const useEditorActions = (editor: Editor | null) => {
 
   const updateContent = useNoteStore((state) => state.updateContent);
   const activeId = useNoteStore((state) => state.activeId);
+
   const { importImage } = useImportImage();
   const { summarize, repharse, bullet, isBusy } = useTextActions();
 
-  const handleImageClick = async () => {
-    const base64 = await importImage();
-    if (base64 && editor) {
-      editor.chain().focus().setImage({ src: base64 }).run();
+  const runTextAction = async (
+    action: LLMActions,
+    text: string,
+    tone: string,
+    instructions: string,
+  ) => {
+    switch (action) {
+      case "summarize":
+        return summarize.execute(text, tone, instructions);
+      case "rephrase":
+        return repharse.execute(text, tone, instructions);
+      case "bullet":
+        return bullet.execute(text, tone, instructions);
     }
   };
 
+  const handleImageClick = async () => {
+    if (!editor) return;
+
+    const base64 = await importImage();
+    if (!base64) return;
+
+    editor.chain().focus().setImage({ src: base64 }).run();
+  };
+
+  // Processes the currently selected text using an LLM action.
+  // Safely handles note switching during async execution.
   const handleActionProcess = async (tone: string, instructions?: string) => {
     if (!editor || !textAction || !activeId) return;
 
     const { from, to } = editor.state.selection;
-    const selectedText = editor.state.doc.textBetween(from, to);
+    const selectedText = editor.state.doc.textBetween(from, to).trim();
+
+    if (!selectedText) return;
+
     const processingNoteId = activeId;
-
-    if (!selectedText.trim()) return;
-
-    const toastTitle =
-      textAction === "summarize"
-        ? "Summarizing"
-        : textAction === "rephrase"
-          ? "Rephrasing"
-          : textAction === "bullet"
-            ? "Generating Bullet Points"
-            : "Organizing";
-    const toastId = toast.loading(`${toastTitle}...`);
+    const toastId = toast.loading(`${getToastTitle(textAction)}...`);
 
     try {
-      const result =
-        textAction === "summarize"
-          ? await summarize.execute(selectedText, tone, instructions ?? "")
-          : textAction === "rephrase"
-            ? await repharse.execute(selectedText, tone, instructions ?? "")
-            : await bullet.execute(selectedText, tone, instructions ?? "");
+      const result = await runTextAction(
+        textAction,
+        selectedText,
+        tone,
+        instructions ?? "",
+      );
 
-      if (!result) throw new Error("No result");
+      if (!result) {
+        throw new Error("Empty LLM response");
+      }
 
+      // If the same note is still active, update editor directly
       if (useNoteStore.getState().activeId === processingNoteId) {
         editor.chain().focus().insertContentAt({ from, to }, result).run();
       } else {
-        const entries = useNoteStore.getState().entries;
+        // Otherwise update the stored content safely
+        const { entries } = useNoteStore.getState();
         const target = entries.find((entry) => entry.id === processingNoteId);
 
         if (target) {
           const updatedHtml = target.content.replace(selectedText, result);
+
           updateContent(processingNoteId, updatedHtml, true);
         }
       }
+
       toast.success("Success!", { id: toastId });
     } catch (error) {
       console.error(error);
@@ -75,7 +108,10 @@ export const useEditorActions = (editor: Editor | null) => {
 
   return {
     dialogs: {
-      link: { open: isLinkDialogOpen, setOpen: setIsLinkDialogOpen },
+      link: {
+        open: isLinkDialogOpen,
+        setOpen: setIsLinkDialogOpen,
+      },
       llm: {
         open: isActionDialogOpen,
         setOpen: setIsActionDialogOpen,
@@ -84,6 +120,9 @@ export const useEditorActions = (editor: Editor | null) => {
       },
     },
     isBusy,
-    handlers: { handleImageClick, handleAiProcess: handleActionProcess },
+    handlers: {
+      handleImageClick,
+      handleAiProcess: handleActionProcess,
+    },
   };
 };

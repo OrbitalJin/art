@@ -57,7 +57,7 @@ export const TagFilterDropdown = ({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-80 p-0" align="start">
-        <div className="p-1">
+        <div className="p-2 border-b">
           <div className="flex flex-row items-center gap-2 rounded-md border flex-1 p-2">
             <Search className="h-4 w-4 text-muted-foreground" />
             <input
@@ -69,8 +69,6 @@ export const TagFilterDropdown = ({
             />
           </div>
         </div>
-
-        <DropdownMenuSeparator />
         <div
           role="listbox"
           className="flex max-h-64 flex-col gap-1 overflow-y-auto p-2"
@@ -102,7 +100,7 @@ export const TagFilterDropdown = ({
                   <span>@{tag}</span>
 
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                    <Badge variant="default" className="h-5 px-1.5 text-xs">
                       {getTagCount(tag)}
                     </Badge>
                   </div>
@@ -130,25 +128,21 @@ export const TagFilterDropdown = ({
           )}
         </div>
 
-        {selectedTags.length > 0 && (
-          <>
-            <DropdownMenuSeparator />
-            <div className="flex items-center justify-between bg-muted/10 p-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs text-muted-foreground hover:text-destructive"
-                onClick={onClearAll}
-              >
-                Clear selection
-              </Button>
+        <DropdownMenuSeparator />
+        <div className="flex items-center justify-between bg-muted/10 p-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-xs text-muted-foreground hover:text-destructive"
+            onClick={onClearAll}
+          >
+            Clear selection
+          </Button>
 
-              <span className="px-2 text-[10px] text-muted-foreground">
-                {selectedTags.length} selected
-              </span>
-            </div>
-          </>
-        )}
+          <span className="px-2 text-[10px] text-muted-foreground">
+            {selectedTags.length} selected
+          </span>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

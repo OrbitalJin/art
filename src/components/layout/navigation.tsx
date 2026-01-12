@@ -1,5 +1,11 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Book, BookOpen, MessageCircle, MessageCircleDashed, type LucideIcon } from "lucide-react";
+import {
+  Book,
+  BookOpen,
+  MessageCircle,
+  MessageCircleDashed,
+  type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -7,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { Command } from "../command";
 
 export interface NavigationItem {
   href: string;
@@ -67,6 +74,8 @@ export const Navigation = () => {
           <TooltipContent side="left">{item.description}</TooltipContent>
         </Tooltip>
       ))}
+
+      <Command items={items} />
     </nav>
   );
 };

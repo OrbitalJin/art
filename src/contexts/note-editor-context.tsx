@@ -1,6 +1,6 @@
 import { Editor } from "@tiptap/react";
-import { createContext, useContext } from "react";
-import { createDocument, useEditor, useEditorState } from "@tiptap/react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import { CharacterCount } from "@tiptap/extension-character-count";
@@ -10,17 +10,16 @@ import { TableKit } from "@tiptap/extension-table";
 import { HorizontalRule } from "@tiptap/extension-horizontal-rule";
 import Image from "@tiptap/extension-image";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { toast } from "sonner";
 
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { useDebounce } from "@/hooks/use-debounce";
 import { extractTags } from "@/lib/utils/tags";
 import { TagHighlighter } from "@/lib/extensions/tag-highlighter";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import type { Workspace } from "@/lib/store/notes/types";
 
 interface NoteEditorContextValue {
-  editor: Editor;
+  editor: Editor | null;
   wordCount: number;
   charCount: number;
   isSaving: boolean;
@@ -36,120 +35,119 @@ interface Props {
   children: React.ReactNode;
 }
 
+const editorExtensions = [
+  StarterKit,
+  TableKit,
+  ListKit,
+  Highlight,
+  HorizontalRule,
+  TagHighlighter,
+  Image.configure({
+    inline: true,
+    allowBase64: true,
+    resize: {
+      enabled: true,
+      directions: ["bottom-right"],
+      minWidth: 100,
+      minHeight: 100,
+      alwaysPreserveAspectRatio: true,
+    },
+  }),
+  Markdown.configure({
+    html: true,
+    transformPastedText: true,
+    transformCopiedText: true,
+  }),
+  CharacterCount.configure({ limit: 50000 }),
+];
+
+const editorProps = {
+  attributes: {
+    class: "tiptap focus:outline-none",
+  },
+  handleClick: (_: unknown, __: unknown, event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    const link = target.closest("a");
+
+    if (link && link.href) {
+      event.preventDefault();
+      openUrl(link.href);
+      toast.info("Opening link...");
+      return true;
+    }
+
+    return false;
+  },
+};
+
+const findTagPosition = (editor: Editor, tag: string) => {
+  const searchTerm = `@${tag}`;
+  let foundPos = -1;
+
+  editor.state.doc.descendants((node, pos) => {
+    if (foundPos !== -1) return false;
+
+    if (node.isText && node.text?.includes(searchTerm)) {
+      const index = node.text.indexOf(searchTerm);
+      foundPos = pos + index;
+      return false;
+    }
+  });
+
+  return foundPos;
+};
+
 export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
-  const activeId = useNoteStore((state) => state.activeId);
-  const note = useNoteStore((state) => state.getFn(activeId ?? ""));
-  const updateContent = useNoteStore((state) => state.updateContent);
-  const updateTags = useNoteStore((state) => state.updateTags);
-  const isDisabled = useNoteStore((state) => state.entries.length === 0);
+  const activeId = useNoteStore((s) => s.activeId);
+  const note = useNoteStore((s) => s.getFn(activeId ?? ""));
+  const updateContent = useNoteStore((s) => s.updateContent);
+  const updateTags = useNoteStore((s) => s.updateTags);
+  const isDisabled = useNoteStore((s) => s.entries.length === 0);
+
+  const currentWorkspace = useNoteStore((s) => s.currentWorkspace);
+
   const [isSaving, setIsSaving] = useState(false);
-  const currentWorkspace = useNoteStore((state) => state.currentWorkspace);
   const [currentTab, setCurrentTab] = useState<Workspace>(currentWorkspace);
 
-  const debouncedSave = useDebounce((content: string) => {
-    if (activeId) {
-      const tags = extractTags(content);
-      updateTags(activeId, tags);
-      updateContent(activeId, content, false);
-      setIsSaving(false);
-    }
+  const debouncedSave = useDebounce((markdown: string) => {
+    if (!activeId) return;
+
+    const tags = extractTags(markdown);
+    updateTags(activeId, tags);
+    updateContent(activeId, markdown, false);
+    setIsSaving(false);
   }, 1000);
 
   const editor = useEditor({
     immediatelyRender: true,
-    extensions: [
-      StarterKit,
-      TableKit,
-      ListKit,
-      Highlight,
-      HorizontalRule,
-      Image.configure({
-        allowBase64: true,
-        HTMLAttributes: {
-          class: "tiptap-image",
-        },
-        resize: {
-          enabled: true,
-          directions: ["bottom-right"],
-          minWidth: 100,
-          minHeight: 100,
-          alwaysPreserveAspectRatio: true,
-        },
-      }),
-      TagHighlighter,
-      Markdown.configure({ html: true, transformPastedText: true }),
-      CharacterCount.configure({ limit: 50000 }),
-    ],
-    editorProps: {
-      attributes: {
-        class: "tiptap focus:outline-none",
-      },
-      handleClick: (_, __, event) => {
-        const target = event.target as HTMLElement;
-        const link = target.closest("a");
-
-        if (link && link.href) {
-          event.preventDefault();
-          openUrl(link.href);
-          toast.info("Opening link...");
-          return true;
-        }
-
-        return false;
-      },
-      handlePaste: (view, event) => {
-        if (!event.clipboardData) return false;
-
-        const items = Array.from(event.clipboardData.items);
-        const hasImage = items.some((item) => item.type.startsWith("image/"));
-
-        if (!hasImage) return false;
-
-        const imageItem = items.find((item) => item.type.startsWith("image/"));
-        if (!imageItem) return false;
-
-        const file = imageItem.getAsFile();
-        if (!file) return false;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const base64 = e.target?.result as string;
-          const { schema } = view.state;
-          const node = schema.nodes.image.create({ src: base64 });
-          const transaction = view.state.tr.replaceSelectionWith(node);
-          view.dispatch(transaction);
-        };
-        reader.readAsDataURL(file);
-
-        return true;
-      },
-    },
+    extensions: editorExtensions,
+    editorProps,
     onUpdate: ({ editor }) => {
       setIsSaving(true);
-      debouncedSave(editor.getText());
+      // @ts-expect-error tiptap-markdown adds this at runtime
+      debouncedSave(editor.storage.markdown.getMarkdown());
     },
   });
 
   useEffect(() => {
-    if (!editor || !activeId || !note) return;
-    const currentContent = editor.getText();
-    if (currentContent !== note.content) {
-      editor.view.dispatch(
-        editor.state.tr
-          .replaceWith(
-            0,
-            editor.state.doc.content.size,
-            createDocument(note.content, editor.schema).content,
-          )
-          .setMeta("addToHistory", false),
-      );
+    if (!editor || !activeId || !note) {
+      editor?.commands.clearContent();
+      return;
     }
+
+    // @ts-expect-error tiptap-markdown adds this at runtime
+    const currentMarkdown = editor.storage.markdown.getMarkdown();
+
+    if (currentMarkdown === note.content) return;
+
+    editor.commands.setContent(note.content);
   }, [activeId, editor, note]);
 
   useEffect(() => {
     return () => {
       if (editor && activeId) {
-        updateContent(activeId, editor.getHTML(), false);
+        // @ts-expect-error tiptap-markdown adds this at runtime
+        updateContent(activeId, editor.storage.markdown.getMarkdown(), false);
       }
     };
   }, [activeId, editor, updateContent]);
@@ -165,31 +163,23 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
   const handleTagClick = (tag: string) => {
     if (!editor) return;
 
-    const searchTerm = `@${tag}`;
-    let foundPos = -1;
+    const pos = findTagPosition(editor, tag);
 
-    editor.state.doc.descendants((node, pos) => {
-      if (foundPos !== -1) return false;
-      if (node.isText && node.text?.includes(searchTerm)) {
-        const index = node.text.indexOf(searchTerm);
-        foundPos = pos + index;
-        return false;
-      }
-    });
-
-    if (foundPos !== -1) {
-      editor
-        .chain()
-        .focus()
-        .setTextSelection({
-          from: foundPos,
-          to: foundPos + searchTerm.length,
-        })
-        .run();
-    } else {
-      toast.error(`Tag ${searchTerm} not found in content`);
+    if (pos === -1) {
+      toast.error(`Tag @${tag} not found`);
+      return;
     }
+
+    editor
+      .chain()
+      .focus()
+      .setTextSelection({
+        from: pos,
+        to: pos + tag.length + 1,
+      })
+      .run();
   };
+
   return (
     <NoteEditorContext.Provider
       value={{
@@ -198,9 +188,9 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
         charCount,
         isSaving,
         isDisabled,
-        handleTagClick,
         currentTab,
         setCurrentTab,
+        handleTagClick,
       }}
     >
       {children}
@@ -210,8 +200,10 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
 
 export const useNoteEditor = () => {
   const context = useContext(NoteEditorContext);
+
   if (!context) {
     throw new Error("useNoteEditor must be used within NoteEditorProvider");
   }
+
   return context;
 };

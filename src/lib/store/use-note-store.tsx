@@ -8,7 +8,7 @@ const createNewEntry = (workspace: Workspace, title?: string): Entry => {
   const date = Date.now();
   return {
     id: crypto.randomUUID(),
-    title: title ?? "Random Thoughts",
+    title: title ?? "Untitled Note",
     content: "",
     workspace: workspace,
     createdAt: date,

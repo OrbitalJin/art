@@ -12,7 +12,7 @@ const createNewSession = (title?: string): Session => {
     id: crypto.randomUUID(),
     title: title ?? "New Session",
     messages: [],
-    contextNotes: [],
+    noteRefs: [],
     preferredModel: DefaultModel,
     createdAt: date,
     updatedAt: date,
@@ -23,9 +23,9 @@ export interface SessionState {
   sessions: Session[];
   activeId: string | null;
 
-  addContextNote: (id: string, noteId: string) => void;
-  removeContextNote: (id: string, noteId: string) => void;
-  clearContextNotes: (id: string) => void;
+  addNoteRef: (id: string, noteId: string) => void;
+  removeNoteRef: (id: string, noteId: string) => void;
+  clearNoteRefs: (id: string) => void;
   togglePin: (id: string) => void;
   importFn: (s: Session) => void;
   setActive: (id: string) => void;
@@ -44,40 +44,38 @@ export const useSessionStore = create<SessionState>()(
       activeId: null,
 
       withinContext: (id: string, noteId: string): boolean => {
-        return get().getFn(id)?.contextNotes.includes(noteId) ?? false;
+        return get().getFn(id)?.noteRefs.includes(noteId) ?? false;
       },
 
-      addContextNote: (id: string, noteId: string) => {
+      addNoteRef: (id: string, noteId: string) => {
         if (!noteId) return;
 
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
-              ? { ...session, contextNotes: [...session.contextNotes, noteId] }
+              ? { ...session, noteRefs: [...session.noteRefs, noteId] }
               : session,
           ),
         }));
       },
 
-      removeContextNote: (id: string, noteId: string) => {
+      removeNoteRef: (id: string, noteId: string) => {
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
               ? {
                   ...session,
-                  contextNotes: session.contextNotes.filter(
-                    (n) => n !== noteId,
-                  ),
+                  noteRefs: session.noteRefs.filter((n) => n !== noteId),
                 }
               : session,
           ),
         }));
       },
 
-      clearContextNotes: (id: string) => {
+      clearNoteRefs: (id: string) => {
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) =>
-            session.id === id ? { ...session, contextNotes: [] } : session,
+            session.id === id ? { ...session, noteRefs: [] } : session,
           ),
         }));
       },
@@ -208,9 +206,7 @@ export const useSessionStore = create<SessionState>()(
         if (state) {
           state.sessions = state.sessions.map((session) => ({
             ...session,
-            contextNotes: Array.isArray(session.contextNotes)
-              ? session.contextNotes
-              : [],
+            noteRefs: Array.isArray(session.noteRefs) ? session.noteRefs : [],
           }));
           state.ensureDefault();
         }
