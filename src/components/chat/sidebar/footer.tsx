@@ -25,11 +25,11 @@ export const ExportButton = () => {
         variant="outline"
         onClick={exportCurrentSession}
       >
-        <Upload className="h-4 w-4 mr-2" />
+        <Upload className="h-3.5 w-3.5" />
         Export
       </Button>
       <Button className="flex-1" variant="outline" onClick={importSession}>
-        <Download className="h-4 w-4 mr-2" />
+        <Download className="h-3.5 w-3.5" />
         Import
       </Button>
     </div>

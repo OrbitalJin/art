@@ -1,21 +1,27 @@
 import "@/styles/tiptap.css";
+
+import { EditorContent } from "@tiptap/react";
+
 import { cn } from "@/lib/utils";
 import { StaticSidebar } from "@/components/notes/sidebar/static";
 import { FloatingSidebar } from "@/components/notes/sidebar/floating";
 import { EditorContextMenu } from "@/components/editor/context-menu/context-menu";
-import { EditorContent } from "@tiptap/react";
 import { Command } from "@/components/notes/command";
 import { useNoteEditor } from "@/contexts/note-editor-context";
 
 export const Notes = () => {
-  const { isDisabled, editor, isSaving, wordCount, charCount } =
-    useNoteEditor();
+  const { isDisabled, editor } = useNoteEditor();
+
+  if (!editor) {
+    return null;
+  }
 
   return (
-    <div className="relative flex-1 flex flex-row gap-2 px-2 lg:px-0">
+    <div className="relative flex flex-1 flex-row gap-2 px-2 lg:px-0">
       <Command editor={editor} />
       <StaticSidebar />
       <FloatingSidebar />
+
       <div
         className={cn(
           "relative flex h-full w-full flex-col overflow-hidden",
@@ -25,24 +31,12 @@ export const Notes = () => {
         <EditorContextMenu
           editor={editor}
           className={cn(
-            "w-full h-full overflow-y-scroll max-w-3xl",
-            "justify-center mx-auto p-1",
+            "mx-auto h-full w-full max-w-3xl overflow-y-scroll",
+            "justify-center p-1 select-auto",
           )}
         >
-          <EditorContent editor={editor} className="w-full h-full py-12" />
+          <EditorContent editor={editor} className="h-full w-full py-12" />
         </EditorContextMenu>
-
-        <div className="absolute bottom-2 right-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card border rounded-md px-2 py-1">
-            <span>{wordCount} words</span>
-            <span>•</span>
-            <span>{charCount} characters</span>
-
-            {isSaving && (
-              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

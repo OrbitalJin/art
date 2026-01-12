@@ -79,7 +79,8 @@
 - [x] take contextual notes into account in context window calculation
 - [x] LLM features
 - [x] store and get as markdown to optmize token use when as ref
-- [ ] disable grammar check in inline and code blocks
+- [x] disable grammar check in inline and code blocks
+- [x] toggle between editing and reading
 - [ ] copy content
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout

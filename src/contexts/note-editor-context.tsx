@@ -24,7 +24,10 @@ interface NoteEditorContextValue {
   charCount: number;
   isSaving: boolean;
   isDisabled: boolean;
+  isEditable: boolean;
   currentTab: Workspace;
+
+  toggleEditable: () => void;
   setCurrentTab: (tab: Workspace) => void;
   handleTagClick: (tag: string) => void;
 }
@@ -64,6 +67,7 @@ const editorExtensions = [
 const editorProps = {
   attributes: {
     class: "tiptap focus:outline-none",
+    spellcheck: "false",
   },
   handleClick: (_: unknown, __: unknown, event: MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -108,6 +112,7 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
 
   const [isSaving, setIsSaving] = useState(false);
   const [currentTab, setCurrentTab] = useState<Workspace>(currentWorkspace);
+  const [isEditable, setIsEditable] = useState(false);
 
   const debouncedSave = useDebounce((markdown: string) => {
     if (!activeId) return;
@@ -119,6 +124,7 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
   }, 1000);
 
   const editor = useEditor({
+    editable: false,
     immediatelyRender: true,
     extensions: editorExtensions,
     editorProps,
@@ -129,6 +135,7 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
     },
   });
 
+  // sync content with editor
   useEffect(() => {
     if (!editor || !activeId || !note) {
       editor?.commands.clearContent();
@@ -143,6 +150,7 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
     editor.commands.setContent(note.content);
   }, [activeId, editor, note]);
 
+  // sync content with store on unmount
   useEffect(() => {
     return () => {
       if (editor && activeId) {
@@ -159,6 +167,12 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
       charCount: ctx.editor.storage.characterCount.characters(),
     }),
   });
+
+  const toggleEditable = () => {
+    const newEditable = !isEditable;
+    setIsEditable(newEditable);
+    editor?.setEditable(newEditable);
+  };
 
   const handleTagClick = (tag: string) => {
     if (!editor) return;
@@ -188,9 +202,11 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
         charCount,
         isSaving,
         isDisabled,
+        isEditable: isEditable,
         currentTab,
         setCurrentTab,
         handleTagClick,
+        toggleEditable,
       }}
     >
       {children}
