@@ -81,6 +81,6 @@
 - [x] store and get as markdown to optmize token use when as ref
 - [x] disable grammar check in inline and code blocks
 - [x] toggle between editing and reading
-- [ ] copy content
+- [x] copy content
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout

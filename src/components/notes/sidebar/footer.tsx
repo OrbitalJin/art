@@ -6,17 +6,41 @@ import {
   FileText,
   Hash,
   Loader2,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNoteEditor } from "@/contexts/note-editor-context";
 import { useTradeNote } from "@/hooks/use-trade-notes";
+import { useCopy } from "@/hooks/use-copy";
+import { useNoteStore } from "@/lib/store/use-note-store";
+import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const SidebarFooter = () => {
-  const { isEditable, wordCount, charCount, isSaving, toggleEditable } =
-    useNoteEditor();
+  const {
+    isEditable,
+    isDisabled,
+    wordCount,
+    charCount,
+    isSaving,
+    toggleEditable,
+  } = useNoteEditor();
+  const currentNote = useNoteStore((s) => s.getFn(s.activeId ?? ""));
+
+  const { copy, copied } = useCopy(currentNote?.content as string);
 
   return (
-    <div className="border-t bg-muted/30">
+    <div
+      className={cn(
+        "border-t bg-muted/30",
+        isDisabled && "pointer-events-none opacity-80",
+      )}
+    >
       <div className="flex items-center justify-around px-4 py-3 text-xs">
         <StatItem icon={FileText} value={wordCount} label="words" />
         <StatItem icon={Hash} value={charCount} label="chars" />
@@ -24,10 +48,9 @@ export const SidebarFooter = () => {
 
       <div className="flex items-center gap-2 p-2 border-t">
         <Button
-          size="sm"
           variant={isEditable ? "default" : "outline"}
           onClick={toggleEditable}
-          className="flex-1 h-8 transition-all"
+          className="flex-1 transition-all"
         >
           {isSaving ? (
             <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin opacity-70" />
@@ -38,6 +61,14 @@ export const SidebarFooter = () => {
           )}
           {isEditable ? "Editing" : "Reading"}
         </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" variant="outline" onClick={copy}>
+              {copied ? <Check /> : <Copy />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">Copy content</TooltipContent>
+        </Tooltip>
       </div>
       <ExportButton />
     </div>
