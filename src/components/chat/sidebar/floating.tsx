@@ -1,13 +1,19 @@
-import React, { useState } from "react";
+import React from "react";
 import { FloatingSidebar as SharedFloatingSidebar } from "@/components/ui/floating-sidebar";
 import { SidebarContent } from "./content";
 
-export const FloatingSidebar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface Props {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}
 
+export const FloatingSidebar: React.FC<Props> = ({ isOpen, setIsOpen }) => {
   return (
     <SharedFloatingSidebar isOpen={isOpen} onOpenChange={setIsOpen}>
-      <SidebarContent onClose={() => setIsOpen(false)} onSessionSwitch={() => {}} />
+      <SidebarContent
+        onClose={() => setIsOpen(false)}
+        onSessionSwitch={() => {}}
+      />
     </SharedFloatingSidebar>
   );
 };

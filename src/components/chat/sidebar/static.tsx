@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import { StaticSidebar as SharedStaticSidebar } from "@/components/ui/static-sidebar";
 import { SidebarContent } from "./content";
 
-export const StaticSidebar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(true);
+interface Props {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}
 
+export const StaticSidebar: React.FC<Props> = ({ isOpen, setIsOpen }) => {
   return (
     <SharedStaticSidebar
       isOpen={isOpen}

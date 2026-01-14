@@ -4,15 +4,23 @@ import { create } from "zustand";
 
 interface SettingsState {
   apiKey: string;
+  chatSidebarOpen: boolean;
+  notesSidebarOpen: boolean;
+
   setApiKey: (key: string) => void;
+  setChatSidebarOpen: (open: boolean) => void;
+  setNotesSidebarOpen: (open: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       apiKey: "",
-
+      chatSidebarOpen: true,
+      notesSidebarOpen: true,
       setApiKey: (key: string) => set({ apiKey: key }),
+      setChatSidebarOpen: (open: boolean) => set({ chatSidebarOpen: open }),
+      setNotesSidebarOpen: (open: boolean) => set({ notesSidebarOpen: open }),
     }),
     {
       name: "settings-storage",

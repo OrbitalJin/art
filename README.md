@@ -89,6 +89,6 @@
 
 ### User Experience
 
-- [ ] Persist toolbar states in setting. Make them resizable too.
+- [x] Persist toolbar states in setting.
 - [ ] Add `traits` to customize the traits of the models.
 - [ ] "fork" session

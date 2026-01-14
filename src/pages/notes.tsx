@@ -8,9 +8,12 @@ import { FloatingSidebar } from "@/components/notes/sidebar/floating";
 import { EditorContextMenu } from "@/components/notes/editor/context-menu/context-menu";
 import { Command } from "@/components/notes/command";
 import { useNoteEditor } from "@/contexts/note-editor-context";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
 
 export const Notes = () => {
   const { isDisabled, editor } = useNoteEditor();
+  const isOpen = useSettingsStore((state) => state.notesSidebarOpen);
+  const setIsOpen = useSettingsStore((state) => state.setNotesSidebarOpen);
 
   if (!editor) {
     return null;
@@ -18,8 +21,8 @@ export const Notes = () => {
 
   return (
     <div className="relative flex flex-1 flex-row gap-2 lg:px-0">
-      <StaticSidebar />
-      <FloatingSidebar />
+      <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+      <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
 
       <div
         className={cn(

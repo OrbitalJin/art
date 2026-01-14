@@ -12,7 +12,7 @@ import { useSidebarToggle } from "@/hooks/use-sidebar-toggle";
 
 interface StaticSidebarProps {
   isOpen: boolean;
-  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
+  onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
   className?: string;
 }
