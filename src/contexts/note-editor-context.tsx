@@ -48,9 +48,9 @@ export const NoteEditorProvider: React.FC<Props> = ({ children }) => {
     },
   });
 
-  // Extracted hooks
   useEditorSync(editor, activeId);
-  const { isEditable, isDisabled, toggleEditable, state } = useEditorStateSelector(editor);
+  const { isEditable, isDisabled, toggleEditable, state } =
+    useEditorStateSelector(editor);
   const { handleTagClick } = useTagNavigation(editor);
 
   return (

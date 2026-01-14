@@ -4,17 +4,19 @@ import { CharacterCount } from "@tiptap/extension-character-count";
 import { ListKit } from "@tiptap/extension-list";
 import { Highlight } from "@tiptap/extension-highlight";
 import { TableKit } from "@tiptap/extension-table";
+import { TrailingNode } from "@tiptap/extensions";
 import { HorizontalRule } from "@tiptap/extension-horizontal-rule";
+import { TagHighlighter } from "@/lib/editor/extensions/tag-highlighter";
 import Image from "@tiptap/extension-image";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
-import { TagHighlighter } from "@/lib/extensions/tag-highlighter";
 
 export const editorExtensions = [
   StarterKit,
   TableKit,
   ListKit,
   Highlight,
+  TrailingNode,
   HorizontalRule,
   TagHighlighter,
   Image.configure({

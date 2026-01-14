@@ -36,6 +36,6 @@ export const navigateToTag = (editor: Editor, tag: string) => {
       to: pos + tag.length + 1,
     })
     .run();
-    
+
   return true;
 };

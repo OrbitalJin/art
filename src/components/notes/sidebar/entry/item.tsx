@@ -34,24 +34,21 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
   pinned?: boolean;
   active: boolean;
-  updatedAt: number;
+  createdAt: number;
   tags: string[];
   onSwitch?: () => void;
 }
 
-export const Item: React.FC<Props> = ({
+export const EntryListItem: React.FC<Props> = ({
   id,
   title,
   active,
   pinned,
-  updatedAt,
+  createdAt,
   tags,
 }) => {
-  const changeWorkspace = useNoteStore((state) => state.changeWorkspace);
   const updateTitle = useNoteStore((state) => state.updateTitle);
   const setActive = useNoteStore((state) => state.setActive);
-  const deleteFn = useNoteStore((state) => state.deleteFn);
-  const togglePin = useNoteStore((state) => state.togglePin);
   const { generating, generateTitle } = useGenerateNoteTitle();
 
   const [editing, setEditing] = useState(false);
@@ -72,36 +69,29 @@ export const Item: React.FC<Props> = ({
     setEditing(false);
   };
 
-  const handleEdit = () => {
-    setActive(id);
-    setEditing(true);
-  };
-
   return (
     <div
+      className={cn(
+        "flex flex-row p-2 group items-center justify-between opacity-80",
+        "transition-colors hover:bg-accent rounded-md",
+        editing && "text-accent-foreground",
+        active &&
+          "bg-accent/80 font-medium ring-1 ring-inset ring-foreground/5",
+      )}
       onClick={() => {
         if (!editing && !generating) {
           setActive(id);
         }
       }}
-      className={cn(
-        "flex flex-row p-2 group items-center justify-between opacity-80",
-        "transition-colors hover:bg-accent hover:border-l hover:border-primary rounded-md",
-        editing && "text-accent-foreground ring-1 ring-inset ring-accent",
-        active &&
-          "bg-accent/80 font-medium ring-1 ring-inset ring-foreground/5",
-      )}
     >
       <div className="flex-1 flex flex-col gap-2">
         {generating ? (
-          <>
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
-              <ShimmerText className="text-sm truncate">
-                Generating title...
-              </ShimmerText>
-            </div>
-          </>
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
+            <ShimmerText className="text-sm truncate">
+              Generating title...
+            </ShimmerText>
+          </div>
         ) : editing ? (
           <input
             autoFocus
@@ -110,9 +100,7 @@ export const Item: React.FC<Props> = ({
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSubmit();
-              if (e.key === "Escape") {
-                cancel();
-              }
+              if (e.key === "Escape") cancel();
             }}
             onClick={(e) => e.stopPropagation()}
             className="w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm"
@@ -120,87 +108,124 @@ export const Item: React.FC<Props> = ({
         ) : (
           <p className="text-sm">{title}</p>
         )}
-        <p className="text-xs text-foreground/70">{formatDate(updatedAt)}</p>
+        <p className="text-xs text-foreground/70">{formatDate(createdAt)}</p>
         {tags.length > 0 && <TagList active={active} tags={tags} />}
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "h-7 w-7 transition-opacity",
-              editing || generating
-                ? "opacity-0 pointer-events-none"
-                : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100",
-            )}
-          >
-            <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-52">
-          <DropdownMenuItem
-            onSelect={async () => {
-              const newTitle = await generateTitle(id);
-              if (newTitle) {
-                setText(newTitle);
-                updateTitle(id, newTitle);
-              }
-            }}
-            className="text-primary focus:text-primary focus:bg-primary/10"
-          >
-            <Sparkle className="h-4 w-4" />
-            <span>Generate title</span>
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger onSelect={handleEdit}>
-              <ArrowRightLeft className="h-4 w-4" />
-              <span>Move to</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                {WORKSPACES.map((workspace) => (
-                  <DropdownMenuItem
-                    key={workspace}
-                    onSelect={() => changeWorkspace(id, workspace)}
-                  >
-                    {workspace.charAt(0).toUpperCase() + workspace.slice(1)}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-
-          <DropdownMenuItem onSelect={() => togglePin(id)}>
-            {pinned ? (
-              <PinOff className="h-4 w-4" />
-            ) : (
-              <Pin className="h-4 w-4" />
-            )}
-            <span>{pinned ? "Unpin" : "Pin"}</span>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem onSelect={handleEdit}>
-            <TextCursor className="h-4 w-4" />
-            <span>Rename</span>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive focus:bg-destructive/10"
-            onSelect={() => {
-              deleteFn(id);
-            }}
-          >
-            <Trash2 className="h-4 w-4" />
-            <span>Delete</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {!editing && !generating && (
+        <EntryMenu
+          id={id}
+          pinned={!!pinned}
+          setEditing={setEditing}
+          setText={setText}
+          updateTitle={updateTitle}
+          generateTitle={generateTitle}
+        />
+      )}
     </div>
+  );
+};
+
+interface EntryMenuProps {
+  id: string;
+  pinned: boolean;
+  setEditing: (val: boolean) => void;
+  setText: (text: string) => void;
+  updateTitle: (id: string, title: string) => void;
+  generateTitle: (id: string) => Promise<string | void>;
+}
+
+const EntryMenu: React.FC<EntryMenuProps> = ({
+  id,
+  pinned,
+  setEditing,
+  setText,
+  updateTitle,
+  generateTitle,
+}) => {
+  const changeWorkspace = useNoteStore((state) => state.changeWorkspace);
+  const deleteFn = useNoteStore((state) => state.deleteFn);
+  const togglePin = useNoteStore((state) => state.togglePin);
+  const setActive = useNoteStore((state) => state.setActive);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MoreVertical className="h-4 w-4" />
+          <span className="sr-only">Open menu</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuItem
+          className="text-primary focus:text-primary focus:bg-primary/10"
+          onSelect={async (e) => {
+            e.preventDefault();
+            const newTitle = await generateTitle(id);
+            if (newTitle) {
+              setText(newTitle);
+              updateTitle(id, newTitle);
+            }
+          }}
+        >
+          <Sparkle className="h-4 w-4" />
+          <span>Generate title</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <ArrowRightLeft className="h-4 w-4" />
+            <span>Move to</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              {WORKSPACES.map((workspace) => (
+                <DropdownMenuItem
+                  key={workspace}
+                  onSelect={() => changeWorkspace(id, workspace)}
+                >
+                  {workspace.charAt(0).toUpperCase() + workspace.slice(1)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+
+        <DropdownMenuItem onSelect={() => togglePin(id)}>
+          {pinned ? (
+            <PinOff className="h-4 w-4" />
+          ) : (
+            <Pin className="h-4 w-4" />
+          )}
+          <span>{pinned ? "Unpin" : "Pin"}</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            setActive(id);
+            setEditing(true);
+          }}
+        >
+          <TextCursor className="h-4 w-4" />
+          <span>Rename</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive focus:bg-destructive/10"
+          onSelect={() => deleteFn(id)}
+        >
+          <Trash2 className="h-4 w-4" />
+          <span>Delete</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };

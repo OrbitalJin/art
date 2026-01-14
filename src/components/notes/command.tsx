@@ -10,7 +10,7 @@ import {
   CommandItem,
   CommandShortcut,
 } from "@/components/ui/command";
-import { getMenuGroups } from "@/lib/schema/editor-menu";
+import { getMenuGroups } from "@/components/notes/editor/editor-menu";
 import { useEditorActions } from "@/hooks/use-editor-actions";
 import { cn } from "@/lib/utils";
 import { useEditorStateSelector } from "@/hooks/use-editor-state-selector";

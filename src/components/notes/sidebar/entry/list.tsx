@@ -1,5 +1,5 @@
 import { useNoteStore } from "@/lib/store/use-note-store";
-import { Item } from "@/components/notes/sidebar/entry/item";
+import { EntryListItem } from "@/components/notes/sidebar/entry/item";
 import { useNoteEditor } from "@/contexts/note-editor-context";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EntrySection } from "./section";
@@ -40,13 +40,13 @@ export const EntryList: React.FC<Props> = ({ query, selectedTags }) => {
             defaultCollapsed={false}
           >
             {pinned.map((entry, index) => (
-              <Item
+              <EntryListItem
                 key={index}
                 id={entry.id}
                 pinned={entry.pinned}
                 title={entry.title}
                 active={entry.id === activeId}
-                updatedAt={entry.updatedAt}
+                createdAt={entry.createdAt}
                 tags={entry.tags}
               />
             ))}
@@ -60,12 +60,12 @@ export const EntryList: React.FC<Props> = ({ query, selectedTags }) => {
             defaultCollapsed={false}
           >
             {regular.map((entry, index) => (
-              <Item
+              <EntryListItem
                 key={index}
                 id={entry.id}
                 title={entry.title}
                 active={entry.id === activeId}
-                updatedAt={entry.updatedAt}
+                createdAt={entry.updatedAt}
                 tags={entry.tags}
               />
             ))}

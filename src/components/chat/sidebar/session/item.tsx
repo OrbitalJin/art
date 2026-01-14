@@ -105,7 +105,7 @@ export const SessionListItem: React.FC<Props> = ({
           <ShimmerText>{title}</ShimmerText>
         ) : (
           <>
-            <span className="truncate block max-w-[240px] text-left text-foreground/80">
+            <span className="truncate block max-w-[220px] text-left text-foreground/80">
               {title}
             </span>
           </>

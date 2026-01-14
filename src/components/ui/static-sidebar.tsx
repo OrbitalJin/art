@@ -56,7 +56,7 @@ export const StaticSidebar: React.FC<StaticSidebarProps> = ({
     <aside
       className={cn(
         "hidden lg:flex flex-col m-2",
-        "rounded-xl border bg-card/50 backdrop-blur-xl",
+        "rounded-md border bg-card/50 backdrop-blur-xl",
         "hover:border-primary/40",
         isOpen ? "min-w-[300px] w-[300px]" : "w-0 border-0",
         className,
