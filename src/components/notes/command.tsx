@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 import { ChevronRight } from "lucide-react";
-import { useEditorState } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import {
   CommandDialog,
@@ -11,9 +10,11 @@ import {
   CommandItem,
   CommandShortcut,
 } from "@/components/ui/command";
-import { getMenuGroups } from "@/lib/schema/editor-menu";
+import { getMenuGroups } from "@/components/notes/editor/editor-menu";
 import { useEditorActions } from "@/hooks/use-editor-actions";
 import { cn } from "@/lib/utils";
+import { useEditorStateSelector } from "@/hooks/use-editor-state-selector";
+import { TextActionDialog } from "@/components/notes/editor/context-menu/text-action-dialog";
 
 interface MenuItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -69,7 +70,7 @@ const CommandItemRenderer = ({
 };
 
 interface Props {
-  editor?: Editor;
+  editor: Editor;
 }
 
 export const Command: React.FC<Props> = ({ editor }) => {
@@ -78,33 +79,13 @@ export const Command: React.FC<Props> = ({ editor }) => {
   const [submenuItems, setSubmenuItems] = useState<MenuItem[]>([]);
   const [submenuTitle, setSubmenuTitle] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-
   const actions = useEditorActions(editor || null);
-
-  const editorState = useEditorState({
-    editor: editor || null,
-    selector: (ctx) => ({
-      hasSelection: !ctx.editor?.state.selection.empty,
-      canUndo: ctx.editor?.can().undo() ?? false,
-      canRedo: ctx.editor?.can().redo() ?? false,
-      isBold: ctx.editor?.isActive("bold") ?? false,
-      isItalic: ctx.editor?.isActive("italic") ?? false,
-      isUnderline: ctx.editor?.isActive("underline") ?? false,
-      isStrike: ctx.editor?.isActive("strike") ?? false,
-      isHighlight: ctx.editor?.isActive("highlight") ?? false,
-      isBulletList: ctx.editor?.isActive("bulletList") ?? false,
-      isOrderedList: ctx.editor?.isActive("orderedList") ?? false,
-      isBlockquote: ctx.editor?.isActive("blockquote") ?? false,
-      isCodeBlock: ctx.editor?.isActive("codeBlock") ?? false,
-      isTable: ctx.editor?.isActive("table") ?? false,
-      isLink: ctx.editor?.isActive("link") ?? false,
-    }),
-  });
+  const selector = useEditorStateSelector(editor);
 
   const menuGroups = useMemo(() => {
-    if (!editor || !editorState) return [];
-    return getMenuGroups(editor, editorState, actions);
-  }, [editor, editorState, actions]);
+    if (!editor || !selector?.state) return [];
+    return getMenuGroups(editor, selector.state, actions);
+  }, [editor, selector, actions]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -135,12 +116,12 @@ export const Command: React.FC<Props> = ({ editor }) => {
   const renderMainView = () => (
     <>
       {editor &&
-        menuGroups.map((group, idx) => (
+        menuGroups.map((groupArray, idx) => (
           <CommandGroup key={idx}>
-            {group.map((item) => (
+            {groupArray.map((menuGroup) => (
               <CommandItemRenderer
-                key={item.label}
-                item={item}
+                key={menuGroup.label}
+                item={menuGroup}
                 onNavigate={handleNavigateToSubmenu}
                 onClose={() => setOpen(false)}
               />
@@ -169,16 +150,26 @@ export const Command: React.FC<Props> = ({ editor }) => {
   );
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen} title="Command Palette">
-      <CommandInput
-        placeholder="Type a command or search..."
-        value={searchQuery}
-        onValueChange={setSearchQuery}
+    <>
+      <CommandDialog open={open} onOpenChange={setOpen} title="Command Palette">
+        <CommandInput
+          placeholder="Type a command or search..."
+          value={searchQuery}
+          onValueChange={setSearchQuery}
+        />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          {currentView === "main" ? renderMainView() : renderSubmenuView()}
+        </CommandList>
+      </CommandDialog>
+
+      <TextActionDialog
+        isOpen={actions.dialogs.llm.open}
+        onOpenChange={actions.dialogs.llm.setOpen}
+        onProcess={actions.handlers.handleAiProcess}
+        action={actions.dialogs.llm.action || "summarize"}
+        isProcessing={actions.isBusy}
       />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        {currentView === "main" ? renderMainView() : renderSubmenuView()}
-      </CommandList>
-    </CommandDialog>
+    </>
   );
 };

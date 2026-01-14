@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/context-menu";
 import { LinkDialog } from "./link-dialog";
 import { useEditorActions } from "@/hooks/use-editor-actions";
-import { getMenuGroups } from "@/lib/schema/editor-menu";
+import { getMenuGroups } from "@/components/notes/editor/editor-menu";
 import { EditorItemRenderer } from "./item";
 import { TextActionDialog } from "./text-action-dialog";
 

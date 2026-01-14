@@ -1,4 +1,3 @@
-// components/editor/context-menu-item.tsx
 import { cn } from "@/lib/utils";
 import {
   ContextMenuItem,

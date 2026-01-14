@@ -85,4 +85,10 @@
 - [x] add padding at the bottom of the editor
 - [x] auto scroll to bottom in sessions
 - [ ] Battle test LLM features & simplify dialog logic
-- [ ] Popout
+- [ ] Popout (seperate feature, board)
+
+### User Experience
+
+- [ ] Persist toolbar states in setting. Make them resizable too.
+- [ ] Add `traits` to customize the traits of the models.
+- [ ] "fork" session

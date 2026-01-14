@@ -10,7 +10,6 @@ export const StaticSidebar: React.FC = () => {
       isOpen={isOpen}
       onOpenChange={setIsOpen}
       className="m-2"
-      width={300}
     >
       <SidebarContent onClose={() => setIsOpen(false)} />
     </SharedStaticSidebar>
