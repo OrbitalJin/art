@@ -5,7 +5,7 @@ import { EditorContent } from "@tiptap/react";
 import { cn } from "@/lib/utils";
 import { StaticSidebar } from "@/components/notes/sidebar/static";
 import { FloatingSidebar } from "@/components/notes/sidebar/floating";
-import { EditorContextMenu } from "@/components/editor/context-menu/context-menu";
+import { EditorContextMenu } from "@/components/notes/editor/context-menu/context-menu";
 import { Command } from "@/components/notes/command";
 import { useNoteEditor } from "@/contexts/note-editor-context";
 
@@ -17,8 +17,7 @@ export const Notes = () => {
   }
 
   return (
-    <div className="relative flex flex-1 flex-row gap-2 px-2 lg:px-0">
-      <Command editor={editor} />
+    <div className="relative flex flex-1 flex-row gap-2 lg:px-0">
       <StaticSidebar />
       <FloatingSidebar />
 
@@ -35,10 +34,11 @@ export const Notes = () => {
             "justify-center p-2 select-auto pt-12",
           )}
         >
-          <EditorContent editor={editor} className="w-full" />
-          <div aria-hidden className="h-[50vh]" />
+          <EditorContent editor={editor} className="h-full w-full px-2" />
         </EditorContextMenu>
       </div>
+
+      <Command editor={editor} />
     </div>
   );
 };

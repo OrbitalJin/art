@@ -5,12 +5,10 @@ import { SidebarContent } from "@/components/notes/sidebar/content";
 export const StaticSidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
 
-  return (
+return (
     <SharedStaticSidebar
       isOpen={isOpen}
       onOpenChange={setIsOpen}
-      className="m-2"
-      width={380}
     >
       <SidebarContent onClose={(open) => setIsOpen(open)} />
     </SharedStaticSidebar>

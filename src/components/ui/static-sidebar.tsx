@@ -13,7 +13,6 @@ import { useSidebarToggle } from "@/hooks/use-sidebar-toggle";
 interface StaticSidebarProps {
   isOpen: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
-  width: number;
   children: React.ReactNode;
   className?: string;
 }
@@ -21,7 +20,6 @@ interface StaticSidebarProps {
 export const StaticSidebar: React.FC<StaticSidebarProps> = ({
   isOpen,
   onOpenChange,
-  width,
   children,
   className,
 }) => {
@@ -57,10 +55,10 @@ export const StaticSidebar: React.FC<StaticSidebarProps> = ({
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col",
+        "hidden lg:flex flex-col m-2",
         "rounded-xl border bg-card/50 backdrop-blur-xl",
         "hover:border-primary/40",
-        isOpen ? `w-[${width}px]` : "w-0 border-0",
+        isOpen ? "min-w-[300px] w-[300px]" : "w-0 border-0",
         className,
       )}
     >

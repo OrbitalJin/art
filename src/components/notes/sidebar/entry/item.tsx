@@ -87,7 +87,7 @@ export const Item: React.FC<Props> = ({
       className={cn(
         "flex flex-row p-2 group items-center justify-between opacity-80",
         "transition-colors hover:bg-accent hover:border-l hover:border-primary rounded-md",
-        editing && "text-accent-foreground",
+        editing && "text-accent-foreground ring-1 ring-inset ring-accent",
         active &&
           "bg-accent/80 font-medium ring-1 ring-inset ring-foreground/5",
       )}

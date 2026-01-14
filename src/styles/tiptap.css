@@ -1,9 +1,16 @@
 @reference "./index.css";
 
+.tiptap::after {
+  content: "";
+  display: block;
+  height: 50vh;
+}
+
 .tiptap {
   @apply font-sans text-base leading-relaxed text-foreground/80 outline-none min-h-full selection:bg-primary/30;
   word-wrap: break-word;
   white-space: pre-wrap;
+  scroll-padding-bottom: 40vh;
 
   :first-child {
     margin-top: 0;

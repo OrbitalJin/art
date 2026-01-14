@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useLLM } from "@/contexts/llm-context";
 import { prompts } from "@/lib/llm/common/prompts";
 
-function useAIOperation<T extends string[]>(
+function useLLMOperation<T extends string[]>(
   operation: (...args: T) => Promise<string | undefined>,
 ) {
   const [generating, setGenerating] = useState(false);
@@ -26,31 +26,33 @@ function useAIOperation<T extends string[]>(
 export const useTextActions = () => {
   const { llm } = useLLM();
 
-  const summary = useAIOperation(
+  const summary = useLLMOperation(
     async (text: string, tone: string, instructions?: string) => {
-      return await llm?.gen(prompts.textkit.summarize(text, tone, instructions));
+      return await llm?.gen(
+        prompts.textkit.summarize(text, tone, instructions),
+      );
     },
   );
 
-  const repharse = useAIOperation(
+  const repharse = useLLMOperation(
     async (text: string, tone: string, instructions?: string) => {
       return await llm?.gen(prompts.textkit.rephrase(text, tone, instructions));
     },
   );
 
-  const translation = useAIOperation(
+  const translation = useLLMOperation(
     async (text: string, targetLanguage: string) => {
       return await llm?.gen(prompts.textkit.translate(text, targetLanguage));
     },
   );
 
-  const bullet = useAIOperation(
+  const bullet = useLLMOperation(
     async (text: string, tone: string, instructions?: string) => {
       return await llm?.gen(prompts.textkit.bullet(text, tone, instructions));
     },
   );
 
-  const organize = useAIOperation(
+  const organize = useLLMOperation(
     async (text: string, tone: string, instructions?: string) => {
       return await llm?.gen(prompts.textkit.organize(text, tone, instructions));
     },
