@@ -6,7 +6,6 @@
       "name": "art",
       "dependencies": {
         "@google/genai": "^1.33.0",
-        "@openrouter/sdk": "^0.3.10",
         "@radix-ui/react-accordion": "^1.2.12",
         "@radix-ui/react-context-menu": "^2.2.16",
         "@radix-ui/react-dialog": "^1.1.15",
@@ -214,8 +213,6 @@
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.5.5", "", {}, "sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og=="],
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
-
-    "@openrouter/sdk": ["@openrouter/sdk@0.3.10", "", { "dependencies": { "zod": "^3.25.0 || ^4.0.0" } }, "sha512-FNOwLn/GvOw1Xk+x36bC1vtDwLIo45yIEoBwin+Dhb4j9DoRVBW2h9L/1rjNd7ILpyj9lB3LBhaLmateOt4Wrg=="],
 
     "@pkgjs/parseargs": ["@pkgjs/parseargs@0.11.0", "", {}, "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg=="],
 

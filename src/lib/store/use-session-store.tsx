@@ -2,7 +2,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
 import { DefaultModel, type Model } from "@/lib/llm/common/types";
-import type { Message, Session } from "@/lib/store/session/types";
+import type { Message, Session, TraitId } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ const createNewSession = (title?: string): Session => {
   return {
     id: crypto.randomUUID(),
     title: title ?? "New Session",
+    traits: [],
     messages: [],
     noteRefs: [],
     preferredModel: DefaultModel,
@@ -23,6 +24,10 @@ export interface SessionState {
   sessions: Session[];
   activeId: string | null;
 
+  fork: (id: string) => void;
+  addTrait: (id: string, trait: TraitId) => void;
+  removeTrait: (id: string, trait: TraitId) => void;
+  clearTraits: (id: string) => void;
   addNoteRef: (id: string, noteId: string) => void;
   removeNoteRef: (id: string, noteId: string) => void;
   clearNoteRefs: (id: string) => void;
@@ -43,13 +48,57 @@ export const useSessionStore = create<SessionState>()(
       sessions: [],
       activeId: null,
 
-      withinContext: (id: string, noteId: string): boolean => {
-        return get().getFn(id)?.noteRefs.includes(noteId) ?? false;
+      fork: (id: string) => {
+        const state = get();
+        const session = state.sessions.find((s) => s.id === id);
+        if (!session) {
+          return toast.error("Failed to fork: Session not found");
+        }
+        const fork = {
+          ...session,
+          id: crypto.randomUUID(),
+          forkOf: session.id,
+        };
+
+        toast.info("Session forked successfully");
+        set({
+          activeId: fork.id,
+          sessions: [...state.sessions, fork],
+        });
+      },
+
+      addTrait: (id: string, trait: TraitId) => {
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? { ...session, traits: [...session.traits, trait] }
+              : session,
+          ),
+        }));
+      },
+
+      removeTrait: (id: string, trait: TraitId) => {
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? {
+                  ...session,
+                  traits: session.traits.filter((t) => t != trait),
+                }
+              : session,
+          ),
+        }));
+      },
+
+      clearTraits: (id: string) => {
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id ? { ...session, traits: [] } : session,
+          ),
+        }));
       },
 
       addNoteRef: (id: string, noteId: string) => {
-        if (!noteId) return;
-
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
@@ -207,6 +256,7 @@ export const useSessionStore = create<SessionState>()(
           state.sessions = state.sessions.map((session) => ({
             ...session,
             noteRefs: Array.isArray(session.noteRefs) ? session.noteRefs : [],
+            traits: Array.isArray(session.traits) ? session.traits : [],
           }));
           state.ensureDefault();
         }

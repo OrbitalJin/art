@@ -16,12 +16,28 @@ export interface Message {
   model?: Model;
 }
 
+export type TraitId =
+  | "concise"
+  | "professional"
+  | "technical"
+  | "creative"
+  | "supportive";
+
+export interface TraitDefinition {
+  id: TraitId;
+  label: string;
+  description: string;
+  prompt: string;
+}
+
 export interface Session {
   id: string;
   title: string;
   messages: Message[];
   preferredModel: Model;
   noteRefs: string[];
+  traits: TraitId[];
+  forkOf?: string;
   createdAt: number;
   updatedAt: number;
   pinned?: boolean;

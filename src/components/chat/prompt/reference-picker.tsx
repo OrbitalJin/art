@@ -13,7 +13,7 @@ import {
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn, formatDateAsAgo } from "@/lib/utils";
-import { BookPlus, Check, Search } from "lucide-react";
+import { Asterisk, Check, Search } from "lucide-react";
 import { useState } from "react";
 
 interface Props {
@@ -77,7 +77,7 @@ export const ReferencePicker: React.FC<Props> = ({ disabled }) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="outline" size="icon" className="relative">
-              <BookPlus className="h-4 w-4" />
+              <Asterisk className="text-muted-foreground" />
               {entries.some((e) => withinRefs(activeId, e.id)) && (
                 <span
                   className="
@@ -90,7 +90,7 @@ export const ReferencePicker: React.FC<Props> = ({ disabled }) => {
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Add Reference</TooltipContent>
+          <TooltipContent>References</TooltipContent>
         </Tooltip>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80 p-0 shadow-xl border-muted-foreground/20">

@@ -86,9 +86,10 @@
 - [x] auto scroll to bottom in sessions
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout (seperate feature, board)
+- [ ] food tracking calories etc?
 
 ### User Experience
 
 - [x] Persist toolbar states in setting.
-- [ ] Add `traits` to customize the traits of the models.
-- [ ] "fork" session
+- [x] Add `traits` to customize the traits of the models.
+- [x] "fork" session

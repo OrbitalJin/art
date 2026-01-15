@@ -8,6 +8,7 @@ import {
   TextCursor,
   Pin,
   PinOff,
+  Split,
 } from "lucide-react";
 
 import {
@@ -22,11 +23,17 @@ import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useGenerateTitle } from "@/hooks/use-generate-title";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useStreamingState } from "@/hooks/use-streaming-state";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Props {
   id: string;
   title: string;
   active: boolean;
+  forkOf?: string;
   pinned: boolean;
   onSwitch?: () => void;
 }
@@ -37,11 +44,14 @@ export const SessionListItem: React.FC<Props> = ({
   active,
   pinned,
   onSwitch,
+  forkOf,
 }) => {
   const { isSessionStreaming } = useStreamingState();
   const { generating, generateTitle } = useGenerateTitle();
   const setActive = useSessionStore((s) => s.setActive);
   const updateTitle = useSessionStore((s) => s.updateTitle);
+
+  const getFn = useSessionStore((state) => state.getFn);
 
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
@@ -68,7 +78,7 @@ export const SessionListItem: React.FC<Props> = ({
     <div
       tabIndex={0}
       className={cn(
-        "group relative flex items-center h-[45px] w-full gap-2 rounded-md px-3 ",
+        "group relative flex items-center w-full gap-2 rounded-md px-3 py-2",
         "text-sm select-none transition-all outline-none",
         "hover:bg-accent hover:text-accent-foreground cursor-pointer",
         active &&
@@ -81,6 +91,14 @@ export const SessionListItem: React.FC<Props> = ({
         }
       }}
     >
+      {forkOf && (
+        <Tooltip>
+          <TooltipTrigger>
+            <Split className="h-4 w-4 text-muted-foreground/60 shrink-0" />
+          </TooltipTrigger>
+          <TooltipContent>Forked from: {getFn(forkOf)?.title}</TooltipContent>
+        </Tooltip>
+      )}
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {generating ? (
           <>
@@ -105,7 +123,7 @@ export const SessionListItem: React.FC<Props> = ({
           <ShimmerText>{title}</ShimmerText>
         ) : (
           <>
-            <span className="truncate block max-w-[220px] text-left text-foreground/80">
+            <span className="wrap-break-word text-left text-foreground/80">
               {title}
             </span>
           </>

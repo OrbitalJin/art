@@ -8,7 +8,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
-import { useSidebarToggle } from "@/hooks/use-sidebar-toggle";
 
 interface StaticSidebarProps {
   isOpen: boolean;
@@ -23,8 +22,6 @@ export const StaticSidebar: React.FC<StaticSidebarProps> = ({
   children,
   className,
 }) => {
-  useSidebarToggle(() => onOpenChange(!isOpen));
-
   if (!isOpen) {
     return (
       <Tooltip>

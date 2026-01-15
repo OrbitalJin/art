@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Eye, EyeOff, MessageCircle, Save } from "lucide-react";
+import { MessageCircle, Save } from "lucide-react";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
 
@@ -81,12 +81,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       onChange={(e) => setValue(e.target.value)}
                     />
 
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowKey((v) => !v)}
-                    >
-                      {showKey ? <EyeOff /> : <Eye />}
-                    </Button>
                     <Button onClick={saveApiKey}>
                       <Save />
                     </Button>

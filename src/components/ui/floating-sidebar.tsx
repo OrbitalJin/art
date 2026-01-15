@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { PanelLeftOpen } from "lucide-react";
@@ -16,7 +16,11 @@ interface FloatingSidebarProps {
   children: React.ReactNode;
 }
 
-export const FloatingSidebar: React.FC<FloatingSidebarProps> = ({ isOpen, onOpenChange, children }) => {
+export const FloatingSidebar: React.FC<FloatingSidebarProps> = ({
+  isOpen,
+  onOpenChange,
+  children,
+}) => {
   return (
     <>
       <SidebarToggle open={isOpen} onOpenChange={onOpenChange} />
@@ -47,17 +51,11 @@ export const FloatingSidebar: React.FC<FloatingSidebarProps> = ({ isOpen, onOpen
   );
 };
 
-const SidebarToggle: React.FC<{ open: boolean; onOpenChange: (open: boolean) => void }> = ({ open, onOpenChange }) => {
+const SidebarToggle: React.FC<{
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}> = ({ open, onOpenChange }) => {
   useSidebarToggle(() => onOpenChange(!open));
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && open) onOpenChange(false);
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onOpenChange]);
 
   return (
     <div className="lg:hidden absolute top-2 left-2 z-50">

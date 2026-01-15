@@ -1,18 +1,14 @@
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp, Clipboard, Code, Square } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import { SelectModel } from "@/components/chat/prompt/model-select";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { useActiveSession } from "@/contexts/active-session-context";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useStreamingState } from "@/hooks/use-streaming-state";
 import { ReferencePicker } from "@/components/chat/prompt/reference-picker";
+import { TraitPicker } from "./trait-picker";
+import { ForkSession } from "./fork-session";
 
 export const Prompt = () => {
   const { prompt, abortStream, setPrompt, sendMessage } = useActiveSession();
@@ -32,16 +28,6 @@ export const Prompt = () => {
       e.preventDefault();
       sendMessage(prompt);
     }
-  };
-
-  const handlePasteCode = async () => {
-    const content = await readText();
-    setPrompt(prompt + "\n```txt\n" + content + "\n```");
-  };
-
-  const handlePaste = async () => {
-    const content = await readText();
-    setPrompt(prompt + content);
   };
 
   return (
@@ -70,25 +56,9 @@ export const Prompt = () => {
 
           <div className="flex justify-between items-center px-1">
             <div className="flex flex-row gap-2">
-              <Button variant="outline" size="icon" onClick={handlePaste}>
-                <Clipboard />
-              </Button>
               <SelectModel />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => {
-                      handlePasteCode();
-                    }}
-                  >
-                    <Code />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Paste Code</TooltipContent>
-              </Tooltip>
-
+              <ForkSession />
+              <TraitPicker />
               <ReferencePicker disabled={isCurrentSessionStreaming} />
             </div>
             <Button

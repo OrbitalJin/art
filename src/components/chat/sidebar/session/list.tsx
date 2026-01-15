@@ -37,6 +37,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch }) => {
                 active={session.id === activeId}
                 pinned={session.pinned as boolean}
                 onSwitch={onSessionSwitch}
+                forkOf={session.forkOf}
               />
             ))}
           </SessionSection>
@@ -57,6 +58,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch }) => {
                 active={session.id === activeId}
                 pinned={session.pinned as boolean}
                 onSwitch={onSessionSwitch}
+                forkOf={session.forkOf}
               />
             ))}
           </SessionSection>
