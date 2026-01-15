@@ -3,15 +3,13 @@ import { cn } from "@/lib/utils";
 import {
   Trash2,
   MoreVertical,
-  Sparkle,
   Loader2,
-  TextCursor,
   Pin,
   PinOff,
   Split,
   Wand2,
-  NotebookPen,
   Pencil,
+  BookDashed,
 } from "lucide-react";
 
 import {
@@ -20,7 +18,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel,
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -231,14 +228,6 @@ const Menu: React.FC<MenuProps> = ({
       >
         <DropdownMenuGroup>
           <DropdownMenuItem
-            onSelect={handleGenerate}
-            className="gap-2 cursor-pointer"
-          >
-            <Wand2 className="h-4 w-4" />
-            <span>Smart Rename</span>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
             disabled={creating}
             onSelect={handleCreate}
             className="gap-2 cursor-pointer"
@@ -246,9 +235,17 @@ const Menu: React.FC<MenuProps> = ({
             {creating ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <NotebookPen className="h-4 w-4" />
+              <BookDashed className="h-4 w-4" />
             )}
-            <span>{creating ? "Creating..." : "Turn into Note"}</span>
+            <span>{creating ? "Generating..." : "Generate Notes"}</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onSelect={handleGenerate}
+            className="gap-2 cursor-pointer"
+          >
+            <Wand2 className="h-4 w-4" />
+            <span>Generate Title</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
@@ -279,7 +276,7 @@ const Menu: React.FC<MenuProps> = ({
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
-          className="gap-2 cursor-pointer text-destructive focus:text-red-700 focus:bg-red-50 dark:text-red-400 dark:focus:bg-red-950/30"
+          className="gap-2 cursor-pointer text-destructive focus:bg-destructive/10"
           onClick={handleDelete}
         >
           <Trash2 className="h-4 w-4" />
