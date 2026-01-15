@@ -52,13 +52,13 @@ export const useLLMSession = ({
   const send = useCallback(
     async (text: string) => {
       if (!activeId || !llm) return;
-      
+
       // Construct enhanced system prompt with traits
       const systemPrompt = prompts.constructSystemPrompt(
-        prompts.system,
-        activeSession?.traits || []
+        prompts.system(),
+        activeSession?.traits || [],
       );
-      
+
       await stream({
         text,
         messages: activeSession?.messages || [],

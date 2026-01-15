@@ -27,7 +27,7 @@ export interface State {
   importFn: (orphan: Entry) => void;
   setActive: (id: string) => void;
   deleteFn: (id: string) => void;
-  create: (workspace?: Workspace, title?: string) => void;
+  create: (workspace?: Workspace, title?: string) => string;
   getFn: (id: string) => Entry | undefined;
   save: (entry: Entry) => void;
   updateContent: (
@@ -90,6 +90,7 @@ export const useNoteStore = create<State>()(
           currentWorkspace: workspace,
         });
         toast.success("Entry created successfully.");
+        return newEntry.id;
       },
 
       deleteFn(id: string) {

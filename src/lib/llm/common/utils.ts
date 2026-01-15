@@ -11,11 +11,16 @@ export function estimateTokens(text: string): number {
   return Math.ceil(charCount / 4);
 }
 
-export const estimateUsage = (session: Session, context: string = ""): string => {
+export const estimateUsage = (
+  session: Session,
+  context: string = "",
+): string => {
   const messages = session.messages
     .map((m) => `${m.role}: ${m.content}`)
     .join("\n");
-  const tokens = estimateTokens(`user: ${prompts.system}\n${context}\n` + messages);
+  const tokens = estimateTokens(
+    `user: ${prompts.system()}\n${context}\n` + messages,
+  );
   return `${((tokens / session.preferredModel.limit) * 100).toFixed(1)}%`;
 };
 

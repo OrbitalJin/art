@@ -9,6 +9,9 @@ import {
   Pin,
   PinOff,
   Split,
+  Wand2,
+  NotebookPen,
+  Pencil,
 } from "lucide-react";
 
 import {
@@ -17,6 +20,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ShimmerText } from "@/components/ui/shimmer-text";
@@ -28,6 +33,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useCreateNoteFromSession } from "@/hooks/use-create-note-from-session";
 
 interface Props {
   id: string;
@@ -173,65 +179,111 @@ const Menu: React.FC<MenuProps> = ({
   const togglePin = useSessionStore((s) => s.togglePin);
   const deleteFn = useSessionStore((s) => s.deleteFn);
 
+  // Use the hook inside the menu to isolate state
+  const { creating, create } = useCreateNoteFromSession();
+  const [open, setOpen] = useState(false);
+
   const handleDelete = (e?: React.SyntheticEvent) => {
     e?.stopPropagation();
     deleteFn(id);
+    setOpen(false);
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (e: Event) => {
+    e.preventDefault(); // Prevent closing immediately to show visual feedback if needed
+    setOpen(false);
     const title = await generateTitle(id);
     if (title) {
       setText(title);
       updateTitle(id, title);
     }
   };
+
+  const handleCreate = async (e: Event) => {
+    e.preventDefault(); // Keep menu open or handle state carefully
+    await create(id);
+    setOpen(false);
+  };
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
         <Button
-          asChild
           variant="ghost"
           size="icon"
-          className="h-7 w-7 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+          className={cn(
+            "h-7 w-7 transition-opacity",
+            open
+              ? "opacity-100 bg-accent"
+              : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+          )}
           onClick={(e) => e.stopPropagation()}
         >
-          <span>
-            <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
-          </span>
+          <MoreVertical className="h-4 w-4 text-muted-foreground" />
+          <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-52">
-        <DropdownMenuItem
-          onSelect={handleGenerate}
-          className="text-primary focus:text-primary focus:bg-primary/10"
-        >
-          <Sparkle className="h-4 w-4" />
-          <span>Generate title</span>
-        </DropdownMenuItem>
+
+      <DropdownMenuContent
+        align="end"
+        className="w-56"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            onSelect={handleGenerate}
+            className="gap-2 cursor-pointer"
+          >
+            <Wand2 className="h-4 w-4" />
+            <span>Smart Rename</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            disabled={creating}
+            onSelect={handleCreate}
+            className="gap-2 cursor-pointer"
+          >
+            {creating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <NotebookPen className="h-4 w-4" />
+            )}
+            <span>{creating ? "Creating..." : "Turn into Note"}</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onSelect={() => togglePin(id)}>
-          {pinned ? (
-            <PinOff className="h-4 w-4" />
-          ) : (
-            <Pin className="h-4 w-4" />
-          )}
-          <span>{pinned ? "Unpin" : "Pin"}</span>
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            onSelect={() => togglePin(id)}
+            className="gap-2 cursor-pointer"
+          >
+            {pinned ? (
+              <PinOff className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <Pin className="h-4 w-4 text-muted-foreground" />
+            )}
+            <span>{pinned ? "Unpin Session" : "Pin Session"}</span>
+          </DropdownMenuItem>
 
-        <DropdownMenuItem onSelect={() => setEditing(true)}>
-          <TextCursor className="h-4 w-4" />
-          <span>Rename</span>
-        </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => setEditing(true)}
+            className="gap-2 cursor-pointer"
+          >
+            <Pencil className="h-4 w-4 text-muted-foreground" />
+            <span>Rename</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
 
         <DropdownMenuItem
-          className="text-destructive focus:text-destructive focus:bg-destructive/10"
+          className="gap-2 cursor-pointer text-destructive focus:text-red-700 focus:bg-red-50 dark:text-red-400 dark:focus:bg-red-950/30"
           onClick={handleDelete}
         >
           <Trash2 className="h-4 w-4" />
-          <span>Delete</span>
+          <span>Delete Session</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

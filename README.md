@@ -36,6 +36,9 @@
 - [x] Re/generate chat title
 - [x] Fix session switching edge cases (e.g., deleting all sessions)
 - [x] Fix deleting `activeId` issue
+- [x] Add `traits` to customize the traits of the models.
+- [x] "fork" session
+- [x] Create note from session
 
 ## Future Enhancements
 
@@ -91,5 +94,3 @@
 ### User Experience
 
 - [x] Persist toolbar states in setting.
-- [x] Add `traits` to customize the traits of the models.
-- [x] "fork" session
