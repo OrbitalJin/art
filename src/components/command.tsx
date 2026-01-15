@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, MessageCirclePlus, Palette } from "lucide-react";
+import { BookPlus, MessageCirclePlus } from "lucide-react";
 import {
   CommandDialog,
   CommandInput,
@@ -11,7 +11,6 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
-import { useTheme } from "@/contexts/theme-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import type { NavigationItem } from "@/components/layout/navigation";
 import { useNoteStore } from "@/lib/store/use-note-store";
@@ -25,7 +24,6 @@ export const Command: React.FC<Props> = ({ items }) => {
   const { create: createNote } = useNoteStore();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
 
   const handleQuickSession = () => {
     create("Quick Session");
@@ -35,11 +33,6 @@ export const Command: React.FC<Props> = ({ items }) => {
   const handleQuickNote = () => {
     createNote(undefined, "Quick Note");
     handleNavigate("/notes");
-  };
-
-  const handleThemeToggle = () => {
-    setTheme(theme === "light" ? "dark" : "light");
-    setOpen(false);
   };
 
   const handleNavigate = (path: string) => {
@@ -61,10 +54,6 @@ export const Command: React.FC<Props> = ({ items }) => {
           navigate(items[index].href);
           setOpen(false);
         }
-      }
-
-      if (e.key === "t" && (e.metaKey || e.ctrlKey)) {
-        handleThemeToggle();
       }
 
       if (e.key === "s" && e.altKey && (e.ctrlKey || e.metaKey)) {
@@ -113,15 +102,9 @@ export const Command: React.FC<Props> = ({ items }) => {
           </CommandItem>
 
           <CommandItem value="quick note" onSelect={handleQuickNote}>
-            <BookOpen className="mr-2 h-4 w-4" />
+            <BookPlus className="mr-2 h-4 w-4" />
             Quick Note
             <CommandShortcut>Ctrl+Alt+N</CommandShortcut>
-          </CommandItem>
-
-          <CommandItem value="toggle theme" onSelect={handleThemeToggle}>
-            <Palette className="mr-2 h-4 w-4" />
-            Toggle Theme
-            <CommandShortcut>Ctrl+T</CommandShortcut>
           </CommandItem>
         </CommandGroup>
       </CommandList>

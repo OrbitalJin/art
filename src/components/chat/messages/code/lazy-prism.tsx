@@ -1,6 +1,10 @@
+import { useTheme } from "@/contexts/theme-context";
 import React from "react";
 import { Prism } from "react-syntax-highlighter";
-import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+import {
+  dracula,
+  gruvboxDark,
+} from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface Props {
   code: string;
@@ -9,10 +13,11 @@ interface Props {
 }
 
 const LazyPrism: React.FC<Props> = ({ code, language, wraps }) => {
+  const { color } = useTheme();
   return (
     <div className="text-sm p-1">
       <Prism
-        style={dracula}
+        style={color === "claude" ? gruvboxDark : dracula}
         language={language}
         PreTag="div"
         customStyle={{

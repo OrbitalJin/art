@@ -6,6 +6,7 @@ import type { Message } from "@/lib/store/session/types";
 import { ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useActiveSession } from "@/contexts/active-session-context";
 
 interface Props {
   messages: readonly Message[];
@@ -14,6 +15,7 @@ interface Props {
 export const MessageList: React.FC<Props> = ({ messages }) => {
   const [atBottom, setAtBottom] = useState(true);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const { prompt } = useActiveSession();
 
   const scrollToBottom = () => {
     virtuosoRef.current?.scrollToIndex({
@@ -23,16 +25,15 @@ export const MessageList: React.FC<Props> = ({ messages }) => {
   };
   return (
     <div className="flex-1 overflow-hidden relative px-4 flex flex-col">
-      {messages.length === 0 && <WelcomeMessage />}
+      {messages.length === 0 && prompt.length === 0 && <WelcomeMessage />}
       <Virtuoso
+        data={messages}
         ref={virtuosoRef}
         className="h-full"
-        data={messages}
         followOutput="smooth"
-        defaultItemHeight={60}
         initialTopMostItemIndex={messages.length - 1}
         atBottomStateChange={setAtBottom}
-        overscan={200}
+        overscan={400}
         itemContent={(index, msg) => (
           <div className="py-4 max-w-2xl mx-auto">
             <MessageBroker key={index} {...msg} />
@@ -63,7 +64,7 @@ const ScrollToBottomButton: React.FC<ScrollProps> = ({
       )}
     >
       <Button
-        variant="secondary"
+        variant="outline"
         size="sm"
         className="rounded-full shadow-md bg-background/80 backdrop-blur border h-8 px-3 text-xs"
         onClick={onClick}

@@ -31,12 +31,12 @@ export const Prompt = () => {
   };
 
   return (
-    <footer className="z-20 px-4 pb-2 bg-transparent!">
+    <footer className="z-20 px-4 pb-2">
       <div className="mx-auto max-w-2xl">
         <div
           className={cn(
             "relative flex flex-col gap-2 p-2 transition-all",
-            "rounded-md border bg-muted/50 hover:bg-muted/70 hover:border-primary/30",
+            "rounded-md border hover:bg-muted/50 hover:border-primary/30",
             "focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10",
           )}
         >

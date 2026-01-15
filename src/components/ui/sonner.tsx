@@ -9,7 +9,7 @@ import { useTheme } from "@/contexts/theme-context";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+  const { mode: theme = "system" } = useTheme();
 
   return (
     <Sonner

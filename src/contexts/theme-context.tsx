@@ -1,58 +1,92 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "system";
+// 1. Define your available color themes here
+type ThemeMode = "dark" | "light" | "system";
+export type ThemeColor =
+  | "amethyst haze"
+  | "cosmic night"
+  | "midnight bloom"
+  | "violet bloom"
+  | "quantum rose"
+  | "flutter shy"
+  | "claude"
+  | "pastel dreams";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
-  defaultTheme?: Theme;
-  storageKey?: string;
+  defaultMode?: ThemeMode;
+  defaultColor?: ThemeColor;
+  storageKeyMode?: string;
+  storageKeyColor?: string;
 };
 
 type ThemeProviderState = {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  mode: ThemeMode;
+  setMode: (mode: ThemeMode) => void;
+  color: ThemeColor;
+  setColor: (color: ThemeColor) => void;
 };
 
 const initialState: ThemeProviderState = {
-  theme: "system",
-  setTheme: () => null,
+  mode: "system",
+  setMode: () => null,
+  color: "amethyst haze",
+  setColor: () => null,
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
-  defaultTheme = "system",
-  storageKey = "vite-ui-theme",
+  defaultMode = "system",
+  defaultColor = "amethyst haze",
+  storageKeyMode = "vite-ui-theme-mode",
+  storageKeyColor = "vite-ui-theme-color",
   ...props
 }) => {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
+  // State for Light/Dark Mode
+  const [mode, setMode] = useState<ThemeMode>(
+    () => (localStorage.getItem(storageKeyMode) as ThemeMode) || defaultMode,
   );
 
+  // State for Color Theme
+  const [color, setColor] = useState<ThemeColor>(
+    () => (localStorage.getItem(storageKeyColor) as ThemeColor) || defaultColor,
+  );
+
+  // Effect 1: Handle Light/Dark Class
   useEffect(() => {
     const root = window.document.documentElement;
-
     root.classList.remove("light", "dark");
 
-    if (theme === "system") {
+    if (mode === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
         ? "dark"
         : "light";
-
       root.classList.add(systemTheme);
       return;
     }
 
-    root.classList.add(theme);
-  }, [theme]);
+    root.classList.add(mode);
+  }, [mode]);
+
+  // Effect 2: Handle Data-Theme Attribute
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.setAttribute("data-theme", color);
+  }, [color]);
 
   const value = {
-    theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
+    mode,
+    setMode: (mode: ThemeMode) => {
+      localStorage.setItem(storageKeyMode, mode);
+      setMode(mode);
+    },
+    color,
+    setColor: (color: ThemeColor) => {
+      localStorage.setItem(storageKeyColor, color);
+      setColor(color);
     },
   };
 

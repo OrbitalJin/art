@@ -39,6 +39,7 @@ export const useCreateNoteFromSession = () => {
       const id = createNote(currentWorkspace, session.title + " - Notes");
       updateNoteContent(id, result, false);
       navigate("/notes");
+      toast.success("Note created from session", { id: toastId });
     } catch (err) {
       console.error("Failed to create note from session", err);
       toast.error("Failed to create note from session", { id: toastId });

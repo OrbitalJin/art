@@ -1,10 +1,5 @@
 ## Features
 
-### Core Technologies
-
-- [x] **Frontend:** React, Tailwind CSS, Shadcn UI
-- [x] **Desktop:** Tauri (including permissions & package management)
-
 ### Chat & Session Management
 
 - [x] Multi-session support with a dedicated sidebar
@@ -15,9 +10,6 @@
 - [x] Store API key in storage (instead of `.env`)
 - [x] Pinnable Sessions (supports multiple pins)
 - [x] Collapsible Sessions Tab
-
-### User Experience & Interface
-
 - [x] Scroll down button
 - [x] Fix chat responsiveness
 - [x] Expandable Prompt Box (up to 75% screen size)
@@ -27,10 +19,6 @@
 - [x] Handle `aborted` messages and other errors
 - [x] Breakdown chat into message list & layout
 - [x] Dedicated `use-chat` context and `Rename Chat` context
-- [ ] `ToolKit` menu in chat prompt (rephrase, etc)
-
-### Chat Logic & Control
-
 - [x] Cancel requests with AbortController
 - [x] Give system prompt more context
 - [x] Re/generate chat title
@@ -40,14 +28,12 @@
 - [x] "fork" session
 - [x] Create note from session
 
-## Future Enhancements
-
 ### Productivity & Tools
 
-- [ ] Attach context to chat from other apps
-- [ ] Text Utilities (summarizer, reworder, translator, etc.)
-- [ ] Markdown diary editor
-- [ ] To Do's (Categorized: Personal, School, Work, etc.)
+- [x] Attach context to chat from other apps
+- [x] Text Utilities (summarizer, reworder, translator, etc.)
+- [x] Markdown diary editor
+- [ ] To Do's (Categorized: Personal, School, Work, etc.) (board)
 - [ ] Pomodoro Timer
 
 ### Desktop Interactions
@@ -58,9 +44,9 @@
 
 ### Customization & Aesthetics
 
-- [ ] Theme Colors (Pinkie Pie, MLP themes!)
+- [x] Theme Colors
+- [x] Command palette based navigation
 - [ ] Cute Icons (Hearts, Bunnies, Ribbons)
-- [ ] Command palette based navigation
 
 ### Diary
 
@@ -94,3 +80,4 @@
 ### User Experience
 
 - [x] Persist toolbar states in setting.
+- [ ] id based /chat and /notes for specific redirection

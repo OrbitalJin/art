@@ -13,8 +13,8 @@ export const WindowControls = () => (
       >
         <Circle
           className={cn(
-            "h-3 w-3 fill-yellow-300 text-yellow-300",
-            "transition-transform group-hover:scale-110",
+            "h-3 w-3 fill-yellow-300/80 text-yellow-300/80",
+            "transition-transform group-hover:scale-120",
           )}
         />
       </button>
@@ -25,8 +25,8 @@ export const WindowControls = () => (
       >
         <Circle
           className={cn(
-            "h-3 w-3 fill-green-300 text-green-300",
-            "transition-transform group-hover:scale-110",
+            "h-3 w-3 fill-green-300/80 text-green-300/80",
+            "transition-transform group-hover:scale-120",
           )}
         />
       </button>
@@ -37,8 +37,8 @@ export const WindowControls = () => (
       >
         <Circle
           className={cn(
-            "h-3 w-3 fill-red-300 text-red-300",
-            "transition-transform group-hover:scale-110",
+            "h-3 w-3 fill-destructive/80 text-destructive/80",
+            "transition-transform group-hover:scale-120",
           )}
         />
       </button>
@@ -47,7 +47,7 @@ export const WindowControls = () => (
     <div
       aria-hidden
       data-tauri-drag-region
-      className="flex flex-col gap-1 w-full p-3"
+      className="flex flex-col gap-1 w-full p-4"
     >
       <div className="h-px flex-1 border-t" />
       <div className="h-px flex-1 border-t" />

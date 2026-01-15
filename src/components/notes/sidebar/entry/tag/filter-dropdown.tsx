@@ -100,7 +100,10 @@ export const TagFilterDropdown = ({
                   <span>@{tag}</span>
 
                   <div className="flex items-center gap-2">
-                    <Badge variant="default" className="h-5 px-1.5 text-xs">
+                    <Badge
+                      variant="default"
+                      className="h-5 px-1.5 text-xs opacity-80"
+                    >
                       {getTagCount(tag)}
                     </Badge>
                   </div>

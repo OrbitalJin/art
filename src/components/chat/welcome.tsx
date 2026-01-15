@@ -4,14 +4,16 @@ const WelcomeMessage = () => {
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-4 pt-[30%]",
-        "text-center animate-in fade-in zoom-in-95 duration-500 fill-mode-forwards select-none",
+        "flex flex-1 flex-col items-center justify-center gap-6 pt-[50%] lg:pt-[25%]",
+        "text-center animate-in fade-in slide-in-from-bottom-4 duration-1000 select-none",
       )}
     >
-      <div className="max-w-md space-y-2">
-        <h2 className="text-3xl font-semibold">How can I help you?</h2>
-        <p className="text text-muted-foreground">
-          I'm ready to assist with your tasks.
+      <div className="max-w-sm space-y-3">
+        <h2 className="text-3xl font-semibold text-foreground">
+          How can I help you <span className="text-primary">today?</span>
+        </h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Ask me anything. What's on your mind?
         </p>
       </div>
     </div>

@@ -276,7 +276,7 @@ const Menu: React.FC<MenuProps> = ({
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
-          className="gap-2 cursor-pointer text-destructive focus:bg-destructive/10"
+          className="text-destructive focus:text-destructive focus:bg-destructive/10"
           onClick={handleDelete}
         >
           <Trash2 className="h-4 w-4" />
