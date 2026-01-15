@@ -16,8 +16,8 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       apiKey: "",
-      chatSidebarOpen: true,
-      notesSidebarOpen: true,
+      chatSidebarOpen: false,
+      notesSidebarOpen: false,
       setApiKey: (key: string) => set({ apiKey: key }),
       setChatSidebarOpen: (open: boolean) => set({ chatSidebarOpen: open }),
       setNotesSidebarOpen: (open: boolean) => set({ notesSidebarOpen: open }),

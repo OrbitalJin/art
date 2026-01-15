@@ -4,7 +4,7 @@ const WelcomeMessage = () => {
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-6 pt-[50%] lg:pt-[25%]",
+        "flex flex-1 flex-col items-center justify-center gap-6 pt-[30%] lg:pt-[25%]",
         "text-center animate-in fade-in slide-in-from-bottom-4 duration-1000 select-none",
       )}
     >

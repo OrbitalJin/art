@@ -5,6 +5,7 @@ Art is a desktop application combining chat and note-taking capabilities with cr
 ## Features
 
 ### Chat System
+
 - Multi-session support with persistent history
 - Streaming responses with real-time interaction
 - Model selection (Genesis, Bloom, Eden)
@@ -13,6 +14,7 @@ Art is a desktop application combining chat and note-taking capabilities with cr
 - Export/import functionality
 
 ### Notes System
+
 - Rich markdown editor with live preview
 - Workspace organization (Work, Personal, Research)
 - Tag system with @mention highlighting and clickable navigation
@@ -21,6 +23,7 @@ Art is a desktop application combining chat and note-taking capabilities with cr
 - Read/edit mode toggle
 
 ### Integration
+
 - Cross-referencing between chats and notes
 - Reference picker to add notes as context to conversations
 - Unified command palette for navigation
@@ -29,28 +32,31 @@ Art is a desktop application combining chat and note-taking capabilities with cr
 ## Shortcuts
 
 ### Global
-| Shortcut | Action |
-|----------|--------|
-| `Cmd/Ctrl + K` | Open command palette |
-| `Cmd/Ctrl + T` | Toggle theme |
+
+| Shortcut             | Action               |
+| -------------------- | -------------------- |
+| `Cmd/Ctrl + K`       | Open command palette |
+| `Cmd/Ctrl + T`       | Toggle theme         |
 | `Cmd/Ctrl + Alt + S` | Create quick session |
-| `Cmd/Ctrl + Alt + N` | Create quick note |
-| `Alt + 1` | Navigate to chat |
-| `Alt + 2` | Navigate to notes |
+| `Cmd/Ctrl + Alt + N` | Create quick note    |
+| `Alt + 1`            | Navigate to chat     |
+| `Alt + 2`            | Navigate to notes    |
 
 ### Chat
-| Shortcut | Action |
-|----------|--------|
-| `Enter` | Send message |
+
+| Shortcut        | Action             |
+| --------------- | ------------------ |
+| `Enter`         | Send message       |
 | `Shift + Enter` | New line in prompt |
 
 ### Notes
-| Shortcut | Action |
-|----------|--------|
+
+| Shortcut       | Action                     |
+| -------------- | -------------------------- |
 | `Cmd/Ctrl + O` | Open notes command palette |
-| `Cmd/Ctrl + B` | Bold text |
-| `Cmd/Ctrl + I` | Italic text |
-| `Cmd/Ctrl + K` | Insert link |
+| `Cmd/Ctrl + B` | Bold text                  |
+| `Cmd/Ctrl + I` | Italic text                |
+| `Cmd/Ctrl + K` | Insert link                |
 
 ## Usage
 

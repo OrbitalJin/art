@@ -9,8 +9,8 @@ import { toast } from "sonner";
 export const useCreateNoteFromSession = () => {
   const updateNoteContent = useNoteStore((state) => state.updateContent);
   const currentWorkspace = useNoteStore((state) => state.currentWorkspace);
-  const createNote = useNoteStore((state) => state.create);
   const sessions = useSessionStore((state) => state.sessions);
+  const createNote = useNoteStore((state) => state.create);
   const navigate = useNavigate();
 
   const { llm } = useLLM();

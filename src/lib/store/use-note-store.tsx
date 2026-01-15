@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { toast } from "sonner";
 import type { Entry, Workspace } from "./notes/types";
 import { noteStorage } from "./notes/adapter";
+import mockContent from "@/assets/mock.md?raw";
 
 const createNewEntry = (workspace: Workspace, title?: string): Entry => {
   const date = Date.now();
@@ -249,9 +250,13 @@ export const useNoteStore = create<State>()(
       storage: createJSONStorage(() => noteStorage),
       onRehydrateStorage: () => (store) => {
         if (!store) return;
-        const entries = store.entries;
-        if (entries.length !== 0) {
-          store.setActive(entries[0].id);
+        if (store.entries.length !== 0) {
+          store.setActive(store.entries[0].id);
+        }
+        if (store.entries.length === 0) {
+          const id = store.create("personal", "Welcome to Art");
+          store.updateContent(id, mockContent, false);
+          store.togglePin(id);
         }
       },
     },
