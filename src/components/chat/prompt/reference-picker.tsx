@@ -10,16 +10,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useStreamingState } from "@/hooks/use-streaming-state";
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn, formatDateAsAgo } from "@/lib/utils";
 import { Asterisk, Check, Search } from "lucide-react";
 import { useState } from "react";
 
-interface Props {
-  disabled?: boolean;
-}
-export const ReferencePicker: React.FC<Props> = ({ disabled }) => {
+export const ReferencePicker = () => {
   const activeId = useSessionStore((state) => state.activeId);
   const sessions = useSessionStore((state) => state.sessions);
   const addNoteRef = useSessionStore((state) => state.addNoteRef);
@@ -29,6 +27,8 @@ export const ReferencePicker: React.FC<Props> = ({ disabled }) => {
   const entries = useNoteStore((state) => state.entries);
 
   const [query, setQuery] = useState<string>("");
+
+  const { isCurrentSessionStreaming: disabled } = useStreamingState();
 
   const withinRefs = (sessionId: string, noteId: string) => {
     if (!activeId) return false;
@@ -75,7 +75,7 @@ export const ReferencePicker: React.FC<Props> = ({ disabled }) => {
     <DropdownMenu key={activeId}>
       <DropdownMenuTrigger disabled={disabled}>
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger asChild disabled={disabled}>
             <Button variant="outline" size="icon" className="relative">
               <Asterisk className="text-muted-foreground" />
               {entries.some((e) => withinRefs(activeId, e.id)) && (

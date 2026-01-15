@@ -9,22 +9,21 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useStreamingState } from "@/hooks/use-streaming-state";
 import { TRAITS } from "@/lib/llm/common/prompts";
 import { type TraitId } from "@/lib/store/session/types";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
 import { Check, Fingerprint } from "lucide-react";
 
-interface Props {
-  disabled?: boolean;
-}
-
-export const TraitPicker: React.FC<Props> = ({ disabled }) => {
+export const TraitPicker = () => {
   const activeId = useSessionStore((state) => state.activeId);
   const sessions = useSessionStore((state) => state.sessions);
   const addTrait = useSessionStore((state) => state.addTrait);
   const removeTrait = useSessionStore((state) => state.removeTrait);
   const clearTraits = useSessionStore((state) => state.clearTraits);
+
+  const { isCurrentSessionStreaming: disabled } = useStreamingState();
 
   const withinTraits = (sessionId: string, traitId: TraitId) => {
     const session = sessions.find((s) => s.id === sessionId);
@@ -59,7 +58,7 @@ export const TraitPicker: React.FC<Props> = ({ disabled }) => {
       <DropdownMenuTrigger asChild disabled={disabled}>
         <div className="relative inline-block">
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger asChild disabled={disabled}>
               <Button
                 variant="outline"
                 size="icon"

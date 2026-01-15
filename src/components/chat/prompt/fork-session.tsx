@@ -4,16 +4,18 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useStreamingState } from "@/hooks/use-streaming-state";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { Split } from "lucide-react";
 
 export const ForkSession = () => {
   const activeId = useSessionStore((state) => state.activeId);
   const fork = useSessionStore((state) => state.fork);
+  const { isCurrentSessionStreaming } = useStreamingState();
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
+      <TooltipTrigger asChild disabled={isCurrentSessionStreaming}>
         <Button
           variant="outline"
           size="icon"

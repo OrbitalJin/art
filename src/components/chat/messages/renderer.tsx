@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { CodeBlock } from "@/components/chat/messages/code/block/block";
 import { InlineCode } from "@/components/chat/messages/code/inline";
 import { memo } from "react";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { toast } from "sonner";
 
 interface Props {
   content: string;
@@ -48,13 +50,24 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
             );
           },
 
-          a({ children, ...props }) {
+          a({ children, href, ...props }) {
+            const handleClick = async (e: React.MouseEvent) => {
+              e.preventDefault();
+              if (href) {
+                try {
+                  await openUrl(href);
+                } catch (error) {
+                  toast.error("Failed to open URL");
+                  console.log(error);
+                }
+              }
+            };
             return (
               <a
                 {...props}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline underline-offset-4 hover:text-primary/80 break-all"
+                href={href}
+                onClick={handleClick}
+                className="text-primary underline underline-offset-4 hover:text-primary/80 break-all cursor-pointer"
               >
                 {children}
               </a>

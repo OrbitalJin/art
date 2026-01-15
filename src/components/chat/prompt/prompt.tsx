@@ -59,7 +59,7 @@ export const Prompt = () => {
               <SelectModel />
               <ForkSession />
               <TraitPicker />
-              <ReferencePicker disabled={isCurrentSessionStreaming} />
+              <ReferencePicker />
             </div>
             <Button
               variant="default"
