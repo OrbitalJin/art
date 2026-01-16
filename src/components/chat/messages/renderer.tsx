@@ -76,11 +76,43 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
 
           table({ children }) {
             return (
-              <div className="overflow-x-auto my-4">
-                <table className="w-full text-left border-collapse border border-zinc-200 dark:border-zinc-800">
-                  {children}
-                </table>
+              <div className="my-6 w-full overflow-x-auto opacity-70 font-light">
+                <table className="w-full border-collapse">{children}</table>
               </div>
+            );
+          },
+
+          thead({ children }) {
+            return <thead className="bg-muted/50 ">{children}</thead>;
+          },
+
+          tbody({ children }) {
+            return (
+              <tbody className="divide-y divide-border/40">{children}</tbody>
+            );
+          },
+
+          tr({ children }) {
+            return (
+              <tr className="transition-colors hover:bg-muted/20">
+                {children}
+              </tr>
+            );
+          },
+
+          th({ children }) {
+            return (
+              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
+                {children}
+              </th>
+            );
+          },
+
+          td({ children }) {
+            return (
+              <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
+                {children}
+              </td>
             );
           },
         }}

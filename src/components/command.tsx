@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookPlus, MessageCirclePlus } from "lucide-react";
+import { BookPlus, MessageCirclePlus, Settings2 } from "lucide-react";
 import {
   CommandDialog,
   CommandInput,
@@ -14,6 +14,7 @@ import {
 import { useSessionStore } from "@/lib/store/use-session-store";
 import type { NavigationItem } from "@/components/layout/navigation";
 import { useNoteStore } from "@/lib/store/use-note-store";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
 
 interface Props {
   items: NavigationItem[];
@@ -22,6 +23,9 @@ interface Props {
 export const Command: React.FC<Props> = ({ items }) => {
   const { create } = useSessionStore();
   const { create: createNote } = useNoteStore();
+  const setSettingsDialogOpen = useSettingsStore(
+    (state) => state.setSettingsDialogOpen,
+  );
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -33,6 +37,11 @@ export const Command: React.FC<Props> = ({ items }) => {
   const handleQuickNote = () => {
     createNote(undefined, "Quick Note");
     handleNavigate("/notes");
+  };
+
+  const handleOpenSettings = () => {
+    setSettingsDialogOpen(true);
+    setOpen(false);
   };
 
   const handleNavigate = (path: string) => {
@@ -63,6 +72,11 @@ export const Command: React.FC<Props> = ({ items }) => {
       if (e.key === "n" && e.altKey && (e.ctrlKey || e.metaKey)) {
         handleQuickNote();
       }
+
+      if (e.key === "," && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleOpenSettings();
+      }
     };
 
     document.addEventListener("keydown", down);
@@ -90,6 +104,12 @@ export const Command: React.FC<Props> = ({ items }) => {
               </CommandItem>
             );
           })}
+
+          <CommandItem value="settings" onSelect={handleOpenSettings}>
+            <Settings2 className="mr-2 h-4 w-4" />
+            Settings
+            <CommandShortcut>Ctrl+,</CommandShortcut>
+          </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />

@@ -4,6 +4,7 @@ import { StaticSidebar } from "@/components/chat/sidebar/static";
 import { Prompt } from "@/components/chat/prompt/prompt";
 import { FloatingSidebar } from "@/components/chat/sidebar/floating";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { ModeSelect } from "@/components/chat/mode-select";
 
 export const Chat = () => {
   const chat = useActiveSession();
@@ -14,7 +15,8 @@ export const Chat = () => {
     <div className="relative flex-1 flex flex-row select-none">
       <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-      <div className="flex-1 flex flex-col selection:bg-primary/50 selection:text-white min-w-0">
+      <div className="relative flex-1 flex flex-col selection:bg-primary/50 min-w-0">
+        <ModeSelect />
         <MessageList messages={chat.messages} />
         <Prompt />
       </div>

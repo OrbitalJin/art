@@ -27,7 +27,7 @@ export class LLMProvider {
   ): AsyncGenerator<StreamChunk> {
     let error: LLMError | undefined = undefined;
     const contents = [
-      { role: "user", parts: [{ text: systemPrompt + "\n" + context }] },
+      { role: "user", parts: [{ text: context }] },
       ...this.formatHistory(history),
       { role: "user", parts: [{ text: prompt }] },
     ];
@@ -36,6 +36,9 @@ export class LLMProvider {
       const stream = await this.llm.models.generateContentStream({
         model: model.type,
         contents: contents,
+        config: {
+          systemInstruction: systemPrompt,
+        },
       });
 
       for await (const buf of stream) {

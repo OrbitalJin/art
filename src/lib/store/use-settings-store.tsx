@@ -6,10 +6,12 @@ interface SettingsState {
   apiKey: string;
   chatSidebarOpen: boolean;
   notesSidebarOpen: boolean;
+  settingsDialogOpen: boolean;
 
   setApiKey: (key: string) => void;
   setChatSidebarOpen: (open: boolean) => void;
   setNotesSidebarOpen: (open: boolean) => void;
+  setSettingsDialogOpen: (open: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -18,9 +20,11 @@ export const useSettingsStore = create<SettingsState>()(
       apiKey: "",
       chatSidebarOpen: false,
       notesSidebarOpen: false,
+      settingsDialogOpen: false,
       setApiKey: (key: string) => set({ apiKey: key }),
       setChatSidebarOpen: (open: boolean) => set({ chatSidebarOpen: open }),
       setNotesSidebarOpen: (open: boolean) => set({ notesSidebarOpen: open }),
+      setSettingsDialogOpen: (open: boolean) => set({ settingsDialogOpen: open }),
     }),
     {
       name: "settings-storage",

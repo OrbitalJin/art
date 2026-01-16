@@ -36,7 +36,7 @@ export const Prompt = () => {
         <div
           className={cn(
             "relative flex flex-col gap-2 p-2 transition-all",
-            "rounded-md border hover:bg-muted/50 hover:border-primary/30",
+            "rounded-md border hover:border-primary/30 bg-card/50 shadow-md",
             "focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10",
           )}
         >

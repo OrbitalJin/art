@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useNoteStore } from "@/lib/store/use-note-store";
-import { prompts } from "@/lib/llm/common/prompts";
 import type { Entry } from "@/lib/store/notes/types";
 import type { Session } from "@/lib/store/session/types";
+import { format } from "@/lib/llm/prompts/format";
 
 export const useSessionRefs = (session: Session | undefined) => {
   const getNote = useNoteStore((state) => state.getFn);
@@ -11,6 +11,6 @@ export const useSessionRefs = (session: Session | undefined) => {
       session?.noteRefs
         .map(getNote)
         .filter((note): note is Entry => note !== undefined) || [];
-    return prompts.format.notesAsContext(contextNotes);
+    return format.notesAsContext(contextNotes);
   }, [session?.noteRefs, getNote]);
 };

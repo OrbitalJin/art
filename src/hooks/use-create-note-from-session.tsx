@@ -1,5 +1,5 @@
 import { useLLM } from "@/contexts/llm-context";
-import { prompts } from "@/lib/llm/common/prompts";
+import { gen } from "@/lib/llm/prompts/gen";
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useState } from "react";
@@ -28,7 +28,7 @@ export const useCreateNoteFromSession = () => {
       }
 
       const result = await llm?.genWithContext(
-        prompts.gen.noteFromSession,
+        gen.noteFromSession,
         session.messages,
       );
 

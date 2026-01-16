@@ -1,5 +1,5 @@
 import { useLLM } from "@/contexts/llm-context";
-import { prompts } from "@/lib/llm/common/prompts";
+import { gen } from "@/lib/llm/prompts/gen";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ export const useGenerateTitle = () => {
     setGenerating(true);
     try {
       const title =
-        (await llm.genWithContext(prompts.gen.title, session.messages)) ||
+        (await llm.genWithContext(gen.title, session.messages)) ||
         "New Session";
 
       if (title && title.trim()) {

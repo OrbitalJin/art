@@ -8,8 +8,8 @@ import {
   PinOff,
   Split,
   Wand2,
-  Pencil,
   BookDashed,
+  TextCursor,
 } from "lucide-react";
 
 import {
@@ -268,7 +268,7 @@ const Menu: React.FC<MenuProps> = ({
             onSelect={() => setEditing(true)}
             className="gap-2 cursor-pointer"
           >
-            <Pencil className="h-4 w-4 text-muted-foreground" />
+            <TextCursor className="h-4 w-4 text-muted-foreground" />
             <span>Rename</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>

@@ -1,13 +1,14 @@
 import { useCallback } from "react";
 import { useLLM } from "@/contexts/llm-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { prompts } from "@/lib/llm/common/prompts";
 import { useLLMStream } from "@/hooks/use-llm-stream";
 import { createModelMessage } from "@/lib/llm/common/message-factories";
 import type { Model } from "@/lib/llm/common/types";
 import { useSessionRefs } from "@/hooks/use-session-refs";
 import { toast } from "sonner";
 import type { Session } from "@/lib/store/session/types";
+import { systemPrompt } from "@/lib/llm/prompts/system";
+import { DEFAULT_MODE } from "@/lib/llm/prompts/modes";
 
 interface UseLLMSessionProps {
   activeId: string | null;
@@ -53,16 +54,13 @@ export const useLLMSession = ({
     async (text: string) => {
       if (!activeId || !llm) return;
 
-      // Construct enhanced system prompt with traits
-      const systemPrompt = prompts.constructSystemPrompt(
-        prompts.system(),
-        activeSession?.traits || [],
-      );
-
       await stream({
         text,
         messages: activeSession?.messages || [],
-        systemPrompt,
+        systemPrompt: systemPrompt(
+          activeSession?.mode || DEFAULT_MODE,
+          activeSession?.traits || [],
+        ),
         context,
         model: activeSession?.preferredModel as Model,
       });

@@ -2,9 +2,11 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
 import { DefaultModel, type Model } from "@/lib/llm/common/types";
-import type { Message, Session, TraitId } from "@/lib/store/session/types";
+import type { Message, Session } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { toast } from "sonner";
+import { DEFAULT_MODE, type ModeId } from "../llm/prompts/modes";
+import type { TraitId } from "../llm/prompts/traits";
 
 const createNewSession = (title?: string): Session => {
   const date = Date.now();
@@ -14,6 +16,7 @@ const createNewSession = (title?: string): Session => {
     traits: [],
     messages: [],
     noteRefs: [],
+    mode: DEFAULT_MODE,
     preferredModel: DefaultModel,
     createdAt: date,
     updatedAt: date,
@@ -25,6 +28,7 @@ export interface SessionState {
   activeId: string | null;
 
   fork: (id: string) => void;
+  setMode: (id: string, mode: ModeId) => void;
   addTrait: (id: string, trait: TraitId) => void;
   removeTrait: (id: string, trait: TraitId) => void;
   clearTraits: (id: string) => void;
@@ -40,13 +44,26 @@ export interface SessionState {
   getFn: (id: string) => Session | undefined;
   addMessage: (sessionId: string, message: Message) => void;
   updateTitle: (sessionId: string, newTitle: string) => void;
-  setSessionModel: (sessionId: string, model: Model) => void;
+  setModel: (sessionId: string, model: Model) => void;
 }
 export const useSessionStore = create<SessionState>()(
   persist(
     (set, get) => ({
       sessions: [],
       activeId: null,
+
+      setMode: (id: string, modeId: ModeId) => {
+        set((state) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? {
+                  ...session,
+                  mode: modeId,
+                }
+              : session,
+          ),
+        }));
+      },
 
       fork: (id: string) => {
         const state = get();
@@ -173,7 +190,7 @@ export const useSessionStore = create<SessionState>()(
         return get().sessions.find((s) => s.id === id);
       },
 
-      setSessionModel: (sessionId: string, model: Model) =>
+      setModel: (sessionId: string, model: Model) =>
         set((state) => ({
           sessions: state.sessions.map((s) =>
             s.id === sessionId ? { ...s, preferredModel: model } : s,
@@ -255,6 +272,7 @@ export const useSessionStore = create<SessionState>()(
         if (state) {
           state.sessions = state.sessions.map((session) => ({
             ...session,
+            mode: session.mode || DEFAULT_MODE,
             noteRefs: Array.isArray(session.noteRefs) ? session.noteRefs : [],
             traits: Array.isArray(session.traits) ? session.traits : [],
           }));

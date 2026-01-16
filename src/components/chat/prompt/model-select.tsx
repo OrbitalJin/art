@@ -12,7 +12,7 @@ import { useStreamingState } from "@/hooks/use-streaming-state";
 import { useSessionStore } from "@/lib/store/use-session-store";
 
 export const SelectModel = () => {
-  const setSessionModel = useSessionStore((store) => store.setSessionModel);
+  const setSessionModel = useSessionStore((store) => store.setModel);
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );

@@ -1,8 +1,6 @@
 export type ModelTier = 1 | 2 | 3;
 
 export type ModelType =
-  | "gemma-3-27b-it"
-  | "gemini-2.0-flash-lite"
   | "gemini-2.5-flash-lite"
   | "gemini-2.5-flash"
   | "gemini-3-flash-preview";
@@ -15,9 +13,9 @@ export type Model = {
 };
 
 export const Models = [
-  { tier: 1, name: "Genesis", type: "gemma-3-27b-it", limit: 124_000 },
-  { tier: 2, name: "Bloom", type: "gemma-3-27b-it", limit: 124_000 },
-  { tier: 3, name: "Eden", type: "gemini-2.5-flash", limit: 1_000_000 },
+  { tier: 1, name: "Genesis", type: "gemini-2.5-flash-lite", limit: 1_000_000 },
+  { tier: 2, name: "Bloom", type: "gemini-2.5-flash", limit: 1_000_000 },
+  { tier: 3, name: "Eden", type: "gemini-3-flash-preview", limit: 1_000_000 },
 ] as const satisfies readonly Model[];
 
 export const DefaultModel = Models[0];

@@ -17,13 +17,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TONES } from "@/lib/llm/common/prompts";
 import type { LLMActions } from "@/lib/types";
+import {
+  TRAITS,
+  type TraitDefinition,
+  type TraitId,
+} from "@/lib/llm/prompts/traits";
 
 interface Props {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onProcess: (tone: string, instructions?: string) => void;
+  onProcess: (traitId: TraitId, instructions?: string) => void;
   action: LLMActions;
   isProcessing?: boolean;
 }
@@ -35,11 +39,11 @@ export const TextActionDialog = ({
   action,
   isProcessing = false,
 }: Props) => {
-  const [tone, setTone] = useState("professional");
+  const [trait, setTrait] = useState<TraitId>("professional");
   const [instructions, setInstructions] = useState("");
 
   const handleProcess = () => {
-    onProcess(tone, instructions.trim() || undefined);
+    onProcess(trait, instructions.trim() || undefined);
     setInstructions("");
     onOpenChange(false);
   };
@@ -76,13 +80,13 @@ export const TextActionDialog = ({
             <label htmlFor="tone" className="text-sm font-medium leading-none">
               Tone
             </label>
-            <Select value={tone} onValueChange={setTone}>
+            <Select value={trait} onValueChange={(v: TraitId) => setTrait(v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a tone" />
               </SelectTrigger>
               <SelectContent>
-                {TONES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
+                {Object.values(TRAITS).map((t: TraitDefinition) => (
+                  <SelectItem key={t.label} value={t.label}>
                     {t.label}
                   </SelectItem>
                 ))}

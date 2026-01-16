@@ -10,8 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useStreamingState } from "@/hooks/use-streaming-state";
-import { TRAITS } from "@/lib/llm/common/prompts";
-import { type TraitId } from "@/lib/store/session/types";
+import { TRAITS, type TraitId } from "@/lib/llm/prompts/traits";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
 import { Check, Fingerprint } from "lucide-react";

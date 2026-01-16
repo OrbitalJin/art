@@ -1,4 +1,6 @@
 import type { Model } from "@/lib/llm/common/types";
+import type { ModeId } from "@/lib/llm/prompts/modes";
+import type { TraitId } from "@/lib/llm/prompts/traits";
 
 export type MessageStatus =
   | "thinking"
@@ -16,20 +18,6 @@ export interface Message {
   model?: Model;
 }
 
-export type TraitId =
-  | "concise"
-  | "professional"
-  | "technical"
-  | "creative"
-  | "supportive";
-
-export interface TraitDefinition {
-  id: TraitId;
-  label: string;
-  description: string;
-  prompt: string;
-}
-
 export interface Session {
   id: string;
   title: string;
@@ -37,6 +25,7 @@ export interface Session {
   preferredModel: Model;
   noteRefs: string[];
   traits: TraitId[];
+  mode: ModeId;
   forkOf?: string;
   createdAt: number;
   updatedAt: number;

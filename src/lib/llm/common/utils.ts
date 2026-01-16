@@ -1,5 +1,4 @@
 import type { Session } from "@/lib/store/session/types";
-import { prompts } from "./prompts";
 import { LLMError } from "./types";
 
 export function estimateTokens(text: string): number {
@@ -18,9 +17,7 @@ export const estimateUsage = (
   const messages = session.messages
     .map((m) => `${m.role}: ${m.content}`)
     .join("\n");
-  const tokens = estimateTokens(
-    `user: ${prompts.system()}\n${context}\n` + messages,
-  );
+  const tokens = estimateTokens(context + messages);
   return `${((tokens / session.preferredModel.limit) * 100).toFixed(1)}%`;
 };
 

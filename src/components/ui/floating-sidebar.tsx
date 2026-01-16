@@ -38,7 +38,7 @@ export const FloatingSidebar: React.FC<FloatingSidebarProps> = ({
         className={cn(
           "absolute top-2 bottom-2 left-2 z-50 lg:hidden",
           "w-[85%] max-w-[350px] flex flex-col",
-          "rounded-xl border bg-background shadow-xl hover:border-primary/40",
+          "rounded-xl border bg-background shadow-lg",
           "transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           isOpen
             ? "translate-x-0 opacity-100 scale-100"

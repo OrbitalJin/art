@@ -29,8 +29,8 @@ export const TagList = ({ tags, active, maxVisible = 2 }: TagListProps) => {
       {visibleTags.map((tag) => (
         <Badge
           key={tag}
-          variant="secondary"
-          className="text-xs px-1.5 py-0.5 hover:bg-primary/20 transition-colors cursor-default"
+          variant="outline"
+          className="text-xs px-1.5 py-0.5 hover:bg-primary/10 transition-colors cursor-alias"
           onClick={() => handleTagClick(tag)}
         >
           @{tag}

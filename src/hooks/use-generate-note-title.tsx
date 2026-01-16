@@ -1,5 +1,5 @@
 import { useLLM } from "@/contexts/llm-context";
-import { prompts } from "@/lib/llm/common/prompts";
+import { gen } from "@/lib/llm/prompts/gen";
 import { useNoteStore } from "@/lib/store/use-note-store";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ export const useGenerateNoteTitle = () => {
     setGenerating(true);
     try {
       const title =
-        (await llm.genWithContext(prompts.gen.title, [
+        (await llm.genWithContext(gen.title, [
           { id: "1", role: "user", content: note.content, status: "complete" },
         ])) || "Untitled Note";
 
