@@ -5,7 +5,7 @@ import { DefaultModel, type Model } from "@/lib/llm/common/types";
 import type { Message, Session } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { toast } from "sonner";
-import { DEFAULT_MODE, type ModeId } from "../llm/prompts/modes";
+import { DEFAULT_MODE, MODES, type ModeId } from "../llm/prompts/modes";
 import type { TraitId } from "../llm/prompts/traits";
 
 const createNewSession = (title?: string): Session => {
@@ -272,7 +272,10 @@ export const useSessionStore = create<SessionState>()(
         if (state) {
           state.sessions = state.sessions.map((session) => ({
             ...session,
-            mode: session.mode || DEFAULT_MODE,
+            mode:
+              session.mode && session.mode in MODES
+                ? session.mode
+                : DEFAULT_MODE,
             noteRefs: Array.isArray(session.noteRefs) ? session.noteRefs : [],
             traits: Array.isArray(session.traits) ? session.traits : [],
           }));

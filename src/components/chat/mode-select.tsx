@@ -16,16 +16,19 @@ export const ModeSelect = () => {
     state.sessions.find((s) => s.id === state.activeId),
   );
 
+  if (!session) {
+    return null;
+  }
+
   return (
     <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30">
       <HoverCard openDelay={300} closeDelay={150}>
-        {/* ✅ Tabs are the hover trigger */}
         <HoverCardTrigger asChild>
           <div>
             <Tabs
-              value={session?.mode}
+              value={session.mode}
               onValueChange={(mode) => {
-                setMode(session!.id, mode as ModeId);
+                setMode(session.id, mode as ModeId);
               }}
             >
               <TabsList className="backdrop-blur-xl opacity-70 hover:opacity-100 transition-all">
@@ -42,7 +45,6 @@ export const ModeSelect = () => {
             </Tabs>
           </div>
         </HoverCardTrigger>
-        {/* ✅ Rich explanation panel */}
         <HoverCardContent
           align="center"
           side="bottom"
