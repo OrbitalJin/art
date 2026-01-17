@@ -13,7 +13,7 @@ export const MODES: Record<ModeId, ModeDefinition> = {
     id: "reflective",
     label: "Reflective",
     description:
-      "Warm, low‑friction support for thinking things through, planning, or getting unstuck.",
+      "Warm, conversational support for life, productivity, planning & brainstorming.",
 
     prompt: `
     # MODE: REFLECTIVE 

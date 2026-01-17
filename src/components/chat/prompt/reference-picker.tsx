@@ -116,9 +116,23 @@ export const ReferencePicker = () => {
 
         <div className="flex flex-col p-2 gap-2">
           {filtered.length === 0 && (
-            <p className="text-sm text-center text-muted-foreground">
-              No notes found
-            </p>
+            <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+              {query ? (
+                <div className="space-y-1">
+                  <p>No notes found</p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 text-xs"
+                    onClick={() => setQuery("")}
+                  >
+                    Clear search
+                  </Button>
+                </div>
+              ) : (
+                "No notes available"
+              )}
+            </div>
           )}
           {filtered.map((entry) => {
             const isSelected = withinRefs(activeId, entry.id);
@@ -185,6 +199,7 @@ export const ReferencePicker = () => {
             size="sm"
             className="text-xs h-8 text-muted-foreground hover:text-destructive"
             onClick={handleClearRefs}
+            disabled={selecteNotes.length === 0}
           >
             Clear selection
           </Button>

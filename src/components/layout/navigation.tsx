@@ -7,11 +7,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Command } from "../command";
 
@@ -53,26 +48,22 @@ export const Navigation = () => {
   return (
     <nav className="flex flex-col gap-2 flex-1 w-full px-2 items-center">
       {items.map((item) => (
-        <Tooltip key={item.href}>
-          <TooltipTrigger asChild>
-            <Button
-              className={cn(
-                "hover:scale-110 transition-all",
-                isSelected(item.href) && "text-primary",
-              )}
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(item.href)}
-            >
-              {isSelected(item.href) ? (
-                <item.activeIcon size={20} />
-              ) : (
-                <item.icon size={20} />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">{item.description}</TooltipContent>
-        </Tooltip>
+        <Button
+          key={item.href}
+          className={cn(
+            "hover:scale-110 transition-all",
+            isSelected(item.href) && "text-primary",
+          )}
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(item.href)}
+        >
+          {isSelected(item.href) ? (
+            <item.activeIcon size={20} />
+          ) : (
+            <item.icon size={20} />
+          )}
+        </Button>
       ))}
 
       <Command items={items} />

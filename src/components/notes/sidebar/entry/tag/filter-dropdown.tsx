@@ -138,6 +138,7 @@ export const TagFilterDropdown = ({
             size="sm"
             className="h-8 text-xs text-muted-foreground hover:text-destructive"
             onClick={onClearAll}
+            disabled={selectedTags.length === 0}
           >
             Clear selection
           </Button>
