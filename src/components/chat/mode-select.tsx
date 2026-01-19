@@ -52,6 +52,9 @@ export const ModeSelect = () => {
         >
           <div className="flex flex-col gap-1 border-b bg-muted/30 p-3">
             <p className="text-sm font-medium">Modes</p>
+            <p className="text-xs text-muted-foreground">
+              Select a mode for the current session.
+            </p>
           </div>
 
           <div className="flex flex-col p-2 gap-1">

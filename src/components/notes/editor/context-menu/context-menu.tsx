@@ -1,10 +1,9 @@
-// components/editor/editor-context-menu.tsx
 import React, { useMemo } from "react";
-import { useEditorState } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import {
   ContextMenu,
   ContextMenuContent,
+  ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { LinkDialog } from "./link-dialog";
@@ -12,6 +11,9 @@ import { useEditorActions } from "@/hooks/use-editor-actions";
 import { getMenuGroups } from "@/components/notes/editor/editor-menu";
 import { EditorItemRenderer } from "./item";
 import { TextActionDialog } from "./text-action-dialog";
+import { useEditorStateSelector } from "@/hooks/use-editor-state-selector";
+import { Copy } from "lucide-react";
+import { useNoteEditor } from "@/contexts/note-editor-context";
 
 interface Props {
   children: React.ReactNode;
@@ -25,31 +27,21 @@ export const EditorContextMenu: React.FC<Props> = ({
   children,
 }) => {
   const actions = useEditorActions(editor);
-
-  const editorState = useEditorState({
-    editor,
-    selector: (ctx) => ({
-      hasSelection: !ctx.editor.state.selection.empty,
-      canUndo: ctx.editor.can().undo(),
-      canRedo: ctx.editor.can().redo(),
-      isBold: ctx.editor.isActive("bold"),
-      isItalic: ctx.editor.isActive("italic"),
-      isUnderline: ctx.editor.isActive("underline"),
-      isStrike: ctx.editor.isActive("strike"),
-      isHighlight: ctx.editor.isActive("highlight"),
-      isBulletList: ctx.editor.isActive("bulletList"),
-      isOrderedList: ctx.editor.isActive("orderedList"),
-      isBlockquote: ctx.editor.isActive("blockquote"),
-      isCodeBlock: ctx.editor.isActive("codeBlock"),
-      isTable: ctx.editor.isActive("table"),
-      isLink: ctx.editor.isActive("link"),
-    }),
-  });
+  const { state: editorState } = useEditorStateSelector(editor);
+  const { isEditable } = useNoteEditor();
 
   const menuGroups = useMemo(() => {
     if (!editor || !editorState) return [];
     return getMenuGroups(editor, editorState, actions);
   }, [editor, editorState, actions]);
+
+  const handleCopy = () => {
+    const { from, to, empty } = editor.state.selection;
+    if (empty) return;
+
+    const text = editor.state.doc.textBetween(from, to, " ");
+    navigator.clipboard.writeText(text);
+  };
 
   if (!editor) return <div className={className}>{children}</div>;
 
@@ -59,15 +51,31 @@ export const EditorContextMenu: React.FC<Props> = ({
         <ContextMenuTrigger className={className}>
           {children}
         </ContextMenuTrigger>
-        <ContextMenuContent className="w-64">
-          {menuGroups.map((group, idx) => (
-            <React.Fragment key={idx}>
-              {group.map((item) => (
-                <EditorItemRenderer key={item.label} item={item} />
-              ))}
-            </React.Fragment>
-          ))}
-        </ContextMenuContent>
+
+        {isEditable ? (
+          <ContextMenuContent className="w-64">
+            {menuGroups.map((group, idx) => (
+              <React.Fragment key={idx}>
+                {group.map((item) => (
+                  <EditorItemRenderer key={item.label} item={item} />
+                ))}
+              </React.Fragment>
+            ))}
+          </ContextMenuContent>
+        ) : (
+          editorState?.hasSelection && (
+            <ContextMenuContent className="w-64">
+              <ContextMenuItem
+                onClick={handleCopy}
+                disabled={editor.state.selection.empty}
+                className="gap-2"
+              >
+                <Copy className="h-4 w-4" />
+                <span>Copy</span>
+              </ContextMenuItem>
+            </ContextMenuContent>
+          )
+        )}
       </ContextMenu>
 
       <LinkDialog

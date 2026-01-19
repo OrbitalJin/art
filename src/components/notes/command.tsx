@@ -15,6 +15,7 @@ import { useEditorActions } from "@/hooks/use-editor-actions";
 import { cn } from "@/lib/utils";
 import { useEditorStateSelector } from "@/hooks/use-editor-state-selector";
 import { TextActionDialog } from "@/components/notes/editor/context-menu/text-action-dialog";
+import { useNoteEditor } from "@/contexts/note-editor-context";
 
 interface MenuItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -74,13 +75,15 @@ interface Props {
 }
 
 export const Command: React.FC<Props> = ({ editor }) => {
-  const [open, setOpen] = useState(false);
   const [currentView, setCurrentView] = useState<"main" | "submenu">("main");
   const [submenuItems, setSubmenuItems] = useState<MenuItem[]>([]);
   const [submenuTitle, setSubmenuTitle] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [open, setOpen] = useState(false);
   const actions = useEditorActions(editor || null);
   const selector = useEditorStateSelector(editor);
+
+  const { isEditable } = useNoteEditor();
 
   const menuGroups = useMemo(() => {
     if (!editor || !selector?.state) return [];
@@ -89,7 +92,7 @@ export const Command: React.FC<Props> = ({ editor }) => {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "o" && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "o" && (e.metaKey || e.ctrlKey) && isEditable) {
         e.preventDefault();
         setOpen((open) => !open);
       }
