@@ -1,74 +1,107 @@
 import { useSessionStore } from "@/lib/store/use-session-store";
+import type { Session } from "@/lib/store/session/types";
 import { SessionListItem } from "./item";
 import { SessionSection } from "./section";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Archive } from "lucide-react";
 
 interface Props {
   onSessionSwitch?: () => void;
+  query?: string;
 }
 
-export const SessionList: React.FC<Props> = ({ onSessionSwitch }) => {
+export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
   const activeId = useSessionStore((s) => s.activeId);
   const sessions = useSessionStore((s) => s.sessions);
 
-  const pinnedSessions = sessions
-    .filter((session) => session.pinned)
-    .sort((a, b) => b.updatedAt - a.updatedAt);
+  const filterSessions = (sessions: Session[]) => {
+    if (!query) return sessions;
+    return sessions.filter((session) =>
+      session.title.toLowerCase().includes(query.toLowerCase()),
+    );
+  };
 
-  const regularSessions = sessions
-    .filter((session) => !session.pinned)
+  const pinned = filterSessions(
+    sessions
+      .filter((session) => session.pinned && !session.archived)
+      .sort((a, b) => b.updatedAt - a.updatedAt),
+  );
+
+  const regular = filterSessions(
+    sessions
+      .filter((session) => !session.pinned && !session.archived)
+      .sort((a, b) => b.updatedAt - a.updatedAt),
+  );
+
+  const archived = sessions
+    .filter((session) => session.archived)
     .sort((a, b) => b.updatedAt - a.updatedAt);
 
   return (
     <ScrollArea className="flex-1 px-2 pt-2 overflow-y-hidden">
       <div className="space-y-2">
-        {pinnedSessions.length > 0 && (
+        {pinned.length > 0 && (
           <SessionSection
             title="Pinned"
-            count={pinnedSessions.length}
+            count={pinned.length}
             isPinned={true}
             defaultCollapsed={false}
           >
-            {pinnedSessions.map((session) => (
+            {pinned.map((session) => (
               <SessionListItem
                 key={session.id}
-                id={session.id}
-                title={session.title}
+                item={session}
                 active={session.id === activeId}
-                pinned={session.pinned as boolean}
                 onSwitch={onSessionSwitch}
-                forkOf={session.forkOf}
               />
             ))}
           </SessionSection>
         )}
 
-        {regularSessions.length > 0 && (
+        {regular.length > 0 && (
           <SessionSection
             title="Sessions"
-            count={regularSessions.length}
+            count={regular.length}
             isPinned={false}
             defaultCollapsed={false}
           >
-            {regularSessions.map((session) => (
+            {regular.map((session) => (
               <SessionListItem
                 key={session.id}
-                id={session.id}
-                title={session.title}
+                item={session}
                 active={session.id === activeId}
-                pinned={session.pinned as boolean}
                 onSwitch={onSessionSwitch}
-                forkOf={session.forkOf}
               />
             ))}
           </SessionSection>
         )}
 
-        {sessions.length === 0 && (
-          <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-            No sessions yet
-          </div>
+        {archived.length > 0 && (
+          <SessionSection
+            title="Archived"
+            count={archived.length}
+            isPinned={false}
+            defaultCollapsed={true}
+            icon={Archive}
+          >
+            {archived.map((session) => (
+              <SessionListItem
+                key={session.id}
+                item={session}
+                active={session.id === activeId}
+                onSwitch={onSessionSwitch}
+              />
+            ))}
+          </SessionSection>
         )}
+
+        {archived.length === 0 &&
+          regular.length === 0 &&
+          pinned.length === 0 && (
+            <div className="pt-[50%] flex h-full items-center justify-center text-sm text-muted-foreground">
+              No sessions found
+            </div>
+          )}
       </div>
     </ScrollArea>
   );

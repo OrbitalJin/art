@@ -9,9 +9,12 @@ import { EditorContextMenu } from "@/components/notes/editor/context-menu/contex
 import { Command } from "@/components/notes/command";
 import { useNoteEditor } from "@/contexts/note-editor-context";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { Button } from "@/components/ui/button";
+import { Edit3, Eye, Loader2 } from "lucide-react";
 
 export const Notes = () => {
-  const { isDisabled, editor } = useNoteEditor();
+  const { isDisabled, isEditable, toggleEditable, isSaving, editor } =
+    useNoteEditor();
   const isOpen = useSettingsStore((state) => state.notesSidebarOpen);
   const setIsOpen = useSettingsStore((state) => state.setNotesSidebarOpen);
 
@@ -23,6 +26,21 @@ export const Notes = () => {
     <div className="relative flex flex-1 flex-row gap-2 lg:px-0">
       <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+
+      <Button
+        className="absolute top-2 right-2 z-30 opacity-70"
+        variant={isSaving ? "ghost" : "outline"}
+        onClick={toggleEditable}
+        size="icon"
+      >
+        {isSaving ? (
+          <Loader2 className="animate-spin opacity-70" />
+        ) : isEditable ? (
+          <Edit3 />
+        ) : (
+          <Eye />
+        )}
+      </Button>
 
       <div
         className={cn(

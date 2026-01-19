@@ -24,7 +24,8 @@ export interface State {
   activeId: string | null;
   currentWorkspace: Workspace;
 
-  togglePin: (id: string) => void;
+  toggleArchived: (id: string) => void;
+  togglePinned: (id: string) => void;
   importFn: (orphan: Entry) => void;
   setActive: (id: string) => void;
   deleteFn: (id: string) => void;
@@ -53,6 +54,14 @@ export const useNoteStore = create<State>()(
       entries: [],
       activeId: null,
       currentWorkspace: "personal",
+
+      toggleArchived: (id: string) => {
+        set((state) => ({
+          entries: state.entries.map((entry) =>
+            entry.id === id ? { ...entry, archived: !entry.archived } : entry,
+          ),
+        }));
+      },
 
       setWorkspace: (workspace: Workspace) =>
         set({ currentWorkspace: workspace }),
@@ -210,7 +219,7 @@ export const useNoteStore = create<State>()(
         }));
       },
 
-      togglePin(id: string) {
+      togglePinned(id: string) {
         const state = get();
         const session = state.entries.find((e) => e.id === id);
         if (!session) return toast.error("Session not found");
@@ -256,7 +265,7 @@ export const useNoteStore = create<State>()(
         if (store.entries.length === 0) {
           const id = store.create("personal", "Welcome to Art");
           store.updateContent(id, mockContent, false);
-          store.togglePin(id);
+          store.togglePinned(id);
         }
       },
     },

@@ -10,6 +10,8 @@ import {
   Wand2,
   BookDashed,
   TextCursor,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 
 import {
@@ -31,23 +33,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCreateNoteFromSession } from "@/hooks/use-create-note-from-session";
+import type { Session } from "@/lib/store/session/types";
 
 interface Props {
-  id: string;
-  title: string;
+  item: Session;
   active: boolean;
-  forkOf?: string;
-  pinned: boolean;
   onSwitch?: () => void;
 }
 
 export const SessionListItem: React.FC<Props> = ({
-  id,
-  title,
+  item,
   active,
-  pinned,
   onSwitch,
-  forkOf,
 }) => {
   const { isSessionStreaming } = useStreamingState();
   const { generating, generateTitle } = useGenerateTitle();
@@ -55,6 +52,8 @@ export const SessionListItem: React.FC<Props> = ({
   const updateTitle = useSessionStore((s) => s.updateTitle);
 
   const getFn = useSessionStore((state) => state.getFn);
+
+  const { title, id, forkOf } = item;
 
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
@@ -83,7 +82,7 @@ export const SessionListItem: React.FC<Props> = ({
       className={cn(
         "group relative flex items-center w-full gap-2 rounded-md px-3 py-2",
         "text-sm select-none transition-all outline-none",
-        "hover:bg-accent hover:text-accent-foreground cursor-pointer",
+        "hover:bg-accent hover:text-accent-foreground",
         active &&
           "bg-accent/80 font-medium text-accent-foreground ring-1 ring-inset ring-foreground/5",
       )}
@@ -140,9 +139,7 @@ export const SessionListItem: React.FC<Props> = ({
           !editing &&
           !generating && (
             <Menu
-              id={id}
-              title={title}
-              pinned={pinned}
+              item={item}
               setText={setText}
               setEditing={setEditing}
               updateTitle={updateTitle}
@@ -156,9 +153,7 @@ export const SessionListItem: React.FC<Props> = ({
 };
 
 interface MenuProps {
-  id: string;
-  title: string;
-  pinned: boolean;
+  item: Session;
   setText: (text: string) => void;
   setEditing: (value: boolean) => void;
   updateTitle: (id: string, title: string) => void;
@@ -166,15 +161,15 @@ interface MenuProps {
 }
 
 const Menu: React.FC<MenuProps> = ({
-  id,
-  pinned,
+  item,
   setText,
   setEditing,
   updateTitle,
   generateTitle,
 }) => {
-  const togglePin = useSessionStore((s) => s.togglePin);
+  const togglePinned = useSessionStore((s) => s.togglePinned);
   const deleteFn = useSessionStore((s) => s.deleteFn);
+  const toggleArchived = useSessionStore((s) => s.toggleArchived);
 
   // Use the hook inside the menu to isolate state
   const { creating, create } = useCreateNoteFromSession();
@@ -182,23 +177,23 @@ const Menu: React.FC<MenuProps> = ({
 
   const handleDelete = (e?: React.SyntheticEvent) => {
     e?.stopPropagation();
-    deleteFn(id);
+    deleteFn(item.id);
     setOpen(false);
   };
 
   const handleGenerate = async (e: Event) => {
-    e.preventDefault(); // Prevent closing immediately to show visual feedback if needed
+    e.preventDefault();
     setOpen(false);
-    const title = await generateTitle(id);
+    const title = await generateTitle(item.id);
     if (title) {
       setText(title);
-      updateTitle(id, title);
+      updateTitle(item.id, title);
     }
   };
 
   const handleCreate = async (e: Event) => {
-    e.preventDefault(); // Keep menu open or handle state carefully
-    await create(id);
+    e.preventDefault();
+    await create(item.id);
     setOpen(false);
   };
 
@@ -226,54 +221,82 @@ const Menu: React.FC<MenuProps> = ({
         className="w-56"
         onClick={(e) => e.stopPropagation()}
       >
+        {!item.archived && (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                disabled={creating}
+                onSelect={handleCreate}
+                className="gap-2 focus:text-primary focus:bg-primary/10"
+              >
+                {creating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <BookDashed className="h-4 w-4" />
+                )}
+                <span>{creating ? "Generating..." : "Generate Notes"}</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onSelect={handleGenerate}
+                className="gap-2 focus:text-primary focus:bg-primary/10"
+              >
+                <Wand2 className="h-4 w-4" />
+                <span>Generate Title</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+
+            <DropdownMenuSeparator />
+          </>
+        )}
+
+        {!item.archived && (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                onSelect={() => togglePinned(item.id)}
+                className="gap-2"
+              >
+                {item.pinned ? (
+                  <PinOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Pin className="h-4 w-4 text-muted-foreground" />
+                )}
+                <span>{item.pinned ? "Unpin Session" : "Pin Session"}</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                disabled={creating}
+                onSelect={() => setEditing(true)}
+                className="gap-2"
+              >
+                <TextCursor className="h-4 w-4 text-muted-foreground" />
+                <span>Rename</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+
+            <DropdownMenuSeparator />
+          </>
+        )}
+
         <DropdownMenuGroup>
           <DropdownMenuItem
-            disabled={creating}
-            onSelect={handleCreate}
-            className="gap-2 cursor-pointer"
+            onSelect={() => toggleArchived(item.id)}
+            className="gap-2"
           >
-            {creating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+            {item.archived ? (
+              <>
+                <ArchiveRestore className="h-4 w-4 text-muted-foreground" />
+                <span>Unarchive</span>
+              </>
             ) : (
-              <BookDashed className="h-4 w-4" />
+              <>
+                <Archive className="h-4 w-4 text-muted-foreground" />
+                <span>Archive</span>
+              </>
             )}
-            <span>{creating ? "Generating..." : "Generate Notes"}</span>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            onSelect={handleGenerate}
-            className="gap-2 cursor-pointer"
-          >
-            <Wand2 className="h-4 w-4" />
-            <span>Generate Title</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            onSelect={() => togglePin(id)}
-            className="gap-2 cursor-pointer"
-          >
-            {pinned ? (
-              <PinOff className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <Pin className="h-4 w-4 text-muted-foreground" />
-            )}
-            <span>{pinned ? "Unpin Session" : "Pin Session"}</span>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            onSelect={() => setEditing(true)}
-            className="gap-2 cursor-pointer"
-          >
-            <TextCursor className="h-4 w-4 text-muted-foreground" />
-            <span>Rename</span>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-
-        <DropdownMenuSeparator />
 
         <DropdownMenuItem
           className="text-destructive focus:text-destructive focus:bg-destructive/10"

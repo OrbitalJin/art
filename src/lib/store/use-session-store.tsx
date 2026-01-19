@@ -35,7 +35,8 @@ export interface SessionState {
   addNoteRef: (id: string, noteId: string) => void;
   removeNoteRef: (id: string, noteId: string) => void;
   clearNoteRefs: (id: string) => void;
-  togglePin: (id: string) => void;
+  toggleArchived: (id: string) => void;
+  togglePinned: (id: string) => void;
   importFn: (s: Session) => void;
   setActive: (id: string) => void;
   ensureDefault: () => void;
@@ -51,6 +52,16 @@ export const useSessionStore = create<SessionState>()(
     (set, get) => ({
       sessions: [],
       activeId: null,
+
+      toggleArchived: (id: string) => {
+        set((state) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? { ...session, archived: !session.archived }
+              : session,
+          ),
+        }));
+      },
 
       setMode: (id: string, modeId: ModeId) => {
         set((state) => ({
@@ -74,6 +85,8 @@ export const useSessionStore = create<SessionState>()(
         const fork = {
           ...session,
           id: crypto.randomUUID(),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
           forkOf: session.id,
         };
 
@@ -146,7 +159,7 @@ export const useSessionStore = create<SessionState>()(
         }));
       },
 
-      togglePin: (id: string) => {
+      togglePinned: (id: string) => {
         const state = get();
         const session = state.sessions.find((s) => s.id === id);
         if (!session) return toast.error("Session not found");

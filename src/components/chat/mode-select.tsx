@@ -31,7 +31,7 @@ export const ModeSelect = () => {
                 setMode(session.id, mode as ModeId);
               }}
             >
-              <TabsList className="backdrop-blur-xl opacity-70 hover:opacity-100 transition-all">
+              <TabsList className="backdrop-blur-xl bg-card/50 border border-border/50 transition-all">
                 {Object.values(MODES).map((mode) => (
                   <TabsTrigger
                     key={mode.id}
@@ -62,9 +62,7 @@ export const ModeSelect = () => {
                 <div
                   key={mode.id}
                   className={`flex flex-col p-2.5 gap-0.5 rounded-md transition-all duration-200 group ${
-                    isSelected
-                      ? "bg-primary/5 ring-1 ring-primary/20"
-                      : ""
+                    isSelected ? "bg-primary/5 ring-1 ring-primary/20" : ""
                   }`}
                 >
                   <div className="flex items-center justify-between">

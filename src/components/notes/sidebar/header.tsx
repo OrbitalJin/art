@@ -1,6 +1,6 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WORKSPACES, type Workspace } from "@/lib/store/notes/types";
-import { PanelLeftClose, Plus, Search } from "lucide-react";
+import { PanelLeftClose, Plus, Search, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -83,6 +83,13 @@ export const SidebarHeader: React.FC<Props> = ({
             className="outline-none flex-1"
             placeholder="Search entries..."
           />
+          {query && (
+            <X
+              size={16}
+              className="cursor-pointer text-muted-foreground hover:text-foreground"
+              onClick={() => setQuery("")}
+            />
+          )}
         </div>
 
         <Tooltip>

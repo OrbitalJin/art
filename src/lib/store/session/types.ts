@@ -27,7 +27,8 @@ export interface Session {
   traits: TraitId[];
   mode: ModeId;
   forkOf?: string;
+  archived?: boolean;
+  pinned?: boolean;
   createdAt: number;
   updatedAt: number;
-  pinned?: boolean;
 }

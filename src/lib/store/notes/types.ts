@@ -5,10 +5,11 @@ export interface Entry {
   id: string;
   title: string;
   content: string;
+  tags: string[];
+  workspace: Workspace;
+  archived?: boolean;
+  pinned?: boolean;
   createdAt: number;
   updatedAt: number;
-  pinned?: boolean;
   lastViewedAt: number;
-  workspace: Workspace;
-  tags: string[];
 }

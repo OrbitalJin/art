@@ -8,6 +8,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 
 import {
@@ -15,10 +16,12 @@ import {
   MoreVertical,
   TextCursor,
   Trash2,
-  Sparkle,
   Loader2,
   PinOff,
   Pin,
+  Archive,
+  ArchiveRestore,
+  Wand2,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { useNoteStore } from "@/lib/store/use-note-store";
@@ -145,11 +148,26 @@ const EntryMenu: React.FC<EntryMenuProps> = ({
 }) => {
   const changeWorkspace = useNoteStore((state) => state.changeWorkspace);
   const deleteFn = useNoteStore((state) => state.deleteFn);
-  const togglePin = useNoteStore((state) => state.togglePin);
+  const togglePin = useNoteStore((state) => state.togglePinned);
+  const toggleArchived = useNoteStore((state) => state.toggleArchived);
   const setActive = useNoteStore((state) => state.setActive);
+  const entry = useNoteStore((state) => state.getFn(id));
+
+  // Use the hook inside the menu to isolate state
+  const [open, setOpen] = useState(false);
+
+  const handleGenerate = async (e: Event) => {
+    e.preventDefault();
+    setOpen(false);
+    const newTitle = await generateTitle(id);
+    if (newTitle) {
+      setText(newTitle);
+      updateTitle(id, newTitle);
+    }
+  };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -161,66 +179,103 @@ const EntryMenu: React.FC<EntryMenuProps> = ({
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-52">
-        <DropdownMenuItem
-          className="text-primary focus:text-primary focus:bg-primary/10"
-          onSelect={async (e) => {
-            e.preventDefault();
-            const newTitle = await generateTitle(id);
-            if (newTitle) {
-              setText(newTitle);
-              updateTitle(id, newTitle);
-            }
-          }}
-        >
-          <Sparkle className="h-4 w-4" />
-          <span>Generate title</span>
-        </DropdownMenuItem>
 
-        <DropdownMenuSeparator />
+      <DropdownMenuContent
+        align="end"
+        className="w-52"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {!entry?.archived && (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                className="focus:text-primary focus:bg-primary/10"
+                onSelect={handleGenerate}
+              >
+                <Wand2 className="h-4 w-4" />
+                <span>Generate title</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
 
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <ArrowRightLeft className="h-4 w-4" />
-            <span>Move to</span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent>
-              {WORKSPACES.map((workspace) => (
-                <DropdownMenuItem
-                  key={workspace}
-                  onSelect={() => changeWorkspace(id, workspace)}
-                >
-                  {workspace.charAt(0).toUpperCase() + workspace.slice(1)}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
+            <DropdownMenuSeparator />
+          </>
+        )}
 
-        <DropdownMenuItem onSelect={() => togglePin(id)}>
-          {pinned ? (
-            <PinOff className="h-4 w-4" />
-          ) : (
-            <Pin className="h-4 w-4" />
-          )}
-          <span>{pinned ? "Unpin" : "Pin"}</span>
-        </DropdownMenuItem>
+        {!entry?.archived && (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <ArrowRightLeft className="h-4 w-4" />
+                  <span>Move to</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    {WORKSPACES.map(
+                      (workspace) =>
+                        workspace !== entry?.workspace && (
+                          <DropdownMenuItem
+                            key={workspace}
+                            onSelect={() => changeWorkspace(id, workspace)}
+                          >
+                            {workspace.charAt(0).toUpperCase() +
+                              workspace.slice(1)}
+                          </DropdownMenuItem>
+                        ),
+                    )}
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
 
-        <DropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault();
-            setActive(id);
-            setEditing(true);
-          }}
-        >
-          <TextCursor className="h-4 w-4" />
-          <span>Rename</span>
-        </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => togglePin(id)}>
+                {pinned ? (
+                  <PinOff className="h-4 w-4" />
+                ) : (
+                  <Pin className="h-4 w-4" />
+                )}
+                <span>{pinned ? "Unpin" : "Pin"}</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setActive(id);
+                  setEditing(true);
+                  setOpen(false);
+                }}
+              >
+                <TextCursor className="h-4 w-4" />
+                <span>Rename</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+
+            <DropdownMenuSeparator />
+          </>
+        )}
+
+        <DropdownMenuGroup>
+          <DropdownMenuItem onSelect={() => toggleArchived(id)}>
+            {entry?.archived ? (
+              <>
+                <ArchiveRestore className="h-4 w-4" />
+                <span>Unarchive</span>
+              </>
+            ) : (
+              <>
+                <Archive className="h-4 w-4" />
+                <span>Archive</span>
+              </>
+            )}
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
 
         <DropdownMenuItem
           className="text-destructive focus:text-destructive focus:bg-destructive/10"
-          onSelect={() => deleteFn(id)}
+          onClick={(e) => {
+            e?.stopPropagation();
+            deleteFn(id);
+            setOpen(false);
+          }}
         >
           <Trash2 className="h-4 w-4" />
           <span>Delete</span>

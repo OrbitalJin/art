@@ -56,6 +56,7 @@ export class LLMProvider {
       } else if (err instanceof Error && err.name === "AbortError") {
         error = new LLMError("aborted", "Stream was aborted", false);
       } else {
+        console.error(err);
         error = new LLMError(
           "network",
           err instanceof Error ? err.message : "Network error",

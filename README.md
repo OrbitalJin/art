@@ -28,6 +28,7 @@
 - [x] "fork" session
 - [x] Create note from session
 - [x] Add modes (chat, research, tutor)
+- [x] add "archived" state.
 
 ### Productivity & Tools
 
@@ -74,6 +75,7 @@
 - [x] copy content
 - [x] add padding at the bottom of the editor
 - [x] auto scroll to bottom in sessions
+- [ ] floating toggle/edit button
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout (seperate feature, board)
 - [ ] food tracking calories etc?
@@ -82,3 +84,4 @@
 
 - [x] Persist toolbar states in setting.
 - [ ] id based /chat and /notes for specific redirection
+- [ ] "Super Prompt" a floating prompt you can ask global things to about the app and use agentic features to interact with the app

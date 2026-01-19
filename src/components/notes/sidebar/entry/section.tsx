@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { BookOpen, ChevronRight, Pin } from "lucide-react";
+import {
+  ChevronRight,
+  MessageCircle as BookOpen,
+  Pin,
+  type LucideIcon,
+} from "lucide-react";
 
 interface Props {
   title: string;
@@ -8,11 +13,13 @@ interface Props {
   isPinned?: boolean;
   defaultCollapsed?: boolean;
   children: React.ReactNode;
+  icon?: LucideIcon;
 }
 
 export const EntrySection: React.FC<Props> = ({
   title,
   count,
+  icon: Icon,
   isPinned = false,
   defaultCollapsed = false,
   children,
@@ -23,13 +30,16 @@ export const EntrySection: React.FC<Props> = ({
     <div className="space-y-1">
       <div
         className={cn(
-          "flex items-center justify-between p-2 text-xs font-medium text-muted-foreground cursor-pointer select-none",
+          "flex items-center justify-between p-2",
           "hover:text-foreground transition-colors",
+          "text-xs font-medium text-muted-foreground cursor-pointer select-none",
         )}
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex items-center gap-2">
-          {isPinned ? (
+          {Icon ? (
+            <Icon className="h-3 w-3" />
+          ) : isPinned ? (
             <Pin className="h-3 w-3 text-primary" />
           ) : (
             <BookOpen className="h-3 w-3" />
