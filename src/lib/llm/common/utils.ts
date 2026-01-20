@@ -1,5 +1,5 @@
 import type { Session } from "@/lib/store/session/types";
-import { LLMError } from "./types";
+import { LLMError, MODELS } from "./types";
 
 export function estimateTokens(text: string): number {
   const cleaned = text.trim();
@@ -18,7 +18,8 @@ export const estimateUsage = (
     .map((m) => `${m.role}: ${m.content}`)
     .join("\n");
   const tokens = estimateTokens(context + messages);
-  return `${((tokens / session.preferredModel.limit) * 100).toFixed(1)}%`;
+  const limit = MODELS.find((m) => m.id === session.modelId)!.limit;
+  return `${((tokens / limit) * 100).toFixed(1)}%`;
 };
 
 export function withTimeout(userSignal?: AbortSignal, timeoutMs = 30_000) {

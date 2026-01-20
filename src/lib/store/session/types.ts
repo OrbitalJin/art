@@ -1,4 +1,4 @@
-import type { Model } from "@/lib/llm/common/types";
+import type { ModelId } from "@/lib/llm/common/types";
 import type { ModeId } from "@/lib/llm/prompts/modes";
 import type { TraitId } from "@/lib/llm/prompts/traits";
 
@@ -14,15 +14,15 @@ export interface Message {
   role: "user" | "model" | "error";
   content: string;
   status: MessageStatus;
+  modelId?: ModelId;
   errMsg?: string;
-  model?: Model;
 }
 
 export interface Session {
   id: string;
   title: string;
   messages: Message[];
-  preferredModel: Model;
+  modelId: ModelId;
   noteRefs: string[];
   traits: TraitId[];
   mode: ModeId;

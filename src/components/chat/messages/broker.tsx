@@ -18,7 +18,7 @@ export const MessageBroker = memo(
     return (
       prev.content === next.content &&
       prev.status === next.status &&
-      prev.model?.name === next.model?.name
+      prev.modelId === next.modelId
     );
   },
 );

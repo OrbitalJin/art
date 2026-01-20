@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
-import type { Model, StreamChunk } from "./common/types";
+import type { Model, ModelType, StreamChunk } from "./common/types";
 import type { Message } from "@/lib/store/session/types";
-import { LLMError, DefaultModel } from "./common/types";
+import { LLMError, DEFAULT_MODEL } from "./common/types";
 
 export class LLMProvider {
   private llm: GoogleGenAI;
@@ -22,7 +22,7 @@ export class LLMProvider {
     history: Message[],
     systemPrompt?: string,
     context?: string,
-    model: Model = DefaultModel,
+    model: ModelType = DEFAULT_MODEL.type,
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
     let error: LLMError | undefined = undefined;
@@ -34,7 +34,7 @@ export class LLMProvider {
 
     try {
       const stream = await this.llm.models.generateContentStream({
-        model: model.type,
+        model: model,
         contents: contents,
         config: {
           systemInstruction: systemPrompt,
@@ -72,7 +72,7 @@ export class LLMProvider {
     }
   }
 
-  async gen(prompt: string, model: Model = DefaultModel): Promise<string> {
+  async gen(prompt: string, model: Model = DEFAULT_MODEL): Promise<string> {
     const contents = [
       {
         role: "user",
@@ -90,7 +90,7 @@ export class LLMProvider {
   async genWithContext(
     prompt: string,
     history: Message[],
-    model: Model = DefaultModel,
+    model: Model = DEFAULT_MODEL,
   ): Promise<string> {
     if (history.length === 0) {
       return "";

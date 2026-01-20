@@ -1,4 +1,5 @@
 export type ModelTier = 1 | 2 | 3;
+export type ModelId = "Genesis" | "Bloom" | "Eden";
 
 export type ModelType =
   | "gemini-2.5-flash-lite"
@@ -8,37 +9,37 @@ export type ModelType =
 
 export type Model = {
   tier: ModelTier;
-  name: "Genesis" | "Bloom" | "Eden";
+  id: ModelId;
   type: ModelType;
   description: string;
   limit: number;
 };
 
-export const Models = [
+export const MODELS: readonly Model[] = [
   {
     tier: 1,
-    name: "Genesis",
+    id: "Genesis",
     type: "gemini-2.5-flash-lite",
     description: "Quick and simple, meant to keep ideas moving.",
     limit: 1_000_000,
   },
   {
     tier: 2,
-    name: "Bloom",
+    id: "Bloom",
     type: "gemini-2.0-flash",
     description: "More thoughtful, connecting ideas with care.",
     limit: 1_000_000,
   },
   {
     tier: 3,
-    name: "Eden",
+    id: "Eden",
     type: "gemini-2.5-flash",
     description: "Deep and deliberate, built to deliver.",
     limit: 1_000_000,
   },
-] as const satisfies readonly Model[];
+];
 
-export const DefaultModel = Models[0];
+export const DEFAULT_MODEL = MODELS[0];
 
 export type StreamChunk = {
   token: string;

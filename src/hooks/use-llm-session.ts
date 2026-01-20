@@ -3,7 +3,7 @@ import { useLLM } from "@/contexts/llm-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useLLMStream } from "@/hooks/use-llm-stream";
 import { createModelMessage } from "@/lib/llm/common/message-factories";
-import type { Model } from "@/lib/llm/common/types";
+import { MODELS } from "@/lib/llm/common/types";
 import { useSessionRefs } from "@/hooks/use-session-refs";
 import { toast } from "sonner";
 import type { Session } from "@/lib/store/session/types";
@@ -39,12 +39,7 @@ export const useLLMSession = ({
       if (status === "error") toast.error("Network error occurred");
       addMessage(
         activeId,
-        createModelMessage(
-          content,
-          status,
-          activeSession?.preferredModel,
-          errorType,
-        ),
+        createModelMessage(content, status, activeSession?.modelId, errorType),
       );
       onComplete({ content, status });
     },
@@ -53,6 +48,9 @@ export const useLLMSession = ({
   const send = useCallback(
     async (text: string) => {
       if (!activeId || !llm) return;
+      const modelType = MODELS.find(
+        (m) => m.id === activeSession?.modelId,
+      )?.type;
 
       await stream({
         text,
@@ -62,7 +60,7 @@ export const useLLMSession = ({
           activeSession?.traits || [],
         ),
         context,
-        model: activeSession?.preferredModel as Model,
+        modelType: modelType,
       });
     },
     [activeId, llm, activeSession, stream, context],

@@ -3,7 +3,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Models, type Model } from "@/lib/llm/common/types";
+import { MODELS } from "@/lib/llm/common/types";
 import { useStreamingState } from "@/hooks/use-streaming-state";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { Check, ChevronDown } from "lucide-react";
@@ -16,13 +16,13 @@ export const SelectModel = () => {
     state.sessions.find((s) => s.id === state.activeId),
   );
   const { isCurrentSessionStreaming } = useStreamingState();
-  const model = session?.preferredModel as Model;
+  const model = MODELS.find((m) => m.id === session?.modelId);
   const [open, setOpen] = useState(false);
 
   const handleSelect = (key: string) => {
     if (session) {
-      const m = Models.find((m) => m.name === key);
-      if (m) setSessionModel(session.id, m);
+      const m = MODELS.find((m) => m.id === key);
+      if (m) setSessionModel(session.id, m.id);
     }
     setOpen(false);
   };
@@ -37,7 +37,7 @@ export const SelectModel = () => {
         hover:bg-accent/30 hover:text-primary
         inline-flex items-center justify-between rounded-md px-3 py-2 disabled:pointer-events-none disabled:opacity-50"
       >
-        <span>{model?.name || "Model"}</span>
+        <span>{model?.id || "Model"}</span>
         <ChevronDown className="h-4 w-4 opacity-50" />
       </DropdownMenuTrigger>
 
@@ -53,13 +53,13 @@ export const SelectModel = () => {
         </div>
 
         <div className="flex flex-col p-2 gap-1">
-          {Models.map((m) => {
-            const isSelected = model?.name === m.name;
+          {MODELS.map((m) => {
+            const isSelected = model?.id === m.id;
 
             return (
               <div
-                key={m.name}
-                onClick={() => handleSelect(m.name)}
+                key={m.id}
+                onClick={() => handleSelect(m.id)}
                 className={`flex flex-col p-2.5 gap-0.5 cursor-pointer rounded-md transition-all duration-200 group ${
                   isSelected
                     ? "bg-primary/5 ring-1 ring-primary/20"
@@ -72,7 +72,7 @@ export const SelectModel = () => {
                       isSelected ? "text-primary" : "text-foreground"
                     }`}
                   >
-                    {m.name}
+                    {m.id}
                   </span>
                   {isSelected && (
                     <div className="flex items-center justify-center h-4 w-4 rounded-full bg-primary text-primary-foreground animate-in zoom-in-75 duration-200">

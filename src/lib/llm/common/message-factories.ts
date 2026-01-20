@@ -1,5 +1,5 @@
 import type { Message, MessageStatus } from "@/lib/store/session/types";
-import type { Model } from "./types";
+import type { ModelId } from "./types";
 
 export const createUserMessage = (text: string): Message => ({
   id: crypto.randomUUID(),
@@ -11,13 +11,13 @@ export const createUserMessage = (text: string): Message => ({
 export const createModelMessage = (
   content: string,
   status: MessageStatus,
-  model?: Model,
+  modelId?: ModelId,
   errorType?: string,
 ): Message => ({
   id: crypto.randomUUID(),
   role: "model",
   content,
   status,
-  model,
+  modelId,
   ...(errorType && { errMsg: errorType }),
 });

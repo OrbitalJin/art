@@ -1,7 +1,7 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
-import { DefaultModel, type Model } from "@/lib/llm/common/types";
+import { DEFAULT_MODEL, MODELS, type ModelId } from "@/lib/llm/common/types";
 import type { Message, Session } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { toast } from "sonner";
@@ -17,7 +17,7 @@ const createNewSession = (title?: string): Session => {
     messages: [],
     noteRefs: [],
     mode: DEFAULT_MODE,
-    preferredModel: DefaultModel,
+    modelId: DEFAULT_MODEL.id,
     createdAt: date,
     updatedAt: date,
   };
@@ -45,7 +45,7 @@ export interface SessionState {
   getFn: (id: string) => Session | undefined;
   addMessage: (sessionId: string, message: Message) => void;
   updateTitle: (sessionId: string, newTitle: string) => void;
-  setModel: (sessionId: string, model: Model) => void;
+  setModel: (sessionId: string, modelId: ModelId) => void;
 }
 export const useSessionStore = create<SessionState>()(
   persist(
@@ -203,10 +203,10 @@ export const useSessionStore = create<SessionState>()(
         return get().sessions.find((s) => s.id === id);
       },
 
-      setModel: (sessionId: string, model: Model) =>
+      setModel: (sessionId: string, modelId: ModelId) =>
         set((state) => ({
           sessions: state.sessions.map((s) =>
-            s.id === sessionId ? { ...s, preferredModel: model } : s,
+            s.id === sessionId ? { ...s, modelId: modelId } : s,
           ),
         })),
 
@@ -285,6 +285,10 @@ export const useSessionStore = create<SessionState>()(
         if (state) {
           state.sessions = state.sessions.map((session) => ({
             ...session,
+            modelId:
+              session.modelId && session.modelId in MODELS
+                ? session.modelId
+                : DEFAULT_MODEL.id,
             mode:
               session.mode && session.mode in MODES
                 ? session.mode

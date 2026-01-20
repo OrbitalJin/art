@@ -13,10 +13,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { MODELS } from "@/lib/llm/common/types";
 
-export const AbortedMessage: React.FC<Message> = ({ content, model }) => {
+export const AbortedMessage: React.FC<Message> = ({ content, modelId }) => {
   const { copied, copy } = useCopy(content);
   const hasContent = content.length > 0;
+  const model = MODELS.find((m) => m.id === modelId);
 
   if (!hasContent) {
     return (
@@ -87,7 +89,7 @@ export const AbortedMessage: React.FC<Message> = ({ content, model }) => {
                 </span>
                 <span className="flex items-center gap-1">
                   <Sparkle size={12} />
-                  <ShimmerText>{model?.name}</ShimmerText>
+                  <ShimmerText>{model?.id}</ShimmerText>
                 </span>
               </div>
             </div>

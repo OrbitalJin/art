@@ -1,17 +1,10 @@
- import React, {
-   createContext,
-   useCallback,
-   useContext,
-   useMemo,
- } from "react";
- import { toast } from "sonner";
- import { useSessionStore } from "@/lib/store/use-session-store";
- import type { Message } from "@/lib/store/session/types";
- import { createUserMessage } from "@/lib/llm/common/message-factories";
- import { useSessionState } from "@/hooks/use-session-state";
- import { useLLMSession } from "@/hooks/use-llm-session";
-
-
+import React, { createContext, useCallback, useContext, useMemo } from "react";
+import { toast } from "sonner";
+import { useSessionStore } from "@/lib/store/use-session-store";
+import type { Message } from "@/lib/store/session/types";
+import { createUserMessage } from "@/lib/llm/common/message-factories";
+import { useSessionState } from "@/hooks/use-session-state";
+import { useLLMSession } from "@/hooks/use-llm-session";
 
 interface ActiveSessionContextValues {
   streamingSessionId: string | null;
@@ -42,7 +35,8 @@ export const ActiveSessionProvider: React.FC<{
   const { send, abort } = useLLMSession({
     activeId,
     activeSession,
-    onToken: (token: string) => dispatch({ type: "STREAM_TOKEN", payload: token }),
+    onToken: (token: string) =>
+      dispatch({ type: "STREAM_TOKEN", payload: token }),
     onComplete: () => dispatch({ type: "COMPLETE_STREAM" }),
   });
 
@@ -84,7 +78,7 @@ export const ActiveSessionProvider: React.FC<{
           role: "model",
           content: state.streamState.content,
           status: state.streamState.status,
-          model: activeSession?.preferredModel,
+          modelId: activeSession?.modelId,
         } as Message,
       ];
     }
@@ -97,7 +91,8 @@ export const ActiveSessionProvider: React.FC<{
       isSending: state.isSending,
       prompt: state.prompt,
       streamingSessionId: state.streamingSessionId,
-      setPrompt: (value: string) => dispatch({ type: "SET_PROMPT", payload: value }),
+      setPrompt: (value: string) =>
+        dispatch({ type: "SET_PROMPT", payload: value }),
       sendMessage,
       abortStream,
     }),

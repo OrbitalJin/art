@@ -7,15 +7,17 @@ import { estimateTokens } from "@/lib/llm/common/utils";
 import { Renderer } from "./renderer";
 import type { Message } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
+import { MODELS } from "@/lib/llm/common/types";
 
 export const AssistantMessage: React.FC<Message> = ({
   content,
-  model,
+  modelId,
   status,
 }) => {
   const { copied, copy } = useCopy(content);
   const isThinking = status === "thinking";
   const hasContent = content.length > 0;
+  const model = MODELS.find((m) => m.id === modelId);
   const premium = model?.tier === 3;
 
   return (
@@ -53,7 +55,7 @@ export const AssistantMessage: React.FC<Message> = ({
               >
                 <Sparkle size={12} />
                 <ShimmerText className={cn(premium && "text-amber-300/60")}>
-                  {model?.name}
+                  {model?.id}
                 </ShimmerText>
               </span>
             </div>
