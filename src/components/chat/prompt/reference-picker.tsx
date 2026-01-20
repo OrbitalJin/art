@@ -14,7 +14,7 @@ import { useStreamingState } from "@/hooks/use-streaming-state";
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn, formatDateAsAgo } from "@/lib/utils";
-import { Asterisk, Check, Search } from "lucide-react";
+import { Asterisk, Search } from "lucide-react";
 import { useState } from "react";
 
 export const ReferencePicker = () => {
@@ -141,7 +141,6 @@ export const ReferencePicker = () => {
                 onClick={() => handleToggleRef(page.id)}
                 className={cn(
                   "flex flex-col p-2 gap-2 cursor-pointer rounded-sm transition-all duration-200 group",
-                  "hover:ring-1 hover:ring-primary/20",
                   isSelected
                     ? "bg-primary/5 text-primary-foreground ring-1 ring-primary/20"
                     : "hover:bg-accent/50 hover:text-accent-foreground",
@@ -156,35 +155,22 @@ export const ReferencePicker = () => {
                   >
                     {page.title}
                   </p>
-                  {isSelected ? (
-                    <div
-                      className={cn(
-                        "flex items-center justify-center h-5 w-5",
-                        "rounded-full bg-primary text-primary-foreground",
-                        "animate-in zoom-in-75 duration-200",
-                      )}
-                    >
-                      <Check className="h-3 w-3" />
-                    </div>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] py-0 h-5 font-normal opacity-60 group-hover:opacity-100"
-                    >
-                      {page.workspace}
-                    </Badge>
-                  )}
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-[10px] py-0 h-5 font-normal opacity-60 group-hover:opacity-100 transition-opacity",
+                      isSelected &&
+                        "opacity-100 border-primary/30 text-primary",
+                    )}
+                  >
+                    {page.workspace}
+                  </Badge>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] text-muted-foreground/70">
                     {formatDateAsAgo(page.lastViewedAt)}
                   </p>
-                  {isSelected && (
-                    <span className="text-[10px] font-semibold text-primary/70 uppercase tracking-tighter">
-                      Referenced
-                    </span>
-                  )}
                 </div>
               </div>
             );

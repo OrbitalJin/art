@@ -11,6 +11,11 @@ import { useJournalEditor } from "@/contexts/note-editor-context";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { Button } from "@/components/ui/button";
 import { Edit3, Eye, Loader2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const Journal = () => {
   const { isDisabled, isEditable, toggleEditable, isSaving, editor } =
@@ -27,20 +32,27 @@ export const Journal = () => {
       <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <Button
-        className="absolute top-2 right-2 z-30 opacity-70"
-        variant={isSaving ? "ghost" : "outline"}
-        onClick={toggleEditable}
-        size="icon"
-      >
-        {isSaving ? (
-          <Loader2 className="animate-spin opacity-70" />
-        ) : isEditable ? (
-          <Edit3 />
-        ) : (
-          <Eye />
-        )}
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            className="absolute top-2 right-2 z-30 opacity-70"
+            variant={isSaving ? "ghost" : "outline"}
+            onClick={toggleEditable}
+            size="icon"
+          >
+            {isSaving ? (
+              <Loader2 className="animate-spin opacity-70" />
+            ) : isEditable ? (
+              <Edit3 />
+            ) : (
+              <Eye />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="left">
+          {isEditable ? "Editing" : "Viewing"}
+        </TooltipContent>
+      </Tooltip>
 
       <div
         className={cn(

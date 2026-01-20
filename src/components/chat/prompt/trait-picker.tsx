@@ -13,7 +13,7 @@ import { useStreamingState } from "@/hooks/use-streaming-state";
 import { TRAITS, type TraitId } from "@/lib/llm/prompts/traits";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
-import { Check, Fingerprint } from "lucide-react";
+import { Fingerprint } from "lucide-react";
 
 export const TraitPicker = () => {
   const activeId = useSessionStore((state) => state.activeId);
@@ -96,7 +96,7 @@ export const TraitPicker = () => {
           </p>
         </div>
 
-        <div className="flex flex-col p-2 gap-1">
+        <div className="flex flex-col p-2 gap-2">
           {Object.values(TRAITS).map((trait) => {
             const isSelected = withinTraits(activeId, trait.id);
 
@@ -120,11 +120,6 @@ export const TraitPicker = () => {
                   >
                     {trait.label}
                   </span>
-                  {isSelected && (
-                    <div className="flex items-center justify-center h-4 w-4 rounded-full bg-primary text-primary-foreground animate-in zoom-in-75 duration-200">
-                      <Check className="h-2.5 w-2.5" />
-                    </div>
-                  )}
                 </div>
                 <p className="text-[11px] text-muted-foreground/80 leading-normal">
                   {trait.description}

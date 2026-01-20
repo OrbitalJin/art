@@ -27,7 +27,7 @@ export const MODELS: readonly Model[] = [
     tier: 2,
     id: "Bloom",
     type: "gemini-2.0-flash",
-    description: "More thoughtful, connecting ideas with care.",
+    description: "More thoughtful, carefully connects ideas.",
     limit: 1_000_000,
   },
   {

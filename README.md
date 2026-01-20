@@ -37,9 +37,7 @@
 - [x] Markdown diary editor
 - [ ] To Do's (Categorized: Personal, School, Work, etc.) (board)
 - [ ] Pomodoro Timer
-
-### Desktop Interactions
-
+- [ ] Food tracking calories etc?
 - [ ] Screenshot Paste (Single & Multiple, then Save as PNG)
 - [ ] Sticker Overlay (PNG on window)
 - [ ] Sticky Notes
@@ -75,10 +73,9 @@
 - [x] copy content
 - [x] add padding at the bottom of the editor
 - [x] auto scroll to bottom in sessions
-- [ ] floating toggle/edit button
+- [x] floating toggle/edit button
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout (seperate feature, board)
-- [ ] food tracking calories etc?
 
 ### User Experience
 
