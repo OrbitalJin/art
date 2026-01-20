@@ -3,18 +3,18 @@ import "@/styles/tiptap.css";
 import { EditorContent } from "@tiptap/react";
 
 import { cn } from "@/lib/utils";
-import { StaticSidebar } from "@/components/notes/sidebar/static";
-import { FloatingSidebar } from "@/components/notes/sidebar/floating";
-import { EditorContextMenu } from "@/components/notes/editor/context-menu/context-menu";
-import { Command } from "@/components/notes/command";
-import { useNoteEditor } from "@/contexts/note-editor-context";
+import { StaticSidebar } from "@/components/journal/sidebar/static";
+import { FloatingSidebar } from "@/components/journal/sidebar/floating";
+import { EditorContextMenu } from "@/components/journal/editor/context-menu/context-menu";
+import { Command } from "@/components/journal/command";
+import { useJournalEditor } from "@/contexts/note-editor-context";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { Button } from "@/components/ui/button";
 import { Edit3, Eye, Loader2 } from "lucide-react";
 
-export const Notes = () => {
+export const Journal = () => {
   const { isDisabled, isEditable, toggleEditable, isSaving, editor } =
-    useNoteEditor();
+    useJournalEditor();
   const isOpen = useSettingsStore((state) => state.notesSidebarOpen);
   const setIsOpen = useSettingsStore((state) => state.setNotesSidebarOpen);
 

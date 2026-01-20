@@ -8,12 +8,12 @@ import {
 } from "@/components/ui/context-menu";
 import { LinkDialog } from "./link-dialog";
 import { useEditorActions } from "@/hooks/use-editor-actions";
-import { getMenuGroups } from "@/components/notes/editor/editor-menu";
+import { getMenuGroups } from "@/components/journal/editor/editor-menu";
 import { EditorItemRenderer } from "./item";
 import { TextActionDialog } from "./text-action-dialog";
 import { useEditorStateSelector } from "@/hooks/use-editor-state-selector";
 import { Copy } from "lucide-react";
-import { useNoteEditor } from "@/contexts/note-editor-context";
+import { useJournalEditor } from "@/contexts/note-editor-context";
 
 interface Props {
   children: React.ReactNode;
@@ -28,7 +28,7 @@ export const EditorContextMenu: React.FC<Props> = ({
 }) => {
   const actions = useEditorActions(editor);
   const { state: editorState } = useEditorStateSelector(editor);
-  const { isEditable } = useNoteEditor();
+  const { isEditable } = useJournalEditor();
 
   const menuGroups = useMemo(() => {
     if (!editor || !editorState) return [];

@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import {
-  ChevronRight,
-  MessageCircle as BookOpen,
-  Pin,
-  type LucideIcon,
-} from "lucide-react";
+import { ChevronRight, Pin, Scroll, type LucideIcon } from "lucide-react";
 
 interface Props {
   title: string;
@@ -16,7 +11,7 @@ interface Props {
   icon?: LucideIcon;
 }
 
-export const EntrySection: React.FC<Props> = ({
+export const Section: React.FC<Props> = ({
   title,
   count,
   icon: Icon,
@@ -42,7 +37,7 @@ export const EntrySection: React.FC<Props> = ({
           ) : isPinned ? (
             <Pin className="h-3 w-3 text-primary" />
           ) : (
-            <BookOpen className="h-3 w-3" />
+            <Scroll className="h-3 w-3" />
           )}
           <span>{title}</span>
           <span className="text-muted-foreground/60">({count})</span>

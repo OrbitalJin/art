@@ -1,16 +1,16 @@
 import { useMemo } from "react";
-import { useNoteStore } from "@/lib/store/use-note-store";
-import type { Entry } from "@/lib/store/notes/types";
+import { useJournalStore } from "@/lib/store/use-journal-store";
+import type { Page } from "@/lib/store/journal/types";
 import type { Session } from "@/lib/store/session/types";
 import { format } from "@/lib/llm/prompts/format";
 
 export const useSessionRefs = (session: Session | undefined) => {
-  const getNote = useNoteStore((state) => state.getFn);
+  const getNote = useJournalStore((state) => state.getFn);
   return useMemo(() => {
     const contextNotes =
-      session?.noteRefs
+      session?.journalRefs
         .map(getNote)
-        .filter((note): note is Entry => note !== undefined) || [];
+        .filter((note): note is Page => note !== undefined) || [];
     return format.notesAsContext(contextNotes);
-  }, [session?.noteRefs, getNote]);
+  }, [session?.journalRefs, getNote]);
 };

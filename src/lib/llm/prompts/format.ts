@@ -1,7 +1,7 @@
-import type { Entry } from "@/lib/store/notes/types";
+import type { Page } from "@/lib/store/journal/types";
 
 export const format = {
-  notesAsContext: (notes: Entry[]) => {
+  notesAsContext: (notes: Page[]) => {
     const context = notes
       .slice(0, 50)
       .map((note) => `Title: ${note.title}\nBody: ${note.content}`)

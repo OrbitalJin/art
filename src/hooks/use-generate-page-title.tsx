@@ -1,13 +1,13 @@
 import { useLLM } from "@/contexts/llm-context";
 import { gen } from "@/lib/llm/prompts/gen";
-import { useNoteStore } from "@/lib/store/use-note-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const useGenerateNoteTitle = () => {
+export const useGeneratePageTitle = () => {
   const { llm } = useLLM();
   const [generating, setGenerating] = useState(false);
-  const notes = useNoteStore((state) => state.entries);
+  const notes = useJournalStore((state) => state.pages);
 
   const generateTitle = async (noteId: string) => {
     const note = notes.find((n) => n.id === noteId);

@@ -15,7 +15,7 @@ const createNewSession = (title?: string): Session => {
     title: title ?? "New Session",
     traits: [],
     messages: [],
-    noteRefs: [],
+    journalRefs: [],
     mode: DEFAULT_MODE,
     modelId: DEFAULT_MODEL.id,
     createdAt: date,
@@ -32,14 +32,13 @@ export interface SessionState {
   addTrait: (id: string, trait: TraitId) => void;
   removeTrait: (id: string, trait: TraitId) => void;
   clearTraits: (id: string) => void;
-  addNoteRef: (id: string, noteId: string) => void;
-  removeNoteRef: (id: string, noteId: string) => void;
-  clearNoteRefs: (id: string) => void;
+  addJournalRef: (id: string, pageId: string) => void;
+  removeJournalRef: (id: string, pageId: string) => void;
+  clearJournalRefs: (id: string) => void;
   toggleArchived: (id: string) => void;
   togglePinned: (id: string) => void;
   importFn: (s: Session) => void;
   setActive: (id: string) => void;
-  ensureDefault: () => void;
   deleteFn: (id: string) => void;
   create: (title?: string) => void;
   getFn: (id: string) => Session | undefined;
@@ -128,33 +127,33 @@ export const useSessionStore = create<SessionState>()(
         }));
       },
 
-      addNoteRef: (id: string, noteId: string) => {
+      addJournalRef: (id: string, pageId: string) => {
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
-              ? { ...session, noteRefs: [...session.noteRefs, noteId] }
+              ? { ...session, journalRefs: [...session.journalRefs, pageId] }
               : session,
           ),
         }));
       },
 
-      removeNoteRef: (id: string, noteId: string) => {
+      removeJournalRef: (id: string, pageId: string) => {
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
               ? {
                   ...session,
-                  noteRefs: session.noteRefs.filter((n) => n !== noteId),
+                  journalRefs: session.journalRefs.filter((n) => n !== pageId),
                 }
               : session,
           ),
         }));
       },
 
-      clearNoteRefs: (id: string) => {
+      clearJournalRefs: (id: string) => {
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) =>
-            session.id === id ? { ...session, noteRefs: [] } : session,
+            session.id === id ? { ...session, journalRefs: [] } : session,
           ),
         }));
       },
@@ -180,23 +179,6 @@ export const useSessionStore = create<SessionState>()(
         set({
           sessions: [...state.sessions, orphan],
         });
-      },
-
-      ensureDefault: () => {
-        const state = get();
-        if (state.sessions.length === 0) {
-          const newSession = createNewSession();
-          set({
-            sessions: [newSession],
-            activeId: newSession.id,
-          });
-        } else {
-          if (!state.activeId) {
-            set({
-              activeId: state.sessions[0].id,
-            });
-          }
-        }
       },
 
       getFn: (id: string) => {
@@ -276,27 +258,44 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
+      version: 1,
       storage: createJSONStorage(() => sessionStorage),
-      onRehydrateStorage: () => (state, error) => {
-        if (error) {
-          console.error("Error rehydrating store:", error);
-          return;
+      migrate: (persistedState: any, version: number) => {
+        if (version === 0) {
+          if (persistedState && Array.isArray(persistedState.sessions)) {
+            persistedState.sessions = persistedState.sessions.map(
+              (session: any) => ({
+                ...session,
+                modelId:
+                  session.modelId in MODELS
+                    ? session.modelId
+                    : DEFAULT_MODEL.id,
+                mode: session.mode in MODES ? session.mode : DEFAULT_MODE,
+                journalRefs: Array.isArray(session.journalRefs)
+                  ? session.journalRefs
+                  : [],
+                traits: Array.isArray(session.traits) ? session.traits : [],
+              }),
+            );
+          }
         }
-        if (state) {
-          state.sessions = state.sessions.map((session) => ({
-            ...session,
-            modelId:
-              session.modelId && session.modelId in MODELS
-                ? session.modelId
-                : DEFAULT_MODEL.id,
-            mode:
-              session.mode && session.mode in MODES
-                ? session.mode
-                : DEFAULT_MODE,
-            noteRefs: Array.isArray(session.noteRefs) ? session.noteRefs : [],
-            traits: Array.isArray(session.traits) ? session.traits : [],
-          }));
-          state.ensureDefault();
+        return persistedState;
+      },
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+
+        // If no sessions exist after migration/hydration, create the initial one
+        if (state.sessions.length === 0) {
+          const newSession = createNewSession();
+          state.sessions = [newSession];
+          state.activeId = newSession.id;
+        }
+        // If sessions exist but no activeId is set, set to first session
+        else if (
+          !state.activeId ||
+          !state.sessions.find((s) => s.id === state.activeId)
+        ) {
+          state.activeId = state.sessions[0].id;
         }
       },
     },

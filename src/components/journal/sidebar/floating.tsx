@@ -1,5 +1,5 @@
 import { FloatingSidebar as SharedFloatingSidebar } from "@/components/ui/floating-sidebar";
-import { SidebarContent } from "@/components/notes/sidebar/content";
+import { SidebarContent } from "@/components/journal/sidebar/content";
 
 interface Props {
   isOpen: boolean;

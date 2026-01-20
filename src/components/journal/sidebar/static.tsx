@@ -1,5 +1,5 @@
 import { StaticSidebar as SharedStaticSidebar } from "@/components/ui/static-sidebar";
-import { SidebarContent } from "@/components/notes/sidebar/content";
+import { SidebarContent } from "@/components/journal/sidebar/content";
 import type React from "react";
 
 interface Props {

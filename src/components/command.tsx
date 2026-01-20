@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/command";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import type { NavigationItem } from "@/components/layout/navigation";
-import { useNoteStore } from "@/lib/store/use-note-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 
 interface Props {
@@ -22,7 +22,7 @@ interface Props {
 
 export const Command: React.FC<Props> = ({ items }) => {
   const { create } = useSessionStore();
-  const { create: createNote } = useNoteStore();
+  const { create: createNote } = useJournalStore();
   const setSettingsDialogOpen = useSettingsStore(
     (state) => state.setSettingsDialogOpen,
   );

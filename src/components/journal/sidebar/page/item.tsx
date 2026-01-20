@@ -24,13 +24,13 @@ import {
   Wand2,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
-import { useNoteStore } from "@/lib/store/use-note-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { TagList } from "@/components/notes/sidebar/entry/tag/list";
-import { WORKSPACES } from "@/lib/store/notes/types";
+import { TagList } from "@/components/journal/sidebar/page/tag/list";
+import { WORKSPACES } from "@/lib/store/journal/types";
 import { ShimmerText } from "@/components/ui/shimmer-text";
-import { useGenerateNoteTitle } from "@/hooks/use-generate-note-title";
+import { useGeneratePageTitle } from "@/hooks/use-generate-page-title";
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   id: string;
@@ -42,7 +42,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   onSwitch?: () => void;
 }
 
-export const EntryListItem: React.FC<Props> = ({
+export const PageListItem: React.FC<Props> = ({
   id,
   title,
   active,
@@ -50,9 +50,9 @@ export const EntryListItem: React.FC<Props> = ({
   createdAt,
   tags,
 }) => {
-  const updateTitle = useNoteStore((state) => state.updateTitle);
-  const setActive = useNoteStore((state) => state.setActive);
-  const { generating, generateTitle } = useGenerateNoteTitle();
+  const updateTitle = useJournalStore((state) => state.updateTitle);
+  const setActive = useJournalStore((state) => state.setActive);
+  const { generating, generateTitle } = useGeneratePageTitle();
 
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
@@ -116,7 +116,7 @@ export const EntryListItem: React.FC<Props> = ({
       </div>
 
       {!editing && !generating && (
-        <EntryMenu
+        <Menu
           id={id}
           pinned={!!pinned}
           setEditing={setEditing}
@@ -129,7 +129,7 @@ export const EntryListItem: React.FC<Props> = ({
   );
 };
 
-interface EntryMenuProps {
+interface MenuProps {
   id: string;
   pinned: boolean;
   setEditing: (val: boolean) => void;
@@ -138,7 +138,7 @@ interface EntryMenuProps {
   generateTitle: (id: string) => Promise<string | void>;
 }
 
-const EntryMenu: React.FC<EntryMenuProps> = ({
+const Menu: React.FC<MenuProps> = ({
   id,
   pinned,
   setEditing,
@@ -146,12 +146,12 @@ const EntryMenu: React.FC<EntryMenuProps> = ({
   updateTitle,
   generateTitle,
 }) => {
-  const changeWorkspace = useNoteStore((state) => state.changeWorkspace);
-  const deleteFn = useNoteStore((state) => state.deleteFn);
-  const togglePin = useNoteStore((state) => state.togglePinned);
-  const toggleArchived = useNoteStore((state) => state.toggleArchived);
-  const setActive = useNoteStore((state) => state.setActive);
-  const entry = useNoteStore((state) => state.getFn(id));
+  const changeWorkspace = useJournalStore((state) => state.changeWorkspace);
+  const deleteFn = useJournalStore((state) => state.deleteFn);
+  const togglePin = useJournalStore((state) => state.togglePinned);
+  const toggleArchived = useJournalStore((state) => state.toggleArchived);
+  const setActive = useJournalStore((state) => state.setActive);
+  const page = useJournalStore((state) => state.getFn(id));
 
   // Use the hook inside the menu to isolate state
   const [open, setOpen] = useState(false);
@@ -185,7 +185,7 @@ const EntryMenu: React.FC<EntryMenuProps> = ({
         className="w-52"
         onClick={(e) => e.stopPropagation()}
       >
-        {!entry?.archived && (
+        {!page?.archived && (
           <>
             <DropdownMenuGroup>
               <DropdownMenuItem
@@ -201,7 +201,7 @@ const EntryMenu: React.FC<EntryMenuProps> = ({
           </>
         )}
 
-        {!entry?.archived && (
+        {!page?.archived && (
           <>
             <DropdownMenuGroup>
               <DropdownMenuSub>
@@ -213,7 +213,7 @@ const EntryMenu: React.FC<EntryMenuProps> = ({
                   <DropdownMenuSubContent>
                     {WORKSPACES.map(
                       (workspace) =>
-                        workspace !== entry?.workspace && (
+                        workspace !== page?.workspace && (
                           <DropdownMenuItem
                             key={workspace}
                             onSelect={() => changeWorkspace(id, workspace)}
@@ -255,7 +255,7 @@ const EntryMenu: React.FC<EntryMenuProps> = ({
 
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={() => toggleArchived(id)}>
-            {entry?.archived ? (
+            {page?.archived ? (
               <>
                 <ArchiveRestore className="h-4 w-4" />
                 <span>Unarchive</span>

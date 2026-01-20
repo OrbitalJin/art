@@ -10,12 +10,12 @@ import {
   CommandItem,
   CommandShortcut,
 } from "@/components/ui/command";
-import { getMenuGroups } from "@/components/notes/editor/editor-menu";
+import { getMenuGroups } from "@/components/journal/editor/editor-menu";
 import { useEditorActions } from "@/hooks/use-editor-actions";
 import { cn } from "@/lib/utils";
 import { useEditorStateSelector } from "@/hooks/use-editor-state-selector";
-import { TextActionDialog } from "@/components/notes/editor/context-menu/text-action-dialog";
-import { useNoteEditor } from "@/contexts/note-editor-context";
+import { TextActionDialog } from "@/components/journal/editor/context-menu/text-action-dialog";
+import { useJournalEditor } from "@/contexts/note-editor-context";
 
 interface MenuItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -83,7 +83,7 @@ export const Command: React.FC<Props> = ({ editor }) => {
   const actions = useEditorActions(editor || null);
   const selector = useEditorStateSelector(editor);
 
-  const { isEditable } = useNoteEditor();
+  const { isEditable } = useJournalEditor();
 
   const menuGroups = useMemo(() => {
     if (!editor || !selector?.state) return [];

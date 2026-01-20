@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Editor } from "@tiptap/react";
 import { toast } from "sonner";
 
-import { useNoteStore } from "@/lib/store/use-note-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useImportImage } from "@/hooks/use-import-image";
 import { useTextActions } from "@/hooks/use-text-actions";
 import type { LLMActions } from "@/lib/types";
@@ -25,8 +25,8 @@ export const useEditorActions = (editor: Editor | null) => {
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [textAction, setTextAction] = useState<LLMActions | null>(null);
 
-  const updateContent = useNoteStore((state) => state.updateContent);
-  const activeId = useNoteStore((state) => state.activeId);
+  const updateContent = useJournalStore((state) => state.updateContent);
+  const activeId = useJournalStore((state) => state.activeId);
 
   const { importImage } = useImportImage();
   const { summarize, repharse, bullet, isBusy } = useTextActions();
@@ -82,12 +82,12 @@ export const useEditorActions = (editor: Editor | null) => {
       }
 
       // If the same note is still active, update editor directly
-      if (useNoteStore.getState().activeId === processingNoteId) {
+      if (useJournalStore.getState().activeId === processingNoteId) {
         editor.chain().focus().insertContentAt({ from, to }, result).run();
       } else {
         // Otherwise update the stored content safely
-        const { entries } = useNoteStore.getState();
-        const target = entries.find((entry) => entry.id === processingNoteId);
+        const { pages } = useJournalStore.getState();
+        const target = pages.find((page) => page.id === processingNoteId);
 
         if (target) {
           const updatedHtml = target.content.replace(selectedText, result);

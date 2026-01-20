@@ -1,10 +1,13 @@
 import { useEffect } from "react";
 import { Editor } from "@tiptap/react";
-import { useNoteStore } from "@/lib/store/use-note-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 
-export const useEditorSync = (editor: Editor | null, activeId: string | null) => {
-  const note = useNoteStore((s) => s.getFn(activeId ?? ""));
-  const updateContent = useNoteStore((s) => s.updateContent);
+export const useEditorSync = (
+  editor: Editor | null,
+  activeId: string | null,
+) => {
+  const note = useJournalStore((s) => s.getFn(activeId ?? ""));
+  const updateContent = useJournalStore((s) => s.updateContent);
 
   // Sync content with editor when note changes
   useEffect(() => {

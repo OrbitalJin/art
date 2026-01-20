@@ -1,11 +1,11 @@
 import { useState, useCallback } from "react";
 import { Editor } from "@tiptap/react";
 import { useEditorState as useTipTapEditorState } from "@tiptap/react";
-import { useNoteStore } from "@/lib/store/use-note-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 
 export const useEditorStateSelector = (editor: Editor | null) => {
   const [isEditable, setIsEditable] = useState(false);
-  const isDisabled = useNoteStore((s) => s.entries.length === 0);
+  const isDisabled = useJournalStore((s) => s.pages.length === 0);
 
   const state = useTipTapEditorState({
     editor,

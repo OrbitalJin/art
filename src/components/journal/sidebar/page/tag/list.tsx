@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useNoteEditor } from "@/contexts/note-editor-context";
+import { useJournalEditor } from "@/contexts/note-editor-context";
 
 interface TagListProps {
   tags: string[];
@@ -12,7 +12,7 @@ interface TagListProps {
 export const TagList = ({ tags, active, maxVisible = 2 }: TagListProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { handleTagClick } = useNoteEditor();
+  const { handleTagClick } = useJournalEditor();
 
   const visibleTags = isExpanded ? tags : tags.slice(0, maxVisible);
   const hiddenTagsCount = Math.max(0, tags.length - maxVisible);

@@ -3,7 +3,7 @@ import { load } from "@tauri-apps/plugin-store";
 
 const tauriStore = await load("notes.json");
 
-export const noteStorage: StateStorage = {
+export const journalStorage: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {
     return (await tauriStore.get(name)) || null;
   },

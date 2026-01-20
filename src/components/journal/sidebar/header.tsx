@@ -1,5 +1,5 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WORKSPACES, type Workspace } from "@/lib/store/notes/types";
+import { WORKSPACES, type Workspace } from "@/lib/store/journal/types";
 import { PanelLeftClose, Plus, Search, X } from "lucide-react";
 import {
   Tooltip,
@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useNoteStore } from "@/lib/store/use-note-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useMemo } from "react";
-import { useNoteEditor } from "@/contexts/note-editor-context";
-import { TagFilterDropdown } from "./entry/tag/filter-dropdown";
+import { useJournalEditor } from "@/contexts/note-editor-context";
+import { TagFilterDropdown } from "./page/tag/filter-dropdown";
 
 interface Props {
   onClose: (open: boolean) => void;
@@ -28,24 +28,24 @@ export const SidebarHeader: React.FC<Props> = ({
   setQuery,
   onClose,
 }) => {
-  const create = useNoteStore((state) => state.create);
-  const entries = useNoteStore((state) => state.entries);
-  const { currentTab, setCurrentTab } = useNoteEditor();
+  const create = useJournalStore((state) => state.create);
+  const pages = useJournalStore((state) => state.pages);
+  const { currentTab, setCurrentTab } = useJournalEditor();
 
   const tagCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    entries.forEach((entry) => {
-      entry.tags.forEach((tag) => {
+    pages.forEach((page) => {
+      page.tags.forEach((tag) => {
         counts[tag] = (counts[tag] || 0) + 1;
       });
     });
     return counts;
-  }, [entries]);
+  }, [pages]);
 
   const allTags = useMemo(() => {
-    const allTags = entries.flatMap((entry) => entry.tags);
+    const allTags = pages.flatMap((page) => page.tags);
     return [...new Set(allTags)].sort();
-  }, [entries]);
+  }, [pages]);
 
   const getTagCount = (tag: string) => tagCounts[tag] || 0;
 
@@ -63,7 +63,7 @@ export const SidebarHeader: React.FC<Props> = ({
           onClick={() => create(currentTab)}
         >
           <Plus />
-          New Entry
+          New Page
         </Button>
         <Button size="icon" variant="outline" onClick={() => onClose(false)}>
           <PanelLeftClose />
@@ -81,7 +81,7 @@ export const SidebarHeader: React.FC<Props> = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="outline-none flex-1"
-            placeholder="Search entries..."
+            placeholder="Search journal..."
           />
           {query && (
             <X

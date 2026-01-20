@@ -38,9 +38,9 @@ export const Navigation = () => {
     {
       icon: Book,
       activeIcon: BookOpen,
-      name: "Notes",
-      description: "Notes",
-      href: "/notes",
+      name: "Journal",
+      description: "Journal",
+      href: "/Journal",
       shortcut: "Alt+2",
     },
   ];

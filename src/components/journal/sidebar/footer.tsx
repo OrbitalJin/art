@@ -10,10 +10,10 @@ import {
   Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNoteEditor } from "@/contexts/note-editor-context";
-import { useTradeNote } from "@/hooks/use-trade-notes";
+import { useJournalEditor } from "@/contexts/note-editor-context";
+import { useTradeJournal } from "@/hooks/use-trade-journal";
 import { useCopy } from "@/hooks/use-copy";
-import { useNoteStore } from "@/lib/store/use-note-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -29,8 +29,8 @@ export const SidebarFooter = () => {
     charCount,
     isSaving,
     toggleEditable,
-  } = useNoteEditor();
-  const currentNote = useNoteStore((s) => s.getFn(s.activeId ?? ""));
+  } = useJournalEditor();
+  const currentNote = useJournalStore((s) => s.getFn(s.activeId ?? ""));
 
   const { copy, copied } = useCopy(currentNote?.content as string);
 
@@ -76,15 +76,15 @@ export const SidebarFooter = () => {
 };
 
 export const ExportButton = () => {
-  const { importNote, exportCurrentNote } = useTradeNote();
+  const { importPage, exportCurrentPage } = useTradeJournal();
 
   return (
     <div className="flex items-center gap-2 p-2 border-t">
-      <Button variant="outline" onClick={exportCurrentNote} className="flex-1">
+      <Button variant="outline" onClick={exportCurrentPage} className="flex-1">
         <Upload className="h-3.5 w-3.5" />
         Export
       </Button>
-      <Button variant="outline" onClick={importNote} className="flex-1">
+      <Button variant="outline" onClick={importPage} className="flex-1">
         <Download className="h-3.5 w-3.5" />
         Import
       </Button>

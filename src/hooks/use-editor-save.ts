@@ -1,35 +1,38 @@
 import { useCallback, useRef } from "react";
-import { useNoteStore } from "@/lib/store/use-note-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { extractTags } from "@/lib/utils/tags";
 
 export const useEditorSave = (activeId: string | null) => {
-  const updateContent = useNoteStore((s) => s.updateContent);
-  const updateTags = useNoteStore((s) => s.updateTags);
+  const updateContent = useJournalStore((s) => s.updateContent);
+  const updateTags = useJournalStore((s) => s.updateTags);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setIsSavingRef = useRef<((saving: boolean) => void) | null>(null);
 
-  const handleSave = useCallback((markdown: string, setIsSaving: (saving: boolean) => void) => {
-    if (!activeId) return;
-    
-    setIsSaving(true);
-    setIsSavingRef.current = setIsSaving;
-    
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    timeoutRef.current = setTimeout(() => {
+  const handleSave = useCallback(
+    (markdown: string, setIsSaving: (saving: boolean) => void) => {
       if (!activeId) return;
-      
-      const tags = extractTags(markdown);
-      updateTags(activeId, tags);
-      updateContent(activeId, markdown, false);
-      
-      if (setIsSavingRef.current) {
-        setIsSavingRef.current(false);
+
+      setIsSaving(true);
+      setIsSavingRef.current = setIsSaving;
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-    }, 1000);
-  }, [activeId, updateContent, updateTags]);
+
+      timeoutRef.current = setTimeout(() => {
+        if (!activeId) return;
+
+        const tags = extractTags(markdown);
+        updateTags(activeId, tags);
+        updateContent(activeId, markdown, false);
+
+        if (setIsSavingRef.current) {
+          setIsSavingRef.current(false);
+        }
+      }, 1000);
+    },
+    [activeId, updateContent, updateTags],
+  );
 
   return { handleSave };
 };

@@ -4,7 +4,7 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const useGenerateTitle = () => {
+export const useGenerateSessionTitle = () => {
   const { llm } = useLLM();
   const [generating, setGenerating] = useState(false);
   const sessions = useSessionStore((state) => state.sessions);

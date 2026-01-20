@@ -23,7 +23,7 @@ export interface Session {
   title: string;
   messages: Message[];
   modelId: ModelId;
-  noteRefs: string[];
+  journalRefs: string[];
   traits: TraitId[];
   mode: ModeId;
   forkOf?: string;

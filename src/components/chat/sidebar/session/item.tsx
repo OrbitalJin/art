@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ShimmerText } from "@/components/ui/shimmer-text";
-import { useGenerateTitle } from "@/hooks/use-generate-title";
+import { useGenerateSessionTitle } from "@/hooks/use-generate-session-title";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useStreamingState } from "@/hooks/use-streaming-state";
 import {
@@ -47,7 +47,7 @@ export const SessionListItem: React.FC<Props> = ({
   onSwitch,
 }) => {
   const { isSessionStreaming } = useStreamingState();
-  const { generating, generateTitle } = useGenerateTitle();
+  const { generating, generateTitle } = useGenerateSessionTitle();
   const setActive = useSessionStore((s) => s.setActive);
   const updateTitle = useSessionStore((s) => s.updateTitle);
 

@@ -1,16 +1,16 @@
 import { useLLM } from "@/contexts/llm-context";
 import { gen } from "@/lib/llm/prompts/gen";
-import { useNoteStore } from "@/lib/store/use-note-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 export const useCreateNoteFromSession = () => {
-  const updateNoteContent = useNoteStore((state) => state.updateContent);
-  const currentWorkspace = useNoteStore((state) => state.currentWorkspace);
+  const updateNoteContent = useJournalStore((state) => state.updateContent);
+  const currentWorkspace = useJournalStore((state) => state.currentWorkspace);
   const sessions = useSessionStore((state) => state.sessions);
-  const createNote = useNoteStore((state) => state.create);
+  const createNote = useJournalStore((state) => state.create);
   const navigate = useNavigate();
 
   const { llm } = useLLM();

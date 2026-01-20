@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { SidebarHeader } from "@/components/notes/sidebar/header";
-import { EntryList } from "@/components/notes/sidebar/entry/list";
-import { SidebarFooter } from "@/components/notes/sidebar/footer";
+import { SidebarHeader } from "@/components/journal/sidebar/header";
+import { PageList } from "@/components/journal/sidebar/page/list";
+import { SidebarFooter } from "@/components/journal/sidebar/footer";
 
 interface Props {
   onClose: (open: boolean) => void;
@@ -20,7 +20,7 @@ export const SidebarContent: React.FC<Props> = ({ onClose }) => {
         selectedTags={selectedTags}
         setSelectedTags={setSelectedTags}
       />
-      <EntryList query={query} selectedTags={selectedTags} />
+      <PageList query={query} selectedTags={selectedTags} />
       <SidebarFooter />
     </div>
   );
