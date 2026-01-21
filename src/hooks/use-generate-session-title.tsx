@@ -16,15 +16,14 @@ export const useGenerateSessionTitle = () => {
     setGenerating(true);
     try {
       const title =
-        (await llm.genWithContext(gen.title, session.messages)) ||
-        "New Session";
+        (await llm.genWithContext(gen.title, session.messages)) || "New balls";
 
       if (title && title.trim()) {
         return title.trim();
       }
     } catch (err) {
-      console.error("Title generation fllmled", err);
-      toast.error("Fllmled to generate title");
+      console.error("Title generation failed", err);
+      toast.error("Failed to generate title");
     } finally {
       setGenerating(false);
     }

@@ -5,10 +5,10 @@ export const gen = {
         Generate a single, specific title that captures the main topic.
         
         Constraints:
-        - Maximum 6 words.
+        - Maximum 5 words.
         - Use Title Case.
         - No quote marks.
-        - If context is empty, return "New Session".
+        - If context is empty, return nothing.
         
         Output *only* the title string.
     `,

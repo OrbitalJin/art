@@ -35,8 +35,8 @@ export const Command: React.FC<Props> = ({ items }) => {
   };
 
   const handleQuickNote = () => {
-    createNote(undefined, "Quick Note");
-    handleNavigate("/notes");
+    createNote(undefined, "Quick Thought");
+    handleNavigate("/journal");
   };
 
   const handleOpenSettings = () => {
@@ -121,9 +121,9 @@ export const Command: React.FC<Props> = ({ items }) => {
             <CommandShortcut>Ctrl+Alt+S</CommandShortcut>
           </CommandItem>
 
-          <CommandItem value="quick note" onSelect={handleQuickNote}>
+          <CommandItem value="quick thought" onSelect={handleQuickNote}>
             <BookPlus className="mr-2 h-4 w-4" />
-            Quick Note
+            Quick Thought
             <CommandShortcut>Ctrl+Alt+N</CommandShortcut>
           </CommandItem>
         </CommandGroup>
