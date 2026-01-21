@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-export const useCreateNoteFromSession = () => {
+export const useCreatePageFromSession = () => {
   const updateNoteContent = useJournalStore((state) => state.updateContent);
   const currentWorkspace = useJournalStore((state) => state.currentWorkspace);
   const sessions = useSessionStore((state) => state.sessions);
@@ -38,7 +38,7 @@ export const useCreateNoteFromSession = () => {
 
       const id = createNote(currentWorkspace, session.title + " - Notes");
       updateNoteContent(id, result, false);
-      navigate("/notes");
+      navigate("/journal");
       toast.success("Note created from session", { id: toastId });
     } catch (err) {
       console.error("Failed to create note from session", err);

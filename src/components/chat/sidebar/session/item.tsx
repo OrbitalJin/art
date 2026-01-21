@@ -32,7 +32,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useCreateNoteFromSession } from "@/hooks/use-create-note-from-session";
+import { useCreatePageFromSession } from "@/hooks/use-create-page-from-session";
 import type { Session } from "@/lib/store/session/types";
 
 interface Props {
@@ -172,7 +172,7 @@ const Menu: React.FC<MenuProps> = ({
   const toggleArchived = useSessionStore((s) => s.toggleArchived);
 
   // Use the hook inside the menu to isolate state
-  const { creating, create } = useCreateNoteFromSession();
+  const { creating, create } = useCreatePageFromSession();
   const [open, setOpen] = useState(false);
 
   const handleDelete = (e?: React.SyntheticEvent) => {
