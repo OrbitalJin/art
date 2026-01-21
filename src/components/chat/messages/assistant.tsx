@@ -2,17 +2,23 @@ import { Spinner } from "@/components/ui/spinner";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, Sparkle, Cpu } from "lucide-react";
+import { Check, Copy, Sparkle, Cpu, Globe } from "lucide-react";
 import { estimateTokens } from "@/lib/llm/common/utils";
 import { Renderer } from "./renderer";
 import type { Message } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 import { MODELS } from "@/lib/llm/common/types";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const AssistantMessage: React.FC<Message> = ({
   content,
   modelId,
   status,
+  grounded,
 }) => {
   const { copied, copy } = useCopy(content);
   const isThinking = status === "thinking";
@@ -43,7 +49,23 @@ export const AssistantMessage: React.FC<Message> = ({
               {copied ? <Check className="text-green-400" /> : <Copy />}
             </Button>
 
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground cursor-default">
+              {grounded && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <span className="flex items-center gap-1">
+                      <Globe size={12} />
+                      <ShimmerText>Grounded</ShimmerText>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p className="text-xs">
+                      This response is based on information from the internet.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+
               <span className="flex items-center gap-1">
                 <Cpu size={12} /> {estimateTokens(content)} tokens
               </span>

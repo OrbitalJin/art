@@ -29,6 +29,7 @@
 - [x] Create note from session
 - [x] Add modes (chat, research, tutor)
 - [x] add "archived" state.
+- [x] Search grounding
 
 ### Productivity & Tools
 

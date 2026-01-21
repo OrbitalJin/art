@@ -11,6 +11,7 @@ export const createUserMessage = (text: string): Message => ({
 export const createModelMessage = (
   content: string,
   status: MessageStatus,
+  grounded?: boolean,
   modelId?: ModelId,
   errorType?: string,
 ): Message => ({
@@ -18,6 +19,7 @@ export const createModelMessage = (
   role: "model",
   content,
   status,
+  grounded,
   modelId,
   ...(errorType && { errMsg: errorType }),
 });

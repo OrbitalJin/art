@@ -35,7 +35,7 @@ export const MessageList: React.FC<Props> = ({ messages }) => {
         atBottomStateChange={setAtBottom}
         overscan={400}
         itemContent={(index, msg) => (
-          <div className="py-4 max-w-2xl mx-auto">
+          <div className="py-4 max-w-2xl mx-auto select-text">
             <MessageBroker key={index} {...msg} />
           </div>
         )}

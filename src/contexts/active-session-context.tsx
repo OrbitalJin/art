@@ -79,6 +79,7 @@ export const ActiveSessionProvider: React.FC<{
           content: state.streamState.content,
           status: state.streamState.status,
           modelId: activeSession?.modelId,
+          grounded: activeSession?.searchGrounding,
         } as Message,
       ];
     }

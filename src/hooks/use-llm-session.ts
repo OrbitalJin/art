@@ -39,7 +39,13 @@ export const useLLMSession = ({
       if (status === "error") toast.error("Network error occurred");
       addMessage(
         activeId,
-        createModelMessage(content, status, activeSession?.modelId, errorType),
+        createModelMessage(
+          content,
+          status,
+          activeSession?.searchGrounding,
+          activeSession?.modelId,
+          errorType,
+        ),
       );
       onComplete({ content, status });
     },
@@ -52,15 +58,14 @@ export const useLLMSession = ({
         (m) => m.id === activeSession?.modelId,
       )?.type;
 
-      await stream({
-        text,
-        messages: activeSession?.messages || [],
+      await stream(text, activeSession?.messages || [], {
         systemPrompt: systemPrompt(
           activeSession?.mode || DEFAULT_MODE,
           activeSession?.traits || [],
         ),
         context,
-        modelType: modelType,
+        model: modelType,
+        useGoogleSearch: activeSession?.searchGrounding,
       });
     },
     [activeId, llm, activeSession, stream, context],

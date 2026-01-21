@@ -14,6 +14,7 @@ export interface Message {
   role: "user" | "model" | "error";
   content: string;
   status: MessageStatus;
+  grounded?: boolean;
   modelId?: ModelId;
   errMsg?: string;
 }
@@ -31,4 +32,5 @@ export interface Session {
   pinned?: boolean;
   createdAt: number;
   updatedAt: number;
+  searchGrounding?: boolean;
 }

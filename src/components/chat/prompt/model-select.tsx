@@ -45,7 +45,7 @@ export const SelectModel = () => {
       <DropdownMenuTrigger
         disabled={isCurrentSessionStreaming}
         className="
-        w-[160px] text-xs border cursor-pointer
+        w-[120px] text-xs border cursor-pointer
         shadow-none focus:ring-0 transition-colors
         hover:bg-accent/30 hover:text-primary
         inline-flex items-center justify-between rounded-md px-3 py-2 disabled:pointer-events-none disabled:opacity-50"
@@ -65,7 +65,7 @@ export const SelectModel = () => {
           </p>
         </div>
 
-        <div className="flex flex-col p-2 gap-2">
+        <div className="flex flex-col p-2 gap-1">
           {MODELS.map((m) => {
             const isSelected = model?.id === m.id;
             const label = getTierLabel(m.tier);

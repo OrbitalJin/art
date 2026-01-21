@@ -9,6 +9,7 @@ import { useStreamingState } from "@/hooks/use-streaming-state";
 import { ReferencePicker } from "@/components/chat/prompt/reference-picker";
 import { TraitPicker } from "./trait-picker";
 import { ForkSession } from "./fork-session";
+import { SearchGrounding } from "./search-grounding";
 
 export const Prompt = () => {
   const { prompt, abortStream, setPrompt, sendMessage } = useActiveSession();
@@ -57,9 +58,10 @@ export const Prompt = () => {
           <div className="flex justify-between items-center px-1">
             <div className="flex flex-row gap-2">
               <SelectModel />
-              <ForkSession />
               <TraitPicker />
               <ReferencePicker />
+              <ForkSession />
+              <SearchGrounding />
             </div>
             <Button
               variant="default"

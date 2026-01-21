@@ -29,6 +29,7 @@ export interface SessionState {
 
   fork: (id: string) => void;
   setMode: (id: string, mode: ModeId) => void;
+  toggleSearchGrounding: (id: string) => void;
   addTrait: (id: string, trait: TraitId) => void;
   removeTrait: (id: string, trait: TraitId) => void;
   clearTraits: (id: string) => void;
@@ -45,12 +46,30 @@ export interface SessionState {
   addMessage: (sessionId: string, message: Message) => void;
   updateTitle: (sessionId: string, newTitle: string) => void;
   setModel: (sessionId: string, modelId: ModelId) => void;
+  purge: () => void;
 }
 export const useSessionStore = create<SessionState>()(
   persist(
     (set, get) => ({
       sessions: [],
       activeId: null,
+
+      purge: () => {
+        set({ sessions: [] });
+      },
+
+      toggleSearchGrounding: (id: string) => {
+        set((state) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? {
+                  ...session,
+                  searchGrounding: !session.searchGrounding,
+                }
+              : session,
+          ),
+        }));
+      },
 
       toggleArchived: (id: string) => {
         set((state) => ({

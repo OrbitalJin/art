@@ -15,10 +15,7 @@ export const useGeneratePageTitle = () => {
 
     setGenerating(true);
     try {
-      const title =
-        (await llm.genWithContext(gen.title, [
-          { id: "1", role: "user", content: note.content, status: "complete" },
-        ])) || "Untitled Note";
+      const title = (await llm.gen(gen.title, note.content)) || "Untitled Page";
 
       if (title && title.trim()) {
         return title.trim();

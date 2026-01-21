@@ -1,3 +1,5 @@
+import type { GroundingMetadata } from "@google/genai";
+
 export type ModelTier = 1 | 2 | 3;
 export type ModelId = "Genesis" | "Bloom" | "Eden";
 
@@ -45,6 +47,7 @@ export type StreamChunk = {
   token: string;
   isFinal?: boolean;
   error?: LLMError;
+  metadata?: GroundingMetadata;
 };
 
 export type LLMErrorType =

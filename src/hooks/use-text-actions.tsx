@@ -28,31 +28,31 @@ export const useTextActions = () => {
 
   const summary = useLLMOperation(
     async (text: string, tone: string, instructions?: string) => {
-      return await llm?.gen(textkit.summarize(text, tone, instructions));
+      return await llm?.gen(textkit.summarize(tone, instructions), text);
     },
   );
 
   const repharse = useLLMOperation(
     async (text: string, tone: string, instructions?: string) => {
-      return await llm?.gen(textkit.rephrase(text, tone, instructions));
+      return await llm?.gen(textkit.rephrase(tone, instructions), text);
     },
   );
 
   const translation = useLLMOperation(
     async (text: string, targetLanguage: string) => {
-      return await llm?.gen(textkit.translate(text, targetLanguage));
+      return await llm?.gen(textkit.translate(targetLanguage), text);
     },
   );
 
   const bullet = useLLMOperation(
     async (text: string, tone: string, instructions?: string) => {
-      return await llm?.gen(textkit.bullet(text, tone, instructions));
+      return await llm?.gen(textkit.bullet(tone, instructions), text);
     },
   );
 
   const organize = useLLMOperation(
     async (text: string, tone: string, instructions?: string) => {
-      return await llm?.gen(textkit.organize(text, tone, instructions));
+      return await llm?.gen(textkit.organize(tone, instructions), text);
     },
   );
 

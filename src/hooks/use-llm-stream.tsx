@@ -1,20 +1,11 @@
 import { useCallback, useRef } from "react";
 import type { Message, MessageStatus } from "@/lib/store/session/types";
-import type { ModelType } from "@/lib/llm/common/types";
-import type { LLMProvider } from "@/lib/llm/llm-provider";
+import type { GenerateOptions, LLMProvider } from "@/lib/llm/llm-provider";
 
 interface StreamResult {
   content: string;
   status: MessageStatus;
   errorType?: string;
-}
-
-interface StreamArgs {
-  text: string;
-  messages: Message[];
-  systemPrompt: string;
-  context?: string;
-  modelType?: ModelType;
 }
 
 interface UseLLMStreamArgs {
@@ -35,13 +26,7 @@ export const useLLMStream = ({
   }, []);
 
   const stream = useCallback(
-    async ({
-      text,
-      messages,
-      systemPrompt,
-      context,
-      modelType: model,
-    }: StreamArgs) => {
+    async (prompt: string, messages: Message[], options?: GenerateOptions) => {
       if (!llm) return;
 
       const controller = new AbortController();
@@ -52,14 +37,10 @@ export const useLLMStream = ({
       let errorType: string | undefined;
 
       try {
-        const stream = llm.stream(
-          text,
-          messages,
-          systemPrompt,
-          context,
-          model,
-          controller.signal,
-        );
+        const stream = llm.stream(prompt, messages, {
+          signal: controller.signal,
+          ...options,
+        });
 
         for await (const chunk of stream) {
           if (chunk.error) {

@@ -18,11 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { LLMActions } from "@/lib/types";
-import {
-  TRAITS,
-  type TraitDefinition,
-  type TraitId,
-} from "@/lib/llm/prompts/traits";
+import { TRAITS, type TraitId } from "@/lib/llm/prompts/traits";
 
 interface Props {
   isOpen: boolean;
@@ -39,7 +35,7 @@ export const TextActionDialog = ({
   action,
   isProcessing = false,
 }: Props) => {
-  const [trait, setTrait] = useState<TraitId>("professional");
+  const [trait, setTrait] = useState<TraitId>("concise");
   const [instructions, setInstructions] = useState("");
 
   const handleProcess = () => {
@@ -85,8 +81,8 @@ export const TextActionDialog = ({
                 <SelectValue placeholder="Select a tone" />
               </SelectTrigger>
               <SelectContent>
-                {Object.values(TRAITS).map((t: TraitDefinition) => (
-                  <SelectItem key={t.label} value={t.label}>
+                {Object.entries(TRAITS).map(([id, t]) => (
+                  <SelectItem key={id} value={id}>
                     {t.label}
                   </SelectItem>
                 ))}

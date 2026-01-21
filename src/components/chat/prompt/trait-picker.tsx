@@ -96,7 +96,7 @@ export const TraitPicker = () => {
           </p>
         </div>
 
-        <div className="flex flex-col p-2 gap-2">
+        <div className="flex flex-col p-2 gap-1">
           {Object.values(TRAITS).map((trait) => {
             const isSelected = withinTraits(activeId, trait.id);
 

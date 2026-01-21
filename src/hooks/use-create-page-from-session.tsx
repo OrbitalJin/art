@@ -27,7 +27,7 @@ export const useCreatePageFromSession = () => {
         return toast.error("Session not found", { id: toastId });
       }
 
-      const result = await llm?.genWithContext(
+      const result = await llm?.genFromMessages(
         gen.noteFromSession,
         session.messages,
       );

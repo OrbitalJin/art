@@ -112,7 +112,7 @@ export const ReferencePicker = () => {
           </div>
         </div>
 
-        <div className="flex flex-col p-2 gap-2">
+        <div className="flex flex-col p-2 gap-1">
           {filtered.length === 0 && (
             <div className="px-3 py-4 text-center text-sm text-muted-foreground">
               {query ? (

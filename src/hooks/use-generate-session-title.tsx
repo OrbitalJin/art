@@ -16,7 +16,8 @@ export const useGenerateSessionTitle = () => {
     setGenerating(true);
     try {
       const title =
-        (await llm.genWithContext(gen.title, session.messages)) || "New balls";
+        (await llm.genFromMessages(gen.title, session.messages)) ||
+        "New Session";
 
       if (title && title.trim()) {
         return title.trim();
