@@ -24,7 +24,7 @@ export const MessageList: React.FC<Props> = ({ messages }) => {
     });
   };
   return (
-    <div className="flex-1 overflow-hidden relative px-4 flex flex-col">
+    <div className="flex-1 overflow-hidden relative px-4 flex flex-col select-none">
       {messages.length === 0 && prompt.length === 0 && <WelcomeMessage />}
       <Virtuoso
         data={messages}

@@ -20,7 +20,7 @@ export class LLMProvider {
     this.llm = new GoogleGenAI({ apiKey: apiKey });
   }
 
-  private formatHistory(messages: Message[]) {
+  private formatMessage(messages: Message[]) {
     return messages.map((m) => ({
       role: m.role === "model" ? "model" : "user",
       parts: [{ text: m.content }],
@@ -56,7 +56,7 @@ export class LLMProvider {
 
     const contents = [
       ...(context ? [{ role: "user", parts: [{ text: context }] }] : []),
-      ...this.formatHistory(history),
+      ...this.formatMessage(history),
       { role: "user", parts: [{ text: prompt }] },
     ];
 
@@ -113,7 +113,7 @@ export class LLMProvider {
   ): Promise<string> {
     const { model = DEFAULT_MODEL.type } = options;
     const contents = [
-      ...this.formatHistory(messages),
+      ...this.formatMessage(messages),
       { role: "user", parts: [{ text: prompt }] },
     ];
 
