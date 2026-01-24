@@ -37,7 +37,7 @@ export const WindowControls = () => (
       >
         <Circle
           className={cn(
-            "h-3 w-3 fill-destructive/80 text-destructive/80",
+            "h-3 w-3 fill-destructive text-destructive",
             "transition-transform group-hover:scale-120",
           )}
         />

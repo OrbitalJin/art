@@ -51,6 +51,14 @@ export const useEditorStateSelector = (editor: Editor | null) => {
     },
   });
 
+  const setEditable = useCallback(
+    (editable: boolean) => {
+      setIsEditable(editable);
+      editor?.setEditable(editable);
+    },
+    [setIsEditable, editor],
+  );
+
   const toggleEditable = useCallback(() => {
     const newEditable = !isEditable;
     setIsEditable(newEditable);
@@ -61,6 +69,7 @@ export const useEditorStateSelector = (editor: Editor | null) => {
     state,
     isEditable,
     isDisabled,
+    setEditable,
     toggleEditable,
   };
 };

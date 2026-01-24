@@ -10,6 +10,7 @@
 @import "./themes/quantum-rose.css";
 @import "./themes/flutter-shy.css";
 @import "./themes/claude.css";
+@import "./themes/t3-chat.css";
 
 @custom-variant dark (&:is(.dark *));
 

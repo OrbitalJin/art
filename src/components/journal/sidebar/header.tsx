@@ -1,6 +1,14 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WORKSPACES, type Workspace } from "@/lib/store/journal/types";
-import { PanelLeftClose, Plus, Search, X } from "lucide-react";
+import {
+  Briefcase,
+  Microscope,
+  PanelLeftClose,
+  Plus,
+  Search,
+  User,
+  X,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -120,7 +128,13 @@ export const SidebarHeader: React.FC<Props> = ({
           <TabsList className="flex-1 w-full">
             {WORKSPACES.map((workspace) => (
               <TabsTrigger key={workspace} value={workspace} className="flex-1">
-                {workspace.charAt(0).toUpperCase() + workspace.slice(1)}
+                {workspace === "work" ? (
+                  <Briefcase />
+                ) : workspace === "personal" ? (
+                  <User />
+                ) : (
+                  <Microscope />
+                )}
               </TabsTrigger>
             ))}
           </TabsList>

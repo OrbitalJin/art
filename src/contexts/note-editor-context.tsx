@@ -17,6 +17,7 @@ interface JournalEditorContextValue {
   isDisabled: boolean;
   isEditable: boolean;
   currentTab: Workspace;
+  setEditable: (editable: boolean) => void;
   toggleEditable: () => void;
   setCurrentTab: (tab: Workspace) => void;
   handleTagClick: (tag: string) => void;
@@ -51,7 +52,7 @@ export const JournalEditorProvider: React.FC<Props> = ({ children }) => {
   });
 
   useEditorSync(editor, activeId);
-  const { isEditable, isDisabled, toggleEditable, state } =
+  const { isEditable, isDisabled, setEditable, toggleEditable, state } =
     useEditorStateSelector(editor);
   const { handleTagClick } = useTagNavigation(editor);
 
@@ -65,6 +66,7 @@ export const JournalEditorProvider: React.FC<Props> = ({ children }) => {
         isDisabled,
         isEditable,
         currentTab,
+        setEditable,
         setCurrentTab,
         handleTagClick,
         toggleEditable,

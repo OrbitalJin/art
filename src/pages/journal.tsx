@@ -9,19 +9,33 @@ import { EditorContextMenu } from "@/components/journal/editor/context-menu/cont
 import { Command } from "@/components/journal/command";
 import { useJournalEditor } from "@/contexts/note-editor-context";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { Button } from "@/components/ui/button";
-import { Edit3, Eye, Loader2 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Asterisk, Eye, Pen } from "lucide-react";
+import { useEffect } from "react";
 
 export const Journal = () => {
-  const { isDisabled, isEditable, toggleEditable, isSaving, editor } =
-    useJournalEditor();
+  const {
+    isDisabled,
+    isEditable,
+    toggleEditable,
+    setEditable,
+    isSaving,
+    editor,
+  } = useJournalEditor();
   const isOpen = useSettingsStore((state) => state.notesSidebarOpen);
   const setIsOpen = useSettingsStore((state) => state.setNotesSidebarOpen);
+
+  useEffect(() => {
+    const keyDown = (e: KeyboardEvent) => {
+      if (e.key === "t" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        toggleEditable();
+      }
+    };
+
+    window.addEventListener("keydown", keyDown);
+    return () => window.removeEventListener("keydown", keyDown);
+  }, [toggleEditable]);
 
   if (!editor) {
     return null;
@@ -32,27 +46,32 @@ export const Journal = () => {
       <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            className="absolute top-2 right-2 z-30 opacity-70"
-            variant={isSaving ? "ghost" : "outline"}
-            onClick={toggleEditable}
-            size="icon"
-          >
-            {isSaving ? (
-              <Loader2 className="animate-spin opacity-70" />
-            ) : isEditable ? (
-              <Edit3 />
-            ) : (
+      <div
+        className={cn(
+          "flex flex-row items-center gap-2",
+          "absolute top-2 right-2 z-30",
+          "opacity-70 hover:opacity-100 transition-all duration-300",
+        )}
+      >
+        {isSaving && (
+          <div className="rounded-full animate-pulse animate-spin">
+            <Asterisk size={20} />
+          </div>
+        )}
+        <Tabs
+          value={isEditable ? "edit" : "preview"}
+          onValueChange={(v) => setEditable(v === "edit")}
+        >
+          <TabsList>
+            <TabsTrigger className="aspect-square" value="edit">
+              <Pen />
+            </TabsTrigger>
+            <TabsTrigger className="aspect-square" value="preview">
               <Eye />
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="left">
-          {isEditable ? "Editing" : "Viewing"}
-        </TooltipContent>
-      </Tooltip>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
       <div
         className={cn(

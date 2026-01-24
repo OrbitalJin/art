@@ -45,6 +45,7 @@ const THEME_COLORS: Array<{ value: ThemeColor; label: string }> = [
   { value: "quantum rose", label: "Quantum Rose" },
   { value: "flutter shy", label: "Flutter Shy" },
   { value: "pastel dreams", label: "Pastel Dreams" },
+  { value: "t3 chat", label: "T3 Chat" },
   { value: "claude", label: "Claude" },
 ] as const;
 
@@ -217,10 +218,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       <SelectContent>
                         {THEME_COLORS.map((theme) => (
                           <SelectItem key={theme.value} value={theme.value}>
-                            <div className="flex items-center gap-3">
-                              <div className="h-4 w-4 rounded-full bg-primary border" />
-                              <span>{theme.label}</span>
-                            </div>
+                            <span>{theme.label}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>

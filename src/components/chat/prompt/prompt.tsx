@@ -10,6 +10,7 @@ import { ReferencePicker } from "@/components/chat/prompt/reference-picker";
 import { TraitPicker } from "./trait-picker";
 import { ForkSession } from "./fork-session";
 import { SearchGrounding } from "./search-grounding";
+import { ModeSelect } from "../mode-select";
 
 export const Prompt = () => {
   const { prompt, abortStream, setPrompt, sendMessage } = useActiveSession();
@@ -58,6 +59,7 @@ export const Prompt = () => {
           <div className="flex justify-between items-center px-1">
             <div className="flex flex-row gap-2">
               <SelectModel />
+              <ModeSelect />
               <TraitPicker />
               <ReferencePicker />
               <ForkSession />

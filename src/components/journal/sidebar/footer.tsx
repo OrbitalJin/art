@@ -31,7 +31,6 @@ export const SidebarFooter = () => {
     toggleEditable,
   } = useJournalEditor();
   const currentNote = useJournalStore((s) => s.getFn(s.activeId ?? ""));
-
   const { copy, copied } = useCopy(currentNote?.content as string);
 
   return (

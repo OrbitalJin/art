@@ -32,8 +32,8 @@ export const SearchGrounding = () => {
         >
           <Globe
             className={cn(
-              "h-4 w-4 transition-all scale-90",
-              grounded && "text-primary scale-110",
+              "h-4 w-4 transition-all scale-90 text-muted-foreground",
+              grounded && "text-primary scale-100",
             )}
           />
         </Button>

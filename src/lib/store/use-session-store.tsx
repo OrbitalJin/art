@@ -226,14 +226,12 @@ export const useSessionStore = create<SessionState>()(
 
           if (newSessions.length === 0) {
             const defaultSession = createNewSession();
-            toast.success("No sessions left. Created a new one.");
             return { sessions: [defaultSession], activeId: defaultSession.id };
           }
 
           let newActiveId = state.activeId;
           if (state.activeId === id) {
             newActiveId = newSessions[0].id;
-            toast.success("Active session deleted, switched to most recent.");
           } else {
             toast.success("Session deleted successfully.");
           }

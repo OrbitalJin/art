@@ -8,7 +8,7 @@ import { MODELS } from "@/lib/llm/common/types";
 import { useStreamingState } from "@/hooks/use-streaming-state";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
-import { ChevronDown } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 import { useState } from "react";
 
 const getTierLabel = (tier?: number) => {
@@ -51,7 +51,12 @@ export const SelectModel = () => {
         inline-flex items-center justify-between rounded-md px-3 py-2 disabled:pointer-events-none disabled:opacity-50"
       >
         <span className="truncate font-medium">{model?.id || "Model"}</span>
-        <ChevronDown className="h-3.5 w-3.5 opacity-50 shrink-0" />
+        <ChevronUp
+          className={cn(
+            "h-3.5 w-3.5 opacity-50 shrink-0 transition-transform",
+            open && "rotate-180",
+          )}
+        />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent

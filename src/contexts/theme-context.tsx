@@ -6,11 +6,12 @@ export type ThemeColor =
   | "amethyst haze"
   | "cosmic night"
   | "midnight bloom"
+  | "pastel dreams"
   | "violet bloom"
   | "quantum rose"
   | "flutter shy"
   | "claude"
-  | "pastel dreams";
+  | "t3 chat";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
