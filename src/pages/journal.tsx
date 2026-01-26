@@ -53,11 +53,18 @@ export const Journal = () => {
           "opacity-70 hover:opacity-100 transition-all duration-300",
         )}
       >
-        {isSaving && (
-          <div className="rounded-full animate-pulse animate-spin">
-            <Asterisk size={20} />
+        <div
+          className={`
+            transition-all duration-500 ease-in-out
+            ${isSaving ? "opacity-100 scale-100" : "opacity-0 scale-70 pointer-events-none"}
+          `}
+        >
+          <div className="animate-spin">
+            <div className="animate-pulse">
+              <Asterisk size={20} />
+            </div>
           </div>
-        )}
+        </div>
         <Tabs
           value={isEditable ? "edit" : "preview"}
           onValueChange={(v) => setEditable(v === "edit")}
