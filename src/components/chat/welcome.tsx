@@ -1,20 +1,165 @@
+import React from "react";
 import { cn } from "@/lib/utils";
+import { HelpCircle, MessagesSquare, Type, Pi } from "lucide-react";
+import { useActiveSession } from "@/contexts/active-session-context";
 
-const WelcomeMessage = () => {
+interface Suggestion {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  prompt: string;
+}
+
+const suggestions: Suggestion[] = [
+  {
+    id: "explain",
+    title: "Explain a concept",
+    description: "Break down complex topics simply.",
+    icon: <HelpCircle className="w-5 h-5" />,
+    prompt: "Explain how ",
+  },
+  {
+    id: "converse",
+    title: "Have a conversation",
+    description: "Discuss, brainstorm, or chat.",
+    icon: <MessagesSquare className="w-5 h-5" />,
+    prompt: "Let's have a conversation about ",
+  },
+  {
+    id: "write",
+    title: "Write & edit",
+    description: "Draft or translate content.",
+    icon: <Type className="w-5 h-5" />,
+    prompt: "Help me write ",
+  },
+  {
+    id: "sciences",
+    title: "Science & math",
+    description: "Solve equations, explain concepts.",
+    icon: <Pi className="w-5 h-5" />,
+    prompt: "Help me understand ",
+  },
+];
+
+interface Props {
+  textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
+}
+
+const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
+  const { setPrompt } = useActiveSession();
+
+  const handleSuggestionClick = (suggestion: Suggestion) => {
+    setPrompt(suggestion.prompt);
+    if (textAreaRef.current) {
+      textAreaRef.current.focus();
+    }
+  };
+
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-6 pt-[50%] md:pt-[40%] lg:pt-[25%]",
-        "text-center animate-in fade-in slide-in-from-bottom-4 duration-1000 select-none",
+        "flex flex-1 flex-col items-center justify-center gap-8 px-4",
+        "pt-[35%] md:pt-[25%] lg:pt-[15%] pb-12",
+        "text-center select-none",
+        "animate-in fade-in slide-in-from-bottom-4 duration-1000",
+        "fill-mode-backwards",
       )}
     >
-      <div className="max-w-sm space-y-3">
-        <h2 className="text-2xl lg:text-3xl font-semibold text-foreground transition-all">
-          How can I help you <span className="text-primary">today?</span>
+      <div
+        className={cn(
+          "max-w-md space-y-4",
+          "animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-200",
+          "fill-mode-backwards",
+        )}
+      >
+        <h2 className="text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
+          How can I help you{" "}
+          <span className="text-primary relative inline-block">
+            today?
+            <svg
+              className="absolute -bottom-1 left-0 w-full h-2.5 text-primary/20"
+              viewBox="0 0 100 12"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M0,8 Q50,0 100,8"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+                strokeLinecap="round"
+              />
+            </svg>
+          </span>
         </h2>
-        <p className="text-muted-foreground leading-relaxed">
+        <p className="text-muted-foreground text leading-relaxed max-w-sm mx-auto">
           Ask me anything. What's on your mind?
         </p>
+      </div>
+
+      <div className="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+        {suggestions.map((suggestion) => (
+          <button
+            key={suggestion.id}
+            onClick={() => handleSuggestionClick(suggestion)}
+            className={cn(
+              "group relative flex items-start gap-4 p-4 rounded-xl",
+              "bg-card hover:bg-accent",
+              "border border-border hover:border-primary/50",
+              "hover:shadow-lg hover:shadow-primary/5",
+              "transition-all duration-300 ease-out",
+              "hover:-translate-y-0.5 active:translate-y-0",
+              "text-left",
+              "animate-in fade-in slide-in-from-bottom-4",
+              "fill-mode-backwards",
+            )}
+          >
+            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+              {suggestion.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">
+                {suggestion.title}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+                {suggestion.description}
+              </p>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div
+        className={cn(
+          "text-xs text-muted-foreground/60 mt-4 flex items-center gap-4",
+          "animate-in fade-in duration-1000 delay-500",
+          "fill-mode-backwards",
+        )}
+      >
+        <span className="flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
+            /
+          </kbd>
+          to focus
+        </span>
+        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+        <span className="flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
+            ↵
+          </kbd>
+          to send
+        </span>
+        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+        <span className="flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
+            Ctrl
+          </kbd>
+          <span className="text-muted-foreground/60 text-[10px]">+</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
+            K
+          </kbd>
+          for commands
+        </span>
       </div>
     </div>
   );

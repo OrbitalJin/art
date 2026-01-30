@@ -1,7 +1,7 @@
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, Square } from "lucide-react";
 import { SelectModel } from "@/components/chat/prompt/model-select";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useActiveSession } from "@/contexts/active-session-context";
@@ -12,18 +12,21 @@ import { ForkSession } from "./fork-session";
 import { SearchGrounding } from "./search-grounding";
 import { ModeSelect } from "../mode-select";
 
-export const Prompt = () => {
+interface Props {
+  textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
+}
+
+export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   const { prompt, abortStream, setPrompt, sendMessage } = useActiveSession();
   const { isCurrentSessionStreaming } = useStreamingState();
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const textarea = textareaRef.current;
+    const textarea = textAreaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
-  }, [prompt]);
+  }, [prompt, textAreaRef]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -44,7 +47,7 @@ export const Prompt = () => {
         >
           <Textarea
             autoFocus
-            ref={textareaRef}
+            ref={textAreaRef}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Message..."

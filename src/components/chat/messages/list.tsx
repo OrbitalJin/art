@@ -10,9 +10,10 @@ import { useActiveSession } from "@/contexts/active-session-context";
 
 interface Props {
   messages: readonly Message[];
+  textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
 }
 
-export const MessageList: React.FC<Props> = ({ messages }) => {
+export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
   const [atBottom, setAtBottom] = useState(true);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const { prompt } = useActiveSession();
@@ -25,7 +26,9 @@ export const MessageList: React.FC<Props> = ({ messages }) => {
   };
   return (
     <div className="flex-1 overflow-hidden relative px-4 flex flex-col select-none">
-      {messages.length === 0 && prompt.length === 0 && <WelcomeMessage />}
+      {messages.length === 0 && prompt.length === 0 && (
+        <WelcomeMessage textAreaRef={textAreaRef} />
+      )}
       <Virtuoso
         data={messages}
         ref={virtuosoRef}
