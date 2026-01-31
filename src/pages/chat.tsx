@@ -14,7 +14,7 @@ export const Chat = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "/" && !e.shiftKey) {
+      if (e.key === "/" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         textAreaRef.current?.focus();
       }

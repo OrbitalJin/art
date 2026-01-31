@@ -138,16 +138,13 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
       >
         <span className="flex items-center gap-1.5">
           <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
+            Ctrl
+          </kbd>
+          <span className="text-muted-foreground/60 text-[10px]">+</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
             /
           </kbd>
           to focus
-        </span>
-        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-        <span className="flex items-center gap-1.5">
-          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
-            ↵
-          </kbd>
-          to send
         </span>
         <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
         <span className="flex items-center gap-1.5">
@@ -159,6 +156,13 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
             K
           </kbd>
           for commands
+        </span>
+        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+        <span className="flex items-center gap-1.5">
+          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
+            ↵
+          </kbd>
+          to send
         </span>
       </div>
     </div>
