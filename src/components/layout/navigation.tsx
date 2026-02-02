@@ -6,6 +6,7 @@ import {
   MessageCircleDashed,
   Square,
   SquareCheck,
+  SquareCheckBig,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,8 +46,8 @@ export const Navigation = () => {
       shortcut: "Alt+2",
     },
     {
-      icon: Square,
-      activeIcon: SquareCheck,
+      icon: SquareCheck,
+      activeIcon: SquareCheckBig,
       name: "Tasks",
       description: "Tasks",
       href: "/tasks",

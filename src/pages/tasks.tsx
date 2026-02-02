@@ -10,22 +10,13 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { Folder, Inbox, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useTasksStore } from "@/lib/store/use-tasks-store";
 import type { TaskStatus, ColumnId } from "@/lib/store/tasks/types";
 import { COLUMN_LABELS, COLUMNS } from "@/lib/store/tasks/types";
 import { TaskDialog } from "@/components/tasks/dialogs/tasks";
-import { ProjectDialog } from "@/components/tasks/dialogs/project";
 import { BoardColumn } from "@/components/tasks/board/column";
 import { BoardItem } from "@/components/tasks/board/item";
+import { ProjectActions } from "@/components/tasks/project-actions";
 
 export const Tasks = () => {
   const tasks = useTasksStore((state) => state.tasks);
@@ -34,9 +25,6 @@ export const Tasks = () => {
   const createTask = useTasksStore((state) => state.createTask);
   const moveTask = useTasksStore((state) => state.moveTask);
   const deleteTask = useTasksStore((state) => state.deleteTask);
-  const createProject = useTasksStore((state) => state.createProject);
-  const deleteProject = useTasksStore((state) => state.deleteProject);
-  const setActiveProject = useTasksStore((state) => state.setActiveProject);
 
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [overId, setOverId] = React.useState<string | null>(null);
@@ -107,46 +95,9 @@ export const Tasks = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      <div className="flex items-center justify-between p-2 border-b border-border">
-        <div className="flex items-center gap-4">
-          <Select
-            value={activeProjectId}
-            onValueChange={(v) => setActiveProject(v as string | "inbox")}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="inbox">
-                <div className="flex items-center gap-2">
-                  <Inbox className="w-4 h-4" />
-                  Inbox
-                </div>
-              </SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  <div className="flex items-center gap-2">
-                    <Folder className="w-4 h-4" />
-                    {project.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {activeProjectId !== "inbox" && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => deleteProject(activeProjectId)}
-            >
-              <Trash2 className="w-4 h-4 text-destructive" />
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <ProjectDialog onSubmit={createProject} />
-          <TaskDialog onSubmit={createTask} projects={projects} />
-        </div>
+      <div className="flex flex-row gap-2 items-center p-2 border-b border-border">
+        <TaskDialog onSubmit={createTask} projects={projects} />
+        <ProjectActions />
       </div>
 
       <DndContext
