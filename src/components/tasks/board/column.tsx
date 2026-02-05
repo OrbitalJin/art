@@ -33,6 +33,7 @@ interface Props {
   items: Task[];
   overId: string | null;
   onDelete: (id: string) => void;
+  className?: string;
 }
 
 const SORT_OPTIONS = [
@@ -48,6 +49,7 @@ export const BoardColumn: React.FC<Props> = ({
   items,
   overId,
   onDelete,
+  className,
 }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
   const { sortedItems, sortConfig, setSortConfig, handleSort } =
@@ -65,6 +67,7 @@ export const BoardColumn: React.FC<Props> = ({
       className={cn(
         "flex-1 flex flex-col border border-border rounded-md bg-background transition-colors",
         isOverColumn && "ring-2 ring-primary bg-primary/5",
+        className,
       )}
     >
       {/* Column Header */}

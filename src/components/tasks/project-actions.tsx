@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { Folder, Inbox, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { ProjectDialog } from "./dialogs/project";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export const ProjectActions = () => {
   const setActiveProject = useTasksStore((state) => state.setActiveProject);
@@ -32,35 +33,11 @@ export const ProjectActions = () => {
   return (
     <div className="flex items-center gap-2">
       <ProjectDialog onSubmit={createProject} />
-      {activeProjectId !== "inbox" && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button size="icon" variant="outline">
-              <Trash2 className="w-4 h-4 text-destructive/80" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the
-                project and remove all its tasks.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => deleteProject(activeProjectId)}>
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
       <Select
         value={activeProjectId}
         onValueChange={(v) => setActiveProject(v as string | "inbox")}
       >
-        <SelectTrigger className="w-[200px]">
+        <SelectTrigger>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -80,6 +57,38 @@ export const ProjectActions = () => {
           ))}
         </SelectContent>
       </Select>
+
+      {activeProjectId !== "inbox" && (
+        <AlertDialog>
+          <AlertDialogTrigger>
+            <Tooltip>
+              <TooltipTrigger>
+                <Button size="icon" variant="outline">
+                  <Trash2 className="w-4 h-4 text-destructive/80" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete project</p>
+              </TooltipContent>
+            </Tooltip>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                project and remove all its tasks.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => deleteProject(activeProjectId)}>
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 };

@@ -49,7 +49,7 @@
 - [x] Command palette based navigation
 - [ ] Cute Icons (Hearts, Bunnies, Ribbons)
 
-### Diary
+### Journal
 
 - [x] Improve ui/toolbar/title bar
 - [x] Persistence
@@ -77,6 +77,13 @@
 - [x] floating toggle/edit button
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout (seperate feature, board)
+
+### Tasks
+
+- [ ] Edit task, move task to project
+- [ ] Due dates visualization
+- [ ] Editable project
+- [ ] Bento box look
 
 ### User Experience
 

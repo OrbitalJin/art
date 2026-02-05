@@ -96,7 +96,6 @@ export const TaskDialog: React.FC<Props> = ({ onSubmit, projects }) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Title & Description Group */}
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -126,9 +125,7 @@ export const TaskDialog: React.FC<Props> = ({ onSubmit, projects }) => {
             </div>
           </div>
 
-          {/* Configuration Grid - All items h-10 (40px) */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Project */}
             <div className="space-y-2">
               <label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <Folder className="w-3 h-3" />
@@ -217,8 +214,13 @@ export const TaskDialog: React.FC<Props> = ({ onSubmit, projects }) => {
                     </span>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto" align="start">
-                  <Calendar mode="single" selected={due} onSelect={setDue} />
+                <PopoverContent className="w-auto p-2" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={due}
+                    onSelect={(date) => date && setDue(date)}
+                    required={true}
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -265,7 +267,6 @@ export const TaskDialog: React.FC<Props> = ({ onSubmit, projects }) => {
             </div>
           </div>
 
-          {/* Footer Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t mt-6">
             <Button
               type="button"

@@ -4,7 +4,6 @@ import {
   BookOpen,
   MessageCircle,
   MessageCircleDashed,
-  Square,
   SquareCheck,
   SquareCheckBig,
   type LucideIcon,

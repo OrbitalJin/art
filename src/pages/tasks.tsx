@@ -11,12 +11,16 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useTasksStore } from "@/lib/store/use-tasks-store";
-import type { TaskStatus, ColumnId } from "@/lib/store/tasks/types";
+import type { TaskStatus, ColumnId, Task } from "@/lib/store/tasks/types";
 import { COLUMN_LABELS, COLUMNS } from "@/lib/store/tasks/types";
 import { TaskDialog } from "@/components/tasks/dialogs/tasks";
 import { BoardColumn } from "@/components/tasks/board/column";
 import { BoardItem } from "@/components/tasks/board/item";
 import { ProjectActions } from "@/components/tasks/project-actions";
+import { CalendarView } from "@/components/tasks/calendar/view";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CalendarDays, LayoutGrid } from "lucide-react";
+import { toast } from "sonner";
 
 export const Tasks = () => {
   const tasks = useTasksStore((state) => state.tasks);
@@ -28,6 +32,7 @@ export const Tasks = () => {
 
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [overId, setOverId] = React.useState<string | null>(null);
+  const [activeView, setActiveView] = React.useState("board");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -93,48 +98,76 @@ export const Tasks = () => {
 
   const activeItem = tasks.find((t) => t.id === activeId);
 
+  const handleTaskClick = (task: Task) => {
+    // TODO: Open task edit dialog
+    console.log("Clicked task:", task);
+    toast.success(task.title);
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full">
       <div className="flex flex-row gap-2 items-center p-2 border-b border-border">
         <TaskDialog onSubmit={createTask} projects={projects} />
         <ProjectActions />
+        <div className="flex-1" />
+        <Tabs value={activeView} onValueChange={setActiveView}>
+          <TabsList>
+            <TabsTrigger value="board" className="gap-2">
+              <LayoutGrid className="w-4 h-4" />
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="gap-2">
+              <CalendarDays className="w-4 h-4" />
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex flex-col lg:flex-row gap-2 p-2 flex-1 overflow-y-scroll">
-          <BoardColumn
-            id="backlog"
-            title={COLUMN_LABELS.backlog}
-            items={backlogTasks}
-            overId={overId}
-            onDelete={deleteTask}
-          />
-          <BoardColumn
-            id="inProgress"
-            title={COLUMN_LABELS.inProgress}
-            items={inProgressTasks}
-            overId={overId}
-            onDelete={deleteTask}
-          />
-          <BoardColumn
-            id="completed"
-            title={COLUMN_LABELS.completed}
-            items={completedTasks}
-            overId={overId}
-            onDelete={deleteTask}
-          />
-        </div>
+      <div className="flex-1 overflow-hidden">
+        {activeView === "board" ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="grid md:grid-cols-2 md:grid-row-2 lg:grid-cols-3 gap-2 p-2 h-full overflow-y-auto">
+              <BoardColumn
+                id="backlog"
+                title={COLUMN_LABELS.backlog}
+                items={backlogTasks}
+                overId={overId}
+                onDelete={deleteTask}
+              />
+              <BoardColumn
+                id="inProgress"
+                title={COLUMN_LABELS.inProgress}
+                items={inProgressTasks}
+                overId={overId}
+                onDelete={deleteTask}
+              />
+              <BoardColumn
+                className="md:col-span-2 lg:col-span-1"
+                id="completed"
+                title={COLUMN_LABELS.completed}
+                items={completedTasks}
+                overId={overId}
+                onDelete={deleteTask}
+              />
+            </div>
 
-        <DragOverlay>
-          {activeId && activeItem ? <BoardItem item={activeItem} /> : null}
-        </DragOverlay>
-      </DndContext>
+            <DragOverlay>
+              {activeId && activeItem ? <BoardItem item={activeItem} /> : null}
+            </DragOverlay>
+          </DndContext>
+        ) : (
+          <CalendarView
+            tasks={filteredTasks}
+            onTaskClick={handleTaskClick}
+            onDeleteTask={deleteTask}
+          />
+        )}
+      </div>
     </div>
   );
 };
