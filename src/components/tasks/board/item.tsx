@@ -5,8 +5,18 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Trash2, Zap } from "lucide-react";
+import {
+  Calendar,
+  Trash2,
+  Zap,
+  AlertCircle,
+  Clock,
+  Smile,
+  Frown,
+  Meh,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { addDays, isSameDay, startOfDay, isBefore } from "date-fns";
 
 interface Props {
   item: Task;
@@ -30,6 +40,13 @@ export const BoardItem: React.FC<Props> = ({
     id: item.id,
   });
 
+  const today = startOfDay(new Date());
+  const dueDate = item.due ? startOfDay(new Date(item.due)) : null;
+
+  const isOverDue = dueDate ? isBefore(dueDate, today) : false;
+  const isDueToday = dueDate ? isSameDay(dueDate, today) : false;
+  const isDueTomorrow = dueDate ? isSameDay(dueDate, addDays(today, 1)) : false;
+
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
@@ -37,10 +54,18 @@ export const BoardItem: React.FC<Props> = ({
   };
 
   const urgencyStyles: Record<string, string> = {
-    low: "text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-900",
-    medium:
-      "text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-900",
-    high: "text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-900",
+    low: cn(
+      "text-green-600 bg-green-50 border-green-200",
+      "dark:bg-green-900/20 dark:border-green-900",
+    ),
+    medium: cn(
+      "text-amber-700 bg-amber-100/80 border-amber-200",
+      "dark:text-amber-400 dark:bg-amber-900/40 dark:border-amber-800",
+    ),
+    high: cn(
+      "text-red-700 bg-red-100/80 border-red-200",
+      "dark:text-red-400 dark:bg-red-900/40 dark:border-red-800",
+    ),
   };
 
   return (
@@ -50,37 +75,46 @@ export const BoardItem: React.FC<Props> = ({
       {...attributes}
       {...listeners}
       className={cn(
-        "group relative bg-background border border-border/60 rounded-lg p-4 shadow-sm hover:shadow-md",
+        "group relative rounded-lg p-4 shadow-sm hover:shadow-md border",
         "cursor-grab active:cursor-grabbing",
-        // Only animate shadow on hover, disable transitions during drag to prevent flash
-        !isDragging && "transition-shadow",
+        !isDragging && "transition-all duration-200",
         isOverlay &&
-          "shadow-xl ring-2 ring-primary/20 rotate-2 cursor-grabbing scale-105",
+          "shadow-xl ring-2 ring-primary/20 rotate-2 cursor-grabbing scale-105 z-50",
       )}
     >
       {/* Top Row: Urgency & Actions */}
-      <div className="flex items-start justify-between mb-2">
+      <div className="flex items-start justify-between">
         {item.urgency ? (
           <Badge
             variant="outline"
             className={cn(
-              "text-[10px] uppercase tracking-wider font-semibold border px-2 py-0.5 h-5",
+              "text-xs border px-1 py-0.5 gap-1 pr-2",
               urgencyStyles[item.urgency],
             )}
           >
+            {item.urgency === "low" ? (
+              <Smile />
+            ) : item.urgency === "medium" ? (
+              <Meh />
+            ) : (
+              <Frown />
+            )}
             {item.urgency}
           </Badge>
         ) : (
-          <div className="h-5" /> // Spacer
+          <div className="h-5" />
         )}
 
         {onDelete && (
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 -mr-2 -mt-2 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+            className={cn(
+              "text-muted-foreground/40 hover:text-destructive",
+              "hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity",
+            )}
             onClick={(e) => {
-              e.stopPropagation(); // prevent drag start
+              e.stopPropagation();
               onDelete(item.id);
             }}
           >
@@ -112,13 +146,32 @@ export const BoardItem: React.FC<Props> = ({
         </div>
 
         {item.due && (
-          <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground bg-muted/30 px-2 py-1 rounded">
-            <Calendar className="w-3 h-3" />
+          <div
+            className={cn(
+              "flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded border",
+              "text-muted-foreground bg-muted/30 border-transparent",
+              (isDueTomorrow || isDueToday) && urgencyStyles["medium"],
+              isOverDue && urgencyStyles["high"],
+            )}
+          >
+            {isOverDue ? (
+              <AlertCircle className="w-3 h-3" />
+            ) : isDueTomorrow || isDueToday ? (
+              <Clock className="w-3 h-3" />
+            ) : (
+              <Calendar className="w-3 h-3" />
+            )}
+
             <span>
-              {new Date(item.due).toLocaleDateString(undefined, {
-                month: "short",
-                day: "numeric",
-              })}
+              {isOverDue && "Overdue: "}
+              {isDueToday
+                ? "Today"
+                : isDueTomorrow
+                  ? "Tomorrow"
+                  : new Date(item.due).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                    })}
             </span>
           </div>
         )}

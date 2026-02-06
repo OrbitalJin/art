@@ -52,9 +52,7 @@ export const CalendarView: React.FC<Props> = ({ tasks, onTaskClick }) => {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          <h2 className="text-lg md:text-xl font-semibold">
-            {format(currentMonth, "MMMM yyyy")}
-          </h2>
+          <h2 className="text-lg">{format(currentMonth, "MMMM yyyy")}</h2>
         </div>
         <Button variant="outline" size="sm" onClick={goToToday}>
           <CalendarIcon className="h-4 w-4 mr-2" /> Today

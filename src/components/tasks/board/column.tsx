@@ -140,7 +140,7 @@ export const BoardColumn: React.FC<Props> = ({
         items={sortedItems.map((i) => i.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="p-2 overflow-y-auto flex-1 flex flex-col gap-2 min-h-[100px]">
+        <div className="p-2 overflow-y-scroll flex-1 flex flex-col gap-2 min-h-[100px]">
           {sortedItems.map((item) => (
             <BoardItem key={item.id} item={item} onDelete={onDelete} />
           ))}
