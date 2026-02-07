@@ -81,10 +81,10 @@
 ### Tasks
 
 - [x] Due dates visualization
+- [x] fix scrolling
 - [ ] Edit task, move task to project
 - [ ] Editable project
 - [ ] Bento box look
-- [ ] fix scrolling
 
 ### User Experience
 
