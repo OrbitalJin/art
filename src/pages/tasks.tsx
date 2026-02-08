@@ -105,8 +105,8 @@ export const Tasks = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full">
-      <div className="flex flex-row gap-2 items-center p-2 border-b border-border">
+    <div className="flex-1 flex flex-col h-full p-2 gap-2 ">
+      <div className="flex flex-row gap-2 items-center p-2 border rounded-md opacity-80 hover:opacity-100 transition-opacity">
         <TaskDialog onSubmit={createTask} projects={projects} />
         <ProjectActions />
         <div className="flex-1" />
@@ -131,7 +131,7 @@ export const Tasks = () => {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
-            <div className="grid md:grid-cols-2 md:grid-row-2 lg:grid-cols-3 gap-2 p-2 h-full overflow-y-auto">
+            <div className="grid md:grid-cols-2 md:grid-row-2 lg:grid-cols-3 gap-2 h-full overflow-y-auto">
               <BoardColumn
                 id="backlog"
                 title={COLUMN_LABELS.backlog}

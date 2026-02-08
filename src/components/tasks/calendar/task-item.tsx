@@ -44,7 +44,6 @@ export const TaskItem = ({
         "text-left text-xs px-2 py-2 rounded border truncate transition-colors hover:bg-accent w-full",
         task.status === "completed" && "opacity-60 line-through",
       )}
-      title={task.title}
     >
       <div className="flex items-center gap-2">
         {task.urgency && (

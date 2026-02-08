@@ -31,8 +31,8 @@ export const CalendarView: React.FC<Props> = ({ tasks, onTaskClick }) => {
   } = useCalendar(tasks);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-4 border-b">
+    <div className="flex flex-col h-full gap-2">
+      <div className="flex items-center justify-between p-2 border rounded-md">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <Button
@@ -52,15 +52,15 @@ export const CalendarView: React.FC<Props> = ({ tasks, onTaskClick }) => {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          <h2 className="text-lg">{format(currentMonth, "MMMM yyyy")}</h2>
+          <h2>{format(currentMonth, "MMMM yyyy")}</h2>
         </div>
         <Button variant="outline" size="sm" onClick={goToToday}>
           <CalendarIcon className="h-4 w-4 mr-2" /> Today
         </Button>
       </div>
 
-      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden">
-        <div className="flex-1 flex flex-col p-2 md:p-4 overflow-y-auto">
+      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden gap-2">
+        <div className="flex-1 flex flex-col p-2 md:p-4 overflow-y-auto border rounded-md ">
           <div className="grid grid-cols-7 gap-1 mb-2">
             {WEEKDAYS.map((day) => (
               <div
@@ -86,7 +86,7 @@ export const CalendarView: React.FC<Props> = ({ tasks, onTaskClick }) => {
 
         <div
           className={cn(
-            "w-full lg:w-72 border-t lg:border-t-0 lg:border-l",
+            "w-full lg:w-72 border rounded-md",
             "p-4 flex flex-col gap-3 overflow-y-auto h-[50%] md:h-[30%] lg:h-auto",
           )}
         >
