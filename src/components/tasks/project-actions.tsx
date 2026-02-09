@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Select,
   SelectContent,
@@ -17,10 +18,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useTasksStore } from "@/lib/store/use-tasks-store";
+import type { Project } from "@/lib/store/tasks/types";
 import { cn } from "@/lib/utils";
-import { Folder, Inbox, Trash2 } from "lucide-react";
+import { Folder, Inbox, Trash2, Pencil } from "lucide-react";
 import { Button } from "../ui/button";
 import { ProjectDialog } from "./dialogs/project";
+import { EditProjectDialog } from "./dialogs/edit-project";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export const ProjectActions = () => {
@@ -29,6 +32,23 @@ export const ProjectActions = () => {
   const activeProjectId = useTasksStore((state) => state.activeProjectId);
   const deleteProject = useTasksStore((state) => state.deleteProject);
   const createProject = useTasksStore((state) => state.createProject);
+  const updateProject = useTasksStore((state) => state.updateProject);
+
+  const [editingProject, setEditingProject] = React.useState<Project | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+
+  const handleEditProject = () => {
+    if (activeProjectId === "inbox") return;
+    const project = projects.find((p) => p.id === activeProjectId);
+    if (project) {
+      setEditingProject(project);
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  const handleUpdateProject = (id: string, updates: Partial<Project>) => {
+    updateProject(id, updates);
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -57,6 +77,19 @@ export const ProjectActions = () => {
           ))}
         </SelectContent>
       </Select>
+
+      {activeProjectId !== "inbox" && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" variant="outline" onClick={handleEditProject}>
+              <Pencil className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Edit project</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
 
       {activeProjectId !== "inbox" && (
         <AlertDialog>
@@ -89,6 +122,13 @@ export const ProjectActions = () => {
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      <EditProjectDialog
+        project={editingProject}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSubmit={handleUpdateProject}
+      />
     </div>
   );
 };

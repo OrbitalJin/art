@@ -84,7 +84,7 @@
 - [x] fix scrolling
 - [x] Bento box look
 - [x] Edit task, move task to project
-- [ ] Editable project
+- [x] Editable project
 
 ### User Experience
 
