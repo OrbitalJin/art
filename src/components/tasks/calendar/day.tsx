@@ -8,6 +8,7 @@ interface CalendarDayProps {
   currentMonth: Date;
   tasks: Task[];
   onTaskClick: (task: Task) => void;
+  onEditTask?: (task: Task) => void;
 }
 
 export const CalendarDay = ({
@@ -15,6 +16,7 @@ export const CalendarDay = ({
   currentMonth,
   tasks,
   onTaskClick,
+  onEditTask,
 }: CalendarDayProps) => {
   const isCurrentMonth = isSameMonth(day, currentMonth);
   const isToday = isSameDay(day, new Date());
@@ -46,6 +48,7 @@ export const CalendarDay = ({
             key={task.id}
             task={task}
             onClick={onTaskClick}
+            onEdit={onEditTask}
             variant="minimal"
           />
         ))}
@@ -54,7 +57,7 @@ export const CalendarDay = ({
       {/* Desktop: List */}
       <div className="hidden xl:flex flex-1 flex-col gap-1 overflow-y-auto">
         {tasks.slice(0, 3).map((task) => (
-          <TaskItem key={task.id} task={task} onClick={onTaskClick} />
+          <TaskItem key={task.id} task={task} onClick={onTaskClick} onEdit={onEditTask} />
         ))}
         {tasks.length > 3 && (
           <div className="text-xs text-muted-foreground text-center">

@@ -14,25 +14,29 @@ import { useTasksStore } from "@/lib/store/use-tasks-store";
 import type { TaskStatus, ColumnId, Task } from "@/lib/store/tasks/types";
 import { COLUMN_LABELS, COLUMNS } from "@/lib/store/tasks/types";
 import { TaskDialog } from "@/components/tasks/dialogs/tasks";
+import { EditTaskDialog } from "@/components/tasks/dialogs/edit-task";
 import { BoardColumn } from "@/components/tasks/board/column";
 import { BoardItem } from "@/components/tasks/board/item";
 import { ProjectActions } from "@/components/tasks/project-actions";
 import { CalendarView } from "@/components/tasks/calendar/view";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDays, LayoutGrid } from "lucide-react";
-import { toast } from "sonner";
+
 
 export const Tasks = () => {
   const tasks = useTasksStore((state) => state.tasks);
   const projects = useTasksStore((state) => state.projects);
   const activeProjectId = useTasksStore((state) => state.activeProjectId);
   const createTask = useTasksStore((state) => state.createTask);
+  const updateTask = useTasksStore((state) => state.updateTask);
   const moveTask = useTasksStore((state) => state.moveTask);
   const deleteTask = useTasksStore((state) => state.deleteTask);
 
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [overId, setOverId] = React.useState<string | null>(null);
   const [activeView, setActiveView] = React.useState("board");
+  const [editingTask, setEditingTask] = React.useState<Task | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -98,10 +102,13 @@ export const Tasks = () => {
 
   const activeItem = tasks.find((t) => t.id === activeId);
 
-  const handleTaskClick = (task: Task) => {
-    // TODO: Open task edit dialog
-    console.log("Clicked task:", task);
-    toast.success(task.title);
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateTask = (id: string, updates: Partial<Task>) => {
+    updateTask(id, updates);
   };
 
   return (
@@ -138,6 +145,7 @@ export const Tasks = () => {
                 items={backlogTasks}
                 overId={overId}
                 onDelete={deleteTask}
+                onEdit={handleEditTask}
               />
               <BoardColumn
                 id="inProgress"
@@ -145,6 +153,7 @@ export const Tasks = () => {
                 items={inProgressTasks}
                 overId={overId}
                 onDelete={deleteTask}
+                onEdit={handleEditTask}
               />
               <BoardColumn
                 className="md:col-span-2 lg:col-span-1"
@@ -153,6 +162,7 @@ export const Tasks = () => {
                 items={completedTasks}
                 overId={overId}
                 onDelete={deleteTask}
+                onEdit={handleEditTask}
               />
             </div>
 
@@ -163,11 +173,20 @@ export const Tasks = () => {
         ) : (
           <CalendarView
             tasks={filteredTasks}
-            onTaskClick={handleTaskClick}
+            onTaskClick={handleEditTask}
             onDeleteTask={deleteTask}
+            onEditTask={handleEditTask}
           />
         )}
       </div>
+
+      <EditTaskDialog
+        task={editingTask}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSubmit={handleUpdateTask}
+        projects={projects}
+      />
     </div>
   );
 };

@@ -33,6 +33,7 @@ interface Props {
   items: Task[];
   overId: string | null;
   onDelete: (id: string) => void;
+  onEdit?: (task: Task) => void;
   className?: string;
 }
 
@@ -49,6 +50,7 @@ export const BoardColumn: React.FC<Props> = ({
   items,
   overId,
   onDelete,
+  onEdit,
   className,
 }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
@@ -66,7 +68,7 @@ export const BoardColumn: React.FC<Props> = ({
       ref={setNodeRef}
       className={cn(
         "flex-1 flex flex-col border border-border rounded-md bg-background transition-colors md:min-h-0",
-        isOverColumn && "ring-2 ring-primary bg-primary/5",
+        isOverColumn && "border-primary bg-primary/5",
         className,
       )}
     >
@@ -142,7 +144,12 @@ export const BoardColumn: React.FC<Props> = ({
       >
         <div className="p-2 flex-1 flex flex-col gap-2 min-h-[100px] md:overflow-y-auto">
           {sortedItems.map((item) => (
-            <BoardItem key={item.id} item={item} onDelete={onDelete} />
+            <BoardItem
+              key={item.id}
+              item={item}
+              onDelete={onDelete}
+              onEdit={onEdit}
+            />
           ))}
         </div>
       </SortableContext>

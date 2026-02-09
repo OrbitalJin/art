@@ -14,6 +14,7 @@ import {
   Smile,
   Frown,
   Meh,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { addDays, isSameDay, startOfDay, isBefore } from "date-fns";
@@ -21,12 +22,14 @@ import { addDays, isSameDay, startOfDay, isBefore } from "date-fns";
 interface Props {
   item: Task;
   onDelete?: (id: string) => void;
+  onEdit?: (task: Task) => void;
   isOverlay?: boolean;
 }
 
 export const BoardItem: React.FC<Props> = ({
   item,
   onDelete,
+  onEdit,
   isOverlay = false,
 }) => {
   const {
@@ -38,6 +41,10 @@ export const BoardItem: React.FC<Props> = ({
     isDragging,
   } = useSortable({
     id: item.id,
+    transition: {
+      duration: 150,
+      easing: "ease-out",
+    },
   });
 
   const today = startOfDay(new Date());
@@ -49,7 +56,7 @@ export const BoardItem: React.FC<Props> = ({
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    transition,
+    transition: transform ? transition : undefined,
     opacity: isDragging ? 0.3 : 1,
   };
 
@@ -77,7 +84,7 @@ export const BoardItem: React.FC<Props> = ({
       className={cn(
         "group relative rounded-lg p-4 shadow-sm hover:shadow-md border",
         "cursor-grab active:cursor-grabbing",
-        !isDragging && "transition-all duration-200",
+        !transform && "transition-shadow duration-200",
         isOverlay &&
           "shadow-xl ring-2 ring-primary/20 rotate-2 cursor-grabbing scale-105 z-50",
       )}
@@ -93,11 +100,11 @@ export const BoardItem: React.FC<Props> = ({
             )}
           >
             {item.urgency === "low" ? (
-              <Smile />
+              <Smile className="w-3 h-3" />
             ) : item.urgency === "medium" ? (
-              <Meh />
+              <Meh className="w-3 h-3" />
             ) : (
-              <Frown />
+              <Frown className="w-3 h-3" />
             )}
             {item.urgency}
           </Badge>
@@ -105,7 +112,22 @@ export const BoardItem: React.FC<Props> = ({
           <div className="h-5" />
         )}
 
-        {onDelete && (
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "text-muted-foreground/40 hover:text-primary",
+              "hover:bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity",
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!onEdit) return;
+              onEdit(item);
+            }}
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -115,12 +137,13 @@ export const BoardItem: React.FC<Props> = ({
             )}
             onClick={(e) => {
               e.stopPropagation();
+              if (!onDelete) return;
               onDelete(item.id);
             }}
           >
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
-        )}
+        </div>
       </div>
 
       {/* Main Content */}

@@ -83,7 +83,7 @@
 - [x] Due dates visualization
 - [x] fix scrolling
 - [x] Bento box look
-- [ ] Edit task, move task to project
+- [x] Edit task, move task to project
 - [ ] Editable project
 
 ### User Experience
