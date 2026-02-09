@@ -4,6 +4,8 @@ import {
   BookOpen,
   MessageCircle,
   MessageCircleDashed,
+  SquareCheck,
+  SquareCheckBig,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,7 +36,6 @@ export const Navigation = () => {
       activeIcon: MessageCircle,
       shortcut: "Alt+1",
     },
-
     {
       icon: Book,
       activeIcon: BookOpen,
@@ -42,6 +43,14 @@ export const Navigation = () => {
       description: "Journal",
       href: "/Journal",
       shortcut: "Alt+2",
+    },
+    {
+      icon: SquareCheck,
+      activeIcon: SquareCheckBig,
+      name: "Tasks",
+      description: "Tasks",
+      href: "/tasks",
+      shortcut: "Alt+3",
     },
   ];
 

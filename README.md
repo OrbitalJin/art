@@ -49,7 +49,7 @@
 - [x] Command palette based navigation
 - [ ] Cute Icons (Hearts, Bunnies, Ribbons)
 
-### Diary
+### Journal
 
 - [x] Improve ui/toolbar/title bar
 - [x] Persistence
@@ -78,8 +78,17 @@
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout (seperate feature, board)
 
+### Tasks
+
+- [x] Due dates visualization
+- [x] fix scrolling
+- [x] Bento box look
+- [x] Edit task, move task to project
+- [x] Editable project
+
 ### User Experience
 
 - [x] Persist toolbar states in setting.
+- [ ] Confirmation dialogs for destructive actions
 - [ ] id based /chat and /notes for specific redirection
 - [ ] "Super Prompt" a floating prompt you can ask global things to about the app and use agentic features to interact with the app
