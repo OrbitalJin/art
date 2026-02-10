@@ -18,10 +18,14 @@ interface Props {
   tasks: Task[];
   onTaskClick: (task: Task) => void;
   onDeleteTask: (id: string) => void;
-  onEditTask?: (task: Task) => void;
+  onEditTask: (task: Task) => void;
 }
 
-export const CalendarView: React.FC<Props> = ({ tasks, onTaskClick, onEditTask }) => {
+export const CalendarView: React.FC<Props> = ({
+  tasks,
+  onTaskClick,
+  onEditTask,
+}) => {
   const {
     currentMonth,
     days,
@@ -88,16 +92,21 @@ export const CalendarView: React.FC<Props> = ({ tasks, onTaskClick, onEditTask }
 
         <div
           className={cn(
-            "w-full lg:w-72 border rounded-md",
-            "p-4 flex flex-col gap-3 overflow-y-auto h-[50%] md:h-[30%] lg:h-auto",
+            "w-full lg:w-72",
+            "flex flex-col overflow-y-auto h-[50%] md:h-[30%] lg:h-auto border rounded-md",
           )}
         >
-          <h3 className="font-medium text-sm text-muted-foreground">
-            No Due Date ({tasksWithoutDue.length})
-          </h3>
-          <div className="flex flex-col gap-2">
+          <div className="font-medium text-sm text-muted-foreground border-b p-2 px-3">
+            <p>No Due Date ({tasksWithoutDue.length})</p>
+          </div>
+          <div className="flex flex-col gap-2 rounded-md h-full p-2">
             {tasksWithoutDue.map((task) => (
-              <TaskItem key={task.id} task={task} onClick={onTaskClick} onEdit={onEditTask} />
+              <TaskItem
+                key={task.id}
+                task={task}
+                onClick={onTaskClick}
+                onEdit={onEditTask}
+              />
             ))}
           </div>
         </div>

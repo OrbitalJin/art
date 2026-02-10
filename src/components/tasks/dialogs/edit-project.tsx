@@ -1,4 +1,4 @@
-import React, { useState, type FormEvent } from "react";
+import React, { useEffect, useState, type FormEvent } from "react";
 import type { Project } from "@/lib/store/tasks/types";
 
 import {
@@ -75,6 +75,13 @@ export const EditProjectDialog: React.FC<Props> = ({
 
     onOpenChange(false);
   };
+
+  useEffect(() => {
+    if (project) {
+      setName(project.name);
+      setSelectedColor(getInitialColor(project));
+    }
+  }, [project]);
 
   if (!project) return null;
 

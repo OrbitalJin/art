@@ -12,6 +12,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+import {
   ArrowRightLeft,
   MoreVertical,
   TextCursor,
@@ -153,7 +165,6 @@ const Menu: React.FC<MenuProps> = ({
   const setActive = useJournalStore((state) => state.setActive);
   const page = useJournalStore((state) => state.getFn(id));
 
-  // Use the hook inside the menu to isolate state
   const [open, setOpen] = useState(false);
 
   const handleGenerate = async (e: Event) => {
@@ -166,121 +177,156 @@ const Menu: React.FC<MenuProps> = ({
     }
   };
 
+  const handleDelete = () => {
+    deleteFn(id);
+    setOpen(false);
+  };
+
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+    <AlertDialog>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MoreVertical className="h-4 w-4" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          align="end"
+          className="w-52"
           onClick={(e) => e.stopPropagation()}
         >
-          <MoreVertical className="h-4 w-4" />
-          <span className="sr-only">Open menu</span>
-        </Button>
-      </DropdownMenuTrigger>
+          {!page?.archived && (
+            <>
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  className="focus:text-primary focus:bg-primary/10 gap-2"
+                  onSelect={handleGenerate}
+                >
+                  <Wand2 className="h-4 w-4" />
+                  <span>Generate title</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
 
-      <DropdownMenuContent
-        align="end"
-        className="w-52"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {!page?.archived && (
-          <>
-            <DropdownMenuGroup>
-              <DropdownMenuItem
-                className="focus:text-primary focus:bg-primary/10"
-                onSelect={handleGenerate}
-              >
-                <Wand2 className="h-4 w-4" />
-                <span>Generate title</span>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+            </>
+          )}
 
-            <DropdownMenuSeparator />
-          </>
-        )}
+          {!page?.archived && (
+            <>
+              <DropdownMenuGroup>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="gap-2">
+                    <ArrowRightLeft className="h-4 w-4" />
+                    <span>Move to</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      {WORKSPACES.map(
+                        (workspace) =>
+                          workspace !== page?.workspace && (
+                            <DropdownMenuItem
+                              key={workspace}
+                              onSelect={() => changeWorkspace(id, workspace)}
+                            >
+                              {workspace.charAt(0).toUpperCase() +
+                                workspace.slice(1)}
+                            </DropdownMenuItem>
+                          ),
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
 
-        {!page?.archived && (
-          <>
-            <DropdownMenuGroup>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <ArrowRightLeft className="h-4 w-4" />
-                  <span>Move to</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
-                    {WORKSPACES.map(
-                      (workspace) =>
-                        workspace !== page?.workspace && (
-                          <DropdownMenuItem
-                            key={workspace}
-                            onSelect={() => changeWorkspace(id, workspace)}
-                          >
-                            {workspace.charAt(0).toUpperCase() +
-                              workspace.slice(1)}
-                          </DropdownMenuItem>
-                        ),
-                    )}
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
+                <DropdownMenuItem
+                  onSelect={() => togglePin(id)}
+                  className="gap-2"
+                >
+                  {pinned ? (
+                    <PinOff className="h-4 w-4" />
+                  ) : (
+                    <Pin className="h-4 w-4" />
+                  )}
+                  <span>{pinned ? "Unpin" : "Pin"}</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuItem onSelect={() => togglePin(id)}>
-                {pinned ? (
-                  <PinOff className="h-4 w-4" />
-                ) : (
-                  <Pin className="h-4 w-4" />
-                )}
-                <span>{pinned ? "Unpin" : "Pin"}</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setActive(id);
+                    setEditing(true);
+                    setOpen(false);
+                  }}
+                >
+                  <TextCursor className="h-4 w-4" />
+                  <span>Rename</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
 
-              <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
-                  setActive(id);
-                  setEditing(true);
-                  setOpen(false);
-                }}
-              >
-                <TextCursor className="h-4 w-4" />
-                <span>Rename</span>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+            </>
+          )}
 
-            <DropdownMenuSeparator />
-          </>
-        )}
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onSelect={() => toggleArchived(id)}
+              className="gap-2"
+            >
+              {page?.archived ? (
+                <>
+                  <ArchiveRestore className="h-4 w-4" />
+                  <span>Unarchive</span>
+                </>
+              ) : (
+                <>
+                  <Archive className="h-4 w-4" />
+                  <span>Archive</span>
+                </>
+              )}
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
 
-        <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={() => toggleArchived(id)}>
-            {page?.archived ? (
-              <>
-                <ArchiveRestore className="h-4 w-4" />
-                <span>Unarchive</span>
-              </>
-            ) : (
-              <>
-                <Archive className="h-4 w-4" />
-                <span>Archive</span>
-              </>
-            )}
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <AlertDialogTrigger asChild>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive focus:bg-destructive/10 gap-2"
+              onSelect={(e) => e.preventDefault()}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Delete</span>
+            </DropdownMenuItem>
+          </AlertDialogTrigger>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-        <DropdownMenuItem
-          className="text-destructive focus:text-destructive focus:bg-destructive/10"
-          onClick={(e) => {
-            e?.stopPropagation();
-            deleteFn(id);
-            setOpen(false);
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-          <span>Delete</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete your
+            entry.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setOpen(false)}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={handleDelete}
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };

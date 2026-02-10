@@ -34,6 +34,7 @@ import {
   AlignLeft,
   Type,
   AlertCircle,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -54,7 +55,7 @@ export const TaskDialog: React.FC<Props> = ({ onSubmit, projects }) => {
   const [description, setDescription] = useState("");
   const [urgency, setUrgency] = useState<"low" | "medium" | "high">("medium");
   const [energy, setEnergy] = useState<1 | 2 | 3 | 4 | 5>(3);
-  const [due, setDue] = useState<Date>(addDays(new Date(), 1));
+  const [due, setDue] = useState<Date | null>(addDays(new Date(), 1));
   const [projectId, setProjectId] = useState<string>("inbox");
 
   const handleSubmit = (e: FormEvent) => {
@@ -200,29 +201,38 @@ export const TaskDialog: React.FC<Props> = ({ onSubmit, projects }) => {
                 <CalendarIcon className="w-3 h-3" />
                 Due Date
               </label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !due && "text-muted-foreground",
-                    )}
-                  >
-                    <span className="truncate">
-                      {due ? format(due, "PPP") : "Pick a date"}
-                    </span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-2" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={due}
-                    onSelect={(date) => date && setDue(date)}
-                    required={true}
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="flex flex-row gap-1 w-full">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "justify-start text-left font-normal flex-1",
+                        !due && "text-muted-foreground",
+                      )}
+                    >
+                      <span className="truncate">
+                        {due ? format(due, "PPP") : "Pick a date"}
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-2" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={due ?? undefined}
+                      onSelect={(date) => date && setDue(date)}
+                      required={true}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => setDue(null)}
+                >
+                  <X />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">

@@ -34,6 +34,17 @@ import {
 } from "@/components/ui/tooltip";
 import { useCreatePageFromSession } from "@/hooks/use-create-page-from-session";
 import type { Session } from "@/lib/store/session/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
   item: Session;
@@ -171,12 +182,10 @@ const Menu: React.FC<MenuProps> = ({
   const deleteFn = useSessionStore((s) => s.deleteFn);
   const toggleArchived = useSessionStore((s) => s.toggleArchived);
 
-  // Use the hook inside the menu to isolate state
   const { creating, create } = useCreatePageFromSession();
   const [open, setOpen] = useState(false);
 
-  const handleDelete = (e?: React.SyntheticEvent) => {
-    e?.stopPropagation();
+  const handleDelete = () => {
     deleteFn(item.id);
     setOpen(false);
   };
@@ -198,114 +207,137 @@ const Menu: React.FC<MenuProps> = ({
   };
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-7 w-7 transition-opacity",
-            open
-              ? "opacity-100 bg-accent"
-              : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
-          )}
+    <AlertDialog>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-7 w-7 transition-opacity",
+              open
+                ? "opacity-100 bg-accent"
+                : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          align="end"
+          className="w-56"
           onClick={(e) => e.stopPropagation()}
         >
-          <MoreVertical className="h-4 w-4 text-muted-foreground" />
-          <span className="sr-only">Open menu</span>
-        </Button>
-      </DropdownMenuTrigger>
+          {!item.archived && (
+            <>
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  disabled={creating}
+                  onSelect={handleCreate}
+                  className="gap-2 focus:text-primary focus:bg-primary/10"
+                >
+                  {creating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <BookDashed className="h-4 w-4" />
+                  )}
+                  <span>{creating ? "Generating..." : "Generate Notes"}</span>
+                </DropdownMenuItem>
 
-      <DropdownMenuContent
-        align="end"
-        className="w-56"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {!item.archived && (
-          <>
-            <DropdownMenuGroup>
-              <DropdownMenuItem
-                disabled={creating}
-                onSelect={handleCreate}
-                className="gap-2 focus:text-primary focus:bg-primary/10"
-              >
-                {creating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <BookDashed className="h-4 w-4" />
-                )}
-                <span>{creating ? "Generating..." : "Generate Notes"}</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={handleGenerate}
+                  className="gap-2 focus:text-primary focus:bg-primary/10"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  <span>Generate Title</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
 
-              <DropdownMenuItem
-                onSelect={handleGenerate}
-                className="gap-2 focus:text-primary focus:bg-primary/10"
-              >
-                <Wand2 className="h-4 w-4" />
-                <span>Generate Title</span>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+            </>
+          )}
 
-            <DropdownMenuSeparator />
-          </>
-        )}
+          {!item.archived && (
+            <>
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  onSelect={() => togglePinned(item.id)}
+                  className="gap-2"
+                >
+                  {item.pinned ? (
+                    <PinOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Pin className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span>{item.pinned ? "Unpin Session" : "Pin Session"}</span>
+                </DropdownMenuItem>
 
-        {!item.archived && (
-          <>
-            <DropdownMenuGroup>
-              <DropdownMenuItem
-                onSelect={() => togglePinned(item.id)}
-                className="gap-2"
-              >
-                {item.pinned ? (
-                  <PinOff className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <Pin className="h-4 w-4 text-muted-foreground" />
-                )}
-                <span>{item.pinned ? "Unpin Session" : "Pin Session"}</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={creating}
+                  onSelect={() => setEditing(true)}
+                  className="gap-2"
+                >
+                  <TextCursor className="h-4 w-4 text-muted-foreground" />
+                  <span>Rename</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
 
-              <DropdownMenuItem
-                disabled={creating}
-                onSelect={() => setEditing(true)}
-                className="gap-2"
-              >
-                <TextCursor className="h-4 w-4 text-muted-foreground" />
-                <span>Rename</span>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+            </>
+          )}
 
-            <DropdownMenuSeparator />
-          </>
-        )}
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onSelect={() => toggleArchived(item.id)}
+              className="gap-2"
+            >
+              {item.archived ? (
+                <>
+                  <ArchiveRestore className="h-4 w-4 text-muted-foreground" />
+                  <span>Unarchive</span>
+                </>
+              ) : (
+                <>
+                  <Archive className="h-4 w-4 text-muted-foreground" />
+                  <span>Archive</span>
+                </>
+              )}
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
 
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            onSelect={() => toggleArchived(item.id)}
-            className="gap-2"
-          >
-            {item.archived ? (
-              <>
-                <ArchiveRestore className="h-4 w-4 text-muted-foreground" />
-                <span>Unarchive</span>
-              </>
-            ) : (
-              <>
-                <Archive className="h-4 w-4 text-muted-foreground" />
-                <span>Archive</span>
-              </>
-            )}
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
+          <DropdownMenuSeparator />
 
-        <DropdownMenuItem
-          className="text-destructive focus:text-destructive focus:bg-destructive/10"
-          onClick={handleDelete}
-        >
-          <Trash2 className="h-4 w-4" />
-          <span>Delete Session</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <AlertDialogTrigger asChild>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive focus:bg-destructive/10 gap-2"
+              onSelect={(e) => e.preventDefault()}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Delete Session</span>
+            </DropdownMenuItem>
+          </AlertDialogTrigger>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setOpen(false)}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={handleDelete}>
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };

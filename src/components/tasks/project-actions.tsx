@@ -20,7 +20,7 @@ import {
 import { useTasksStore } from "@/lib/store/use-tasks-store";
 import type { Project } from "@/lib/store/tasks/types";
 import { cn } from "@/lib/utils";
-import { Folder, Inbox, Trash2, Pencil } from "lucide-react";
+import { Folder, Inbox, Trash2, Pencil, FolderOpen } from "lucide-react";
 import { Button } from "../ui/button";
 import { ProjectDialog } from "./dialogs/project";
 import { EditProjectDialog } from "./dialogs/edit-project";
@@ -34,7 +34,9 @@ export const ProjectActions = () => {
   const createProject = useTasksStore((state) => state.createProject);
   const updateProject = useTasksStore((state) => state.updateProject);
 
-  const [editingProject, setEditingProject] = React.useState<Project | null>(null);
+  const [editingProject, setEditingProject] = React.useState<Project | null>(
+    null,
+  );
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
   const handleEditProject = () => {
@@ -70,7 +72,11 @@ export const ProjectActions = () => {
           {projects.map((project) => (
             <SelectItem key={project.id} value={project.id}>
               <div className="flex items-center gap-2">
-                <Folder className={cn(project.color)} />
+                {project.id === activeProjectId ? (
+                  <FolderOpen className={cn(project.color)} />
+                ) : (
+                  <Folder className={cn(project.color)} />
+                )}
                 {project.name}
               </div>
             </SelectItem>
@@ -107,16 +113,19 @@ export const ProjectActions = () => {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
                 This action cannot be undone. This will permanently delete the
-                project and remove all its tasks.
+                project.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => deleteProject(activeProjectId)}>
-                Continue
+              <AlertDialogAction
+                variant="destructive"
+                onClick={() => deleteProject(activeProjectId)}
+              >
+                Delete
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

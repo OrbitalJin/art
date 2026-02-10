@@ -107,7 +107,7 @@ export const BoardColumn: React.FC<Props> = ({
           </div>
         ) : (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger asChild disabled={sortedItems.length === 0}>
               <Button variant="ghost" className="text-xs">
                 <ArrowUpDown />
                 Sort
@@ -143,14 +143,22 @@ export const BoardColumn: React.FC<Props> = ({
         strategy={verticalListSortingStrategy}
       >
         <div className="p-2 flex-1 flex flex-col gap-2 min-h-[100px] md:overflow-y-auto">
-          {sortedItems.map((item) => (
-            <BoardItem
-              key={item.id}
-              item={item}
-              onDelete={onDelete}
-              onEdit={onEdit}
-            />
-          ))}
+          {sortedItems.length > 0 ? (
+            sortedItems.map((item) => (
+              <BoardItem
+                key={item.id}
+                item={item}
+                onDelete={onDelete}
+                onEdit={onEdit}
+              />
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2 flex-1">
+              <p className="text-muted-foreground text-sm">
+                No tasks in this column.
+              </p>
+            </div>
+          )}
         </div>
       </SortableContext>
     </div>

@@ -103,6 +103,7 @@ export const useTasksStore = create<TasksState>()(
         const newProject = createNewProject(name, color);
         set((state) => ({
           projects: [...state.projects, newProject],
+          activeProjectId: newProject.id,
         }));
         toast.success("Project created successfully");
         return newProject.id;
