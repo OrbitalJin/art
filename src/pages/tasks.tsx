@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   DndContext,
@@ -14,14 +14,13 @@ import {
 import { useTasksStore } from "@/lib/store/use-tasks-store";
 import type { TaskStatus, ColumnId, Task } from "@/lib/store/tasks/types";
 import { COLUMN_LABELS, COLUMNS } from "@/lib/store/tasks/types";
-import { TaskFormDialog } from "@/components/tasks/dialogs/task-form-dialog";
+import { TaskFormDialog } from "@/components/tasks/dialogs/task";
 import { BoardColumn } from "@/components/tasks/board/column";
 import { BoardItem } from "@/components/tasks/board/item";
 import { ProjectActions } from "@/components/tasks/project-actions";
 import { CalendarView } from "@/components/tasks/calendar/view";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDays, LayoutGrid } from "lucide-react";
-
 
 export const Tasks = () => {
   const tasks = useTasksStore((state) => state.tasks);
@@ -44,7 +43,7 @@ export const Tasks = () => {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (searchParams.get("create") === "true") {
       setIsCreateDialogOpen(true);
       setSearchParams({}, { replace: true });
@@ -55,7 +54,7 @@ export const Tasks = () => {
     setOverId(e.over?.id as string | null);
   };
 
-  const filteredTasks = React.useMemo(() => {
+  const filteredTasks = useMemo(() => {
     return tasks.filter((task) =>
       activeProjectId === "inbox"
         ? !task.projectId
@@ -63,15 +62,15 @@ export const Tasks = () => {
     );
   }, [tasks, activeProjectId]);
 
-  const backlogTasks = React.useMemo(
+  const backlogTasks = useMemo(
     () => filteredTasks.filter((task) => task.status === "backlog"),
     [filteredTasks],
   );
-  const inProgressTasks = React.useMemo(
+  const inProgressTasks = useMemo(
     () => filteredTasks.filter((task) => task.status === "inProgress"),
     [filteredTasks],
   );
-  const completedTasks = React.useMemo(
+  const completedTasks = useMemo(
     () => filteredTasks.filter((task) => task.status === "completed"),
     [filteredTasks],
   );

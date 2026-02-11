@@ -75,6 +75,7 @@
 - [x] add padding at the bottom of the editor
 - [x] auto scroll to bottom in sessions
 - [x] floating toggle/edit button
+- [x] Add typograpy plugin
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout (seperate feature, board)
 
@@ -85,6 +86,8 @@
 - [x] Bento box look
 - [x] Edit task, move task to project
 - [x] Editable project
+- [x] Merge task dialogs
+- [x] Merge project dialogs
 
 ### User Experience
 

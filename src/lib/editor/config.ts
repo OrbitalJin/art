@@ -7,6 +7,7 @@ import { TableKit } from "@tiptap/extension-table";
 import { TrailingNode } from "@tiptap/extensions";
 import { HorizontalRule } from "@tiptap/extension-horizontal-rule";
 import { TagHighlighter } from "@/lib/editor/extensions/tag-highlighter";
+import { Typography } from "@tiptap/extension-typography";
 import Image from "@tiptap/extension-image";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ export const editorExtensions = [
   TrailingNode,
   HorizontalRule,
   TagHighlighter,
+  Typography,
   Image.configure({
     inline: true,
     allowBase64: true,

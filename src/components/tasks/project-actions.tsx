@@ -22,8 +22,7 @@ import type { Project } from "@/lib/store/tasks/types";
 import { cn } from "@/lib/utils";
 import { Folder, Inbox, Trash2, Pencil, FolderOpen } from "lucide-react";
 import { Button } from "../ui/button";
-import { ProjectDialog } from "./dialogs/project";
-import { EditProjectDialog } from "./dialogs/edit-project";
+import { ProjectFormDialog } from "./dialogs/project";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export const ProjectActions = () => {
@@ -54,7 +53,7 @@ export const ProjectActions = () => {
 
   return (
     <div className="flex items-center gap-2">
-      <ProjectDialog onSubmit={createProject} />
+      <ProjectFormDialog mode="create" onSubmit={createProject} />
       <Select
         value={activeProjectId}
         onValueChange={(v) => setActiveProject(v as string | "inbox")}
@@ -132,12 +131,15 @@ export const ProjectActions = () => {
         </AlertDialog>
       )}
 
-      <EditProjectDialog
-        project={editingProject}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        onSubmit={handleUpdateProject}
-      />
+      {editingProject && (
+        <ProjectFormDialog
+          mode="edit"
+          project={editingProject}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSubmit={handleUpdateProject}
+        />
+      )}
     </div>
   );
 };
