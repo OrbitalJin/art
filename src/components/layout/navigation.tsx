@@ -34,7 +34,7 @@ export const Navigation = () => {
       description: "Chat",
       icon: MessageCircleDashed,
       activeIcon: MessageCircle,
-      shortcut: "Alt+1",
+      shortcut: "1",
     },
     {
       icon: Book,
@@ -42,7 +42,7 @@ export const Navigation = () => {
       name: "Journal",
       description: "Journal",
       href: "/Journal",
-      shortcut: "Alt+2",
+      shortcut: "2",
     },
     {
       icon: SquareCheck,
@@ -50,7 +50,7 @@ export const Navigation = () => {
       name: "Tasks",
       description: "Tasks",
       href: "/tasks",
-      shortcut: "Alt+3",
+      shortcut: "3",
     },
   ];
 

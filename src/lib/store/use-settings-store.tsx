@@ -2,16 +2,20 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { settingsStorage } from "@/lib/store/settings/adapter";
 import { create } from "zustand";
 
+export type FontSize = "small" | "medium" | "large";
+
 interface SettingsState {
   apiKey: string;
   chatSidebarOpen: boolean;
   notesSidebarOpen: boolean;
   settingsDialogOpen: boolean;
+  fontSize: FontSize;
 
   setApiKey: (key: string) => void;
   setChatSidebarOpen: (open: boolean) => void;
   setNotesSidebarOpen: (open: boolean) => void;
   setSettingsDialogOpen: (open: boolean) => void;
+  setFontSize: (size: FontSize) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -21,10 +25,12 @@ export const useSettingsStore = create<SettingsState>()(
       chatSidebarOpen: false,
       notesSidebarOpen: false,
       settingsDialogOpen: false,
+      fontSize: "medium",
       setApiKey: (key: string) => set({ apiKey: key }),
       setChatSidebarOpen: (open: boolean) => set({ chatSidebarOpen: open }),
       setNotesSidebarOpen: (open: boolean) => set({ notesSidebarOpen: open }),
       setSettingsDialogOpen: (open: boolean) => set({ settingsDialogOpen: open }),
+      setFontSize: (size: FontSize) => set({ fontSize: size }),
     }),
     {
       name: "settings-storage",

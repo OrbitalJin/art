@@ -60,34 +60,35 @@ const FORMATTING_ITEMS: MenuItemConfig[] = [
   {
     icon: Bold,
     label: "Bold",
-    shortcut: "⌘B",
+    shortcut: "⌘ B",
     isActive: (state) => state.isBold,
     action: (editor) => editor.chain().focus().toggleBold().run(),
   },
   {
     icon: Italic,
     label: "Italic",
-    shortcut: "⌘I",
+    shortcut: "⌘ I",
     isActive: (state) => state.isItalic,
     action: (editor) => editor.chain().focus().toggleItalic().run(),
   },
   {
     icon: Underline,
     label: "Underline",
-    shortcut: "⌘U",
+    shortcut: "⌘ U",
     isActive: (state) => state.isUnderline,
     action: (editor) => editor.chain().focus().toggleUnderline().run(),
   },
   {
     icon: Strikethrough,
     label: "Strikethrough",
-    shortcut: "⌘⇧X",
+    shortcut: "⌘ ⇧ X",
     isActive: (state) => state.isStrike,
     action: (editor) => editor.chain().focus().toggleStrike().run(),
   },
   {
     icon: Highlighter,
     label: "Highlight",
+    shortcut: "⌘ H",
     isActive: (state) => state.isHighlight,
     action: (editor) => editor.chain().focus().toggleHighlight().run(),
   },
@@ -97,14 +98,14 @@ const LIST_ITEMS: MenuItemConfig[] = [
   {
     icon: List,
     label: "Bullet List",
-    shortcut: "⌘⇧8",
+    shortcut: "⌘ ⇧ 8",
     isActive: (state) => state.isBulletList,
     action: (editor) => editor.chain().focus().toggleBulletList().run(),
   },
   {
     icon: ListOrdered,
     label: "Ordered List",
-    shortcut: "⌘⇧7",
+    shortcut: "⌘ ⇧ 7",
     isActive: (state) => state.isOrderedList,
     action: (editor) => editor.chain().focus().toggleOrderedList().run(),
   },
@@ -120,7 +121,7 @@ const HEADING_ITEMS: MenuItemConfig[] = [
   {
     icon: Heading1,
     label: "Heading 1",
-    shortcut: "⌘⌥1",
+    shortcut: "⌘ ⌥ 1",
     isActive: (state) => state.headingLevel === 1,
     action: (editor) =>
       editor.chain().focus().toggleHeading({ level: 1 }).run(),
@@ -128,7 +129,7 @@ const HEADING_ITEMS: MenuItemConfig[] = [
   {
     icon: Heading2,
     label: "Heading 2",
-    shortcut: "⌘⌥2",
+    shortcut: "⌘ ⌥ 2",
     isActive: (state) => state.headingLevel === 2,
     action: (editor) =>
       editor.chain().focus().toggleHeading({ level: 2 }).run(),
@@ -136,7 +137,7 @@ const HEADING_ITEMS: MenuItemConfig[] = [
   {
     icon: Heading3,
     label: "Heading 3",
-    shortcut: "⌘⌥3",
+    shortcut: "⌘ ⌥ 3",
     isActive: (state) => state.headingLevel === 3,
     action: (editor) =>
       editor.chain().focus().toggleHeading({ level: 3 }).run(),

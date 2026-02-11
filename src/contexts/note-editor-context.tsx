@@ -40,7 +40,7 @@ export const JournalEditorProvider: React.FC<Props> = ({ children }) => {
   const { handleSave } = useEditorSave(activeId);
 
   const editor = useEditor({
-    editable: false,
+    editable: true,
     immediatelyRender: true,
     extensions: editorExtensions,
     editorProps,

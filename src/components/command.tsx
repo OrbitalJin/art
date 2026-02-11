@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookPlus, CheckSquare, MessageCirclePlus, Settings2 } from "lucide-react";
+import {
+  BookPlus,
+  CheckSquare,
+  CommandIcon,
+  MessageCirclePlus,
+  Option,
+  Settings2,
+} from "lucide-react";
 import {
   CommandDialog,
   CommandInput,
@@ -15,6 +22,7 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import type { NavigationItem } from "@/components/layout/navigation";
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { Kbd } from "./ui/kbd";
 interface Props {
   items: NavigationItem[];
 }
@@ -96,6 +104,52 @@ export const Command: React.FC<Props> = ({ items }) => {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
+        <CommandGroup heading="Quick Actions">
+          <CommandItem value="quick session" onSelect={handleQuickSession}>
+            <MessageCirclePlus className="mr-2 h-4 w-4" />
+            Quick Session
+            <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
+              <Kbd>
+                <CommandIcon className="h-3 w-3" />
+              </Kbd>
+              <Kbd>
+                <Option className="h-3 w-3" />
+              </Kbd>
+              <Kbd className="text-lg">S</Kbd>
+            </CommandShortcut>
+          </CommandItem>
+
+          <CommandItem value="quick thought" onSelect={handleQuickThought}>
+            <BookPlus className="mr-2 h-4 w-4" />
+            Quick Thought
+            <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
+              <Kbd>
+                <CommandIcon className="h-3 w-3" />
+              </Kbd>
+              <Kbd>
+                <Option className="h-3 w-3" />
+              </Kbd>
+              <Kbd className="text-lg">N</Kbd>
+            </CommandShortcut>
+          </CommandItem>
+
+          <CommandItem value="quick task" onSelect={handleQuickTask}>
+            <CheckSquare className="mr-2 h-3 w-3" />
+            Quick Task
+            <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
+              <Kbd>
+                <CommandIcon className="h-3 w-3" />
+              </Kbd>
+              <Kbd>
+                <Option className="h-3 w-3" />
+              </Kbd>
+              <Kbd className="text-lg">T</Kbd>
+            </CommandShortcut>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
         <CommandGroup heading="Navigate">
           {items.map((item: NavigationItem) => {
             const Icon = item.activeIcon;
@@ -107,7 +161,13 @@ export const Command: React.FC<Props> = ({ items }) => {
               >
                 <Icon className="mr-2 h-4 w-4" />
                 {item.description}
-                <CommandShortcut>{item.shortcut}</CommandShortcut>
+
+                <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
+                  <Kbd>
+                    <Option className="h-3 w-3" />
+                  </Kbd>
+                  <Kbd className="text-lg">{item.shortcut}</Kbd>
+                </CommandShortcut>
               </CommandItem>
             );
           })}
@@ -115,29 +175,12 @@ export const Command: React.FC<Props> = ({ items }) => {
           <CommandItem value="settings" onSelect={handleOpenSettings}>
             <Settings2 className="mr-2 h-4 w-4" />
             Settings
-            <CommandShortcut>Ctrl+,</CommandShortcut>
-          </CommandItem>
-        </CommandGroup>
-
-        <CommandSeparator />
-
-        <CommandGroup heading="Quick Actions">
-          <CommandItem value="quick session" onSelect={handleQuickSession}>
-            <MessageCirclePlus className="mr-2 h-4 w-4" />
-            Quick Session
-            <CommandShortcut>Ctrl+Alt+S</CommandShortcut>
-          </CommandItem>
-
-          <CommandItem value="quick thought" onSelect={handleQuickThought}>
-            <BookPlus className="mr-2 h-4 w-4" />
-            Quick Thought
-            <CommandShortcut>Ctrl+Alt+N</CommandShortcut>
-          </CommandItem>
-
-          <CommandItem value="quick task" onSelect={handleQuickTask}>
-            <CheckSquare className="mr-2 h-4 w-4" />
-            Quick Task
-            <CommandShortcut>Ctrl+Alt+T</CommandShortcut>
+            <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
+              <Kbd>
+                <CommandIcon className="h-3 w-3" />
+              </Kbd>
+              <Kbd className="text-lg">,</Kbd>
+            </CommandShortcut>
           </CommandItem>
         </CommandGroup>
       </CommandList>

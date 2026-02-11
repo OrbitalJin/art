@@ -31,11 +31,17 @@ export const Journal = () => {
         e.preventDefault();
         toggleEditable();
       }
+      if (e.key === "h" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        if (editor && !editor.state.selection.empty) {
+          editor.chain().focus().toggleHighlight().run();
+        }
+      }
     };
 
     window.addEventListener("keydown", keyDown);
     return () => window.removeEventListener("keydown", keyDown);
-  }, [toggleEditable]);
+  }, [toggleEditable, editor]);
 
   if (!editor) {
     return null;

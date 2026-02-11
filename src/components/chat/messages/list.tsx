@@ -26,24 +26,30 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
   };
   return (
     <div className="flex-1 overflow-hidden relative px-4 flex flex-col select-none">
-      {messages.length === 0 && prompt.length === 0 && (
+      {messages.length === 0 && prompt.length === 0 ? (
         <WelcomeMessage textAreaRef={textAreaRef} />
+      ) : (
+        <>
+          <Virtuoso
+            data={messages}
+            ref={virtuosoRef}
+            className="h-full"
+            followOutput="smooth"
+            initialTopMostItemIndex={messages.length - 1}
+            atBottomStateChange={setAtBottom}
+            overscan={400}
+            itemContent={(index, msg) => (
+              <div className="py-4 max-w-2xl mx-auto select-text">
+                <MessageBroker key={index} {...msg} />
+              </div>
+            )}
+          />
+          <ScrollToBottomButton
+            isVisible={!atBottom}
+            onClick={scrollToBottom}
+          />
+        </>
       )}
-      <Virtuoso
-        data={messages}
-        ref={virtuosoRef}
-        className="h-full"
-        followOutput="smooth"
-        initialTopMostItemIndex={messages.length - 1}
-        atBottomStateChange={setAtBottom}
-        overscan={400}
-        itemContent={(index, msg) => (
-          <div className="py-4 max-w-2xl mx-auto select-text">
-            <MessageBroker key={index} {...msg} />
-          </div>
-        )}
-      />
-      <ScrollToBottomButton isVisible={!atBottom} onClick={scrollToBottom} />
     </div>
   );
 };

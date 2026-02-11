@@ -27,7 +27,7 @@ import {
   Sun,
   Monitor,
 } from "lucide-react";
-import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { useSettingsStore, type FontSize } from "@/lib/store/use-settings-store";
 import { useTheme, type ThemeColor } from "@/contexts/theme-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -49,11 +49,19 @@ const THEME_COLORS: Array<{ value: ThemeColor; label: string }> = [
   { value: "claude", label: "Claude" },
 ] as const;
 
+const FONT_SIZE_OPTIONS: Array<{ value: FontSize; label: string; size: string }> = [
+  { value: "small", label: "Small", size: "14px" },
+  { value: "medium", label: "Medium", size: "16px" },
+  { value: "large", label: "Large", size: "18px" },
+] as const;
+
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { mode, setMode, color, setColor } = useTheme();
 
   const apiKey = useSettingsStore((state) => state.apiKey);
   const setApiKey = useSettingsStore((state) => state.setApiKey);
+  const fontSize = useSettingsStore((state) => state.fontSize);
+  const setFontSize = useSettingsStore((state) => state.setFontSize);
 
   const [showKey, setShowKey] = React.useState(false);
   const [value, setValue] = React.useState(apiKey);
@@ -69,6 +77,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       setShowKey(false);
     }
   }, [open, apiKey]);
+
+  React.useEffect(() => {
+    const root = window.document.documentElement;
+    const sizeMap: Record<FontSize, string> = {
+      small: "14px",
+      medium: "16px",
+      large: "18px",
+    };
+    root.style.fontSize = sizeMap[fontSize];
+  }, [fontSize]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -219,6 +237,34 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                         {THEME_COLORS.map((theme) => (
                           <SelectItem key={theme.value} value={theme.value}>
                             <span>{theme.label}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-base font-medium">Font Size</p>
+                    <p className="text-sm text-muted-foreground">
+                      Adjust the text size across the application.
+                    </p>
+                  </div>
+                  <div className="pt-2">
+                    <Select
+                      value={fontSize}
+                      onValueChange={(val: FontSize) => setFontSize(val)}
+                    >
+                      <SelectTrigger className="w-full max-w-md">
+                        <SelectValue placeholder="Select font size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FONT_SIZE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <span>{option.label}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>

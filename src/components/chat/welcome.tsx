@@ -60,7 +60,6 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
     <div
       className={cn(
         "flex flex-1 flex-col items-center justify-center gap-8 px-4",
-        "pt-[35%] md:pt-[25%] lg:pt-[15%] pb-12",
         "text-center select-none",
         "animate-in fade-in slide-in-from-bottom-4 duration-1000",
         "fill-mode-backwards",
@@ -73,26 +72,11 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
           "fill-mode-backwards",
         )}
       >
-        <h2 className="text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
+        <h2 className="text-2xl lg:text-3xl text-foreground">
           How can I help you{" "}
-          <span className="text-primary relative inline-block">
-            today?
-            <svg
-              className="absolute -bottom-1 left-0 w-full h-2.5 text-primary/20"
-              viewBox="0 0 100 12"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0,8 Q50,0 100,8"
-                stroke="currentColor"
-                strokeWidth="4"
-                fill="none"
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
+          <span className="text-primary relative inline-block">today?</span>
         </h2>
-        <p className="text-muted-foreground text leading-relaxed max-w-sm mx-auto">
+        <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
           Ask me anything. What's on your mind?
         </p>
       </div>
@@ -118,10 +102,10 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
               {suggestion.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">
+              <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">
                 {suggestion.title}
               </h3>
-              <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                 {suggestion.description}
               </p>
             </div>
@@ -144,7 +128,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
           <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
             /
           </kbd>
-          to focus
+          focus
         </span>
         <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
         <span className="flex items-center gap-1.5">
@@ -155,14 +139,14 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
           <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
             K
           </kbd>
-          for commands
+          commands
         </span>
         <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
         <span className="flex items-center gap-1.5">
           <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
             ↵
           </kbd>
-          to send
+          send
         </span>
       </div>
     </div>
