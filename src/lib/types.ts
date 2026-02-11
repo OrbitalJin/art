@@ -33,4 +33,5 @@ export interface EditorState {
   isCodeBlock: boolean;
   isLink: boolean;
   hasSelection: boolean;
+  headingLevel: number | null;
 }

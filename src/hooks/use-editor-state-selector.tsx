@@ -28,8 +28,16 @@ export const useEditorStateSelector = (editor: Editor | null) => {
           isCodeBlock: false,
           isTable: false,
           isLink: false,
+          headingLevel: null,
         };
       }
+      const getHeadingLevel = () => {
+        if (ctx.editor?.isActive("heading", { level: 1 })) return 1;
+        if (ctx.editor?.isActive("heading", { level: 2 })) return 2;
+        if (ctx.editor?.isActive("heading", { level: 3 })) return 3;
+        return null;
+      };
+
       return {
         wordCount: ctx.editor.storage.characterCount.words(),
         charCount: ctx.editor.storage.characterCount.characters(),
@@ -47,6 +55,7 @@ export const useEditorStateSelector = (editor: Editor | null) => {
         isCodeBlock: ctx.editor?.isActive("codeBlock") ?? false,
         isTable: ctx.editor?.isActive("table") ?? false,
         isLink: ctx.editor?.isActive("link") ?? false,
+        headingLevel: getHeadingLevel(),
       };
     },
   });

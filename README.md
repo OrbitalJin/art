@@ -76,6 +76,7 @@
 - [x] auto scroll to bottom in sessions
 - [x] floating toggle/edit button
 - [x] Add typograpy plugin
+- [x] Headings menu instert
 - [ ] Battle test LLM features & simplify dialog logic
 - [ ] Popout (seperate feature, board)
 

@@ -23,6 +23,10 @@ import {
   ArrowDownWideNarrow,
   TextSelect,
   Rainbow,
+  Heading,
+  Heading1,
+  Heading2,
+  Heading3,
 } from "lucide-react";
 import type { Actions, EditorState } from "@/lib/types";
 
@@ -109,6 +113,33 @@ const LIST_ITEMS: MenuItemConfig[] = [
     label: "Quote",
     isActive: (state) => state.isBlockquote,
     action: (editor) => editor.chain().focus().toggleBlockquote().run(),
+  },
+];
+
+const HEADING_ITEMS: MenuItemConfig[] = [
+  {
+    icon: Heading1,
+    label: "Heading 1",
+    shortcut: "⌘⌥1",
+    isActive: (state) => state.headingLevel === 1,
+    action: (editor) =>
+      editor.chain().focus().toggleHeading({ level: 1 }).run(),
+  },
+  {
+    icon: Heading2,
+    label: "Heading 2",
+    shortcut: "⌘⌥2",
+    isActive: (state) => state.headingLevel === 2,
+    action: (editor) =>
+      editor.chain().focus().toggleHeading({ level: 2 }).run(),
+  },
+  {
+    icon: Heading3,
+    label: "Heading 3",
+    shortcut: "⌘⌥3",
+    isActive: (state) => state.headingLevel === 3,
+    action: (editor) =>
+      editor.chain().focus().toggleHeading({ level: 3 }).run(),
   },
 ];
 
@@ -276,6 +307,7 @@ export const getMenuGroups = (
   actions: Actions,
 ): MenuGroup[][] => {
   const groups = [
+    createMenuGroup("Headings", Heading, HEADING_ITEMS, editor, state, actions),
     createMenuGroup("Format", Bold, FORMATTING_ITEMS, editor, state, actions),
     createMenuGroup("Blocks", List, LIST_ITEMS, editor, state, actions),
     createMenuGroup("Table", Table, TABLE_ITEMS, editor, state, actions),
