@@ -1,4 +1,5 @@
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   DndContext,
   DragOverlay,
@@ -13,8 +14,7 @@ import {
 import { useTasksStore } from "@/lib/store/use-tasks-store";
 import type { TaskStatus, ColumnId, Task } from "@/lib/store/tasks/types";
 import { COLUMN_LABELS, COLUMNS } from "@/lib/store/tasks/types";
-import { TaskDialog } from "@/components/tasks/dialogs/tasks";
-import { EditTaskDialog } from "@/components/tasks/dialogs/edit-task";
+import { TaskFormDialog } from "@/components/tasks/dialogs/task-form-dialog";
 import { BoardColumn } from "@/components/tasks/board/column";
 import { BoardItem } from "@/components/tasks/board/item";
 import { ProjectActions } from "@/components/tasks/project-actions";
@@ -37,10 +37,19 @@ export const Tasks = () => {
   const [activeView, setActiveView] = React.useState("board");
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
+
+  React.useEffect(() => {
+    if (searchParams.get("create") === "true") {
+      setIsCreateDialogOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleDragOver = (e: DragOverEvent) => {
     setOverId(e.over?.id as string | null);
@@ -114,7 +123,13 @@ export const Tasks = () => {
   return (
     <div className="flex-1 flex flex-col h-full p-2 gap-2 ">
       <div className="flex flex-row gap-2 items-center p-2 border rounded-md opacity-80 hover:opacity-100 transition-opacity">
-        <TaskDialog onSubmit={createTask} projects={projects} />
+        <TaskFormDialog
+          mode="create"
+          onSubmit={createTask}
+          projects={projects}
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+        />
         <ProjectActions />
         <div className="flex-1" />
         <Tabs value={activeView} onValueChange={setActiveView}>
@@ -180,13 +195,16 @@ export const Tasks = () => {
         )}
       </div>
 
-      <EditTaskDialog
-        task={editingTask}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        onSubmit={handleUpdateTask}
-        projects={projects}
-      />
+      {editingTask && (
+        <TaskFormDialog
+          mode="edit"
+          task={editingTask}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSubmit={handleUpdateTask}
+          projects={projects}
+        />
+      )}
     </div>
   );
 };

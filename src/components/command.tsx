@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookPlus, MessageCirclePlus, Settings2 } from "lucide-react";
+import { BookPlus, CheckSquare, MessageCirclePlus, Settings2 } from "lucide-react";
 import {
   CommandDialog,
   CommandInput,
@@ -15,13 +15,12 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import type { NavigationItem } from "@/components/layout/navigation";
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-
 interface Props {
   items: NavigationItem[];
 }
 
 export const Command: React.FC<Props> = ({ items }) => {
-  const { create } = useSessionStore();
+  const { create: createSession } = useSessionStore();
   const { create: createNote } = useJournalStore();
   const setSettingsDialogOpen = useSettingsStore(
     (state) => state.setSettingsDialogOpen,
@@ -30,13 +29,17 @@ export const Command: React.FC<Props> = ({ items }) => {
   const navigate = useNavigate();
 
   const handleQuickSession = () => {
-    create("Quick Session");
+    createSession("Quick Session");
     handleNavigate("/chat");
   };
 
-  const handleQuickNote = () => {
+  const handleQuickThought = () => {
     createNote(undefined, "Quick Thought");
     handleNavigate("/journal");
+  };
+
+  const handleQuickTask = () => {
+    handleNavigate("/tasks?create=true");
   };
 
   const handleOpenSettings = () => {
@@ -70,7 +73,11 @@ export const Command: React.FC<Props> = ({ items }) => {
       }
 
       if (e.key === "n" && e.altKey && (e.ctrlKey || e.metaKey)) {
-        handleQuickNote();
+        handleQuickThought();
+      }
+
+      if (e.key === "t" && e.altKey && (e.ctrlKey || e.metaKey)) {
+        handleQuickTask();
       }
 
       if (e.key === "," && (e.metaKey || e.ctrlKey)) {
@@ -121,10 +128,16 @@ export const Command: React.FC<Props> = ({ items }) => {
             <CommandShortcut>Ctrl+Alt+S</CommandShortcut>
           </CommandItem>
 
-          <CommandItem value="quick thought" onSelect={handleQuickNote}>
+          <CommandItem value="quick thought" onSelect={handleQuickThought}>
             <BookPlus className="mr-2 h-4 w-4" />
             Quick Thought
             <CommandShortcut>Ctrl+Alt+N</CommandShortcut>
+          </CommandItem>
+
+          <CommandItem value="quick task" onSelect={handleQuickTask}>
+            <CheckSquare className="mr-2 h-4 w-4" />
+            Quick Task
+            <CommandShortcut>Ctrl+Alt+T</CommandShortcut>
           </CommandItem>
         </CommandGroup>
       </CommandList>
