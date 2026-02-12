@@ -57,7 +57,12 @@ export const CalendarDay = ({
       {/* Desktop: List */}
       <div className="hidden xl:flex flex-1 flex-col gap-1 overflow-y-auto">
         {tasks.slice(0, 3).map((task) => (
-          <TaskItem key={task.id} task={task} onClick={onTaskClick} onEdit={onEditTask} />
+          <TaskItem
+            key={task.id}
+            task={task}
+            onClick={onTaskClick}
+            onEdit={onEditTask}
+          />
         ))}
         {tasks.length > 3 && (
           <div className="text-xs text-muted-foreground text-center">

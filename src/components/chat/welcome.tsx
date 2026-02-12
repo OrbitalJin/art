@@ -81,7 +81,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
         </p>
       </div>
 
-      <div className="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+      <div className="w-full max-w-2xl hidden md:grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
         {suggestions.map((suggestion) => (
           <button
             key={suggestion.id}

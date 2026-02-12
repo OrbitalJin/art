@@ -12,6 +12,12 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Asterisk, Eye, Pen } from "lucide-react";
 import { useEffect } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 
 export const Journal = () => {
   const {
@@ -27,7 +33,7 @@ export const Journal = () => {
 
   useEffect(() => {
     const keyDown = (e: KeyboardEvent) => {
-      if (e.key === "t" && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "t" && e.altKey) {
         e.preventDefault();
         toggleEditable();
       }
@@ -71,19 +77,31 @@ export const Journal = () => {
             </div>
           </div>
         </div>
-        <Tabs
-          value={isEditable ? "edit" : "preview"}
-          onValueChange={(v) => setEditable(v === "edit")}
-        >
-          <TabsList>
-            <TabsTrigger className="aspect-square" value="edit">
-              <Pen />
-            </TabsTrigger>
-            <TabsTrigger className="aspect-square" value="preview">
-              <Eye />
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <Tooltip>
+          <TooltipTrigger>
+            <Tabs
+              value={isEditable ? "edit" : "preview"}
+              onValueChange={(v) => setEditable(v === "edit")}
+            >
+              <TabsList>
+                <TabsTrigger className="aspect-square" value="edit">
+                  <Pen />
+                </TabsTrigger>
+                <TabsTrigger className="aspect-square" value="preview">
+                  <Eye />
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </TooltipTrigger>
+
+          <TooltipContent side="right">
+            <KbdGroup>
+              <Kbd>Alt</Kbd>
+              <span>+</span>
+              <Kbd>T</Kbd>
+            </KbdGroup>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <div

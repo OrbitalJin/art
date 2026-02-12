@@ -1,207 +1,88 @@
-import React, { useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
-import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  type DragEndEvent,
-  type DragOverEvent,
-  type DragStartEvent,
-  closestCorners,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { useTasksStore } from "@/lib/store/use-tasks-store";
-import type { TaskStatus, ColumnId, Task } from "@/lib/store/tasks/types";
-import { COLUMN_LABELS, COLUMNS } from "@/lib/store/tasks/types";
-import { TaskFormDialog } from "@/components/tasks/dialogs/task";
-import { BoardColumn } from "@/components/tasks/board/column";
-import { BoardItem } from "@/components/tasks/board/item";
-import { ProjectActions } from "@/components/tasks/project-actions";
-import { CalendarView } from "@/components/tasks/calendar/view";
+import { LayoutGrid, CalendarDays } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, LayoutGrid } from "lucide-react";
+import { ProjectActions } from "@/components/tasks/project-actions";
+import { TaskFormDialog } from "@/components/tasks/dialogs/task";
+import { CalendarView } from "@/components/tasks/calendar/view";
+import { useTasksStore } from "@/lib/store/use-tasks-store";
+
+import { useTaskManager } from "@/hooks/use-task-manager";
+import { TaskBoard } from "@/components/tasks/board/board";
+import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import type { View } from "@/lib/store/tasks/types";
 
 export const Tasks = () => {
-  const tasks = useTasksStore((state) => state.tasks);
-  const projects = useTasksStore((state) => state.projects);
-  const activeProjectId = useTasksStore((state) => state.activeProjectId);
-  const createTask = useTasksStore((state) => state.createTask);
-  const updateTask = useTasksStore((state) => state.updateTask);
-  const moveTask = useTasksStore((state) => state.moveTask);
+  const manager = useTaskManager();
   const deleteTask = useTasksStore((state) => state.deleteTask);
-
-  const [activeId, setActiveId] = React.useState<string | null>(null);
-  const [overId, setOverId] = React.useState<string | null>(null);
-  const [activeView, setActiveView] = React.useState("board");
-  const [editingTask, setEditingTask] = React.useState<Task | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-  );
-
-  useEffect(() => {
-    if (searchParams.get("create") === "true") {
-      setIsCreateDialogOpen(true);
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
-
-  const handleDragOver = (e: DragOverEvent) => {
-    setOverId(e.over?.id as string | null);
-  };
-
-  const filteredTasks = useMemo(() => {
-    return tasks.filter((task) =>
-      activeProjectId === "inbox"
-        ? !task.projectId
-        : task.projectId === activeProjectId,
-    );
-  }, [tasks, activeProjectId]);
-
-  const backlogTasks = useMemo(
-    () => filteredTasks.filter((task) => task.status === "backlog"),
-    [filteredTasks],
-  );
-  const inProgressTasks = useMemo(
-    () => filteredTasks.filter((task) => task.status === "inProgress"),
-    [filteredTasks],
-  );
-  const completedTasks = useMemo(
-    () => filteredTasks.filter((task) => task.status === "completed"),
-    [filteredTasks],
-  );
-
-  const handleDragStart = (e: DragStartEvent) =>
-    setActiveId(e.active.id as string);
-
-  const handleDragEnd = (e: DragEndEvent) => {
-    const { active, over } = e;
-
-    setActiveId(null);
-    setOverId(null);
-
-    if (!over) return;
-
-    const activeTask = tasks.find((t) => t.id === active.id);
-    if (!activeTask) return;
-
-    const overId = over.id as string;
-    const isColumn = COLUMNS.includes(overId as ColumnId);
-
-    if (isColumn) {
-      const newStatus = overId as TaskStatus;
-      if (activeTask.status !== newStatus) {
-        moveTask(activeTask.id, newStatus);
-      }
-    } else {
-      const overTask = tasks.find((t) => t.id === overId);
-      if (overTask && activeTask.status === overTask.status) {
-        // Same column reordering - not implemented in store yet
-        // Could add reorderTask method if needed
-      } else if (overTask) {
-        moveTask(activeTask.id, overTask.status);
-      }
-    }
-  };
-
-  const activeItem = tasks.find((t) => t.id === activeId);
-
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleUpdateTask = (id: string, updates: Partial<Task>) => {
-    updateTask(id, updates);
-  };
+  const currentView = useTasksStore((state) => state.currentView);
+  const setView = useTasksStore((state) => state.setView);
 
   return (
-    <div className="flex-1 flex flex-col h-full p-2 gap-2 ">
-      <div className="flex flex-row gap-2 items-center p-2 border rounded-md opacity-80 hover:opacity-100 transition-opacity">
+    <div className="flex-1 flex flex-col h-full p-2 gap-2">
+      <div
+        className={cn(
+          "flex flex-row gap-2 items-center p-2",
+          "border rounded-md opacity-80 hover:opacity-100 transition-opacity",
+        )}
+      >
         <TaskFormDialog
           mode="create"
-          onSubmit={createTask}
-          projects={projects}
-          open={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
+          onSubmit={manager.createTask}
+          projects={manager.projects}
+          open={manager.isCreateDialogOpen}
+          onOpenChange={manager.setIsCreateDialogOpen}
         />
         <ProjectActions />
         <div className="flex-1" />
-        <Tabs value={activeView} onValueChange={setActiveView}>
-          <TabsList>
-            <TabsTrigger value="board" className="gap-2">
-              <LayoutGrid className="w-4 h-4" />
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="gap-2">
-              <CalendarDays className="w-4 h-4" />
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <Tooltip>
+          <TooltipTrigger>
+            <Tabs value={currentView} onValueChange={(v) => setView(v as View)}>
+              <TabsList>
+                <TabsTrigger value="board">
+                  <LayoutGrid className="w-4 h-4" />
+                </TabsTrigger>
+                <TabsTrigger value="calendar">
+                  <CalendarDays className="w-4 h-4" />
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </TooltipTrigger>
+          <TooltipContent side="left">
+            <KbdGroup>
+              <Kbd>Alt</Kbd>
+              <span>+</span>
+              <Kbd>T</Kbd>
+            </KbdGroup>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <div className="flex-1 overflow-hidden">
-        {activeView === "board" ? (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="grid md:grid-cols-2 md:grid-row-2 lg:grid-cols-3 gap-2 h-full overflow-y-auto">
-              <BoardColumn
-                id="backlog"
-                title={COLUMN_LABELS.backlog}
-                items={backlogTasks}
-                overId={overId}
-                onDelete={deleteTask}
-                onEdit={handleEditTask}
-              />
-              <BoardColumn
-                id="inProgress"
-                title={COLUMN_LABELS.inProgress}
-                items={inProgressTasks}
-                overId={overId}
-                onDelete={deleteTask}
-                onEdit={handleEditTask}
-              />
-              <BoardColumn
-                className="md:col-span-2 lg:col-span-1"
-                id="completed"
-                title={COLUMN_LABELS.completed}
-                items={completedTasks}
-                overId={overId}
-                onDelete={deleteTask}
-                onEdit={handleEditTask}
-              />
-            </div>
-
-            <DragOverlay>
-              {activeId && activeItem ? <BoardItem item={activeItem} /> : null}
-            </DragOverlay>
-          </DndContext>
+        {currentView === "board" ? (
+          <TaskBoard tasks={manager.tasks} onEdit={manager.handleEditTask} />
         ) : (
           <CalendarView
-            tasks={filteredTasks}
-            onTaskClick={handleEditTask}
+            tasks={manager.tasks}
+            onTaskClick={manager.handleEditTask}
             onDeleteTask={deleteTask}
-            onEditTask={handleEditTask}
+            onEditTask={manager.handleEditTask}
           />
         )}
       </div>
 
-      {editingTask && (
+      {manager.editingTask && (
         <TaskFormDialog
           mode="edit"
-          task={editingTask}
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          onSubmit={handleUpdateTask}
-          projects={projects}
+          task={manager.editingTask}
+          open={manager.isEditDialogOpen}
+          onOpenChange={manager.setIsEditDialogOpen}
+          onSubmit={manager.updateTask}
+          projects={manager.projects}
         />
       )}
     </div>

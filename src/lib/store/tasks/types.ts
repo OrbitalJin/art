@@ -1,6 +1,7 @@
 export type Urgency = "low" | "medium" | "high";
 export type Energy = 1 | 2 | 3 | 4 | 5;
 export type TaskStatus = "backlog" | "inProgress" | "completed";
+export type View = "calendar" | "board";
 
 export interface Task {
   id: string;

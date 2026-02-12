@@ -1,4 +1,9 @@
-import React, { useState, useEffect, type FormEvent, type ReactNode } from "react";
+import React, {
+  useState,
+  useEffect,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import type { Project } from "@/lib/store/tasks/types";
 
 import {
@@ -24,11 +29,7 @@ type ProjectFormData = {
   selectedColor: ProjectColor;
 };
 
-interface BaseProps {
-  // No additional base props needed
-}
-
-interface CreateModeProps extends BaseProps {
+interface CreateModeProps {
   mode: "create";
   onSubmit: (name: string, color: string) => void;
   project?: never;
@@ -37,7 +38,7 @@ interface CreateModeProps extends BaseProps {
   trigger?: ReactNode;
 }
 
-interface EditModeProps extends BaseProps {
+interface EditModeProps {
   mode: "edit";
   project: Project | null;
   open: boolean;
@@ -82,9 +83,13 @@ const defaultFormData: ProjectFormData = {
   selectedColor: PROJECT_COLORS[0],
 };
 
-const getInitialFormData = (mode: "create" | "edit", project?: Project | null): ProjectFormData => {
+const getInitialFormData = (
+  mode: "create" | "edit",
+  project?: Project | null,
+): ProjectFormData => {
   if (mode === "edit" && project) {
-    const projectColor = PROJECT_COLORS.find((c) => c.text === project.color) || PROJECT_COLORS[0];
+    const projectColor =
+      PROJECT_COLORS.find((c) => c.text === project.color) || PROJECT_COLORS[0];
     return {
       name: project.name,
       selectedColor: projectColor,
@@ -100,7 +105,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = (props) => {
 
   const [internalOpen, setInternalOpen] = useState(false);
   const [formData, setFormData] = useState<ProjectFormData>(() =>
-    getInitialFormData(mode, isEdit ? props.project : undefined)
+    getInitialFormData(mode, isEdit ? props.project : undefined),
   );
 
   const isControlled = props.open !== undefined;
@@ -115,7 +120,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = (props) => {
 
   const updateField = <K extends keyof ProjectFormData>(
     field: K,
-    value: ProjectFormData[K]
+    value: ProjectFormData[K],
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -188,7 +193,7 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = (props) => {
                   "hover:scale-110 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-primary",
                   formData.selectedColor.name === color.name
                     ? "ring-2 ring-offset-2 ring-primary scale-110"
-                    : "opacity-60 hover:opacity-100"
+                    : "opacity-60 hover:opacity-100",
                 )}
                 title={color.name}
               />

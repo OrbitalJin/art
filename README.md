@@ -30,13 +30,14 @@
 - [x] Add modes (chat, research, tutor)
 - [x] add "archived" state.
 - [x] Search grounding
+- [ ] Pdf support
 
 ### Productivity & Tools
 
 - [x] Attach context to chat from other apps
 - [x] Text Utilities (summarizer, reworder, translator, etc.)
 - [x] Markdown diary editor
-- [ ] To Do's (Categorized: Personal, School, Work, etc.) (board)
+- [x] To Do's (Categorized: Personal, School, Work, etc.) (board)
 - [ ] Pomodoro Timer
 - [ ] Food tracking calories etc?
 - [ ] Screenshot Paste (Single & Multiple, then Save as PNG)

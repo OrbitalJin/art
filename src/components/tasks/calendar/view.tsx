@@ -11,6 +11,7 @@ import { CalendarDay } from "./day";
 import { TaskItem } from "./task-item";
 import type { Task } from "@/lib/store/tasks/types";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -96,8 +97,9 @@ export const CalendarView: React.FC<Props> = ({
             "flex flex-col overflow-y-auto h-[50%] md:h-[30%] lg:h-auto border rounded-md",
           )}
         >
-          <div className="font-medium text-sm text-muted-foreground border-b p-2 px-3">
-            <p>No Due Date ({tasksWithoutDue.length})</p>
+          <div className="flex flex-row gap-2 items-center justify-between font-medium text text-muted-foreground border-b p-3">
+            <p>Undated </p>
+            <Badge variant="outline">{tasksWithoutDue.length}</Badge>
           </div>
           <div className="flex flex-col gap-2 rounded-md h-full p-2">
             {tasksWithoutDue.map((task) => (

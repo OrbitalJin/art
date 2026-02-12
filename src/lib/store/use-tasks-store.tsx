@@ -1,13 +1,16 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 import { toast } from "sonner";
-import type { Project, Task, TaskStatus } from "./tasks/types";
+import type { Project, Task, TaskStatus, View } from "./tasks/types";
 import { tasksStorage } from "./tasks/adapter";
 
 export interface TasksState {
   tasks: Task[];
   projects: Project[];
+  currentView: View;
   activeProjectId: string | "inbox";
+
+  setView: (view: View) => void;
 
   // Task operations
   createTask: (task: Omit<Task, "id" | "createdAt" | "updatedAt">) => string;
@@ -50,7 +53,10 @@ export const useTasksStore = create<TasksState>()(
     (set) => ({
       tasks: [],
       projects: [],
+      currentView: "board",
       activeProjectId: "inbox",
+
+      setView: (view) => set({ currentView: view }),
 
       createTask: (task) => {
         const newTask = createNewTask(task);
