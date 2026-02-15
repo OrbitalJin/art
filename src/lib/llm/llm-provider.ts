@@ -10,7 +10,7 @@ export interface GenerateOptions {
   signal?: AbortSignal;
 
   useGoogleSearch?: boolean;
-  webContextUris?: string[];
+  webCtxUrls?: string[];
 }
 
 export class LLMProvider {
@@ -34,9 +34,9 @@ export class LLMProvider {
       tools.push({ googleSearch: {} });
     }
 
-    if (options.webContextUris && options.webContextUris.length > 0) {
+    if (options.webCtxUrls && options.webCtxUrls.length > 0) {
       tools.push({
-        urlContext: { uris: options.webContextUris },
+        urlContext: {},
       });
     }
 
@@ -51,13 +51,19 @@ export class LLMProvider {
     history: Message[],
     options: GenerateOptions = {},
   ): AsyncGenerator<StreamChunk> {
-    const { model = DEFAULT_MODEL.type, context, signal } = options;
+    const { model = DEFAULT_MODEL.type, context, signal, webCtxUrls } = options;
     let error: LLMError | undefined = undefined;
+
+    let enhancedPrompt = prompt;
+    if (webCtxUrls && webCtxUrls.length > 0) {
+      const urlList = webCtxUrls.join("\n");
+      enhancedPrompt = `Context URLs:\n${urlList}\n\n${prompt}`;
+    }
 
     const contents = [
       ...(context ? [{ role: "user", parts: [{ text: context }] }] : []),
       ...this.formatMessage(history),
-      { role: "user", parts: [{ text: prompt }] },
+      { role: "user", parts: [{ text: enhancedPrompt }] },
     ];
 
     try {

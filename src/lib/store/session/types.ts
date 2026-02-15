@@ -33,4 +33,5 @@ export interface Session {
   createdAt: number;
   updatedAt: number;
   searchGrounding?: boolean;
+  webCtxUrls: string[];
 }

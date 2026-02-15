@@ -66,6 +66,7 @@ export const useLLMSession = ({
         context,
         model: modelType,
         useGoogleSearch: activeSession?.searchGrounding,
+        webCtxUrls: activeSession?.webCtxUrls,
       });
     },
     [activeId, llm, activeSession, stream, context],

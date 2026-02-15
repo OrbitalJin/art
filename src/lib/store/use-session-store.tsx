@@ -16,6 +16,7 @@ const createNewSession = (title?: string): Session => {
     traits: [],
     messages: [],
     journalRefs: [],
+    webCtxUrls: [],
     mode: DEFAULT_MODE,
     modelId: DEFAULT_MODEL.id,
     createdAt: date,
@@ -29,17 +30,24 @@ export interface SessionState {
 
   fork: (id: string) => void;
   setMode: (id: string, mode: ModeId) => void;
+  toggleArchived: (id: string) => void;
+  togglePinned: (id: string) => void;
   toggleSearchGrounding: (id: string) => void;
+
+  addWebCtxUrl: (id: string, url: string) => void;
+  removeWebCtxUrl: (id: string, url: string) => void;
+  clearWebCtxUrls: (id: string) => void;
+
   addTrait: (id: string, trait: TraitId) => void;
   removeTrait: (id: string, trait: TraitId) => void;
   clearTraits: (id: string) => void;
+
   addJournalRef: (id: string, pageId: string) => void;
   removeJournalRef: (id: string, pageId: string) => void;
   clearJournalRefs: (id: string) => void;
-  toggleArchived: (id: string) => void;
-  togglePinned: (id: string) => void;
-  importFn: (s: Session) => void;
+
   setActive: (id: string) => void;
+  importFn: (s: Session) => void;
   deleteFn: (id: string) => void;
   create: (title?: string) => void;
   getFn: (id: string) => Session | undefined;
@@ -48,11 +56,55 @@ export interface SessionState {
   setModel: (sessionId: string, modelId: ModelId) => void;
   purge: () => void;
 }
+
 export const useSessionStore = create<SessionState>()(
   persist(
     (set, get) => ({
       sessions: [],
       activeId: null,
+
+      addWebCtxUrl: (id: string, url: string) => {
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) => {
+            if (session.id === id) {
+              const isDuplicate = (session.webCtxUrls || []).includes(url);
+              if (isDuplicate) {
+                toast.warning("Duplicate URL detected.");
+              }
+              return {
+                ...session,
+                webCtxUrls: isDuplicate
+                  ? session.webCtxUrls || []
+                  : [...(session.webCtxUrls || []), url],
+              };
+            }
+            return session;
+          }),
+        }));
+      },
+
+      removeWebCtxUrl: (id: string, url: string) => {
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? {
+                  ...session,
+                  webCtxUrls: (session.webCtxUrls || []).filter(
+                    (u) => u !== url,
+                  ),
+                }
+              : session,
+          ),
+        }));
+      },
+
+      clearWebCtxUrls: (id: string) => {
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id ? { ...session, webCtxUrls: [] } : session,
+          ),
+        }));
+      },
 
       purge: () => {
         set({ sessions: [] });
@@ -275,10 +327,10 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: any, version: number) => {
-        if (version === 0) {
+        if (version < 2) {
           if (persistedState && Array.isArray(persistedState.sessions)) {
             persistedState.sessions = persistedState.sessions.map(
               (session: any) => ({
@@ -288,6 +340,9 @@ export const useSessionStore = create<SessionState>()(
                     ? session.modelId
                     : DEFAULT_MODEL.id,
                 mode: session.mode in MODES ? session.mode : DEFAULT_MODE,
+                webCtxUrls: Array.isArray(session.webCtxUrls)
+                  ? session.webCtxUrls
+                  : [],
                 journalRefs: Array.isArray(session.journalRefs)
                   ? session.journalRefs
                   : [],
@@ -300,15 +355,11 @@ export const useSessionStore = create<SessionState>()(
       },
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-
-        // If no sessions exist after migration/hydration, create the initial one
         if (state.sessions.length === 0) {
           const newSession = createNewSession();
           state.sessions = [newSession];
           state.activeId = newSession.id;
-        }
-        // If sessions exist but no activeId is set, set to first session
-        else if (
+        } else if (
           !state.activeId ||
           !state.sessions.find((s) => s.id === state.activeId)
         ) {

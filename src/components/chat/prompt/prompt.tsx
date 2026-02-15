@@ -9,8 +9,8 @@ import { useStreamingState } from "@/hooks/use-streaming-state";
 import { ReferencePicker } from "@/components/chat/prompt/reference-picker";
 import { TraitPicker } from "./trait-picker";
 import { ForkSession } from "./fork-session";
-import { SearchGrounding } from "./search-grounding";
 import { ModeSelect } from "../mode-select";
+import { WebSearchMenu } from "./web-search-menu.tsx";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -66,7 +66,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               <TraitPicker />
               <ReferencePicker />
               <ForkSession />
-              <SearchGrounding />
+              <WebSearchMenu />
             </div>
             <Button
               variant="default"
