@@ -6,6 +6,7 @@ import React, {
 } from "react";
 import { addDays, format, parseISO } from "date-fns";
 import type { Project, Task } from "@/lib/store/tasks/types";
+import { useTasksStore } from "@/lib/store/use-tasks-store";
 
 import {
   Dialog,
@@ -108,6 +109,7 @@ const defaultFormData: TaskFormData = {
 const getInitialFormData = (
   mode: "create" | "edit",
   task?: Task | null,
+  activeProjectId?: string | "inbox",
 ): TaskFormData => {
   if (mode === "edit" && task) {
     return {
@@ -121,6 +123,7 @@ const getInitialFormData = (
   }
   return {
     ...defaultFormData,
+    projectId: activeProjectId ?? "inbox",
     due: addDays(new Date(), 1),
   };
 };
@@ -129,6 +132,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
   const { mode, projects, trigger } = props;
   const isEdit = mode === "edit";
   const isCreate = mode === "create";
+  const activeProjectId = useTasksStore((state) => state.activeProjectId);
 
   const [internalOpen, setInternalOpen] = useState(false);
   const [formData, setFormData] = useState<TaskFormData>(() =>
@@ -142,8 +146,10 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
   useEffect(() => {
     if (isEdit && props.task && open) {
       setFormData(getInitialFormData("edit", props.task));
+    } else if (isCreate && open) {
+      setFormData((prev) => ({ ...prev, projectId: activeProjectId }));
     }
-  }, [isEdit, props.task, open]);
+  }, [isEdit, isCreate, props.task, open, activeProjectId]);
 
   const updateField = <K extends keyof TaskFormData>(
     field: K,
@@ -177,6 +183,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
       } as Omit<Task, "id" | "createdAt" | "updatedAt">);
       setFormData({
         ...defaultFormData,
+        projectId: activeProjectId,
         due: addDays(new Date(), 1),
       });
     }
@@ -188,6 +195,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
     if (isCreate) {
       setFormData({
         ...defaultFormData,
+        projectId: activeProjectId,
         due: addDays(new Date(), 1),
       });
     }
