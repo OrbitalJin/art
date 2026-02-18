@@ -95,6 +95,7 @@
 
 - [x] Persist toolbar states in setting.
 - [x] Confirmation dialogs for destructive actions
+- [x] Default to current project id when creating a task
 - [x] text size picker
 - [ ] id based /chat and /notes for specific redirection
 - [ ] "Super Prompt" a floating prompt you can ask global things to about the app and use agentic features to interact with the app
