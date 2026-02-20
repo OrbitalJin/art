@@ -99,3 +99,7 @@
 - [x] text size picker
 - [ ] id based /chat and /notes for specific redirection
 - [ ] "Super Prompt" a floating prompt you can ask global things to about the app and use agentic features to interact with the app
+- [ ] Renamable inbox
+- [ ] Delete due date button dissapears when date is set
+- [ ] Generate title for session from first message
+- [ ] Rename generate title to regenerate title
