@@ -9,8 +9,10 @@ export interface TasksState {
   projects: Project[];
   currentView: View;
   activeProjectId: string | "inbox";
+  inboxName: string;
 
   setView: (view: View) => void;
+  setInboxName: (name: string) => void;
 
   // Task operations
   createTask: (task: Omit<Task, "id" | "createdAt" | "updatedAt">) => string;
@@ -55,8 +57,10 @@ export const useTasksStore = create<TasksState>()(
       projects: [],
       currentView: "board",
       activeProjectId: "inbox",
+      inboxName: "Inbox",
 
       setView: (view) => set({ currentView: view }),
+      setInboxName: (name) => set({ inboxName: name }),
 
       createTask: (task) => {
         const newTask = createNewTask(task);
@@ -146,8 +150,17 @@ export const useTasksStore = create<TasksState>()(
     }),
     {
       name: "tasks-storage",
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => tasksStorage),
+      migrate: (persistedState: unknown, version: number) => {
+        if (version < 2) {
+          return {
+            ...(persistedState as Record<string, unknown>),
+            inboxName: "Inbox",
+          };
+        }
+        return persistedState as Partial<TasksState>;
+      },
     },
   ),
 );

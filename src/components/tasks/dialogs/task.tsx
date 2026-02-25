@@ -133,6 +133,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
   const isEdit = mode === "edit";
   const isCreate = mode === "create";
   const activeProjectId = useTasksStore((state) => state.activeProjectId);
+  const inboxName = useTasksStore((state) => state.inboxName);
 
   const [internalOpen, setInternalOpen] = useState(false);
   const [formData, setFormData] = useState<TaskFormData>(() =>
@@ -257,7 +258,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
                 <SelectItem value="inbox">
                   <div className="flex items-center gap-2">
                     <Inbox className="w-4 h-4 text-muted-foreground" />
-                    <span>Inbox</span>
+                    <span>{inboxName}</span>
                   </div>
                 </SelectItem>
                 {projects.map((project) => (

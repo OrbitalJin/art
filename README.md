@@ -98,8 +98,8 @@
 - [x] Default to current project id when creating a task
 - [x] text size picker
 - [x] Delete due date button dissapears when date is set
-- [ ] Rename generate title to regenerate title
+- [x] Rename generate title to regenerate title
+- [x] Renamable inbox
 - [ ] Generate title for session from first message
 - [ ] id based /chat and /notes for specific redirection
 - [ ] "Super Prompt" a floating prompt you can ask global things to about the app and use agentic features to interact with the app
-- [ ] Renamable inbox
