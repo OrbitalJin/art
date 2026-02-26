@@ -1,3 +1,13 @@
+### Art
+
+Art is a desktop productivity application (v0.2.2) that unifies LLM-powered chat, journaling, and task management in one interface. Built with Tauri + React + TypeScript, it features:
+
+- Chat: Multi-session LLM conversations with research and tutor modes
+- Journal: Rich text entries with custom mentions, image support, and auto-save
+- Tasks: Bento-style task board with drag-and-drop, due dates, and project categorization
+
+Intuitive navigation through command palette, theme customization, text utilities, and keyboard shortcuts.
+
 ## Features
 
 ### Chat & Session Management
