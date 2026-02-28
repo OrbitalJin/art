@@ -16,7 +16,7 @@
         "title": "Art",
         "width": 950,
         "height": 750,
-        "minWidth": 600,
+        "minWidth": 650,
         "minHeight": 700,
         "fullscreen": false,
         "transparent": true,
