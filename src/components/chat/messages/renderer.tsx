@@ -19,7 +19,7 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
       className={cn(
         "markdown",
         "max-w-none leading-relaxed",
-        "wrap-break-word",
+        "wrap-break-word whitespace-pre-wrap",
         "text-foreground/80 leading-6",
         className,
       )}
