@@ -34,14 +34,7 @@
   --sidebar-ring: oklch(0.6002 0.2414 0.1348);
   --font-sans: Poppins, sans-serif;
   --font-serif: Playfair Display, serif;
-  --font-mono: Space Mono, monospace;
-  --radius: 0.5rem;
-  --shadow-x: 0px;
-  --shadow-y: 3px;
-  --shadow-blur: 0px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.18;
-  --shadow-color: hsl(330 70% 30% / 0.12);
+--font-mono: Space Mono, monospace;
   --shadow-2xs: 0px 3px 0px 0px hsl(330 70% 30% / 0.09);
   --shadow-xs: 0px 3px 0px 0px hsl(330 70% 30% / 0.09);
   --shadow-sm:
@@ -101,7 +94,6 @@
   --font-sans: Quicksand, sans-serif;
   --font-serif: Playfair Display, serif;
   --font-mono: Space Mono, monospace;
-  --radius: 0.5rem;
   --shadow-x: 0px;
   --shadow-y: 3px;
   --shadow-blur: 0px;

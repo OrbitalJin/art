@@ -2,6 +2,10 @@
 @import "tw-animate-css";
 @plugin '@tailwindcss/typography';
 
+:root {
+  --radius: 0.5rem;
+}
+
 @import "./themes/cosmic-night.css";
 @import "./themes/amethyst-haze.css";
 @import "./themes/midnight-bloom.css";

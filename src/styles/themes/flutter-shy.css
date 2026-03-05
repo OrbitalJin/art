@@ -34,14 +34,7 @@
   --sidebar-ring: oklch(0.6559 0.2118 354.3084);
   --font-sans: Poppins, sans-serif;
   --font-serif: Lora, serif;
-  --font-mono: Fira Code, monospace;
-  --radius: 0.4rem;
-  --shadow-x: 3px;
-  --shadow-y: 3px;
-  --shadow-blur: 0px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 1;
-  --shadow-color: hsl(325.78 58.18% 56.86% / 0.5);
+--font-mono: Fira Code, monospace;
   --shadow-2xs: 3px 3px 0px 0px hsl(325.78 58.18% 56.86% / 0.5);
   --shadow-xs: 3px 3px 0px 0px hsl(325.78 58.18% 56.86% / 0.5);
   --shadow-sm:
@@ -97,11 +90,10 @@
   --sidebar-accent: oklch(0.8228 0.1095 346.0184);
   --sidebar-accent-foreground: oklch(0.2781 0.0296 256.848);
   --sidebar-border: oklch(0.3729 0.0306 259.7328);
-  --sidebar-ring: oklch(0.6559 0.2118 354.3084);
+--sidebar-ring: oklch(0.6559 0.2118 354.3084);
   --font-sans: Poppins, sans-serif;
   --font-serif: Lora, serif;
   --font-mono: Fira Code, monospace;
-  --radius: 0.4rem;
   --shadow-x: 3px;
   --shadow-y: 3px;
   --shadow-blur: 0px;

@@ -27,7 +27,11 @@ import {
   Sun,
   Monitor,
 } from "lucide-react";
-import { useSettingsStore, type FontSize } from "@/lib/store/use-settings-store";
+import {
+  useSettingsStore,
+  type FontSize,
+  type CornerRadius,
+} from "@/lib/store/use-settings-store";
 import { useTheme, type ThemeColor } from "@/contexts/theme-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -49,10 +53,25 @@ const THEME_COLORS: Array<{ value: ThemeColor; label: string }> = [
   { value: "claude", label: "Claude" },
 ] as const;
 
-const FONT_SIZE_OPTIONS: Array<{ value: FontSize; label: string; size: string }> = [
+const FONT_SIZE_OPTIONS: Array<{
+  value: FontSize;
+  label: string;
+  size: string;
+}> = [
   { value: "small", label: "Small", size: "14px" },
   { value: "medium", label: "Medium", size: "16px" },
   { value: "large", label: "Large", size: "18px" },
+] as const;
+
+const CORNER_RADIUS_OPTIONS: Array<{
+  value: CornerRadius;
+  label: string;
+  size: string;
+}> = [
+  { value: "none", label: "None", size: "0rem" },
+  { value: "small", label: "Small", size: "0.25rem" },
+  { value: "medium", label: "Medium", size: "0.5rem" },
+  { value: "large", label: "Large", size: "1rem" },
 ] as const;
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
@@ -62,6 +81,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const setApiKey = useSettingsStore((state) => state.setApiKey);
   const fontSize = useSettingsStore((state) => state.fontSize);
   const setFontSize = useSettingsStore((state) => state.setFontSize);
+  const cornerRadius = useSettingsStore((state) => state.cornerRadius);
+  const setCornerRadius = useSettingsStore((state) => state.setCornerRadius);
 
   const [showKey, setShowKey] = React.useState(false);
   const [value, setValue] = React.useState(apiKey);
@@ -87,6 +108,17 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     };
     root.style.fontSize = sizeMap[fontSize];
   }, [fontSize]);
+
+  React.useEffect(() => {
+    const root = window.document.documentElement;
+    const radiusMap: Record<CornerRadius, string> = {
+      none: "0rem",
+      small: "0.25rem",
+      medium: "0.5rem",
+      large: "1rem",
+    };
+    root.style.setProperty("--radius", radiusMap[cornerRadius]);
+  }, [cornerRadius]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -263,6 +295,36 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {FONT_SIZE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <span>{option.label}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-base font-medium">Corner Radius</p>
+                    <p className="text-sm text-muted-foreground">
+                      Control the roundness of corners across the application.
+                    </p>
+                  </div>
+                  <div className="pt-2">
+                    <Select
+                      value={cornerRadius}
+                      onValueChange={(val: CornerRadius) =>
+                        setCornerRadius(val)
+                      }
+                    >
+                      <SelectTrigger className="w-full max-w-md">
+                        <SelectValue placeholder="Select corner radius" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CORNER_RADIUS_OPTIONS.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             <span>{option.label}</span>
                           </SelectItem>
