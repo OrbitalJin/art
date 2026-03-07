@@ -13,7 +13,7 @@ import {
 import { useStreamingState } from "@/hooks/use-streaming-state";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
-import { Globe, Link as LinkIcon, Plus, Trash2 } from "lucide-react";
+import { Globe, Link as LinkIcon, Lock, Plus, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
@@ -38,6 +38,7 @@ export const WebSearchMenu = () => {
   const grounded = !!session.searchGrounding;
   const selectedUrls = session.webCtxUrls || [];
   const hasActiveFeatures = grounded || selectedUrls.length > 0;
+  const groundingForced = selectedUrls.length > 0;
 
   const handleAddUrl = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +48,9 @@ export const WebSearchMenu = () => {
       // Basic validation
       new URL(urlInput.startsWith("http") ? urlInput : `https://${urlInput}`);
       addWebUrl(activeId, urlInput.trim());
+      if (!grounded) {
+        toggleSearchGrounding(activeId);
+      }
       setUrlInput("");
     } catch (err) {
       toast.error("Please enter a valid URL");
@@ -94,14 +98,19 @@ export const WebSearchMenu = () => {
         {/* --- Section 1: Search Grounding Toggle --- */}
         <div
           className={cn(
-            "flex flex-col gap-1 border-b p-3 transition-colors cursor-pointer hover:bg-accent/50",
-            grounded ? "bg-primary/5" : "bg-muted/30",
+            "flex flex-col gap-1 border-b p-3 transition-colors",
+            grounded
+              ? groundingForced
+                ? "bg-primary/10 cursor-default"
+                : "bg-primary/5 cursor-pointer hover:bg-accent/50"
+              : "bg-muted/30 cursor-pointer hover:bg-accent/50",
           )}
-          onClick={() => toggleSearchGrounding(activeId)}
+          onClick={() => !groundingForced && toggleSearchGrounding(activeId)}
         >
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold flex items-center gap-2">
               Search Grounding
+              {groundingForced && <Lock className="h-3 w-3 text-primary" />}
             </p>
             <span
               className={cn(
@@ -115,7 +124,9 @@ export const WebSearchMenu = () => {
             </span>
           </div>
           <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
-            Browse the internet to add real-time context.
+            {groundingForced
+              ? "Enabled by reference links"
+              : "Browse the internet to add real-time context."}
           </p>
         </div>
 
