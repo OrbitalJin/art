@@ -53,6 +53,7 @@ export interface SessionState {
   getFn: (id: string) => Session | undefined;
   addMessage: (sessionId: string, message: Message) => void;
   updateTitle: (sessionId: string, newTitle: string) => void;
+  setTitleGenerated: (sessionId: string, value: boolean) => void;
   setModel: (sessionId: string, modelId: ModelId) => void;
   purge: () => void;
 }
@@ -308,6 +309,16 @@ export const useSessionStore = create<SessionState>()(
           ),
         }));
         toast.success("Session title updated successfully.");
+      },
+
+      setTitleGenerated: (id: string, value: boolean) => {
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? { ...session, titleGenerated: value }
+              : session,
+          ),
+        }));
       },
 
       addMessage: (id: string, message: Message) => {

@@ -153,7 +153,6 @@ export const SessionListItem: React.FC<Props> = ({
               item={item}
               setText={setText}
               setEditing={setEditing}
-              updateTitle={updateTitle}
               generateTitle={generateTitle}
             />
           )
@@ -167,7 +166,6 @@ interface MenuProps {
   item: Session;
   setText: (text: string) => void;
   setEditing: (value: boolean) => void;
-  updateTitle: (id: string, title: string) => void;
   generateTitle: (id: string) => Promise<string | void>;
 }
 
@@ -175,7 +173,6 @@ const Menu: React.FC<MenuProps> = ({
   item,
   setText,
   setEditing,
-  updateTitle,
   generateTitle,
 }) => {
   const togglePinned = useSessionStore((s) => s.togglePinned);
@@ -196,7 +193,6 @@ const Menu: React.FC<MenuProps> = ({
     const title = await generateTitle(item.id);
     if (title) {
       setText(title);
-      updateTitle(item.id, title);
     }
   };
 
