@@ -7,6 +7,7 @@ import { ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useActiveSession } from "@/contexts/active-session-context";
+import { useSessionStore } from "@/lib/store/use-session-store";
 
 interface Props {
   messages: readonly Message[];
@@ -17,6 +18,14 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
   const [atBottom, setAtBottom] = useState(true);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const { prompt } = useActiveSession();
+  const activeId = useSessionStore((s) => s.activeId);
+  const pruneMessages = useSessionStore((s) => s.pruneMessages);
+
+  const handlePrune = (messageId: string) => {
+    if (activeId) {
+      pruneMessages(activeId, messageId);
+    }
+  };
 
   const scrollToBottom = () => {
     virtuosoRef.current?.scrollToIndex({
@@ -40,7 +49,11 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
             overscan={400}
             itemContent={(index, msg) => (
               <div className="py-4 max-w-2xl mx-auto select-text">
-                <MessageBroker key={index} {...msg} />
+                <MessageBroker
+                  key={index}
+                  {...msg}
+                  onPrune={() => handlePrune(msg.id)}
+                />
               </div>
             )}
           />

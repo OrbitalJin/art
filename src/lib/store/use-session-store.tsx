@@ -52,6 +52,7 @@ export interface SessionState {
   create: (title?: string) => void;
   getFn: (id: string) => Session | undefined;
   addMessage: (sessionId: string, message: Message) => void;
+  pruneMessages: (sessionId: string, messageId: string) => void;
   updateTitle: (sessionId: string, newTitle: string) => void;
   setTitleGenerated: (sessionId: string, value: boolean) => void;
   setModel: (sessionId: string, modelId: ModelId) => void;
@@ -63,6 +64,27 @@ export const useSessionStore = create<SessionState>()(
     (set, get) => ({
       sessions: [],
       activeId: null,
+
+      pruneMessages: (sessionId: string, messageId: string) => {
+        set((state: SessionState) => ({
+          sessions: state.sessions.map((session) => {
+            if (session.id === sessionId) {
+              const index = session.messages.findIndex(
+                (m) => m.id === messageId,
+              );
+              if (index >= 0) {
+                return {
+                  ...session,
+                  messages: session.messages.slice(0, index),
+                  updatedAt: Date.now(),
+                };
+              }
+            }
+            return session;
+          }),
+        }));
+        toast.success("Conversation pruned from here");
+      },
 
       addWebCtxUrl: (id: string, url: string) => {
         set((state: SessionState) => ({
@@ -314,9 +336,7 @@ export const useSessionStore = create<SessionState>()(
       setTitleGenerated: (id: string, value: boolean) => {
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) =>
-            session.id === id
-              ? { ...session, titleGenerated: value }
-              : session,
+            session.id === id ? { ...session, titleGenerated: value } : session,
           ),
         }));
       },
