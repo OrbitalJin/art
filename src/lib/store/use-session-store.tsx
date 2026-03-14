@@ -1,14 +1,17 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
-import { DEFAULT_MODEL, MODELS, type ModelId } from "@/lib/llm/common/types";
+import { MODELS, type ModelId } from "@/lib/llm/common/types";
 import type { Message, Session } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { toast } from "sonner";
 import { DEFAULT_MODE, MODES, type ModeId } from "../llm/prompts/modes";
 import type { TraitId } from "../llm/prompts/traits";
+import { useSettingsStore } from "./use-settings-store";
 
-const createNewSession = (title?: string): Session => {
+const DEFAULT_MODEL_ID: ModelId = "Genesis";
+
+const createNewSession = (title?: string, defaultModelId?: ModelId): Session => {
   const date = Date.now();
   return {
     id: crypto.randomUUID(),
@@ -18,7 +21,7 @@ const createNewSession = (title?: string): Session => {
     journalRefs: [],
     webCtxUrls: [],
     mode: DEFAULT_MODE,
-    modelId: DEFAULT_MODEL.id,
+    modelId: defaultModelId ?? (useSettingsStore.getState().defaultModel as ModelId),
     createdAt: date,
     updatedAt: date,
   };
@@ -360,16 +363,17 @@ export const useSessionStore = create<SessionState>()(
       name: "session-storage",
       version: 2,
       storage: createJSONStorage(() => sessionStorage),
-      migrate: (persistedState: any, version: number) => {
+      migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
-          if (persistedState && Array.isArray(persistedState.sessions)) {
-            persistedState.sessions = persistedState.sessions.map(
-              (session: any) => ({
+          const state = persistedState as { sessions?: Session[] };
+          if (state && Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map(
+              (session: Session) => ({
                 ...session,
                 modelId:
                   session.modelId in MODELS
-                    ? session.modelId
-                    : DEFAULT_MODEL.id,
+                    ? (session.modelId as ModelId)
+                    : DEFAULT_MODEL_ID,
                 mode: session.mode in MODES ? session.mode : DEFAULT_MODE,
                 webCtxUrls: Array.isArray(session.webCtxUrls)
                   ? session.webCtxUrls
@@ -382,7 +386,7 @@ export const useSessionStore = create<SessionState>()(
             );
           }
         }
-        return persistedState;
+        return persistedState as { sessions?: Session[]; version?: number };
       },
       onRehydrateStorage: () => (state) => {
         if (!state) return;

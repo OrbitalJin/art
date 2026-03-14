@@ -12,6 +12,10 @@ interface SettingsState {
   settingsDialogOpen: boolean;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
+  defaultModel: string;
+  enterKeySends: boolean;
+  reducedMotion: boolean;
+  compactMode: boolean;
 
   setApiKey: (key: string) => void;
   setChatSidebarOpen: (open: boolean) => void;
@@ -19,6 +23,10 @@ interface SettingsState {
   setSettingsDialogOpen: (open: boolean) => void;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
+  setDefaultModel: (model: string) => void;
+  setEnterKeySends: (value: boolean) => void;
+  setReducedMotion: (value: boolean) => void;
+  setCompactMode: (value: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -30,6 +38,10 @@ export const useSettingsStore = create<SettingsState>()(
       settingsDialogOpen: false,
       fontSize: "medium",
       cornerRadius: "medium",
+      defaultModel: "Genesis",
+      enterKeySends: true,
+      reducedMotion: false,
+      compactMode: false,
       setApiKey: (key: string) => set({ apiKey: key }),
       setChatSidebarOpen: (open: boolean) => set({ chatSidebarOpen: open }),
       setNotesSidebarOpen: (open: boolean) => set({ notesSidebarOpen: open }),
@@ -37,6 +49,10 @@ export const useSettingsStore = create<SettingsState>()(
         set({ settingsDialogOpen: open }),
       setFontSize: (size: FontSize) => set({ fontSize: size }),
       setCornerRadius: (radius: CornerRadius) => set({ cornerRadius: radius }),
+      setDefaultModel: (model: string) => set({ defaultModel: model }),
+      setEnterKeySends: (value: boolean) => set({ enterKeySends: value }),
+      setReducedMotion: (value: boolean) => set({ reducedMotion: value }),
+      setCompactMode: (value: boolean) => set({ compactMode: value }),
     }),
     {
       name: "settings-storage",

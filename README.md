@@ -113,6 +113,7 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Formatting for new lines
 - [x] Customizable radius
 - [x] Generate title for session from first message
-- [ ] "Undo" message
+- [x] Added more settings to chat section
+- [x] "Undo" message
 - [ ] id based /chat and /notes for specific redirection
 - [ ] "Super Prompt" a floating prompt you can ask global things to about the app and use agentic features to interact with the app

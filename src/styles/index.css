@@ -68,6 +68,22 @@ body {
   body {
     overflow: -moz-scrollbars-none;
   }
+
+  .reduce-motion *,
+  .reduce-motion *::before,
+  .reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .compact-mode {
+    --spacing-multiplier: 0.6;
+  }
+
+  .compact-mode > * {
+    gap: calc(var(--default-gap, 1rem) * var(--spacing-multiplier, 1));
+  }
 }
 
 @layer base {

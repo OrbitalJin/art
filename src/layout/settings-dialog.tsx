@@ -6,6 +6,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,15 +37,22 @@ import {
   Moon,
   Sun,
   Monitor,
+  Keyboard,
+  Trash2,
+  Sparkles,
+  Minimize,
 } from "lucide-react";
 import {
   useSettingsStore,
   type FontSize,
   type CornerRadius,
 } from "@/lib/store/use-settings-store";
-import { useTheme, type ThemeColor } from "@/contexts/theme-context";
+import { MODELS, type ModelId } from "@/lib/llm/common/types";
+import { useSessionStore } from "@/lib/store/use-session-store";
+import { useTheme, type ThemeColor, type ThemeMode } from "@/contexts/theme-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -63,17 +81,6 @@ const FONT_SIZE_OPTIONS: Array<{
   { value: "large", label: "Large", size: "18px" },
 ] as const;
 
-const CORNER_RADIUS_OPTIONS: Array<{
-  value: CornerRadius;
-  label: string;
-  size: string;
-}> = [
-  { value: "none", label: "None", size: "0rem" },
-  { value: "small", label: "Small", size: "0.25rem" },
-  { value: "medium", label: "Medium", size: "0.5rem" },
-  { value: "large", label: "Large", size: "1rem" },
-] as const;
-
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { mode, setMode, color, setColor } = useTheme();
 
@@ -82,7 +89,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const fontSize = useSettingsStore((state) => state.fontSize);
   const setFontSize = useSettingsStore((state) => state.setFontSize);
   const cornerRadius = useSettingsStore((state) => state.cornerRadius);
-  const setCornerRadius = useSettingsStore((state) => state.setCornerRadius);
+  const defaultModel = useSettingsStore((state) => state.defaultModel);
+  const setDefaultModel = useSettingsStore((state) => state.setDefaultModel);
+  const enterKeySends = useSettingsStore((state) => state.enterKeySends);
+  const setEnterKeySends = useSettingsStore((state) => state.setEnterKeySends);
+  const reducedMotion = useSettingsStore((state) => state.reducedMotion);
+  const setReducedMotion = useSettingsStore((state) => state.setReducedMotion);
+  const compactMode = useSettingsStore((state) => state.compactMode);
+  const setCompactMode = useSettingsStore((state) => state.setCompactMode);
+
+  const purgeSessions = useSessionStore((state) => state.purge);
 
   const [showKey, setShowKey] = React.useState(false);
   const [value, setValue] = React.useState(apiKey);
@@ -119,6 +135,29 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     };
     root.style.setProperty("--radius", radiusMap[cornerRadius]);
   }, [cornerRadius]);
+
+  React.useEffect(() => {
+    const root = window.document.documentElement;
+    if (reducedMotion) {
+      root.classList.add("reduce-motion");
+    } else {
+      root.classList.remove("reduce-motion");
+    }
+  }, [reducedMotion]);
+
+  React.useEffect(() => {
+    const root = window.document.documentElement;
+    if (compactMode) {
+      root.classList.add("compact-mode");
+    } else {
+      root.classList.remove("compact-mode");
+    }
+  }, [compactMode]);
+
+  const handleClearHistory = () => {
+    purgeSessions();
+    toast.success("Chat history cleared");
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -161,7 +200,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
               <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
                 <div className="space-y-4">
-                  <p className="text-base font-medium">Secrect Key</p>
+                  <p className="text-base font-medium">Secret Key</p>
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
                     <div className="relative flex-1">
                       <Input
@@ -205,6 +244,90 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   </div>
                 </div>
               </div>
+
+              <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
+                <div className="space-y-4">
+                  <p className="text-base font-medium">Default Model</p>
+                  <p className="text-sm text-muted-foreground">
+                    Model used for new sessions.
+                  </p>
+                  <div className="pt-2">
+                    <Select
+                      value={defaultModel}
+                      onValueChange={(val: ModelId) => setDefaultModel(val)}
+                    >
+                      <SelectTrigger className="w-full max-w-md">
+                        <SelectValue placeholder="Select default model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MODELS.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            <span>{m.id}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-medium">Enter to Send</p>
+                      <Keyboard className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Press Enter to send, Shift+Enter for newlines.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={enterKeySends}
+                    onCheckedChange={setEnterKeySends}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-base font-medium">Clear Chat History</p>
+                    <p className="text-sm text-muted-foreground">
+                      Delete all conversations.
+                    </p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Clear
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Clear Chat History</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete all your conversations. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleClearHistory}
+                          className="bg-destructive text-white hover:bg-destructive/90"
+                        >
+                          Delete All
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
             </TabsContent>
 
             {/* Appearance Tab */}
@@ -226,14 +349,14 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                     {[
-                      { id: "light", icon: Sun, label: "Light" },
-                      { id: "dark", icon: Moon, label: "Dark" },
-                      { id: "system", icon: Monitor, label: "System" },
+                      { id: "light" as ThemeMode, icon: Sun, label: "Light" },
+                      { id: "dark" as ThemeMode, icon: Moon, label: "Dark" },
+                      { id: "system" as ThemeMode, icon: Monitor, label: "System" },
                     ].map((t) => (
                       <button
                         key={t.id}
                         type="button"
-                        onClick={() => setMode(t.id as any)}
+                        onClick={() => setMode(t.id)}
                         className={cn(
                           "flex items-center gap-3 sm:flex-col sm:justify-between rounded-md border-2 p-4 transition-all",
                           mode === t.id
@@ -306,32 +429,38 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </div>
 
               <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-                <div className="space-y-4">
+                <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="text-base font-medium">Corner Radius</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-medium">Reduced Motion</p>
+                      <Sparkles className="h-4 w-4 text-muted-foreground" />
+                    </div>
                     <p className="text-sm text-muted-foreground">
-                      Control the roundness of corners across the application.
+                      Minimize animations throughout the app.
                     </p>
                   </div>
-                  <div className="pt-2">
-                    <Select
-                      value={cornerRadius}
-                      onValueChange={(val: CornerRadius) =>
-                        setCornerRadius(val)
-                      }
-                    >
-                      <SelectTrigger className="w-full max-w-md">
-                        <SelectValue placeholder="Select corner radius" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CORNER_RADIUS_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <span>{option.label}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <Switch
+                    checked={reducedMotion}
+                    onCheckedChange={setReducedMotion}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-medium">Compact Mode</p>
+                      <Minimize className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Use tighter spacing for denser layouts.
+                    </p>
                   </div>
+                  <Switch
+                    checked={compactMode}
+                    onCheckedChange={setCompactMode}
+                  />
                 </div>
               </div>
             </TabsContent>

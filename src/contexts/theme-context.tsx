@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 // 1. Define your available color themes here
-type ThemeMode = "dark" | "light" | "system";
+export type ThemeMode = "dark" | "light" | "system";
 export type ThemeColor =
   | "amethyst haze"
   | "cosmic night"

@@ -11,6 +11,7 @@ import { TraitPicker } from "./trait-picker";
 import { ForkSession } from "./fork-session";
 import { ModeSelect } from "../mode-select";
 import { WebSearchMenu } from "./web-search-menu.tsx";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -19,6 +20,7 @@ interface Props {
 export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   const { prompt, abortStream, setPrompt, sendMessage } = useActiveSession();
   const { isCurrentSessionStreaming } = useStreamingState();
+  const enterKeySends = useSettingsStore((state) => state.enterKeySends);
 
   useEffect(() => {
     const textarea = textAreaRef.current;
@@ -29,7 +31,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   }, [prompt, textAreaRef]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && (enterKeySends ? !e.shiftKey : e.shiftKey)) {
       e.preventDefault();
       sendMessage(prompt);
     }
