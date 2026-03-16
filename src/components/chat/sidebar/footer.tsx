@@ -1,8 +1,4 @@
-import { Download, Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
 import { useUsage } from "@/hooks/use-usage";
-import { useTradeSession } from "@/hooks/use-trade-session";
 
 export const SidebarFooter = () => {
   const { usage } = useUsage();
@@ -10,28 +6,6 @@ export const SidebarFooter = () => {
   return (
     <div className="border-t bg-card/50">
       <UsageIndicator usage={usage} />
-      <ExportButton />
-    </div>
-  );
-};
-
-export const ExportButton = () => {
-  const { exportCurrentSession, importSession } = useTradeSession();
-
-  return (
-    <div className="flex gap-2 p-2 ">
-      <Button
-        className="flex-1"
-        variant="outline"
-        onClick={exportCurrentSession}
-      >
-        <Upload className="h-3.5 w-3.5" />
-        Export
-      </Button>
-      <Button className="flex-1" variant="outline" onClick={importSession}>
-        <Download className="h-3.5 w-3.5" />
-        Import
-      </Button>
     </div>
   );
 };

@@ -7,13 +7,9 @@ import type { Session } from "@/lib/store/session/types";
 
 export const useTradeSession = () => {
   const sessions = useSessionStore((state) => state.sessions);
-  const activeId = useSessionStore((state) => state.activeId);
   const importFn = useSessionStore((state) => state.importFn);
 
-  const exportCurrentSession = () => {
-    if (!activeId) return;
-    exportSession(activeId);
-  };
+  const sortedSessions = [...sessions].sort((a, b) => b.createdAt - a.createdAt);
 
   const exportSession = (id: string) => {
     const session = sessions.find((s) => s.id === id);
@@ -23,26 +19,28 @@ export const useTradeSession = () => {
 
     try {
       const jsonData = JSON.stringify(session);
-
-      const blob = new Blob([jsonData], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `art_session_${id}.json`;
-
-      document.body.appendChild(link);
-      link.click();
-
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      downloadJson(jsonData, `art_session_${session.title.replace(/\s+/g, "_")}.json`);
       toast.success("Session exported successfully");
     } catch {
       toast.error("Failed to export session");
     }
   };
 
-  const importSession = async () => {
+  const exportAllSessions = () => {
+    if (sessions.length === 0) {
+      return toast.error("No sessions to export");
+    }
+
+    try {
+      const jsonData = JSON.stringify(sessions);
+      downloadJson(jsonData, `art_sessions_${Date.now()}.json`);
+      toast.success(`${sessions.length} sessions exported successfully`);
+    } catch {
+      toast.error("Failed to export sessions");
+    }
+  };
+
+  const importSessions = async () => {
     try {
       const path = await openDialog({
         multiple: false,
@@ -62,17 +60,36 @@ export const useTradeSession = () => {
       const content = new TextDecoder().decode(buffer);
       await file.close();
 
-      const session = JSON.parse(content) as Session;
-      importFn(session);
-      toast.success("Session imported successfully");
+      const data = JSON.parse(content);
+
+      if (Array.isArray(data)) {
+        data.forEach((session) => importFn(session as Session));
+        toast.success(`${data.length} sessions imported successfully`);
+      } else {
+        importFn(data as Session);
+        toast.success("Session imported successfully");
+      }
     } catch {
       toast.error("Failed to import session data");
     }
   };
 
   return {
-    exportCurrentSession,
+    sortedSessions,
     exportSession,
-    importSession,
+    exportAllSessions,
+    importSessions,
   };
 };
+
+function downloadJson(content: string, filename: string) {
+  const blob = new Blob([content], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}

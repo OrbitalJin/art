@@ -39,17 +39,24 @@ import {
   Monitor,
   Keyboard,
   Trash2,
-  Sparkles,
-  Minimize,
+  Download,
+  Upload,
+  FileText,
 } from "lucide-react";
+import { useTradeSession } from "@/hooks/use-trade-session";
 import {
   useSettingsStore,
   type FontSize,
   type CornerRadius,
 } from "@/lib/store/use-settings-store";
 import { MODELS, type ModelId } from "@/lib/llm/common/types";
+import type { Session } from "@/lib/store/session/types";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { useTheme, type ThemeColor, type ThemeMode } from "@/contexts/theme-context";
+import {
+  useTheme,
+  type ThemeColor,
+  type ThemeMode,
+} from "@/contexts/theme-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
@@ -100,8 +107,19 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   const purgeSessions = useSessionStore((state) => state.purge);
 
+  const { sortedSessions, exportSession, exportAllSessions, importSessions } =
+    useTradeSession();
+
   const [showKey, setShowKey] = React.useState(false);
   const [value, setValue] = React.useState(apiKey);
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   const handleSave = () => {
     setApiKey(value);
@@ -190,7 +208,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
           <div className="overflow-y-auto bg-background scrollbar-thin">
             {/* Chat Tab */}
-            <TabsContent value="chat" className="m-0 p-6 space-y-8">
+            <TabsContent value="chat" className="m-0 p-6 space-y-4">
               <div className="max-w-3xl">
                 <h3 className="text-lg font-medium">Model Configuration</h3>
                 <p className="text-sm text-muted-foreground">
@@ -290,6 +308,36 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </div>
 
               <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-base font-medium">Trade</p>
+                    <p className="text-sm text-muted-foreground">
+                      Export sessions or import from a file.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <ExportSessionDialog
+                      sessions={sortedSessions}
+                      onExport={exportSession}
+                      formatDate={formatDate}
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={exportAllSessions}
+                      disabled={sortedSessions.length === 0}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Export All
+                    </Button>
+                    <Button variant="outline" onClick={importSessions}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Import
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-6 shadow-sm max-w-3xl">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="text-base font-medium">Clear Chat History</p>
@@ -301,18 +349,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="default"
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Clear
+                        <Trash2 />
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Clear Chat History</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This will permanently delete all your conversations. This action cannot be undone.
+                          This will permanently delete all your conversations.
+                          This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -331,7 +379,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </TabsContent>
 
             {/* Appearance Tab */}
-            <TabsContent value="appearance" className="m-0 p-6 space-y-8">
+            <TabsContent value="appearance" className="m-0 p-6 space-y-4">
               <div className="max-w-3xl">
                 <h3 className="text-lg font-medium">Appearance</h3>
                 <p className="text-sm text-muted-foreground">
@@ -351,7 +399,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     {[
                       { id: "light" as ThemeMode, icon: Sun, label: "Light" },
                       { id: "dark" as ThemeMode, icon: Moon, label: "Dark" },
-                      { id: "system" as ThemeMode, icon: Monitor, label: "System" },
+                      {
+                        id: "system" as ThemeMode,
+                        icon: Monitor,
+                        label: "System",
+                      },
                     ].map((t) => (
                       <button
                         key={t.id}
@@ -431,10 +483,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-base font-medium">Reduced Motion</p>
-                      <Sparkles className="h-4 w-4 text-muted-foreground" />
-                    </div>
+                    <p className="text-base font-medium">Reduced Motion</p>
                     <p className="text-sm text-muted-foreground">
                       Minimize animations throughout the app.
                     </p>
@@ -449,10 +498,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-base font-medium">Compact Mode</p>
-                      <Minimize className="h-4 w-4 text-muted-foreground" />
-                    </div>
+                    <p className="text-base font-medium">Compact Mode</p>
                     <p className="text-sm text-muted-foreground">
                       Use tighter spacing for denser layouts.
                     </p>
@@ -468,5 +514,71 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         </Tabs>
       </DialogContent>
     </Dialog>
+  );
+}
+
+interface ExportSessionDialogProps {
+  sessions: Session[];
+  onExport: (id: string) => void;
+  formatDate: (timestamp: number) => string;
+}
+
+function ExportSessionDialog({
+  sessions,
+  onExport,
+  formatDate,
+}: ExportSessionDialogProps) {
+  const [open, setOpen] = React.useState(false);
+
+  const handleExport = (id: string) => {
+    onExport(id);
+    setOpen(false);
+  };
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" className="flex-1">
+          <FileText className="h-4 w-4 mr-2" />
+          Export Session
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className="max-w-lg">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Export Session</AlertDialogTitle>
+          <AlertDialogDescription>
+            Select a session to export. Sessions are sorted by most recent
+            first.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="max-h-[300px] overflow-y-auto border rounded-md">
+          {sessions.length === 0 ? (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              No sessions to export
+            </div>
+          ) : (
+            <div className="divide-y">
+              {sessions.map((session) => (
+                <button
+                  key={session.id}
+                  onClick={() => handleExport(session.id)}
+                  className="w-full p-3 text-left hover:bg-accent transition-colors"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-medium">{session.title}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(session.createdAt)}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
