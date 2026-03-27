@@ -96,6 +96,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const fontSize = useSettingsStore((state) => state.fontSize);
   const setFontSize = useSettingsStore((state) => state.setFontSize);
   const cornerRadius = useSettingsStore((state) => state.cornerRadius);
+  const setCornerRadius = useSettingsStore((state) => state.setCornerRadius);
   const defaultModel = useSettingsStore((state) => state.defaultModel);
   const setDefaultModel = useSettingsStore((state) => state.setDefaultModel);
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
@@ -474,6 +475,41 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                             <span>{option.label}</span>
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-base font-medium">Corner Radius</p>
+                    <p className="text-sm text-muted-foreground">
+                      Control the roundness of corners across the app.
+                    </p>
+                  </div>
+                  <div className="pt-2">
+                    <Select
+                      value={cornerRadius}
+                      onValueChange={(val: CornerRadius) => setCornerRadius(val)}
+                    >
+                      <SelectTrigger className="w-full max-w-md">
+                        <SelectValue placeholder="Select corner radius" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">
+                          <span>None</span>
+                        </SelectItem>
+                        <SelectItem value="small">
+                          <span>Small</span>
+                        </SelectItem>
+                        <SelectItem value="medium">
+                          <span>Medium</span>
+                        </SelectItem>
+                        <SelectItem value="large">
+                          <span>Large</span>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

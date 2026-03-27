@@ -14,7 +14,7 @@ const UsageIndicator = ({ usage }: { usage?: string }) => {
   if (!usage) return null;
 
   return (
-    <div className="px-4 py-3 space-y-2 border-b">
+    <div className="px-4 py-3 space-y-2">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>Memory</span>
         <span className="font-medium text-foreground">{usage}</span>
