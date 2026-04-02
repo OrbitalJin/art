@@ -18,6 +18,17 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { addDays, isSameDay, startOfDay, isBefore } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
   item: Task;
@@ -128,21 +139,40 @@ export const BoardItem: React.FC<Props> = ({
           >
             <Pencil className="w-3.5 h-3.5" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "text-muted-foreground/40 hover:text-destructive",
-              "hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity",
-            )}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!onDelete) return;
-              onDelete(item.id);
-            }}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "text-muted-foreground/40 hover:text-destructive",
+                  "hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity",
+                )}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!onDelete) return;
+                    onDelete(item.id);
+                  }}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 

@@ -13,8 +13,13 @@
 @import "./themes/violet-bloom.css";
 @import "./themes/quantum-rose.css";
 @import "./themes/flutter-shy.css";
-@import "./themes/claude.css";
+@import "./themes/claude-plus.css";
+@import "./themes/sunny-sprout.css";
 @import "./themes/t3-chat.css";
+@import "./themes/terminal.css";
+@import "./themes/claude.css";
+@import "./themes/pony.css";
+@import "./themes/zen.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -81,7 +86,7 @@ body {
     --spacing-multiplier: 0.6;
   }
 
-  .compact-mode > * {
+  .compact-mode>* {
     gap: calc(var(--default-gap, 1rem) * var(--spacing-multiplier, 1));
   }
 }

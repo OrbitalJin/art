@@ -88,10 +88,10 @@ export const PageListItem: React.FC<Props> = ({
     <div
       className={cn(
         "flex flex-row p-2 group items-center justify-between opacity-80",
-        "transition-colors hover:bg-accent rounded-md",
+        "transition-colors hover:bg-accent/30 rounded-md",
         editing && "text-accent-foreground",
         active &&
-          "bg-accent/80 font-medium ring-1 ring-inset ring-foreground/5",
+          "bg-accent/20 font-medium ring-1 ring-inset ring-foreground/5",
       )}
       onClick={() => {
         if (!editing && !generating) {
@@ -187,7 +187,7 @@ const Menu: React.FC<MenuProps> = ({
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="ghost"
+            variant="link"
             size="icon"
             className="h-7 w-7 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
             onClick={(e) => e.stopPropagation()}

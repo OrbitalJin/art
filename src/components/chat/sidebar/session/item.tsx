@@ -93,9 +93,9 @@ export const SessionListItem: React.FC<Props> = ({
       className={cn(
         "group relative flex items-center w-full gap-2 rounded-md px-3 py-2",
         "text-sm select-none transition-all outline-none",
-        "hover:bg-accent hover:text-accent-foreground",
+        "hover:bg-accent/30 hover:text-accent-foreground",
         active &&
-          "bg-accent/80 font-medium text-accent-foreground ring-1 ring-inset ring-foreground/5",
+          "bg-accent/20 font-medium text-accent-foreground ring-1 ring-inset ring-foreground/5",
       )}
       onClick={() => {
         if (!editing && !generating) {
@@ -207,17 +207,14 @@ const Menu: React.FC<MenuProps> = ({
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="ghost"
+            variant="link"
             size="icon"
-            className={cn(
-              "h-7 w-7 transition-opacity",
-              open
-                ? "opacity-100 bg-accent"
-                : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
-            )}
+            className="
+            h-7 w-7 opacity-0 group-hover:opacity-100 
+            focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
             onClick={(e) => e.stopPropagation()}
           >
-            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+            <MoreVertical className="h-4 w-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>

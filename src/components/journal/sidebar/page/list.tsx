@@ -44,7 +44,7 @@ export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
     });
 
   return (
-    <ScrollArea className="flex-1 px-2 pt-2 overflow-y-hidden">
+    <ScrollArea className="flex-1 px-2 overflow-y-hidden">
       <div className="space-y-2">
         {pinned.length > 0 && (
           <Section

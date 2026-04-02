@@ -37,13 +37,11 @@ import {
   Moon,
   Sun,
   Monitor,
-  Keyboard,
   Trash2,
   Download,
   Upload,
   FileText,
 } from "lucide-react";
-import { useTradeSession } from "@/hooks/use-trade-session";
 import {
   useSettingsStore,
   type FontSize,
@@ -52,6 +50,7 @@ import {
 import { MODELS, type ModelId } from "@/lib/llm/common/types";
 import type { Session } from "@/lib/store/session/types";
 import { useSessionStore } from "@/lib/store/use-session-store";
+import { useTradeSession } from "@/hooks/use-trade-session";
 import {
   useTheme,
   type ThemeColor,
@@ -67,15 +66,20 @@ interface SettingsDialogProps {
 }
 
 const THEME_COLORS: Array<{ value: ThemeColor; label: string }> = [
-  { value: "amethyst haze", label: "Amethyst Haze" },
-  { value: "cosmic night", label: "Cosmic Night" },
   { value: "midnight bloom", label: "Midnight Bloom" },
+  { value: "pastel dreams", label: "Pastel Dreams" },
+  { value: "amethyst haze", label: "Amethyst Haze" },
   { value: "violet bloom", label: "Violet Bloom" },
+  { value: "cosmic night", label: "Cosmic Night" },
+  { value: "sunny sprout", label: "Sunny Sprout" },
   { value: "quantum rose", label: "Quantum Rose" },
   { value: "flutter shy", label: "Flutter Shy" },
-  { value: "pastel dreams", label: "Pastel Dreams" },
+  { value: "claude plus", label: "Claude Plus" },
   { value: "t3 chat", label: "T3 Chat" },
+  { value: "terminal", label: "Terminal" },
   { value: "claude", label: "Claude" },
+  { value: "pony", label: "Pony" },
+  { value: "zen", label: "Zen" },
 ] as const;
 
 const FONT_SIZE_OPTIONS: Array<{
@@ -208,12 +212,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           </div>
 
           <div className="overflow-y-auto bg-background scrollbar-thin">
-            {/* Chat Tab */}
             <TabsContent value="chat" className="m-0 p-6 space-y-4">
               <div className="max-w-3xl">
-                <h3 className="text-lg font-medium">Model Configuration</h3>
+                <h3 className="text-lg font-medium">Chat Settings</h3>
                 <p className="text-sm text-muted-foreground">
-                  Configure the model.
+                  Configure your chat experience.
                 </p>
               </div>
 
@@ -295,7 +298,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <p className="text-base font-medium">Enter to Send</p>
-                      <Keyboard className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Press Enter to send, Shift+Enter for newlines.
@@ -341,7 +343,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-6 shadow-sm max-w-3xl">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="text-base font-medium">Clear Chat History</p>
+                    <p className="text-base font-medium">Purge Chat History</p>
                     <p className="text-sm text-muted-foreground">
                       Delete all conversations.
                     </p>
@@ -354,6 +356,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 />
+                        Purge
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -492,7 +495,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   <div className="pt-2">
                     <Select
                       value={cornerRadius}
-                      onValueChange={(val: CornerRadius) => setCornerRadius(val)}
+                      onValueChange={(val: CornerRadius) =>
+                        setCornerRadius(val)
+                      }
                     >
                       <SelectTrigger className="w-full max-w-md">
                         <SelectValue placeholder="Select corner radius" />
