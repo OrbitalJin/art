@@ -30,7 +30,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
     .sort((a, b) => b.updatedAt - a.updatedAt);
 
   return (
-    <ScrollArea className="flex-1 p-2 overflow-y-hidden">
+    <ScrollArea className="flex-1 px-2 overflow-y-hidden">
       <div className="space-y-2">
         {pinned.length > 0 && (
           <SessionSection

@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { Sidebar } from "./sidebar";
-import { SettingsDialog } from "./settings-dialog";
+import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 

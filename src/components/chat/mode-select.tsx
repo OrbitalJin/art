@@ -40,7 +40,7 @@ export const ModeSelect = () => {
                 variant="outline"
                 size="icon"
                 className={cn(
-                  "h-9 px-3 gap-2 backdrop-blur-xl bg-card/50 border-border/50 transition-all shadow-sm",
+                  "h-9 px-3 gap-2 backdrop-blur-xl bg-card/50 border-border/50 transition-all",
                   "hover:bg-accent/50 group",
                 )}
               >

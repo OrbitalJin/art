@@ -9,6 +9,8 @@ export const useTradeJournal = () => {
   const activeId = useJournalStore((state) => state.activeId);
   const importFn = useJournalStore((state) => state.importFn);
 
+  const sortedPages = [...sessions].sort((a, b) => b.lastViewedAt - a.lastViewedAt);
+
   const exportCurrentPage = () => {
     if (!activeId) return;
     exportPage(activeId);
@@ -69,9 +71,37 @@ export const useTradeJournal = () => {
     }
   };
 
+  const exportAllPages = () => {
+    if (sessions.length === 0) {
+      return toast.error("No pages to export");
+    }
+
+    try {
+      const jsonData = JSON.stringify(sessions);
+
+      const blob = new Blob([jsonData], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `art_notes_export_${Date.now()}.json`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("All pages exported successfully");
+    } catch {
+      toast.error("Failed to export pages");
+    }
+  };
+
   return {
+    sortedPages,
     exportCurrentPage,
     exportPage,
+    exportAllPages,
     importPage,
   };
 };

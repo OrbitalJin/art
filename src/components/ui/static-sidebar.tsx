@@ -52,9 +52,9 @@ export const StaticSidebar: React.FC<StaticSidebarProps> = ({
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col m-2 opacity-80",
+        "hidden lg:flex flex-col m-2",
         "rounded-md border bg-card/50 backdrop-blur-xl",
-        "hover:opacity-100 transition-all duration-300 ease-in-out",
+        "transition-all duration-300 ease-in-out",
         isOpen ? "min-w-[300px] w-[300px]" : "w-0 border-0",
         className,
       )}

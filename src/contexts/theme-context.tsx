@@ -10,8 +10,13 @@ export type ThemeColor =
   | "violet bloom"
   | "quantum rose"
   | "flutter shy"
+  | "sunny sprout"
+  | "claude plus"
+  | "terminal"
+  | "t3 chat"
   | "claude"
-  | "t3 chat";
+  | "pony"
+  | "zen";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
