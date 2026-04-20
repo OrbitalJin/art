@@ -83,7 +83,7 @@ export const SelectModel = () => {
                   "flex flex-col p-2 gap-2 cursor-pointer rounded-sm transition-all duration-200 group",
                   isSelected
                     ? "bg-primary/5 ring-1 ring-primary/20"
-                    : "hover:bg-accent/50",
+                    : "hover:bg-accent/20",
                 )}
               >
                 <div className="flex items-center justify-between gap-4">
