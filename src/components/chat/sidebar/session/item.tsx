@@ -6,7 +6,7 @@ import {
   Loader2,
   Pin,
   PinOff,
-  Split,
+  GitBranch,
   Wand2,
   BookDashed,
   TextCursor,
@@ -107,9 +107,9 @@ export const SessionListItem: React.FC<Props> = ({
       {forkOf && (
         <Tooltip>
           <TooltipTrigger>
-            <Split className="h-4 w-4 text-muted-foreground/60 shrink-0" />
+            <GitBranch className="h-4 w-4 text-muted-foreground/60 shrink-0" />
           </TooltipTrigger>
-          <TooltipContent>Forked from: {getFn(forkOf)?.title}</TooltipContent>
+          <TooltipContent>Branched from: {getFn(forkOf)?.title}</TooltipContent>
         </Tooltip>
       )}
       <div className="flex min-w-0 flex-1 items-center gap-2">

@@ -9,10 +9,17 @@ import React, {
 } from "react";
 import { toast } from "sonner";
 import { useSessionStore } from "@/lib/store/use-session-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import type { Message, MessageStatus } from "@/lib/store/session/types";
-import { createUserMessage, createModelMessage } from "@/lib/llm/common/message-factories";
+import {
+  createUserMessage,
+  createModelMessage,
+} from "@/lib/llm/common/message-factories";
 import { useLLM } from "@/contexts/llm-context";
 import { gen } from "@/lib/llm/prompts/gen";
+import { systemPrompt } from "@/lib/llm/prompts/system";
+import { DEFAULT_MODE } from "@/lib/llm/prompts/modes";
+import { getSessionRefsContext } from "@/hooks/use-session-refs";
 
 interface ActiveSessionContextValues {
   streamingSessionId: string | null;
@@ -41,9 +48,13 @@ export const ActiveSessionProvider: React.FC<{
 
   const [prompt, setPrompt] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [streamingSessionId, setStreamingSessionId] = useState<string | null>(null);
+  const [streamingSessionId, setStreamingSessionId] = useState<string | null>(
+    null,
+  );
   const [streamContent, setStreamContent] = useState("");
-  const [streamStatus, setStreamStatus] = useState<"thinking" | "streaming" | "aborted">("thinking");
+  const [streamStatus, setStreamStatus] = useState<
+    "thinking" | "streaming" | "aborted"
+  >("thinking");
 
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -55,23 +66,26 @@ export const ActiveSessionProvider: React.FC<{
     toast.info("Stream aborted");
   }, []);
 
-  const generateTitle = useCallback(async (sessionId: string) => {
-    if (!llm) return;
+  const generateTitle = useCallback(
+    async (sessionId: string) => {
+      if (!llm) return;
 
-    try {
-      const currentSessions = useSessionStore.getState().sessions;
-      const session = currentSessions.find((s) => s.id === sessionId);
-      if (!session?.messages.length) return;
+      try {
+        const currentSessions = useSessionStore.getState().sessions;
+        const session = currentSessions.find((s) => s.id === sessionId);
+        if (!session?.messages.length) return;
 
-      const title = await llm.genFromMessages(gen.title, session.messages);
-      if (title?.trim()) {
-        useSessionStore.getState().updateTitle(sessionId, title.trim());
-        useSessionStore.getState().setTitleGenerated(sessionId, true);
+        const title = await llm.genFromMessages(gen.title, session.messages);
+        if (title?.trim()) {
+          useSessionStore.getState().updateTitle(sessionId, title.trim());
+          useSessionStore.getState().setTitleGenerated(sessionId, true);
+        }
+      } catch {
+        console.error("Title generation failed");
       }
-    } catch {
-      console.error("Title generation failed");
-    }
-  }, [llm]);
+    },
+    [llm],
+  );
 
   const send = useCallback(
     async (text: string) => {
@@ -90,8 +104,21 @@ export const ActiveSessionProvider: React.FC<{
       let errorType: string | undefined;
 
       try {
+        const mode = activeSession?.mode ?? DEFAULT_MODE;
+        const traits = activeSession?.traits ?? [];
+        const generatedSystemPrompt = systemPrompt(mode, traits);
+
+        const journalContext = getSessionRefsContext(
+          activeSession?.journalRefs ?? [],
+          useJournalStore.getState(),
+        );
+
         const stream = llm.stream(text, activeSession?.messages || [], {
           signal: controller.signal,
+          systemPrompt: generatedSystemPrompt,
+          context: journalContext,
+          useGoogleSearch: activeSession?.searchGrounding,
+          webCtxUrls: activeSession?.webCtxUrls,
         });
 
         for await (const chunk of stream) {
@@ -181,7 +208,14 @@ export const ActiveSessionProvider: React.FC<{
       ];
     }
     return base;
-  }, [activeSession, isSending, streamingSessionId, activeId, streamContent, streamStatus]);
+  }, [
+    activeSession,
+    isSending,
+    streamingSessionId,
+    activeId,
+    streamContent,
+    streamStatus,
+  ]);
 
   const value = useMemo(
     () => ({

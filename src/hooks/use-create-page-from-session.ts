@@ -36,7 +36,7 @@ export const useCreatePageFromSession = () => {
         return toast.error("Failed to generate note", { id: toastId });
       }
 
-      const id = createNote(currentWorkspace, session.title + " - Notes");
+      const id = createNote(currentWorkspace, session.title);
       updateNoteContent(id, result, false);
       navigate("/journal");
       toast.success("Note created from session", { id: toastId });

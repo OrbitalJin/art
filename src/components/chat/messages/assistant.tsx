@@ -55,7 +55,7 @@ export const AssistantMessage: React.FC<Message> = ({
                   <TooltipTrigger>
                     <span className="flex items-center gap-1">
                       <Globe size={12} />
-                      <ShimmerText>Grounded</ShimmerText>
+                      Grounded
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">

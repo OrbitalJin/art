@@ -32,8 +32,8 @@ export const UserMessage: React.FC<UserMessageProps> = ({
   const { copied, copy } = useCopy(content);
 
   return (
-    <div className="group flex w-full flex-col items-end animate-in fade-in duration-100 select-auto">
-      <div className="relative rounded-md rounded-tr-none border bg-muted/40 px-3 text-foreground/80 shadow-sm">
+    <div className="group flex w-full flex-col gap-2 items-end animate-in fade-in duration-100 select-auto">
+      <div className="relative rounded-md rounded-tr-none border bg-muted/40 p-3 text-foreground/80 shadow-sm">
         <Renderer content={content} />
       </div>
 

@@ -7,7 +7,7 @@ import {
 import { useStreamingState } from "@/hooks/use-streaming-state";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
-import { Split } from "lucide-react";
+import { GitBranch } from "lucide-react";
 
 export const ForkSession = () => {
   const activeId = useSessionStore((state) => state.activeId);
@@ -30,7 +30,7 @@ export const ForkSession = () => {
           onClick={handleFork}
           aria-label="Fork session"
         >
-          <Split
+          <GitBranch
             className={cn(
               "h-4 w-4 transition-all text-muted-foreground",
               !isCurrentSessionStreaming && "hover:text-primary",
@@ -45,7 +45,7 @@ export const ForkSession = () => {
         className="w-72 p-0 shadow-xl border-muted-foreground/20 overflow-hidden"
       >
         <div className="flex items-center justify-between border-b bg-muted/30 p-3">
-          <p className="text-sm font-medium">Fork Session</p>
+          <p className="text-sm font-medium">Branch Out</p>
           <span className="text-[10px] px-1.5 py-0.5 rounded border bg-background text-muted-foreground">
             New Branch
           </span>

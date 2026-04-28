@@ -7,7 +7,7 @@ export type ModelType =
   | "gemini-2.5-flash-lite"
   | "gemini-2.5-flash"
   | "gemini-2.0-flash"
-  | "gemini-3-flash-preview";
+  | "gemini-3.1-flash-lite";
 
 export type Model = {
   tier: ModelTier;
@@ -28,14 +28,14 @@ export const MODELS: readonly Model[] = [
   {
     tier: 2,
     id: "Bloom",
-    type: "gemini-2.0-flash",
+    type: "gemini-2.5-flash",
     description: "More thoughtful, carefully connects ideas.",
     limit: 1_000_000,
   },
   {
     tier: 3,
     id: "Eden",
-    type: "gemini-2.5-flash",
+    type: "gemini-3.1-flash-lite",
     description: "Deep and deliberate, built to deliver.",
     limit: 1_000_000,
   },

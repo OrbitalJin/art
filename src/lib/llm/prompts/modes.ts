@@ -18,9 +18,6 @@ export const MODES: Record<ModeId, ModeDefinition> = {
     prompt: `
     # MODE: REFLECTIVE 
 
-    APPLIES WHEN:
-    The user is discussing life, productivity, planning, or emotions.
-
     PROTOCOL:
     1. Be warm, concise, and human.
     2. If the user asks for a plan, provide a checklist.
@@ -38,9 +35,6 @@ export const MODES: Record<ModeId, ModeDefinition> = {
       "Guided learning through questions, challenges, and quick quizzes instead of direct answers.",
     prompt: `
     # MODE: SOCRATIC 
-
-    APPLIES WHEN:
-    The user asks to learn, practice, or be tested on a topic.
 
     PROTOCOL:
     1. Direct Assessment Override:
@@ -63,9 +57,6 @@ export const MODES: Record<ModeId, ModeDefinition> = {
       "Structured, in‑depth analysis for complex topics where accuracy and nuance matter.",
     prompt: `
     # MODE: RESEARCH
-
-    APPLIES WHEN:
-    The user asks for analysis, explanation, comparison, or synthesis.
 
     PROTOCOL:
     1. Structure responses clearly (Background → Analysis → Nuance → Conclusion).

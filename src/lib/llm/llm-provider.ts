@@ -120,7 +120,10 @@ export class LLMProvider {
     const { model = DEFAULT_MODEL.type } = options;
     const contents = [
       ...this.formatMessage(messages),
-      { role: "user", parts: [{ text: prompt }] },
+      {
+        role: "user",
+        parts: [{ text: prompt }],
+      },
     ];
 
     try {

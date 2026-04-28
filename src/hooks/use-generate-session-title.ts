@@ -9,30 +9,33 @@ export const useGenerateSessionTitle = () => {
   const [generating, setGenerating] = useState(false);
   const genRef = useRef(false);
 
-  const generateTitle = useCallback(async (sessionId: string) => {
-    if (genRef.current || generating || !llm) return;
-    genRef.current = true;
-    setGenerating(true);
+  const generateTitle = useCallback(
+    async (sessionId: string) => {
+      if (genRef.current || generating || !llm) return;
+      genRef.current = true;
+      setGenerating(true);
 
-    try {
-      const sessions = useSessionStore.getState().sessions;
-      const session = sessions.find((s) => s.id === sessionId);
-      if (!session?.messages.length) return;
+      try {
+        const sessions = useSessionStore.getState().sessions;
+        const session = sessions.find((s) => s.id === sessionId);
+        if (!session?.messages.length) return;
 
-      const title = await llm.genFromMessages(gen.title, session.messages);
-      if (title?.trim()) {
-        useSessionStore.getState().updateTitle(sessionId, title.trim());
-        useSessionStore.getState().setTitleGenerated(sessionId, true);
-        return title.trim();
+        const title = await llm.genFromMessages(gen.title, session.messages);
+        if (title?.trim()) {
+          useSessionStore.getState().updateTitle(sessionId, title.trim());
+          useSessionStore.getState().setTitleGenerated(sessionId, true);
+          return title.trim();
+        }
+      } catch (err) {
+        console.error("Title generation failed", err);
+        toast.error("Failed to generate title");
+      } finally {
+        genRef.current = false;
+        setGenerating(false);
       }
-    } catch (err) {
-      console.error("Title generation failed", err);
-      toast.error("Failed to generate title");
-    } finally {
-      genRef.current = false;
-      setGenerating(false);
-    }
-  }, [llm, generating]);
+    },
+    [llm, generating],
+  );
 
   return { generateTitle, generating };
 };

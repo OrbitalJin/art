@@ -88,7 +88,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
             onClick={() => handleSuggestionClick(suggestion)}
             className={cn(
               "group relative flex items-start gap-4 p-4 rounded-xl",
-              "bg-card hover:bg-accent",
+              "bg-card hover:bg-accent/20",
               "border border-border hover:border-primary/50",
               "hover:shadow-lg hover:shadow-primary/5",
               "transition-all duration-300 ease-out",
@@ -98,7 +98,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
               "fill-mode-backwards",
             )}
           >
-            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+            <div className="shrink-0 w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
               {suggestion.icon}
             </div>
             <div className="flex-1 min-w-0">

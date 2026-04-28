@@ -1,7 +1,5 @@
 export const gen = {
   title: `
-        Act as a summarizer. 
-        Analyze conversation history.
         Generate a single, specific title that captures the main topic.
         
         Constraints:

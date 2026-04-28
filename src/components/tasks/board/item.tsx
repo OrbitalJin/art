@@ -106,7 +106,7 @@ export const BoardItem: React.FC<Props> = ({
           <Badge
             variant="outline"
             className={cn(
-              "text-xs border px-1 py-0.5 gap-1 pr-2",
+              "text-xs border px-1 py-0.5 gap-1 pr-2 rounded-xl",
               urgencyStyles[item.urgency],
             )}
           >

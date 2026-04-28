@@ -41,7 +41,7 @@ export const ModeSelect = () => {
                 size="icon"
                 className={cn(
                   "h-9 px-3 gap-2 backdrop-blur-xl bg-card/50 border-border/50 transition-all",
-                  "hover:bg-accent/50 group",
+                  "hover:bg-accent/20 group",
                 )}
               >
                 <Eclipse
@@ -50,10 +50,10 @@ export const ModeSelect = () => {
                     open && "-rotate-90",
                   )}
                 />
-                <span className="sr-only">{currentMode.label}</span>
+                <span className="sr-only">{currentMode?.label}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{currentMode.label}</TooltipContent>
+            <TooltipContent>{currentMode?.label}</TooltipContent>
           </Tooltip>
         </div>
       </DropdownMenuTrigger>
@@ -86,7 +86,7 @@ export const ModeSelect = () => {
                   "flex flex-col p-2.5 gap-0.5 cursor-pointer rounded-md transition-all duration-200 group",
                   isSelected
                     ? "bg-primary/5 ring-1 ring-primary/20"
-                    : "hover:bg-accent/50",
+                    : "hover:bg-accent/20",
                 )}
               >
                 <div className="flex items-center justify-between">

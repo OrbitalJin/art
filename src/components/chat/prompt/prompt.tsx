@@ -67,8 +67,8 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               <ModeSelect />
               <TraitPicker />
               <ReferencePicker />
-              <ForkSession />
               <WebSearchMenu />
+              <ForkSession />
             </div>
             <Button
               variant="default"

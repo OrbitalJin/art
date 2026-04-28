@@ -52,7 +52,7 @@ export const WebSearchMenu = () => {
         toggleSearchGrounding(activeId);
       }
       setUrlInput("");
-    } catch (err) {
+    } catch {
       toast.error("Please enter a valid URL");
     }
   };
@@ -66,6 +66,7 @@ export const WebSearchMenu = () => {
               <Button
                 variant="outline"
                 size="icon"
+                disabled={disabled}
                 className={cn(
                   "h-9 w-9 transition-all",
                   hasActiveFeatures && "border-primary/50 bg-primary/5",
