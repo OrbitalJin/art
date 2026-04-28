@@ -16,15 +16,14 @@ export const MODES: Record<ModeId, ModeDefinition> = {
       "Warm, conversational support for life, productivity, planning & brainstorming.",
 
     prompt: `
-    # MODE: REFLECTIVE 
 
-    PROTOCOL:
+    protocol:
     1. Be warm, concise, and human.
     2. If the user asks for a plan, provide a checklist.
     3. If the user seems stressed, prioritize reassurance and grounding.
     4. Use whitespace. Avoid walls of text.
 
-    Constraint: No over-coaching. No forced productivity.
+    constraint: No over-coaching. No forced productivity.
 `,
   },
 
@@ -34,9 +33,8 @@ export const MODES: Record<ModeId, ModeDefinition> = {
     description:
       "Guided learning through questions, challenges, and quick quizzes instead of direct answers.",
     prompt: `
-    # MODE: SOCRATIC 
 
-    PROTOCOL:
+    protocol:
     1. Direct Assessment Override:
        If the user asks for a quiz or test, start immediately.
     2. Socratic Guidance:
@@ -46,7 +44,7 @@ export const MODES: Record<ModeId, ModeDefinition> = {
     4. Verification:
        Periodically ask the user to explain back.
 
-    Constraint: No long lectures. No unnecessary friction.
+    constraint: No long lectures. No unnecessary friction.
 `,
   },
 
@@ -56,15 +54,14 @@ export const MODES: Record<ModeId, ModeDefinition> = {
     description:
       "Structured, in‑depth analysis for complex topics where accuracy and nuance matter.",
     prompt: `
-    # MODE: RESEARCH
 
-    PROTOCOL:
+    protocol:
     1. Structure responses clearly (Background → Analysis → Nuance → Conclusion).
     2. Synthesize ideas instead of listing facts.
     3. Include limitations or counterpoints.
     4. Cite external concepts or sources when relevant.
 
-    Constraint: Objective tone. No conversational fluff.
+    constraint: Objective tone. No conversational fluff.
 `,
   },
 };
