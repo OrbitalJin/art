@@ -51,24 +51,18 @@ export class LLMProvider {
     history: Message[],
     options: GenerateOptions = {},
   ): AsyncGenerator<StreamChunk> {
-    const { model = DEFAULT_MODEL.type, context, signal, webCtxUrls } = options;
+    const { model, context, signal } = options;
     let error: LLMError | undefined = undefined;
-
-    let enhancedPrompt = prompt;
-    if (webCtxUrls && webCtxUrls.length > 0) {
-      const urlList = webCtxUrls.join("\n");
-      enhancedPrompt = `Context URLs:\n${urlList}\n\n${prompt}`;
-    }
 
     const contents = [
       ...(context ? [{ role: "user", parts: [{ text: context }] }] : []),
       ...this.formatMessage(history),
-      { role: "user", parts: [{ text: enhancedPrompt }] },
+      { role: "user", parts: [{ text: prompt }] },
     ];
 
     try {
       const stream = await this.llm.models.generateContentStream({
-        model: model,
+        model: model ?? DEFAULT_MODEL.type,
         contents: contents,
         config: this.buildConfig(options),
       });

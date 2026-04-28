@@ -20,6 +20,7 @@ import { gen } from "@/lib/llm/prompts/gen";
 import { systemPrompt } from "@/lib/llm/prompts/system";
 import { DEFAULT_MODE } from "@/lib/llm/prompts/modes";
 import { getSessionRefsContext } from "@/hooks/use-session-refs";
+import { MODELS } from "@/lib/llm/common/types";
 
 interface ActiveSessionContextValues {
   streamingSessionId: string | null;
@@ -75,7 +76,21 @@ export const ActiveSessionProvider: React.FC<{
         const session = currentSessions.find((s) => s.id === sessionId);
         if (!session?.messages.length) return;
 
-        const title = await llm.genFromMessages(gen.title, session.messages);
+        const mode = session.mode ?? DEFAULT_MODE;
+        const traits = session.traits ?? [];
+        const generatedSystemPrompt = systemPrompt(mode, traits);
+        const journalContext = getSessionRefsContext(
+          session.journalRefs ?? [],
+          useJournalStore.getState(),
+        );
+        const modelId = session.modelId;
+        const modelType = MODELS.find((m) => m.id === modelId)?.type;
+
+        const title = await llm.genFromMessages(gen.title, session.messages, {
+          model: modelType,
+          systemPrompt: generatedSystemPrompt,
+          context: journalContext,
+        });
         if (title?.trim()) {
           useSessionStore.getState().updateTitle(sessionId, title.trim());
           useSessionStore.getState().setTitleGenerated(sessionId, true);
@@ -107,13 +122,15 @@ export const ActiveSessionProvider: React.FC<{
         const mode = activeSession?.mode ?? DEFAULT_MODE;
         const traits = activeSession?.traits ?? [];
         const generatedSystemPrompt = systemPrompt(mode, traits);
-
         const journalContext = getSessionRefsContext(
           activeSession?.journalRefs ?? [],
           useJournalStore.getState(),
         );
+        const modelId = activeSession?.modelId;
+        const modelType = MODELS.find((m) => m.id === modelId)?.type;
 
         const stream = llm.stream(text, activeSession?.messages || [], {
+          model: modelType,
           signal: controller.signal,
           systemPrompt: generatedSystemPrompt,
           context: journalContext,
@@ -186,11 +203,14 @@ export const ActiveSessionProvider: React.FC<{
   );
 
   useEffect(() => {
-    const session = sessions.find((s) => s.id === streamingSessionId);
+    if (!streamingSessionId) return;
+
+    const allSessions = useSessionStore.getState().sessions;
+    const session = allSessions.find((s) => s.id === streamingSessionId);
     if (session?.messages.length === 1 && !session.titleGenerated) {
       generateTitle(session.id);
     }
-  }, [streamingSessionId, sessions, generateTitle]);
+  }, [streamingSessionId, generateTitle]);
 
   const messages = useMemo(() => {
     const base = activeSession?.messages || [];

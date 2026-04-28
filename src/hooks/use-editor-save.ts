@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import { extractTags } from "@/lib/utils/tags";
 
@@ -7,6 +7,14 @@ export const useEditorSave = (activeId: string | null) => {
   const updateTags = useJournalStore((s) => s.updateTags);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setIsSavingRef = useRef<((saving: boolean) => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSave = useCallback(
     (markdown: string, setIsSaving: (saving: boolean) => void) => {
