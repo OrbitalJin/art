@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Art",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "identifier": "com.horijin.dev",
   "build": {
     "frontendDist": "../dist",
@@ -16,7 +16,7 @@
         "title": "Art",
         "width": 950,
         "height": 750,
-        "minWidth": 650,
+        "minWidth": 600,
         "minHeight": 700,
         "fullscreen": false,
         "transparent": true,
