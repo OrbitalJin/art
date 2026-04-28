@@ -1,7 +1,9 @@
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -31,11 +33,11 @@ const THEME_COLORS: Array<{ value: ThemeColor; label: string }> = [
   { value: "quantum rose", label: "Quantum Rose" },
   { value: "flutter shy", label: "Flutter Shy" },
   { value: "claude plus", label: "Claude Plus" },
-  { value: "t3 chat", label: "T3 Chat" },
   { value: "terminal", label: "Terminal" },
   { value: "claude", label: "Claude" },
   { value: "pony", label: "Pony" },
   { value: "zen", label: "Zen" },
+  { value: "t3 chat", label: "T3" },
 ] as const;
 
 const FONT_SIZE_OPTIONS: Array<{
@@ -103,7 +105,7 @@ export const AppearanceSettingTab = () => {
       <div className="max-w-3xl">
         <h3 className="text-lg font-medium">Appearance</h3>
         <p className="text-sm text-muted-foreground">
-          Customize the look and feel of the application.
+          Customize the look and feel of the app.
         </p>
       </div>
 
@@ -149,7 +151,7 @@ export const AppearanceSettingTab = () => {
           <div className="space-y-1">
             <p className="text-base font-medium">Accent Color</p>
             <p className="text-sm text-muted-foreground">
-              Select the color palette for the application.
+              Select the color palette for the app.
             </p>
           </div>
           <div className="pt-2">
@@ -160,12 +162,15 @@ export const AppearanceSettingTab = () => {
               <SelectTrigger className="w-full max-w-md">
                 <SelectValue placeholder="Select a theme" />
               </SelectTrigger>
-              <SelectContent>
-                {THEME_COLORS.map((theme) => (
-                  <SelectItem key={theme.value} value={theme.value}>
-                    <span>{theme.label}</span>
-                  </SelectItem>
-                ))}
+              <SelectContent position="item-aligned">
+                <SelectGroup>
+                  <SelectLabel>Accent Color</SelectLabel>
+                  {THEME_COLORS.map((theme) => (
+                    <SelectItem key={theme.value} value={theme.value}>
+                      <span>{theme.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
@@ -177,7 +182,7 @@ export const AppearanceSettingTab = () => {
           <div className="space-y-1">
             <p className="text-base font-medium">Font Size</p>
             <p className="text-sm text-muted-foreground">
-              Adjust the text size across the application.
+              Adjust the text size across the app.
             </p>
           </div>
           <div className="pt-2">
@@ -188,12 +193,15 @@ export const AppearanceSettingTab = () => {
               <SelectTrigger className="w-full max-w-md">
                 <SelectValue placeholder="Select font size" />
               </SelectTrigger>
-              <SelectContent>
-                {FONT_SIZE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <span>{option.label}</span>
-                  </SelectItem>
-                ))}
+              <SelectContent position="item-aligned">
+                <SelectGroup>
+                  <SelectLabel>Font Size</SelectLabel>
+                  {FONT_SIZE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      <span>{option.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
@@ -216,19 +224,22 @@ export const AppearanceSettingTab = () => {
               <SelectTrigger className="w-full max-w-md">
                 <SelectValue placeholder="Select corner radius" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">
-                  <span>None</span>
-                </SelectItem>
-                <SelectItem value="small">
-                  <span>Small</span>
-                </SelectItem>
-                <SelectItem value="medium">
-                  <span>Medium</span>
-                </SelectItem>
-                <SelectItem value="large">
-                  <span>Large</span>
-                </SelectItem>
+              <SelectContent position="item-aligned">
+                <SelectGroup>
+                  <SelectLabel>Corner Radius</SelectLabel>
+                  <SelectItem value="none">
+                    <span>None</span>
+                  </SelectItem>
+                  <SelectItem value="small">
+                    <span>Small</span>
+                  </SelectItem>
+                  <SelectItem value="medium">
+                    <span>Medium</span>
+                  </SelectItem>
+                  <SelectItem value="large">
+                    <span>Large</span>
+                  </SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>

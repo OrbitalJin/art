@@ -29,72 +29,78 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
     .filter((session) => session.archived)
     .sort((a, b) => b.updatedAt - a.updatedAt);
 
+  const isEmpty =
+    archived.length === 0 && regular.length === 0 && pinned.length === 0;
+
   return (
-    <ScrollArea className="flex-1 px-2 overflow-y-hidden">
-      <div className="space-y-2">
-        {pinned.length > 0 && (
-          <SessionSection
-            title="Pinned"
-            count={pinned.length}
-            isPinned={true}
-            defaultCollapsed={false}
-          >
-            {pinned.map((session) => (
-              <SessionListItem
-                key={session.id}
-                item={session}
-                active={session.id === activeId}
-                onSwitch={onSessionSwitch}
-              />
-            ))}
-          </SessionSection>
-        )}
+    <div className="relative flex-1 overflow-hidden">
+      <ScrollArea className="h-full px-2">
+        <div className="space-y-2 pb-4">
+          {pinned.length > 0 && (
+            <SessionSection
+              title="Pinned"
+              count={pinned.length}
+              isPinned={true}
+              defaultCollapsed={false}
+            >
+              {pinned.map((session) => (
+                <SessionListItem
+                  key={session.id}
+                  item={session}
+                  active={session.id === activeId}
+                  onSwitch={onSessionSwitch}
+                />
+              ))}
+            </SessionSection>
+          )}
 
-        {regular.length > 0 && (
-          <SessionSection
-            title="Sessions"
-            count={regular.length}
-            isPinned={false}
-            defaultCollapsed={false}
-          >
-            {regular.map((session) => (
-              <SessionListItem
-                key={session.id}
-                item={session}
-                active={session.id === activeId}
-                onSwitch={onSessionSwitch}
-              />
-            ))}
-          </SessionSection>
-        )}
+          {regular.length > 0 && (
+            <SessionSection
+              title="Sessions"
+              count={regular.length}
+              isPinned={false}
+              defaultCollapsed={false}
+            >
+              {regular.map((session) => (
+                <SessionListItem
+                  key={session.id}
+                  item={session}
+                  active={session.id === activeId}
+                  onSwitch={onSessionSwitch}
+                />
+              ))}
+            </SessionSection>
+          )}
 
-        {archived.length > 0 && (
-          <SessionSection
-            title="Archived"
-            count={archived.length}
-            isPinned={false}
-            defaultCollapsed={true}
-            icon={Archive}
-          >
-            {archived.map((session) => (
-              <SessionListItem
-                key={session.id}
-                item={session}
-                active={session.id === activeId}
-                onSwitch={onSessionSwitch}
-              />
-            ))}
-          </SessionSection>
-        )}
+          {archived.length > 0 && (
+            <SessionSection
+              title="Archived"
+              count={archived.length}
+              isPinned={false}
+              defaultCollapsed={true}
+              icon={Archive}
+            >
+              {archived.map((session) => (
+                <SessionListItem
+                  key={session.id}
+                  item={session}
+                  active={session.id === activeId}
+                  onSwitch={onSessionSwitch}
+                />
+              ))}
+            </SessionSection>
+          )}
 
-        {archived.length === 0 &&
-          regular.length === 0 &&
-          pinned.length === 0 && (
-            <div className="pt-[50%] flex h-full items-center justify-center text-sm text-muted-foreground">
+          {isEmpty && (
+            <div className="flex h-full items-center justify-center pt-[50%] text-sm text-muted-foreground">
               No sessions found
             </div>
           )}
-      </div>
-    </ScrollArea>
+        </div>
+      </ScrollArea>
+
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-4 bg-linear-to-b from-background to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-linear-to-t from-background to-transparent" />
+    </div>
   );
 };

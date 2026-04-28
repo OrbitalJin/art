@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
+  SelectLabel,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -155,12 +157,15 @@ export const ChatSettingsTab: React.FC<Props> = ({ open }) => {
               <SelectTrigger className="w-full max-w-md">
                 <SelectValue placeholder="Select default model" />
               </SelectTrigger>
-              <SelectContent>
-                {MODELS.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
-                    <span>{m.id}</span>
-                  </SelectItem>
-                ))}
+              <SelectContent position="item-aligned">
+                <SelectGroup>
+                  <SelectLabel>Models</SelectLabel>
+                  {MODELS.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      <span>{m.id}</span>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>

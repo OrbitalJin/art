@@ -27,7 +27,7 @@ export const useTaskManager = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [currentView, setView]);
 
   // Handle URL Trigger
   useEffect(() => {

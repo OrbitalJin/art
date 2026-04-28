@@ -106,7 +106,7 @@ export const BoardItem: React.FC<Props> = ({
           <Badge
             variant="outline"
             className={cn(
-              "text-xs border px-1 py-0.5 gap-1 pr-2 rounded-xl",
+              "text-xs border px-1 py-0.5 gap-1 pr-2",
               urgencyStyles[item.urgency],
             )}
           >
@@ -201,7 +201,7 @@ export const BoardItem: React.FC<Props> = ({
         {item.due && (
           <div
             className={cn(
-              "flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded border",
+              "flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-md border",
               "text-muted-foreground bg-muted/30 border-transparent",
               (isDueTomorrow || isDueToday) && urgencyStyles["medium"],
               isOverDue && urgencyStyles["high"],

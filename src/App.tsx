@@ -4,7 +4,10 @@ import { Layout } from "@/layout/layout";
 import { Journal } from "@/pages/journal";
 import { Chat } from "@/pages/chat";
 import { Tasks } from "./pages/tasks";
-import { useSettingsStore, type FontSize } from "@/lib/store/use-settings-store";
+import {
+  useSettingsStore,
+  type FontSize,
+} from "@/lib/store/use-settings-store";
 
 function FontSizeInitializer() {
   const fontSize = useSettingsStore((state) => state.fontSize);

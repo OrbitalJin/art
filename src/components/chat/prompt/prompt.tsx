@@ -86,7 +86,11 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               }
               disabled={!isCurrentSessionStreaming && !prompt.trim()}
             >
-              {isCurrentSessionStreaming ? <Square /> : <ArrowUp />}
+              {isCurrentSessionStreaming ? (
+                <Square className="animate-pulse" />
+              ) : (
+                <ArrowUp />
+              )}
             </Button>
           </div>
         </div>
