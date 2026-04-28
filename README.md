@@ -115,6 +115,8 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Generate title for session from first message
 - [x] Added more settings to chat section
 - [x] "Undo" message
-- [ ] custom task order
+- [ ] Custom task order
+- [ ] Change logs
 - [ ] id based /chat and /notes for specific redirection
+- [ ] Tauri hotswap + minisign for remote updates
 - [ ] "Super Prompt" a floating prompt you can ask global things to about the app and use agentic features to interact with the app
