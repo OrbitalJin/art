@@ -21,14 +21,14 @@ export const MODELS: readonly Model[] = [
   {
     tier: 1,
     id: "Genesis",
-    type: "gemini-2.0-flash",
+    type: "gemini-2.5-flash-lite",
     description: "Quick and simple, meant to keep ideas moving.",
     limit: 1_000_000,
   },
   {
     tier: 2,
     id: "Bloom",
-    type: "gemini-2.5-flash-lite",
+    type: "gemini-2.5-flash",
     description: "More thoughtful, carefully connects ideas.",
     limit: 1_000_000,
   },

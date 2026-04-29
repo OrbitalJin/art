@@ -9,9 +9,13 @@ import { DEFAULT_MODE, MODES, type ModeId } from "../llm/prompts/modes";
 import type { TraitId } from "../llm/prompts/traits";
 import { useSettingsStore } from "./use-settings-store";
 
-const DEFAULT_MODEL_ID: ModelId = "Genesis";
+const DEFAULT_MODEL_ID: ModelId = useSettingsStore.getState()
+  .defaultModel as ModelId;
 
-const createNewSession = (title?: string, defaultModelId?: ModelId): Session => {
+const createNewSession = (
+  title?: string,
+  defaultModelId?: ModelId,
+): Session => {
   const date = Date.now();
   return {
     id: crypto.randomUUID(),
@@ -21,7 +25,7 @@ const createNewSession = (title?: string, defaultModelId?: ModelId): Session => 
     journalRefs: [],
     webCtxUrls: [],
     mode: DEFAULT_MODE,
-    modelId: defaultModelId ?? (useSettingsStore.getState().defaultModel as ModelId),
+    modelId: defaultModelId ?? DEFAULT_MODEL_ID,
     createdAt: date,
     updatedAt: date,
   };
@@ -133,7 +137,11 @@ export const useSessionStore = create<SessionState>()(
       },
 
       purge: () => {
-        set({ sessions: [] });
+        const newSession = createNewSession();
+        set({
+          sessions: [newSession],
+          activeId: newSession.id,
+        });
       },
 
       toggleSearchGrounding: (id: string) => {
@@ -367,23 +375,21 @@ export const useSessionStore = create<SessionState>()(
         if (version < 2) {
           const state = persistedState as { sessions?: Session[] };
           if (state && Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map(
-              (session: Session) => ({
-                ...session,
-                modelId:
-                  session.modelId in MODELS
-                    ? (session.modelId as ModelId)
-                    : DEFAULT_MODEL_ID,
-                mode: session.mode in MODES ? session.mode : DEFAULT_MODE,
-                webCtxUrls: Array.isArray(session.webCtxUrls)
-                  ? session.webCtxUrls
-                  : [],
-                journalRefs: Array.isArray(session.journalRefs)
-                  ? session.journalRefs
-                  : [],
-                traits: Array.isArray(session.traits) ? session.traits : [],
-              }),
-            );
+            state.sessions = state.sessions.map((session: Session) => ({
+              ...session,
+              modelId:
+                session.modelId in MODELS
+                  ? (session.modelId as ModelId)
+                  : DEFAULT_MODEL_ID,
+              mode: session.mode in MODES ? session.mode : DEFAULT_MODE,
+              webCtxUrls: Array.isArray(session.webCtxUrls)
+                ? session.webCtxUrls
+                : [],
+              journalRefs: Array.isArray(session.journalRefs)
+                ? session.journalRefs
+                : [],
+              traits: Array.isArray(session.traits) ? session.traits : [],
+            }));
           }
         }
         return persistedState as { sessions?: Session[]; version?: number };

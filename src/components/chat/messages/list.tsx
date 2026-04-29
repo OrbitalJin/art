@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import WelcomeMessage from "../welcome";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { MessageBroker } from "./broker";
@@ -19,6 +19,7 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const { prompt } = useActiveSession();
   const activeId = useSessionStore((s) => s.activeId);
+  const prevActiveIdRef = useRef(activeId);
   const pruneMessages = useSessionStore((s) => s.pruneMessages);
 
   const handlePrune = (messageId: string) => {
@@ -27,33 +28,40 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
     }
   };
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     virtuosoRef.current?.scrollToIndex({
-      index: messages.length,
+      index: messages.length - 1,
+      align: "end",
       behavior: "smooth",
     });
-  };
+  }, [messages.length]);
+
+  useEffect(() => {
+    if (prevActiveIdRef.current !== activeId) {
+      prevActiveIdRef.current = activeId;
+      scrollToBottom();
+    }
+  }, [activeId, scrollToBottom]);
+
   return (
-    <div className="flex-1 overflow-hidden relative px-4 flex flex-col select-none">
+    <div className="relative flex flex-1 flex-col overflow-hidden px-4 select-none">
       {messages.length === 0 && prompt.length === 0 ? (
         <WelcomeMessage textAreaRef={textAreaRef} />
       ) : (
         <>
           <Virtuoso
-            data={messages}
             ref={virtuosoRef}
+            data={messages}
             className="h-full"
-            followOutput="smooth"
-            initialTopMostItemIndex={messages.length - 1}
+            initialTopMostItemIndex={{
+              index: messages.length - 1,
+              align: "end",
+            }}
+            followOutput={true}
             atBottomStateChange={setAtBottom}
-            overscan={400}
-            itemContent={(index, msg) => (
-              <div className="py-4 max-w-2xl mx-auto select-text">
-                <MessageBroker
-                  key={index}
-                  {...msg}
-                  onPrune={() => handlePrune(msg.id)}
-                />
+            itemContent={(_, msg) => (
+              <div className="mx-auto max-w-2xl py-4 select-text">
+                <MessageBroker {...msg} onPrune={() => handlePrune(msg.id)} />
               </div>
             )}
           />
@@ -79,16 +87,16 @@ const ScrollToBottomButton: React.FC<ScrollProps> = ({
   return (
     <div
       className={cn(
-        "absolute bottom-4 left-1/2 -translate-x-1/2 transition-all duration-300 z-30",
+        "absolute bottom-4 left-1/2 z-30 -translate-x-1/2 transition-all duration-300",
         isVisible
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-4 pointer-events-none",
+          ? "translate-y-0 opacity-100"
+          : "pointer-events-none translate-y-4 opacity-0",
       )}
     >
       <Button
         variant="outline"
         size="icon"
-        className="rounded-full shadow-md bg-background/80 backdrop-blur border"
+        className="rounded-full border bg-background/80 shadow-md backdrop-blur"
         onClick={onClick}
       >
         <ArrowDown className="h-4 w-4" />

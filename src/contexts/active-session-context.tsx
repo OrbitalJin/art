@@ -22,6 +22,7 @@ import { getSessionRefsContext } from "@/hooks/use-session-refs";
 import { MODELS } from "@/lib/llm/common/types";
 
 interface ActiveSessionContextValues {
+  activeId: string | null;
   streamingSessionId: string | null;
   messages: Message[];
   isSending: boolean;
@@ -247,6 +248,7 @@ export const ActiveSessionProvider: React.FC<{
 
   const value = useMemo(
     () => ({
+      activeId,
       messages,
       isSending,
       prompt,
@@ -255,7 +257,15 @@ export const ActiveSessionProvider: React.FC<{
       sendMessage,
       abortStream: abort,
     }),
-    [messages, isSending, prompt, streamingSessionId, sendMessage, abort],
+    [
+      messages,
+      isSending,
+      prompt,
+      streamingSessionId,
+      sendMessage,
+      abort,
+      activeId,
+    ],
   );
 
   return (
