@@ -115,6 +115,7 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Generate title for session from first message
 - [x] Added more settings to chat section
 - [x] "Undo" message
+- [x] Generate title after llm reponse
 - [ ] Custom task order
 - [ ] Change logs
 - [ ] id based /chat and /notes for specific redirection

@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import type { Page } from "@/lib/store/journal/types";
 import type { State as JournalState } from "@/lib/store/use-journal-store";
@@ -13,13 +12,13 @@ export const getSessionRefsContext = (
     journalRefs
       .map((id) => journalStore.getFn(id))
       .filter((note): note is Page => note !== undefined) || [];
-  return format.notesAsContext(contextNotes);
+  return journalRefs.length > 0 ? format.notesAsContext(contextNotes) : "";
 };
 
 export const useSessionRefs = (session: Session | undefined) => {
   const getNote = useJournalStore((state) => state.getFn);
-  return useMemo(() => {
-    if (!session?.journalRefs.length) return "";
-    return getSessionRefsContext(session.journalRefs, { getFn: getNote } as JournalState);
-  }, [session?.journalRefs, getNote]);
+  if (!session?.journalRefs.length) return "";
+  return getSessionRefsContext(session.journalRefs, {
+    getFn: getNote,
+  } as JournalState);
 };

@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useRef,
   useState,
-  useEffect,
 } from "react";
 import { toast } from "sonner";
 import { useSessionStore } from "@/lib/store/use-session-store";
@@ -91,6 +90,7 @@ export const ActiveSessionProvider: React.FC<{
           systemPrompt: generatedSystemPrompt,
           context: journalContext,
         });
+
         if (title?.trim()) {
           useSessionStore.getState().updateTitle(sessionId, title.trim());
           useSessionStore.getState().setTitleGenerated(sessionId, true);
@@ -162,23 +162,39 @@ export const ActiveSessionProvider: React.FC<{
         setIsSending(false);
         setStreamingSessionId(null);
 
-        addMessage(
-          activeId,
-          createModelMessage(
-            fullResponse.trim(),
-            status,
-            activeSession?.searchGrounding,
-            activeSession?.modelId,
-            errorType,
-          ),
+        const modelMessage = createModelMessage(
+          fullResponse.trim(),
+          status,
+          activeSession?.searchGrounding,
+          activeSession?.modelId,
+          errorType,
         );
+
+        addMessage(activeId, modelMessage);
+
+        const updatedSession = useSessionStore
+          .getState()
+          .sessions.find((s) => s.id === activeId);
+
+        const shouldGenerateTitle =
+          updatedSession &&
+          !updatedSession.titleGenerated &&
+          updatedSession.messages.length === 2 &&
+          updatedSession.messages[0]?.role === "user" &&
+          updatedSession.messages[1]?.role === "model" &&
+          status === "complete" &&
+          fullResponse.trim();
+
+        if (shouldGenerateTitle) {
+          void generateTitle(activeId);
+        }
 
         if (status === "error") {
           toast.error("Network error occurred");
         }
       }
     },
-    [activeId, llm, activeSession, addMessage],
+    [activeId, llm, activeSession, addMessage, generateTitle],
   );
 
   const sendMessage = useCallback(
@@ -202,18 +218,9 @@ export const ActiveSessionProvider: React.FC<{
     [activeId, isSending, addMessage, send],
   );
 
-  useEffect(() => {
-    if (!streamingSessionId) return;
-
-    const allSessions = useSessionStore.getState().sessions;
-    const session = allSessions.find((s) => s.id === streamingSessionId);
-    if (session?.messages.length === 1 && !session.titleGenerated) {
-      generateTitle(session.id);
-    }
-  }, [streamingSessionId, generateTitle]);
-
   const messages = useMemo(() => {
     const base = activeSession?.messages || [];
+
     if (isSending && streamingSessionId === activeId) {
       return [
         ...base,
@@ -227,6 +234,7 @@ export const ActiveSessionProvider: React.FC<{
         } as Message,
       ];
     }
+
     return base;
   }, [
     activeSession,
@@ -259,10 +267,12 @@ export const ActiveSessionProvider: React.FC<{
 
 export const useActiveSession = () => {
   const context = useContext(ActiveSessionContext);
+
   if (!context) {
     throw new Error(
       "useActiveSession must be used within ActiveSessionProvider",
     );
   }
+
   return context;
 };

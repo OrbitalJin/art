@@ -34,7 +34,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
 
   return (
     <div className="relative flex-1 overflow-hidden">
-      <ScrollArea className="h-full px-2">
+      <ScrollArea className="h-full px-2 mt-2">
         <div className="space-y-2 pb-4">
           {pinned.length > 0 && (
             <SessionSection

@@ -2,6 +2,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { HelpCircle, MessagesSquare, Type, Pi } from "lucide-react";
 import { useActiveSession } from "@/contexts/active-session-context";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
 
 interface Suggestion {
   id: string;
@@ -48,6 +49,7 @@ interface Props {
 
 const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const { setPrompt } = useActiveSession();
+  const enterKeySends = useSettingsStore((state) => state.enterKeySends);
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
     setPrompt(suggestion.prompt);
@@ -143,9 +145,21 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
         </span>
         <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
         <span className="flex items-center gap-1.5">
-          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
-            ↵
-          </kbd>
+          {enterKeySends ? (
+            <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
+              Enter
+            </kbd>
+          ) : (
+            <>
+              <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
+                Shift
+              </kbd>
+              <span className="text-muted-foreground/60 text-[10px]">+</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
+                Enter
+              </kbd>
+            </>
+          )}
           send
         </span>
       </div>
