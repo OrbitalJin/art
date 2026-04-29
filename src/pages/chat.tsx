@@ -5,12 +5,19 @@ import { Prompt } from "@/components/chat/prompt/prompt";
 import { FloatingSidebar } from "@/components/chat/sidebar/floating";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useEffect, useRef } from "react";
+import { useSessionStore } from "@/lib/store/use-session-store";
 
 export const Chat = () => {
   const chat = useActiveSession();
   const isOpen = useSettingsStore((state) => state.chatSidebarOpen);
   const setIsOpen = useSettingsStore((state) => state.setChatSidebarOpen);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const activeId = useSessionStore((state) => state.activeId);
+
+  useEffect(() => {
+    // check for active session
+    console.log(activeId);
+  }, [activeId]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

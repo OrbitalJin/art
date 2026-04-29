@@ -40,12 +40,10 @@ export const ActiveSessionProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const { llm } = useLLM();
-  const { activeId, sessions, addMessage } = useSessionStore();
-
-  const activeSession = useMemo(
-    () => sessions.find((s) => s.id === activeId),
-    [sessions, activeId],
-  );
+  const activeId = useSessionStore((state) => state.activeId);
+  const addMessage = useSessionStore((state) => state.addMessage);
+  const getFn = useSessionStore((state) => state.getFn);
+  const activeSession = getFn(activeId ?? "");
 
   const [prompt, setPrompt] = useState("");
   const [isSending, setIsSending] = useState(false);

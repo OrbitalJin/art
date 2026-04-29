@@ -57,8 +57,9 @@ export const SessionListItem: React.FC<Props> = ({
   active,
   onSwitch,
 }) => {
-  const { isSessionStreaming } = useStreamingState();
   const { generating, generateTitle } = useGenerateSessionTitle();
+  const { isSessionStreaming } = useStreamingState();
+
   const setActive = useSessionStore((s) => s.setActive);
   const updateTitle = useSessionStore((s) => s.updateTitle);
 
@@ -213,6 +214,7 @@ const Menu: React.FC<MenuProps> = ({
             h-7 w-7 opacity-0 group-hover:opacity-100 
             focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
             onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
           >
             <MoreVertical className="h-4 w-4" />
             <span className="sr-only">Open menu</span>
@@ -307,6 +309,7 @@ const Menu: React.FC<MenuProps> = ({
             <DropdownMenuItem
               className="text-destructive focus:text-destructive focus:bg-destructive/10 gap-2"
               onSelect={(e) => e.preventDefault()}
+              onPointerDown={(e) => e.stopPropagation()}
             >
               <Trash2 className="h-4 w-4" />
               <span>Delete Session</span>
@@ -326,7 +329,13 @@ const Menu: React.FC<MenuProps> = ({
           <AlertDialogCancel onClick={() => setOpen(false)}>
             Cancel
           </AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={handleDelete}>
+          <AlertDialogAction
+            variant="destructive"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete();
+            }}
+          >
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>

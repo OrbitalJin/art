@@ -8,7 +8,6 @@ import { useActiveSession } from "@/contexts/active-session-context";
 import { useStreamingState } from "@/hooks/use-streaming-state";
 import { ReferencePicker } from "@/components/chat/prompt/reference-picker";
 import { TraitPicker } from "./trait-picker";
-import { ForkSession } from "./fork-session";
 import { ModeSelect } from "../mode-select";
 import { WebSearchMenu } from "./web-search-menu.tsx";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
@@ -68,7 +67,6 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               <TraitPicker />
               <ReferencePicker />
               <WebSearchMenu />
-              <ForkSession />
             </div>
             <Button
               variant="default"

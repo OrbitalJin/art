@@ -116,6 +116,8 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Added more settings to chat section
 - [x] "Undo" message
 - [x] Generate title after llm reponse
+- [ ] Branch out below message
+- [ ] Edit message (prune + resend)
 - [ ] Solve the no session when deleting
 - [ ] Custom task order
 - [ ] Change logs

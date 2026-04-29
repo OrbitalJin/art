@@ -6,7 +6,7 @@ import { ErrorMessage } from "./error";
 import type { Message } from "@/lib/store/session/types";
 
 interface BrokerProps extends Message {
-  onPrune?: () => void;
+  onRevert?: () => void;
 }
 
 export const MessageBroker = memo(

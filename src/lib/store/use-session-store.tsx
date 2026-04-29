@@ -35,8 +35,8 @@ export interface SessionState {
   sessions: Session[];
   activeId: string | null;
 
-  fork: (id: string) => void;
   setMode: (id: string, mode: ModeId) => void;
+  branch: (id: string) => void;
   toggleArchived: (id: string) => void;
   togglePinned: (id: string) => void;
   toggleSearchGrounding: (id: string) => void;
@@ -58,8 +58,9 @@ export interface SessionState {
   deleteFn: (id: string) => void;
   create: (title?: string) => void;
   getFn: (id: string) => Session | undefined;
+  branchFrom: (sessionId: string, messageId: string) => void;
   addMessage: (sessionId: string, message: Message) => void;
-  pruneMessages: (sessionId: string, messageId: string) => void;
+  revertMessage: (sessionId: string, messageId: string) => void;
   updateTitle: (sessionId: string, newTitle: string) => void;
   setTitleGenerated: (sessionId: string, value: boolean) => void;
   setModel: (sessionId: string, modelId: ModelId) => void;
@@ -72,7 +73,7 @@ export const useSessionStore = create<SessionState>()(
       sessions: [],
       activeId: null,
 
-      pruneMessages: (sessionId: string, messageId: string) => {
+      revertMessage: (sessionId: string, messageId: string) => {
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) => {
             if (session.id === sessionId) {
@@ -90,7 +91,7 @@ export const useSessionStore = create<SessionState>()(
             return session;
           }),
         }));
-        toast.success("Conversation pruned from here");
+        toast.success("Message reverted successfully");
       },
 
       addWebCtxUrl: (id: string, url: string) => {
@@ -180,13 +181,14 @@ export const useSessionStore = create<SessionState>()(
         }));
       },
 
-      fork: (id: string) => {
+      branch: (id: string) => {
         const state = get();
         const session = state.sessions.find((s) => s.id === id);
         if (!session) {
-          return toast.error("Failed to fork: Session not found");
+          return toast.error("Failed to branch: Session not found");
         }
-        const fork = {
+
+        const branch = {
           ...session,
           id: crypto.randomUUID(),
           createdAt: Date.now(),
@@ -194,10 +196,35 @@ export const useSessionStore = create<SessionState>()(
           forkOf: session.id,
         };
 
-        toast.info("Session forked successfully");
+        toast.info("Session branched successfully");
         set({
-          activeId: fork.id,
-          sessions: [...state.sessions, fork],
+          activeId: branch.id,
+          sessions: [...state.sessions, branch],
+        });
+      },
+
+      branchFrom: (sessionId: string, messageId: string) => {
+        const state = get();
+        const session = state.sessions.find((s) => s.id === sessionId);
+        if (!session) {
+          return toast.error("Failed to branch: Session not found");
+        }
+
+        const index = session.messages.findIndex((m) => m.id === messageId);
+
+        const branch = {
+          ...session,
+          messages: session.messages.slice(0, index),
+          id: crypto.randomUUID(),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          forkOf: session.id,
+        };
+
+        toast.info("Session branched successfully");
+        set({
+          activeId: branch.id,
+          sessions: [...state.sessions, branch],
         });
       },
 
@@ -315,22 +342,23 @@ export const useSessionStore = create<SessionState>()(
             return { sessions: [defaultSession], activeId: defaultSession.id };
           }
 
-          let newActiveId = state.activeId;
-          if (state.activeId === id) {
-            newActiveId = newSessions[0].id;
-          } else {
-            toast.success("Session deleted successfully.");
-          }
+          const newActiveId =
+            state.activeId === id ? newSessions[0].id : state.activeId;
 
           return {
             sessions: newSessions,
             activeId: newActiveId,
           };
         });
+        toast.success("Session deleted successfully.");
       },
 
       setActive: (id: string) => {
-        set({ activeId: id });
+        set((state: SessionState) => {
+          const found = state.sessions.find((s) => s.id === id);
+          if (!found) return state;
+          return { activeId: id };
+        });
       },
 
       updateTitle: (id: string, newTitle: string) => {

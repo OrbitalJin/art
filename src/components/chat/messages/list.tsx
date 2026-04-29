@@ -20,11 +20,11 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
   const { prompt } = useActiveSession();
   const activeId = useSessionStore((s) => s.activeId);
   const prevActiveIdRef = useRef(activeId);
-  const pruneMessages = useSessionStore((s) => s.pruneMessages);
+  const revertMessage = useSessionStore((s) => s.revertMessage);
 
-  const handlePrune = (messageId: string) => {
+  const handleRevert = (messageId: string) => {
     if (activeId) {
-      pruneMessages(activeId, messageId);
+      revertMessage(activeId, messageId);
     }
   };
 
@@ -61,7 +61,7 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
             atBottomStateChange={setAtBottom}
             itemContent={(_, msg) => (
               <div className="mx-auto max-w-2xl py-4 select-text">
-                <MessageBroker {...msg} onPrune={() => handlePrune(msg.id)} />
+                <MessageBroker {...msg} onRevert={() => handleRevert(msg.id)} />
               </div>
             )}
           />
