@@ -6,6 +6,7 @@ export type View = "calendar" | "board";
 export interface Task {
   id: string;
   title: string;
+  position: number;
   description?: string;
   urgency?: Urgency;
   energy?: Energy;

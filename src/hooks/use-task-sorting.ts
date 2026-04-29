@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Task, Urgency } from "@/lib/store/tasks/types";
 
 export type SortField = "title" | "urgency" | "due" | "energy";
@@ -28,12 +28,14 @@ export const sortTasks = (
       case "title":
         comparison = a.title.localeCompare(b.title);
         break;
+
       case "urgency": {
         const rankA = a.urgency ? URGENCY_RANK[a.urgency] : 0;
         const rankB = b.urgency ? URGENCY_RANK[b.urgency] : 0;
         comparison = rankA - rankB;
         break;
       }
+
       case "due": {
         if (!a.due && !b.due) comparison = 0;
         else if (!a.due) comparison = 1;
@@ -41,9 +43,10 @@ export const sortTasks = (
         else comparison = new Date(a.due).getTime() - new Date(b.due).getTime();
         break;
       }
+
       case "energy": {
-        const energyA = a.energy || 0;
-        const energyB = b.energy || 0;
+        const energyA = a.energy ?? 0;
+        const energyB = b.energy ?? 0;
         comparison = energyA - energyB;
         break;
       }
@@ -61,6 +64,7 @@ export function useTaskSorting(items: Task[]) {
       if (!current || current.field !== field) {
         return { field, direction: "asc" };
       }
+
       return {
         field,
         direction: current.direction === "asc" ? "desc" : "asc",
@@ -68,8 +72,13 @@ export function useTaskSorting(items: Task[]) {
     });
   };
 
+  const isManualOrder = !sortConfig;
+
   const sortedItems = useMemo(() => {
-    if (!sortConfig) return items;
+    if (!sortConfig) {
+      return [...items].sort((a, b) => a.position - b.position);
+    }
+
     return sortTasks(items, sortConfig.field, sortConfig.direction);
   }, [items, sortConfig]);
 
@@ -78,5 +87,6 @@ export function useTaskSorting(items: Task[]) {
     sortConfig,
     setSortConfig,
     handleSort,
+    isManualOrder,
   };
 }

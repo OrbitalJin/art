@@ -1,23 +1,25 @@
 import type { Task } from "@/lib/store/tasks/types";
 import type React from "react";
-
+import { addDays, isBefore, isSameDay, startOfDay } from "date-fns";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import {
-  Calendar,
-  Trash2,
-  Zap,
   AlertCircle,
+  Calendar,
+  CheckCircle2,
+  Circle,
   Clock,
-  Smile,
   Frown,
   Meh,
   Pencil,
+  Smile,
+  Trash2,
+  Zap,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { addDays, isSameDay, startOfDay, isBefore } from "date-fns";
+import { useTasksStore } from "@/lib/store/use-tasks-store";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +37,7 @@ interface Props {
   onDelete?: (id: string) => void;
   onEdit?: (task: Task) => void;
   isOverlay?: boolean;
+  disabled?: boolean;
 }
 
 export const BoardItem: React.FC<Props> = ({
@@ -42,7 +45,10 @@ export const BoardItem: React.FC<Props> = ({
   onDelete,
   onEdit,
   isOverlay = false,
+  disabled = false,
 }) => {
+  const moveTask = useTasksStore((state) => state.moveTask);
+
   const {
     attributes,
     listeners,
@@ -52,9 +58,15 @@ export const BoardItem: React.FC<Props> = ({
     isDragging,
   } = useSortable({
     id: item.id,
+    disabled,
     transition: {
       duration: 150,
       easing: "ease-out",
+    },
+    data: {
+      type: "task",
+      task: item,
+      status: item.status,
     },
   });
 
@@ -64,6 +76,7 @@ export const BoardItem: React.FC<Props> = ({
   const isOverDue = dueDate ? isBefore(dueDate, today) : false;
   const isDueToday = dueDate ? isSameDay(dueDate, today) : false;
   const isDueTomorrow = dueDate ? isSameDay(dueDate, addDays(today, 1)) : false;
+  const isCompleted = item.status === "completed";
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
@@ -73,63 +86,83 @@ export const BoardItem: React.FC<Props> = ({
 
   const urgencyStyles: Record<string, string> = {
     low: cn(
-      "text-green-600 bg-green-50 border-green-200",
-      "dark:bg-green-900/20 dark:border-green-900",
+      "border-green-200 bg-green-50 text-green-600",
+      "dark:border-green-900 dark:bg-green-900/20",
     ),
     medium: cn(
-      "text-amber-700 bg-amber-100/80 border-amber-200",
-      "dark:text-amber-400 dark:bg-amber-900/40 dark:border-amber-800",
+      "border-amber-200 bg-amber-100/80 text-amber-700",
+      "dark:border-amber-800 dark:bg-amber-900/40 dark:text-amber-400",
     ),
     high: cn(
-      "text-red-700 bg-red-100/80 border-red-200",
-      "dark:text-red-400 dark:bg-red-900/40 dark:border-red-800",
+      "border-red-200 bg-red-100/80 text-red-700",
+      "dark:border-red-800 dark:bg-red-900/40 dark:text-red-400",
     ),
+  };
+
+  const sortableProps =
+    disabled || isOverlay ? {} : { ...attributes, ...listeners };
+
+  const handleToggleComplete = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+
+    if (isCompleted) {
+      moveTask(item.id, "inProgress");
+      return;
+    }
+
+    moveTask(item.id, "completed");
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      {...sortableProps}
       className={cn(
-        "group relative rounded-lg p-4 shadow-sm hover:shadow-md border",
-        "cursor-grab active:cursor-grabbing",
+        "group relative rounded-lg border p-4 shadow-sm hover:shadow-md",
         !transform && "transition-shadow duration-200",
+        disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing",
+        isCompleted && "bg-muted/20",
         isOverlay &&
-          "shadow-xl ring-2 ring-primary/20 rotate-2 cursor-grabbing scale-105 z-50",
+          "z-50 rotate-2 scale-105 cursor-grabbing shadow-xl ring-2 ring-primary/20",
       )}
     >
-      {/* Top Row: Urgency & Actions */}
-      <div className="flex items-start justify-between">
-        {item.urgency ? (
-          <Badge
-            variant="outline"
-            className={cn(
-              "text-xs border px-1 py-0.5 gap-1 pr-2",
-              urgencyStyles[item.urgency],
-            )}
-          >
-            {item.urgency === "low" ? (
-              <Smile className="w-3 h-3" />
-            ) : item.urgency === "medium" ? (
-              <Meh className="w-3 h-3" />
-            ) : (
-              <Frown className="w-3 h-3" />
-            )}
-            {item.urgency}
-          </Badge>
-        ) : (
-          <div className="h-5" />
-        )}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          {item.urgency ? (
+            <Badge
+              variant="outline"
+              className={cn(
+                "gap-1 border px-1 py-0.5 pr-2 text-xs",
+                urgencyStyles[item.urgency],
+              )}
+            >
+              {item.urgency === "low" ? (
+                <Smile className="h-3 w-3" />
+              ) : item.urgency === "medium" ? (
+                <Meh className="h-3 w-3" />
+              ) : (
+                <Frown className="h-3 w-3" />
+              )}
+              {item.urgency}
+            </Badge>
+          ) : (
+            <div className="h-5" />
+          )}
+        </div>
 
-        <div className="flex items-center gap-1">
+        <div
+          className={cn(
+            "flex items-center gap-1",
+            "opacity-0 group-hover:opacity-100",
+          )}
+        >
           <Button
             variant="ghost"
             size="icon"
             className={cn(
-              "text-muted-foreground/40 hover:text-primary",
-              "hover:bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity",
+              "text-muted-foreground/40 transition-opacity",
+              "hover:bg-primary/10 hover:text-primary",
             )}
             onClick={(e) => {
               e.stopPropagation();
@@ -137,28 +170,32 @@ export const BoardItem: React.FC<Props> = ({
               onEdit(item);
             }}
           >
-            <Pencil className="w-3.5 h-3.5" />
+            <Pencil className="h-3.5 w-3.5" />
           </Button>
+
           <AlertDialog>
-            <AlertDialogTrigger>
+            <AlertDialogTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "text-muted-foreground/40 hover:text-destructive",
-                  "hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity",
+                  "text-muted-foreground/40 transition-opacity",
+                  "hover:bg-destructive/10 hover:text-destructive",
                 )}
+                onClick={(e) => e.stopPropagation()}
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+
+            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
+
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
@@ -173,46 +210,76 @@ export const BoardItem: React.FC<Props> = ({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+
+          {!isOverlay ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "text-muted-foreground/40 transition-colors",
+                isCompleted
+                  ? "text-green-600 hover:bg-green-500/10 hover:text-green-600 dark:text-green-400 dark:hover:text-green-400"
+                  : "hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400",
+              )}
+              onClick={handleToggleComplete}
+            >
+              {isCompleted ? (
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              ) : (
+                <Circle className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          ) : null}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="space-y-1.5 mb-4">
-        <h4 className="font-medium text-sm leading-snug text-foreground">
+      <div className="mb-4 mt-3 space-y-1.5">
+        <h4
+          className={cn(
+            "text-sm font-medium leading-snug text-foreground",
+            isCompleted && "text-muted-foreground line-through",
+          )}
+        >
           {item.title}
         </h4>
-        {item.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+
+        {item.description ? (
+          <p
+            className={cn(
+              "line-clamp-2 text-xs leading-relaxed text-muted-foreground",
+              isCompleted && "line-through opacity-70",
+            )}
+          >
             {item.description}
           </p>
-        )}
+        ) : null}
       </div>
 
-      {/* Footer: Energy & Date */}
-      <div className="flex items-center justify-between pt-3 border-t border-border/40">
+      <div className="flex items-center justify-between border-t border-border/40 pt-3">
         <div className="flex items-center gap-3">
-          {item.energy !== undefined && (
+          {item.energy !== undefined ? (
             <div title={`Energy Level: ${item.energy}/5`}>
               <Energy level={item.energy} />
             </div>
-          )}
+          ) : null}
         </div>
 
-        {item.due && (
+        {item.due ? (
           <div
             className={cn(
-              "flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-md border",
-              "text-muted-foreground bg-muted/30 border-transparent",
-              (isDueTomorrow || isDueToday) && urgencyStyles["medium"],
-              isOverDue && urgencyStyles["high"],
+              "flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium",
+              "border-transparent bg-muted/30 text-muted-foreground",
+              (isDueTomorrow || isDueToday) && urgencyStyles.medium,
+              isOverDue && urgencyStyles.high,
             )}
           >
             {isOverDue ? (
-              <AlertCircle className="w-3 h-3" />
+              <AlertCircle className="h-3 w-3" />
             ) : isDueTomorrow || isDueToday ? (
-              <Clock className="w-3 h-3" />
+              <Clock className="h-3 w-3" />
             ) : (
-              <Calendar className="w-3 h-3" />
+              <Calendar className="h-3 w-3" />
             )}
 
             <span>
@@ -227,25 +294,27 @@ export const BoardItem: React.FC<Props> = ({
                     })}
             </span>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
 };
 
-const Energy = ({ level }: { level: number }) => (
-  <div className="flex gap-0.5">
-    {[...Array(5)].map((_, i) => (
-      <Zap
-        key={i}
-        fill={i < level ? "currentColor" : "none"}
-        className={cn(
-          "w-3 h-3",
-          i < level
-            ? "text-yellow-500/80 dark:text-yellow-400"
-            : "text-muted-foreground/20",
-        )}
-      />
-    ))}
-  </div>
-);
+const Energy = ({ level }: { level: number }) => {
+  return (
+    <div className="flex gap-0.5">
+      {[...Array(5)].map((_, i) => (
+        <Zap
+          key={i}
+          fill={i < level ? "currentColor" : "none"}
+          className={cn(
+            "h-3 w-3",
+            i < level
+              ? "text-yellow-500/80 dark:text-yellow-400"
+              : "text-muted-foreground/20",
+          )}
+        />
+      ))}
+    </div>
+  );
+};

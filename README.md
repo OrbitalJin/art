@@ -118,8 +118,8 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Generate title after llm reponse
 - [x] Branch out below message
 - [x] Solve the no session when deleting
+- [x] Custom task order
 - [ ] Edit message (prune + resend)
-- [ ] Custom task order
 - [ ] Change logs
 - [ ] id based /chat and /notes for specific redirection
 - [ ] Tauri hotswap + minisign for remote updates
