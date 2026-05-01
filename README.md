@@ -100,6 +100,7 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Editable project
 - [x] Merge task dialogs
 - [x] Merge project dialogs
+- [ ] Task dependencies
 
 ### User Experience
 
@@ -121,7 +122,7 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Custom task order
 - [x] Persist sidebar list grouping state
 - [x] Edit message (prune + resend)
-- [ ] Change logs
+- [x] Change logs
 - [ ] id based /chat and /notes for specific redirection
 - [ ] Tauri hotswap + minisign for remote updates
 - [ ] "Super Prompt" a floating prompt you can ask global things to about the app and use agentic features to interact with the app

@@ -6,8 +6,8 @@
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "bun dev",
-    "beforeBuildCommand": "bun run build"
+    "beforeDevCommand": "bun run scripts/generate-changelog.ts && bun dev",
+    "beforeBuildCommand": "bun run scripts/generate-changelog.ts && bun run build"
   },
   "app": {
     "windows": [

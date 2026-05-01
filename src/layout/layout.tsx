@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { Sidebar } from "./sidebar";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
+import { ChangelogDialog } from "@/components/changelog-dialog";
 import { cn } from "@/lib/utils";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
@@ -30,6 +31,7 @@ export function Layout({ children }: LayoutProps) {
         <Sidebar />
       </div>
       <SettingsDialog open={open} onOpenChange={setOpen} />
+      <ChangelogDialog />
       <Toaster position="top-center" expand={false} />
     </>
   );

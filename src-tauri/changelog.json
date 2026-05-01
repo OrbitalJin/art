@@ -1,0 +1,950 @@
+[
+  {
+    "version": "0.3.4",
+    "date": "2026-05-01",
+    "entries": [
+      {
+        "hash": "3abe88b",
+        "type": "feat",
+        "message": "extracted toast logic outside of zustand stores",
+        "date": "2026-05-01"
+      },
+      {
+        "hash": "5738f66",
+        "type": "feat",
+        "message": "new theme 'dark matter'",
+        "date": "2026-05-01"
+      },
+      {
+        "hash": "b9d48f8",
+        "type": "feat",
+        "message": "users can now retry sending previous messages",
+        "date": "2026-05-01"
+      },
+      {
+        "hash": "34c7310",
+        "type": "feat",
+        "message": "users can now edit previously sent messages within a session",
+        "date": "2026-05-01"
+      },
+      {
+        "hash": "6f12f47",
+        "type": "feat",
+        "message": "persisted sidebar list grouping state feat: added new theme 'aero'",
+        "date": "2026-05-01"
+      }
+    ]
+  },
+  {
+    "version": "0.3.3",
+    "date": "2026-04-30",
+    "entries": [
+      {
+        "hash": "13d7966",
+        "type": "feat",
+        "message": "board task item collapses when marked as complete",
+        "date": "2026-04-30"
+      },
+      {
+        "hash": "a421a93",
+        "type": "feat",
+        "message": "re-ordable tasks",
+        "date": "2026-04-30"
+      }
+    ]
+  },
+  {
+    "version": "0.3.1",
+    "date": "2026-04-29",
+    "entries": [
+      {
+        "hash": "3d33a29",
+        "type": "updated",
+        "message": "README",
+        "date": "2026-04-29"
+      },
+      {
+        "hash": "bca9aba",
+        "type": "feat",
+        "message": "added the ability to branch out from any message fixed: session deletion leading to a floating state",
+        "date": "2026-04-29"
+      },
+      {
+        "hash": "d5a8180",
+        "type": "feat",
+        "message": "made scroll to bottom faster and on session switch",
+        "date": "2026-04-29"
+      },
+      {
+        "hash": "707226d",
+        "type": "feat",
+        "message": "title gen on llm response, ui tweaks & journal context fix",
+        "date": "2026-04-29"
+      }
+    ]
+  },
+  {
+    "version": "0.2.7",
+    "date": "2026-04-28",
+    "entries": [
+      {
+        "hash": "13a0853",
+        "type": "feat",
+        "message": "fixed task toggling depencing array & slightly ui tweaks",
+        "date": "2026-04-28"
+      }
+    ]
+  },
+  {
+    "version": "0.2.3",
+    "date": "2026-04-26",
+    "entries": [
+      {
+        "hash": "81cf780",
+        "type": "feat",
+        "message": "scroll to bottom button ui change",
+        "date": "2026-04-26"
+      },
+      {
+        "hash": "de5a912",
+        "type": "feat",
+        "message": "settings improvement & decoupling",
+        "date": "2026-04-26"
+      },
+      {
+        "hash": "5719376",
+        "type": "feat",
+        "message": "ui, ux & theming tweaks",
+        "date": "2026-04-26"
+      },
+      {
+        "hash": "e20368f",
+        "type": "feat",
+        "message": "added back missing corner radius setting",
+        "date": "2026-04-26"
+      },
+      {
+        "hash": "0408a0f",
+        "type": "feat",
+        "message": "version bump",
+        "date": "2026-04-26"
+      },
+      {
+        "hash": "e91ca40",
+        "type": "feat",
+        "message": "improved settings page",
+        "date": "2026-04-26"
+      },
+      {
+        "hash": "43028b7",
+        "type": "feat",
+        "message": "more chat settings",
+        "date": "2026-04-26"
+      },
+      {
+        "hash": "72e05f7",
+        "type": "feat",
+        "message": "prune session message",
+        "date": "2026-04-26"
+      }
+    ]
+  },
+  {
+    "version": "0.2.2",
+    "date": "2026-04-12",
+    "entries": [
+      {
+        "hash": "05c789e",
+        "type": "feat",
+        "message": "simplified and cleaned up llm streaming",
+        "date": "2026-04-25"
+      },
+      {
+        "hash": "2d38be4",
+        "type": "feat",
+        "message": "auto generate title on first message",
+        "date": "2026-04-25"
+      },
+      {
+        "hash": "80a7306",
+        "type": "feat",
+        "message": "search grounding auto-enable when adding context urls",
+        "date": "2026-04-25"
+      },
+      {
+        "hash": "07e57e4",
+        "type": "feat",
+        "message": "customizable radius",
+        "date": "2026-04-25"
+      },
+      {
+        "hash": "7a188be",
+        "type": "feat",
+        "message": "fixed new line formatting in message renderer",
+        "date": "2026-04-25"
+      },
+      {
+        "hash": "3e2c407",
+        "type": "feat",
+        "message": "adjusted tauri window width",
+        "date": "2026-04-12"
+      },
+      {
+        "hash": "35b6d96",
+        "type": "feat",
+        "message": "project description",
+        "date": "2026-04-12"
+      }
+    ]
+  },
+  {
+    "version": "0.2.0",
+    "date": "2026-02-10",
+    "entries": [
+      {
+        "hash": "7e64609",
+        "type": "feat",
+        "message": "renamable inbox",
+        "date": "2026-04-11"
+      },
+      {
+        "hash": "bd9bfa6",
+        "type": "feat",
+        "message": "updated README",
+        "date": "2026-04-11"
+      },
+      {
+        "hash": "9bf44c9",
+        "type": "feat",
+        "message": "updated README",
+        "date": "2026-04-11"
+      },
+      {
+        "hash": "a496e8f",
+        "type": "feat",
+        "message": "updated README",
+        "date": "2026-04-11"
+      },
+      {
+        "hash": "b07023d",
+        "type": "feat",
+        "message": "fixed task creation not defaulting to active project",
+        "date": "2026-04-11"
+      },
+      {
+        "hash": "33765dd",
+        "type": "feat",
+        "message": "web context urls",
+        "date": "2026-04-11"
+      },
+      {
+        "hash": "765d665",
+        "type": "feat",
+        "message": "ui & ux improvement across the board + code refactor",
+        "date": "2026-02-12"
+      },
+      {
+        "hash": "842757a",
+        "type": "feat",
+        "message": "highlight text shortcut settings text size & welcome page refactor",
+        "date": "2026-02-11"
+      },
+      {
+        "hash": "4f08b3e",
+        "type": "feat",
+        "message": "headings insert for journal editor",
+        "date": "2026-02-11"
+      },
+      {
+        "hash": "ba727c6",
+        "type": "feat",
+        "message": "merged project dialogs & journal typography",
+        "date": "2026-02-11"
+      },
+      {
+        "hash": "bb56444",
+        "type": "feat",
+        "message": "merged both edit & create task forms + quick task",
+        "date": "2026-02-11"
+      },
+      {
+        "hash": "cdef7f7",
+        "type": "feat",
+        "message": "ui & ux improvement for tasks & alerts for destructive actions",
+        "date": "2026-02-10"
+      },
+      {
+        "hash": "5194411",
+        "type": "feat",
+        "message": "editable projects",
+        "date": "2026-02-10"
+      },
+      {
+        "hash": "2ead0fc",
+        "type": "feat",
+        "message": "editable tasks",
+        "date": "2026-02-10"
+      }
+    ]
+  },
+  {
+    "version": "0.1.8",
+    "date": "2026-01-20",
+    "entries": [
+      {
+        "hash": "f8ac06e",
+        "type": "feat",
+        "message": "bento box look",
+        "date": "2026-02-09"
+      },
+      {
+        "hash": "c6fc842",
+        "type": "feat",
+        "message": "fixed scrolling behaviour in boards",
+        "date": "2026-02-09"
+      },
+      {
+        "hash": "9032fa6",
+        "type": "feat",
+        "message": "due date visualization",
+        "date": "2026-02-09"
+      },
+      {
+        "hash": "10613a7",
+        "type": "feat",
+        "message": "basic calendar view",
+        "date": "2026-02-09"
+      },
+      {
+        "hash": "2ed1c94",
+        "type": "feat",
+        "message": "improved task/project creation ui/ux",
+        "date": "2026-02-08"
+      },
+      {
+        "hash": "ed9a29d",
+        "type": "feat",
+        "message": "rudimentary task board",
+        "date": "2026-02-08"
+      },
+      {
+        "hash": "07aec0c",
+        "type": "feat",
+        "message": "improved welcome message",
+        "date": "2026-02-04"
+      },
+      {
+        "hash": "7739f69",
+        "type": "feat",
+        "message": "multi user support",
+        "date": "2026-02-04"
+      },
+      {
+        "hash": "d2b7edf",
+        "type": "feat",
+        "message": "journal save icon",
+        "date": "2026-02-04"
+      },
+      {
+        "hash": "996b982",
+        "type": "feat",
+        "message": "ui/ux improvement",
+        "date": "2026-01-29"
+      },
+      {
+        "hash": "028edfd",
+        "type": "feat",
+        "message": "added search grouding",
+        "date": "2026-01-21"
+      },
+      {
+        "hash": "fadf631",
+        "type": "feat",
+        "message": "small ui improvements",
+        "date": "2026-01-20"
+      },
+      {
+        "hash": "20ab9e2",
+        "type": "feat",
+        "message": "sessions store model id only",
+        "date": "2026-01-20"
+      }
+    ]
+  },
+  {
+    "version": "0.1.7",
+    "date": "2026-01-19",
+    "entries": [
+      {
+        "hash": "2fd655d",
+        "type": "feat",
+        "message": "conditional diary menus",
+        "date": "2026-01-19"
+      },
+      {
+        "hash": "5f26ca0",
+        "type": "feat",
+        "message": "floating toggle/edit button & archivable content",
+        "date": "2026-01-19"
+      }
+    ]
+  },
+  {
+    "version": "0.1.6",
+    "date": "2026-01-17",
+    "entries": [
+      {
+        "hash": "c6e93ab",
+        "type": "feat",
+        "message": "model select ui improvement",
+        "date": "2026-01-17"
+      }
+    ]
+  },
+  {
+    "version": "0.1.5",
+    "date": "2026-01-15",
+    "entries": [
+      {
+        "hash": "503ec00",
+        "type": "feat",
+        "message": "updated models",
+        "date": "2026-01-16"
+      },
+      {
+        "hash": "83364ba",
+        "type": "feat",
+        "message": "implemented llm modes",
+        "date": "2026-01-16"
+      },
+      {
+        "hash": "3735ea5",
+        "type": "feat",
+        "message": "default note when empty",
+        "date": "2026-01-16"
+      },
+      {
+        "hash": "eb191af",
+        "type": "feat",
+        "message": "added themes",
+        "date": "2026-01-15"
+      },
+      {
+        "hash": "80eaa28",
+        "type": "feat",
+        "message": "session item menu icon changes",
+        "date": "2026-01-15"
+      },
+      {
+        "hash": "8870cb2",
+        "type": "feat",
+        "message": "generate note from session",
+        "date": "2026-01-15"
+      },
+      {
+        "hash": "cf28028",
+        "type": "feat",
+        "message": "md renderer open links & prompt tools disabled while streaming",
+        "date": "2026-01-15"
+      },
+      {
+        "hash": "cf44220",
+        "type": "feat",
+        "message": "forkable sessions",
+        "date": "2026-01-15"
+      }
+    ]
+  },
+  {
+    "version": "0.1.4",
+    "date": "2026-01-14",
+    "entries": [
+      {
+        "hash": "50d8387",
+        "type": "feat",
+        "message": "sidebar state persistence",
+        "date": "2026-01-14"
+      },
+      {
+        "hash": "ce70aaa",
+        "type": "fix",
+        "message": "missing file",
+        "date": "2026-01-14"
+      },
+      {
+        "hash": "2382972",
+        "type": "feat",
+        "message": "note entry edit input autofocus and code clean up",
+        "date": "2026-01-14"
+      },
+      {
+        "hash": "1b068c4",
+        "type": "feat",
+        "message": "tweaks & consistency improvement on codebase",
+        "date": "2026-01-14"
+      }
+    ]
+  },
+  {
+    "version": "0.1.3",
+    "date": "2026-01-12",
+    "entries": [
+      {
+        "hash": "e6ede0c",
+        "type": "feat",
+        "message": "css only bottom padding",
+        "date": "2026-01-13"
+      },
+      {
+        "hash": "37cea24",
+        "type": "feat",
+        "message": "added padding at the bottom of the edito & auto scroll to bottom in chat",
+        "date": "2026-01-12"
+      },
+      {
+        "hash": "d4be1e3",
+        "type": "feat",
+        "message": "copy content to clipboard",
+        "date": "2026-01-12"
+      },
+      {
+        "hash": "c360f5a",
+        "type": "feat",
+        "message": "toggle between edit and read",
+        "date": "2026-01-12"
+      },
+      {
+        "hash": "1a9e268",
+        "type": "feat",
+        "message": "store & retrieve content as markdown",
+        "date": "2026-01-12"
+      },
+      {
+        "hash": "4727b76",
+        "type": "feat",
+        "message": "user experience polish",
+        "date": "2026-01-12"
+      },
+      {
+        "hash": "7f54810",
+        "type": "feat",
+        "message": "now takes contextual date into account in memory usage calculation",
+        "date": "2026-01-12"
+      }
+    ]
+  },
+  {
+    "version": "0.1.2",
+    "date": "2026-01-10",
+    "entries": [
+      {
+        "hash": "b1678a9",
+        "type": "feat",
+        "message": "add notes as context",
+        "date": "2026-01-11"
+      },
+      {
+        "hash": "dd82be9",
+        "type": "feat",
+        "message": "basic note context picker",
+        "date": "2026-01-11"
+      },
+      {
+        "hash": "0771f30",
+        "type": "feat",
+        "message": "removed dashboard",
+        "date": "2026-01-11"
+      },
+      {
+        "hash": "8bdc85d",
+        "type": "feat",
+        "message": "pinnable notes & trade",
+        "date": "2026-01-11"
+      },
+      {
+        "hash": "6dfaaf6",
+        "type": "feat",
+        "message": "sidebar toggle opacity & jump to tag",
+        "date": "2026-01-11"
+      },
+      {
+        "hash": "876d8de",
+        "type": "fix",
+        "message": "bun build",
+        "date": "2026-01-10"
+      },
+      {
+        "hash": "9e45641",
+        "type": "feat",
+        "message": "minor version bump",
+        "date": "2026-01-10"
+      },
+      {
+        "hash": "b1bd52a",
+        "type": "feat",
+        "message": "fixed content count reactivity",
+        "date": "2026-01-10"
+      },
+      {
+        "hash": "12d2aad",
+        "type": "feat",
+        "message": "basic llm features",
+        "date": "2026-01-10"
+      },
+      {
+        "hash": "ec4a8a5",
+        "type": "feat",
+        "message": "link opener",
+        "date": "2026-01-10"
+      },
+      {
+        "hash": "d0c8f21",
+        "type": "feat",
+        "message": "image resizing & default workspace on load",
+        "date": "2026-01-10"
+      },
+      {
+        "hash": "be77325",
+        "type": "feat",
+        "message": "ui & ux improvement",
+        "date": "2026-01-10"
+      }
+    ]
+  },
+  {
+    "version": "0.1.1",
+    "date": "2026-01-05",
+    "entries": [
+      {
+        "hash": "643ba53",
+        "type": "feat",
+        "message": "categories",
+        "date": "2026-01-09"
+      },
+      {
+        "hash": "142a4db",
+        "type": "feat",
+        "message": "basic mention system",
+        "date": "2026-01-08"
+      },
+      {
+        "hash": "aea6da0",
+        "type": "feat",
+        "message": "entry filter by title",
+        "date": "2026-01-07"
+      },
+      {
+        "hash": "8c8b170",
+        "type": "feat",
+        "message": "auto-save",
+        "date": "2026-01-07"
+      },
+      {
+        "hash": "d44862b",
+        "type": "feat",
+        "message": "basic persistence",
+        "date": "2026-01-06"
+      },
+      {
+        "hash": "108cea6",
+        "type": "feat",
+        "message": "ui/toolbar improvement",
+        "date": "2026-01-05"
+      }
+    ]
+  },
+  {
+    "version": "0.1.0",
+    "date": "2025-12-30",
+    "entries": [
+      {
+        "hash": "5c9b0b9",
+        "type": "feat",
+        "message": "basic editor",
+        "date": "2026-01-04"
+      },
+      {
+        "hash": "ff04ffa",
+        "type": "feat",
+        "message": "drag region & window controls order reversed",
+        "date": "2025-12-30"
+      },
+      {
+        "hash": "214e687",
+        "type": "fix",
+        "message": "bun build",
+        "date": "2025-12-30"
+      },
+      {
+        "hash": "06fe059",
+        "type": "fix",
+        "message": "sidebar flash on breakpoint change & minimal window size",
+        "date": "2025-12-30"
+      }
+    ]
+  },
+  {
+    "version": "Pre-release",
+    "date": "Initial",
+    "entries": [
+      {
+        "hash": "d53cee1",
+        "type": "feat",
+        "message": "collapsible chat sidebar at all times",
+        "date": "2025-12-29"
+      },
+      {
+        "hash": "c37b42e",
+        "type": "feat",
+        "message": "pinnable sessions",
+        "date": "2025-12-29"
+      },
+      {
+        "hash": "2fc08da",
+        "type": "fix",
+        "message": "maximize bug",
+        "date": "2025-12-29"
+      },
+      {
+        "hash": "425f3ef",
+        "type": "fix",
+        "message": "layout & sidebar",
+        "date": "2025-12-29"
+      },
+      {
+        "hash": "717d248",
+        "type": "feat",
+        "message": "app icon & models rename",
+        "date": "2025-12-29"
+      },
+      {
+        "hash": "9129200",
+        "type": "feat",
+        "message": "navbar",
+        "date": "2025-12-28"
+      },
+      {
+        "hash": "9a37d14",
+        "type": "feat",
+        "message": "removed label",
+        "date": "2025-12-28"
+      },
+      {
+        "hash": "ced4ee6",
+        "type": "feat",
+        "message": "updated workflow and apikey error",
+        "date": "2025-12-28"
+      },
+      {
+        "hash": "f29f858",
+        "type": "updated",
+        "message": "Tauri release workflow with Bun integration",
+        "date": "2025-12-28"
+      },
+      {
+        "hash": "f0ed17f",
+        "type": "fix",
+        "message": "bug fix when trying to save apikey",
+        "date": "2025-12-28"
+      },
+      {
+        "hash": "16ef751",
+        "type": "feat",
+        "message": "tauri/store for api key & tauri build workflow test",
+        "date": "2025-12-28"
+      },
+      {
+        "hash": "56934a5",
+        "type": "feat",
+        "message": "refactored active-stream context",
+        "date": "2025-12-28"
+      },
+      {
+        "hash": "0ce85b1",
+        "type": "feat",
+        "message": "stats page tweaks",
+        "date": "2025-12-28"
+      },
+      {
+        "hash": "e21079b",
+        "type": "feat",
+        "message": "cleaned up dashboard & stats",
+        "date": "2025-12-28"
+      },
+      {
+        "hash": "f923373",
+        "type": "feat",
+        "message": "session import/export",
+        "date": "2025-12-28"
+      },
+      {
+        "hash": "b7e7162",
+        "type": "feat",
+        "message": "chat-context semantics revisited",
+        "date": "2025-12-27"
+      },
+      {
+        "hash": "bcd1dc4",
+        "type": "feat",
+        "message": "fixed activeId state on deletion",
+        "date": "2025-12-27"
+      },
+      {
+        "hash": "8c6426f",
+        "type": "feat",
+        "message": "basic dashboard",
+        "date": "2025-12-27"
+      },
+      {
+        "hash": "87eb455",
+        "type": "feat",
+        "message": "uncommited changes",
+        "date": "2025-12-27"
+      },
+      {
+        "hash": "efa1988",
+        "type": "feat",
+        "message": "migration to zustand + tauri/store for session persistence",
+        "date": "2025-12-27"
+      },
+      {
+        "hash": "1eee8c8",
+        "type": "feat",
+        "message": "generate session title",
+        "date": "2025-12-26"
+      },
+      {
+        "hash": "2de9dc4",
+        "type": "feat",
+        "message": "updated system prompt & cleaned up prompt component",
+        "date": "2025-12-26"
+      },
+      {
+        "hash": "1989161",
+        "type": "feat",
+        "message": "refactored chat component",
+        "date": "2025-12-25"
+      },
+      {
+        "hash": "b9b3fc2",
+        "type": "feat",
+        "message": "cleaned up sidebar & session renaming",
+        "date": "2025-12-25"
+      },
+      {
+        "hash": "72e98d7",
+        "type": "feat",
+        "message": "chat context",
+        "date": "2025-12-25"
+      },
+      {
+        "hash": "24dbc0f",
+        "type": "feat",
+        "message": "further optmized syntax highlighting with :one-demand\"",
+        "date": "2025-12-25"
+      },
+      {
+        "hash": "7c626c4",
+        "type": "feat",
+        "message": "fixed session deleting edge cases",
+        "date": "2025-12-25"
+      },
+      {
+        "hash": "6bcde8b",
+        "type": "feat",
+        "message": "memoization & lazy loading for chat & message rendering",
+        "date": "2025-12-25"
+      },
+      {
+        "hash": "9006307",
+        "type": "feat",
+        "message": "sessions sidebar + auto scroll",
+        "date": "2025-12-24"
+      },
+      {
+        "hash": "a96583b",
+        "type": "feat",
+        "message": "session management refactor with useSyncExternalStore, snapshots & context",
+        "date": "2025-12-24"
+      },
+      {
+        "hash": "bce83a9",
+        "type": "feat",
+        "message": "multi-chat support",
+        "date": "2025-12-23"
+      },
+      {
+        "hash": "000a133",
+        "type": "feat",
+        "message": "basic session based architecture",
+        "date": "2025-12-23"
+      },
+      {
+        "hash": "4e0b4a7",
+        "type": "feat",
+        "message": "error handling",
+        "date": "2025-12-21"
+      },
+      {
+        "hash": "a0320f2",
+        "type": "feat",
+        "message": "abort message feedback",
+        "date": "2025-12-21"
+      },
+      {
+        "hash": "cfba6f2",
+        "type": "feat",
+        "message": "notifications",
+        "date": "2025-12-21"
+      },
+      {
+        "hash": "ec41e8d",
+        "type": "feat",
+        "message": "line wrapping & markdown flatening fix",
+        "date": "2025-12-21"
+      },
+      {
+        "hash": "a2563b2",
+        "type": "feat",
+        "message": "optimistic chat updates & single SOT",
+        "date": "2025-12-20"
+      },
+      {
+        "hash": "f173b1c",
+        "type": "feat",
+        "message": "new theme, ui, scroll down & responsiveness",
+        "date": "2025-12-20"
+      },
+      {
+        "hash": "e2e3448",
+        "type": "feat",
+        "message": "syntax & code highlighting",
+        "date": "2025-12-19"
+      },
+      {
+        "hash": "587a1b7",
+        "type": "feat",
+        "message": "cleaned up chat + routing & sidebar",
+        "date": "2025-12-18"
+      },
+      {
+        "hash": "1219a54",
+        "type": "feat",
+        "message": "basic chat with model picker & provider",
+        "date": "2025-12-17"
+      },
+      {
+        "hash": "e14108b",
+        "type": "fix",
+        "message": "tauri frontend build command & identifier",
+        "date": "2025-12-15"
+      },
+      {
+        "hash": "4729417",
+        "type": "feat",
+        "message": "tauri + tailwind + shadcn",
+        "date": "2025-12-15"
+      }
+    ]
+  }
+]
