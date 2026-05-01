@@ -11,6 +11,7 @@ export type ThemeColor =
   | "quantum rose"
   | "flutter shy"
   | "sunny sprout"
+  | "dark matter"
   | "claude plus"
   | "terminal"
   | "t3 chat"
