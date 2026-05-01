@@ -15,150 +15,200 @@ interface VersionGroup {
   entries: ChangelogEntry[];
 }
 
-// Step 1: Extract version bumps from tauri.conf.json history
-const versionCommitsRaw = execSync(
-  'git log --pretty=format:"%H" -- src-tauri/tauri.conf.json',
-  { encoding: "utf-8" },
-).trim();
+interface GitCommit {
+  hash: string;
+  shortHash: string;
+  date: string;
+  subject: string;
+  body: string;
+  version: string | null;
+}
 
-const versionMap: Map<string, { hash: string; date: string; version: string }> =
-  new Map();
+const CHANGELOG_TYPES = new Set([
+  "feat",
+  "fix",
+  "fixed",
+  "updated",
+  "added",
+  "refactor",
+  "tweaks",
+  "semantics",
+  "patch",
+]);
 
-if (versionCommitsRaw) {
-  const hashes = versionCommitsRaw.split("\n").filter((h) => h.trim() !== "");
-  for (const hash of hashes) {
-    try {
-      const date = execSync(
-        `git show --pretty=format:"%cd" --date=short -s ${hash}`,
-        { encoding: "utf-8" },
-      ).trim();
-      const configContent = execSync(
-        `git show ${hash}:src-tauri/tauri.conf.json`,
-        { encoding: "utf-8" },
-      );
-      const versionMatch = configContent.match(/"version":\s*"([^"]+)"/);
+const CHANGELOG_REGEX =
+  /^(feat|fix|fixed|updated|added|refactor|tweaks|semantics|patch):\s*(.*)$/i;
 
-      if (versionMatch) {
-        const version = versionMatch[1];
-        if (!versionMap.has(version) || date > versionMap.get(version)!.date) {
-          versionMap.set(version, { hash, date, version });
-        }
-      }
-    } catch (error) {
-      console.error(`Skipping commit ${hash}:`, error);
-    }
+function run(command: string): string {
+  return execSync(command, { encoding: "utf-8" }).trim();
+}
+
+function escapeArg(value: string): string {
+  return `"${value.replace(/(["\\$`])/g, "\\$1")}"`;
+}
+
+function getVersionFromTauriConfigAtCommit(hash: string): string | null {
+  try {
+    const content = run(`git show ${hash}:src-tauri/tauri.conf.json`);
+    const match = content.match(/"version":\s*"([^"]+)"/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
   }
 }
 
-const versionCommits = Array.from(versionMap.values()).sort((a, b) =>
-  a.date.localeCompare(b.date),
-);
-const lastVersionCommit =
-  versionCommits.length > 0 ? versionCommits[versionCommits.length - 1] : null;
+function parseCommitMessageLines(
+  subject: string,
+  body: string,
+): ChangelogEntry[] {
+  const lines = [subject, ...body.split("\n")]
+    .map((line) => line.trim())
+    .filter(Boolean);
 
-// Step 2: Collect all feat/fix/updated commits
-const allCommitsRaw = execSync(
-  'git log --pretty=format:"%h %cd %s" --date=short',
-  { encoding: "utf-8" },
-).trim();
-
-const regex =
-  /^(feat|fix|fixed|updated|added|refactor|tweaks|semantics|patch):\s*(.*)/;
-const versionGroups: Map<string, VersionGroup> = new Map();
-
-if (allCommitsRaw) {
-  const lines = allCommitsRaw.split("\n").filter((line) => line.trim() !== "");
+  const entries: Array<{ type: string; message: string }> = [];
 
   for (const line of lines) {
-    const firstSpace = line.indexOf(" ");
-    const secondSpace = line.indexOf(" ", firstSpace + 1);
-
-    if (firstSpace === -1 || secondSpace === -1) continue;
-
-    const hash = line.substring(0, firstSpace);
-    const date = line.substring(firstSpace + 1, secondSpace);
-    const subject = line.substring(secondSpace + 1);
-
-    const match = subject.match(regex);
+    const match = line.match(CHANGELOG_REGEX);
     if (!match) continue;
 
-    const entry: ChangelogEntry = {
-      hash,
-      type: match[1],
-      message: match[2].trim(),
-      date,
-    };
+    const type = match[1].toLowerCase();
+    const message = match[2].trim();
 
-    // Categorize commit into version group
-    if (lastVersionCommit && date > lastVersionCommit.date) {
-      // Unreleased commits
-      if (!versionGroups.has("Unreleased")) {
-        versionGroups.set("Unreleased", {
-          version: "Unreleased",
-          date: "Latest",
-          entries: [],
-        });
-      }
-      versionGroups.get("Unreleased")!.entries.push(entry);
-    } else {
-      // Find the latest version commit that was active when this commit was made
-      let targetVersion = null;
-      for (let i = versionCommits.length - 1; i >= 0; i--) {
-        if (versionCommits[i].date <= date) {
-          targetVersion = versionCommits[i];
-          break;
-        }
-      }
+    if (!CHANGELOG_TYPES.has(type) || !message) continue;
 
-      if (targetVersion) {
-        const key = targetVersion.version;
-        if (!versionGroups.has(key)) {
-          versionGroups.set(key, {
-            version: targetVersion.version,
-            date: targetVersion.date,
-            entries: [],
-          });
-        }
-        versionGroups.get(key)!.entries.push(entry);
-      } else {
-        // Pre-release commits (before first version bump)
-        if (!versionGroups.has("Pre-release")) {
-          versionGroups.set("Pre-release", {
-            version: "Pre-release",
-            date: "Initial",
-            entries: [],
-          });
-        }
-        versionGroups.get("Pre-release")!.entries.push(entry);
-      }
-    }
+    entries.push({ type, message });
+  }
+
+  return entries.map((entry) => ({
+    hash: "",
+    type: entry.type,
+    message: entry.message,
+    date: "",
+  }));
+}
+
+function getAllCommits(): GitCommit[] {
+  const format = ["%H", "%h", "%cs", "%s", "%b"].join("%x1f");
+  const raw = run(`git log --reverse --pretty=format:${escapeArg(format)}%x1e`);
+
+  if (!raw) return [];
+
+  return raw
+    .split("\x1e")
+    .map((chunk) => chunk.trim())
+    .filter(Boolean)
+    .map((chunk) => {
+      const [hash, shortHash, date, subject, body] = chunk.split("\x1f");
+
+      return {
+        hash,
+        shortHash,
+        date,
+        subject: subject?.trim() ?? "",
+        body: body?.trim() ?? "",
+        version: getVersionFromTauriConfigAtCommit(hash),
+      };
+    });
+}
+
+function didTauriConfigChange(hash: string): boolean {
+  try {
+    const changed = run(`git diff-tree --no-commit-id --name-only -r ${hash}`)
+      .split("\n")
+      .map((line) => line.trim());
+
+    return changed.includes("src-tauri/tauri.conf.json");
+  } catch {
+    return false;
   }
 }
 
-// Step 3: Sort version groups for output
-const sortedGroups: VersionGroup[] = [];
-
-// Unreleased first
-if (versionGroups.has("Unreleased")) {
-  sortedGroups.push(versionGroups.get("Unreleased")!);
+function isVersionBumpCommit(
+  commit: GitCommit,
+  previousVersion: string | null,
+): boolean {
+  if (!didTauriConfigChange(commit.hash)) return false;
+  if (!commit.version) return false;
+  return commit.version !== previousVersion;
 }
 
-// Versioned groups (newest first)
-const versionedGroups = Array.from(versionGroups.values())
-  .filter((g) => g.version !== "Unreleased" && g.version !== "Pre-release")
-  .sort((a, b) => b.date.localeCompare(a.date));
-sortedGroups.push(...versionedGroups);
-
-// Pre-release last
-if (versionGroups.has("Pre-release")) {
-  sortedGroups.push(versionGroups.get("Pre-release")!);
+function cloneEntries(entries: ChangelogEntry[]): ChangelogEntry[] {
+  return entries.map((entry) => ({ ...entry }));
 }
 
-// Sort entries within each group by date (newest first)
-for (const group of sortedGroups) {
-  group.entries.sort((a, b) => b.date.localeCompare(a.date));
+function main() {
+  const commits = getAllCommits();
+
+  const versionGroups: VersionGroup[] = [];
+  const unreleasedEntries: ChangelogEntry[] = [];
+  const preReleaseEntries: ChangelogEntry[] = [];
+
+  let pendingEntries: ChangelogEntry[] = [];
+  let currentVersion: string | null = null;
+  let seenFirstVersion = false;
+
+  for (const commit of commits) {
+    const parsedEntries = parseCommitMessageLines(
+      commit.subject,
+      commit.body,
+    ).map((entry) => ({
+      ...entry,
+      hash: commit.shortHash,
+      date: commit.date,
+    }));
+
+    const nextVersion = commit.version;
+    const isBump = isVersionBumpCommit(commit, currentVersion);
+
+    if (isBump && nextVersion) {
+      versionGroups.push({
+        version: nextVersion,
+        date: commit.date,
+        entries: cloneEntries(pendingEntries).reverse(),
+      });
+
+      pendingEntries = [];
+      currentVersion = nextVersion;
+      seenFirstVersion = true;
+      continue;
+    }
+
+    if (parsedEntries.length > 0) {
+      pendingEntries.push(...parsedEntries);
+    }
+  }
+
+  if (!seenFirstVersion) {
+    preReleaseEntries.push(...pendingEntries);
+  } else {
+    unreleasedEntries.push(...pendingEntries);
+  }
+
+  const output: VersionGroup[] = [];
+
+  if (unreleasedEntries.length > 0) {
+    output.push({
+      version: "Unreleased",
+      date: "Latest",
+      entries: cloneEntries(unreleasedEntries).reverse(),
+    });
+  }
+
+  output.push(...versionGroups.reverse());
+
+  const firstVersionExists = versionGroups.length > 0;
+  if (!firstVersionExists && preReleaseEntries.length > 0) {
+    output.push({
+      version: "Pre-release",
+      date: "Initial",
+      entries: cloneEntries(preReleaseEntries).reverse(),
+    });
+  }
+
+  const changelogPath = join(__dirname, "..", "public", "changelog.json");
+  writeFileSync(changelogPath, JSON.stringify(output, null, 2));
+
+  console.log(`Changelog written to ${changelogPath}`);
 }
 
-// Write output
-const changelogPath = join(__dirname, "..", "public", "changelog.json");
-writeFileSync(changelogPath, JSON.stringify(sortedGroups, null, 2));
+main();

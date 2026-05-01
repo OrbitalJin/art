@@ -32,15 +32,17 @@ interface GroupedByDateAndType {
 function groupByDateAndType(entries: ChangelogEntry[]): GroupedByDateAndType {
   const grouped: GroupedByDateAndType = {};
 
-  entries.forEach((entry) => {
+  for (const entry of entries) {
     if (!grouped[entry.date]) {
       grouped[entry.date] = {};
     }
+
     if (!grouped[entry.date][entry.type]) {
       grouped[entry.date][entry.type] = [];
     }
+
     grouped[entry.date][entry.type].push(entry);
-  });
+  }
 
   return grouped;
 }
@@ -49,29 +51,29 @@ function getTypeColor(type: string) {
   switch (type) {
     case "feat":
     case "added":
-      return "bg-green-100 text-green-800";
+      return "border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-300";
 
     case "fix":
     case "fixed":
-      return "bg-red-100 text-red-800";
+      return "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300";
 
     case "updated":
-      return "bg-blue-100 text-blue-800";
+      return "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-300";
 
     case "refactor":
-      return "bg-yellow-100 text-yellow-800";
+      return "border-yellow-500/20 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300";
 
     case "tweaks":
-      return "bg-purple-100 text-purple-800";
+      return "border-purple-500/20 bg-purple-500/10 text-purple-700 dark:text-purple-300";
 
     case "semantics":
-      return "bg-pink-100 text-pink-800";
+      return "border-pink-500/20 bg-pink-500/10 text-pink-700 dark:text-pink-300";
 
     case "patch":
-      return "bg-orange-100 text-orange-800";
+      return "border-orange-500/20 bg-orange-500/10 text-orange-700 dark:text-orange-300";
 
     default:
-      return "bg-gray-100 text-gray-800";
+      return "border-border bg-muted text-muted-foreground";
   }
 }
 
@@ -82,113 +84,143 @@ export function ChangelogDialog() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      setLoading(true);
-      fetch("/changelog.json")
-        .then((response) => {
-          if (!response.ok) throw new Error("Failed to fetch changelog");
-          return response.json();
-        })
-        .then((data: VersionGroup[]) => {
-          setVersionGroups(data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Failed to load changelogs:", error);
-          setLoading(false);
-        });
-    }
+    if (!open) return;
+
+    setLoading(true);
+
+    fetch("/changelog.json")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch changelog");
+        }
+
+        return response.json();
+      })
+      .then((data: VersionGroup[]) => {
+        setVersionGroups(data);
+      })
+      .catch((error) => {
+        console.error("Failed to load changelogs:", error);
+        setVersionGroups([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [open]);
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) {
-      setLoading(true);
-    }
     setOpen(isOpen);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0">
-        <DialogHeader className="border-b px-6 py-4">
+      <DialogContent className="flex h-[85vh] w-[min(860px,calc(100vw-2rem))] flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="shrink-0 border-b px-6 py-4">
           <DialogTitle className="text-xl">Changelog</DialogTitle>
           <DialogDescription>Recent updates and changes.</DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 overflow-y-auto">
-          <div className="p-6">
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <p className="text-muted-foreground">Loading changelog...</p>
-              </div>
-            ) : versionGroups.length === 0 ? (
-              <div className="flex items-center justify-center py-8">
-                <p className="text-muted-foreground">
-                  No changelog entries found.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {versionGroups.map((group) => (
-                  <div key={group.version}>
-                    <div className="flex items-center gap-4 mb-4">
-                      <h2 className="text-lg font-semibold whitespace-nowrap">
-                        {group.version === "Unreleased" ? (
-                          <span className="text-primary">Unreleased</span>
-                        ) : group.version === "Pre-release" ? (
-                          <span className="text-muted-foreground">
-                            Pre-release
-                          </span>
-                        ) : (
-                          <span>v{group.version}</span>
-                        )}
-                      </h2>
-                      <div className="flex-1 border-t border-border" />
-                      <span className="text-sm text-muted-foreground">
-                        {group.date}
-                      </span>
-                    </div>
+        <div className="min-h-0 flex-1">
+          <ScrollArea className="h-full">
+            <div className="px-6 py-5">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <p className="text-sm text-muted-foreground">
+                    Loading changelog...
+                  </p>
+                </div>
+              ) : versionGroups.length === 0 ? (
+                <div className="flex items-center justify-center py-12">
+                  <p className="text-sm text-muted-foreground">
+                    No changelog entries found.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-10">
+                  {versionGroups.map((group) => {
+                    const groupedEntries = groupByDateAndType(group.entries);
 
-                    <div className="space-y-4 pl-2">
-                      {Object.entries(groupByDateAndType(group.entries))
-                        .sort(([a], [b]) => b.localeCompare(a))
-                        .map(([date, types]) => (
-                          <div key={date} className="space-y-2">
-                            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                              {date}
-                            </h3>
-                            {Object.entries(types).map(([type, entries]) => (
-                              <div key={type} className="space-y-1 ml-2">
-                                <Badge
-                                  className={getTypeColor(type)}
-                                  variant="secondary"
-                                >
-                                  {type}
-                                </Badge>
-                                <ul className="space-y-1">
-                                  {entries.map((entry) => (
-                                    <li
-                                      key={entry.hash}
-                                      className="text-sm flex items-start gap-2"
-                                    >
-                                      <span className="text-muted-foreground font-mono text-xs mt-0.5">
-                                        {entry.hash}
-                                      </span>
-                                      <span>{entry.message}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ))}
+                    return (
+                      <section
+                        key={`${group.version}-${group.date}`}
+                        className="space-y-4"
+                      >
+                        <div className="flex items-center gap-4">
+                          <h2 className="shrink-0 text-lg font-semibold tracking-tight">
+                            {group.version === "Unreleased" ? (
+                              <span className="text-primary">Unreleased</span>
+                            ) : group.version === "Pre-release" ? (
+                              <span className="text-muted-foreground">
+                                Pre-release
+                              </span>
+                            ) : (
+                              <span>v{group.version}</span>
+                            )}
+                          </h2>
+
+                          <div className="h-px flex-1 bg-border" />
+
+                          <span className="shrink-0 text-sm text-muted-foreground">
+                            {group.date}
+                          </span>
+                        </div>
+
+                        {group.entries.length === 0 ? (
+                          <div className="pl-1 text-sm text-muted-foreground">
+                            No changelog entries for this release.
                           </div>
-                        ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+                        ) : (
+                          <div className="space-y-6 pl-1">
+                            {Object.entries(groupedEntries)
+                              .sort(([a], [b]) => b.localeCompare(a))
+                              .map(([date, types]) => (
+                                <div key={date} className="space-y-3">
+                                  <h3 className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                                    {date}
+                                  </h3>
+
+                                  <div className="space-y-4 pl-3">
+                                    {Object.entries(types).map(
+                                      ([type, entries]) => (
+                                        <div key={type} className="space-y-2.5">
+                                          <Badge
+                                            variant="outline"
+                                            className={getTypeColor(type)}
+                                          >
+                                            {type}
+                                          </Badge>
+
+                                          <ul className="space-y-2">
+                                            {entries.map((entry, index) => (
+                                              <li
+                                                key={`${entry.hash}-${entry.message}-${index}`}
+                                                className="flex items-start gap-3 text-sm leading-6"
+                                              >
+                                                <span className="mt-0.5 shrink-0 font-mono text-[11px] text-muted-foreground/80">
+                                                  {entry.hash}
+                                                </span>
+                                                <span className="min-w-0 text-foreground/90">
+                                                  {entry.message}
+                                                </span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </section>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

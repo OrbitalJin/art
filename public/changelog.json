@@ -1,5 +1,29 @@
 [
   {
+    "version": "0.3.5",
+    "date": "2026-05-01",
+    "entries": [
+      {
+        "hash": "b13ee5c",
+        "type": "feat",
+        "message": "improved session item branch info & jump to parent feature",
+        "date": "2026-05-01"
+      },
+      {
+        "hash": "3670050",
+        "type": "fix",
+        "message": "light mode of the 'pony' theme",
+        "date": "2026-05-01"
+      },
+      {
+        "hash": "b35698e",
+        "type": "feat",
+        "message": "implemented changelog system",
+        "date": "2026-05-01"
+      }
+    ]
+  },
+  {
     "version": "0.3.4",
     "date": "2026-05-01",
     "entries": [
@@ -32,6 +56,12 @@
         "type": "feat",
         "message": "persisted sidebar list grouping state feat: added new theme 'aero'",
         "date": "2026-05-01"
+      },
+      {
+        "hash": "13d7966",
+        "type": "feat",
+        "message": "board task item collapses when marked as complete",
+        "date": "2026-04-30"
       }
     ]
   },
@@ -40,35 +70,28 @@
     "date": "2026-04-30",
     "entries": [
       {
-        "hash": "13d7966",
-        "type": "feat",
-        "message": "board task item collapses when marked as complete",
-        "date": "2026-04-30"
-      },
-      {
         "hash": "a421a93",
         "type": "feat",
         "message": "re-ordable tasks",
         "date": "2026-04-30"
-      }
-    ]
-  },
-  {
-    "version": "0.3.1",
-    "date": "2026-04-29",
-    "entries": [
+      },
       {
         "hash": "3d33a29",
         "type": "updated",
         "message": "README",
         "date": "2026-04-29"
-      },
-      {
-        "hash": "bca9aba",
-        "type": "feat",
-        "message": "added the ability to branch out from any message fixed: session deletion leading to a floating state",
-        "date": "2026-04-29"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.3.2",
+    "date": "2026-04-29",
+    "entries": []
+  },
+  {
+    "version": "0.3.1",
+    "date": "2026-04-29",
+    "entries": [
       {
         "hash": "d5a8180",
         "type": "feat",
@@ -84,15 +107,14 @@
     ]
   },
   {
-    "version": "0.2.7",
+    "version": "0.3.0",
+    "date": "2026-04-28",
+    "entries": []
+  },
+  {
+    "version": "0.2.9",
     "date": "2026-04-28",
     "entries": [
-      {
-        "hash": "caee672",
-        "type": "fixed",
-        "message": "critial llm bug fixes",
-        "date": "2026-04-28"
-      },
       {
         "hash": "13a0853",
         "type": "feat",
@@ -104,23 +126,28 @@
         "type": "added",
         "message": "semver to settings",
         "date": "2026-04-28"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.2.8",
+    "date": "2026-04-28",
+    "entries": [
       {
         "hash": "587dc47",
         "type": "fixed",
         "message": "some of the prompts",
         "date": "2026-04-28"
-      },
-      {
-        "hash": "89c13f6",
-        "type": "fixed",
-        "message": "critial llm functionality and sytem prompt",
-        "date": "2026-04-28"
       }
     ]
   },
   {
-    "version": "0.2.3",
+    "version": "0.2.7",
+    "date": "2026-04-28",
+    "entries": []
+  },
+  {
+    "version": "0.2.6",
     "date": "2026-04-26",
     "entries": [
       {
@@ -146,19 +173,25 @@
         "type": "feat",
         "message": "ui, ux & theming tweaks",
         "date": "2026-04-26"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.2.5",
+    "date": "2026-04-26",
+    "entries": [
       {
         "hash": "e20368f",
         "type": "feat",
         "message": "added back missing corner radius setting",
         "date": "2026-04-26"
-      },
-      {
-        "hash": "0408a0f",
-        "type": "feat",
-        "message": "version bump",
-        "date": "2026-04-26"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.2.4",
+    "date": "2026-04-26",
+    "entries": [
       {
         "hash": "e91ca40",
         "type": "feat",
@@ -170,18 +203,12 @@
         "type": "feat",
         "message": "more chat settings",
         "date": "2026-04-26"
-      },
-      {
-        "hash": "72e05f7",
-        "type": "feat",
-        "message": "prune session message",
-        "date": "2026-04-26"
       }
     ]
   },
   {
-    "version": "0.2.2",
-    "date": "2026-04-12",
+    "version": "0.2.3",
+    "date": "2026-04-26",
     "entries": [
       {
         "hash": "05c789e",
@@ -224,13 +251,7 @@
         "type": "feat",
         "message": "project description",
         "date": "2026-04-12"
-      }
-    ]
-  },
-  {
-    "version": "0.2.0",
-    "date": "2026-02-10",
-    "entries": [
+      },
       {
         "hash": "7e64609",
         "type": "feat",
@@ -272,13 +293,13 @@
         "type": "feat",
         "message": "ui & ux improvement across the board + code refactor",
         "date": "2026-02-12"
-      },
-      {
-        "hash": "842757a",
-        "type": "feat",
-        "message": "highlight text shortcut settings text size & welcome page refactor",
-        "date": "2026-02-11"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.2.2",
+    "date": "2026-02-11",
+    "entries": [
       {
         "hash": "4f08b3e",
         "type": "feat",
@@ -302,13 +323,18 @@
         "type": "fixed",
         "message": "dnd dependency crashing build",
         "date": "2026-02-10"
-      },
-      {
-        "hash": "cdef7f7",
-        "type": "feat",
-        "message": "ui & ux improvement for tasks & alerts for destructive actions",
-        "date": "2026-02-10"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.2.1",
+    "date": "2026-02-10",
+    "entries": []
+  },
+  {
+    "version": "0.2.0",
+    "date": "2026-02-10",
+    "entries": [
       {
         "hash": "5194411",
         "type": "feat",
@@ -320,13 +346,7 @@
         "type": "feat",
         "message": "editable tasks",
         "date": "2026-02-10"
-      }
-    ]
-  },
-  {
-    "version": "0.1.8",
-    "date": "2026-01-20",
-    "entries": [
+      },
       {
         "hash": "f8ac06e",
         "type": "feat",
@@ -416,7 +436,13 @@
         "type": "fixed",
         "message": "some bugs",
         "date": "2026-01-21"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.1.8",
+    "date": "2026-01-20",
+    "entries": [
       {
         "hash": "fadf631",
         "type": "feat",
@@ -452,13 +478,7 @@
         "type": "feat",
         "message": "floating toggle/edit button & archivable content",
         "date": "2026-01-19"
-      }
-    ]
-  },
-  {
-    "version": "0.1.6",
-    "date": "2026-01-17",
-    "entries": [
+      },
       {
         "hash": "c6e93ab",
         "type": "feat",
@@ -468,8 +488,8 @@
     ]
   },
   {
-    "version": "0.1.5",
-    "date": "2026-01-15",
+    "version": "0.1.6",
+    "date": "2026-01-16",
     "entries": [
       {
         "hash": "503ec00",
@@ -488,7 +508,13 @@
         "type": "feat",
         "message": "default note when empty",
         "date": "2026-01-16"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.1.5",
+    "date": "2026-01-15",
+    "entries": [
       {
         "hash": "eb191af",
         "type": "feat",
@@ -518,6 +544,12 @@
         "type": "feat",
         "message": "forkable sessions",
         "date": "2026-01-15"
+      },
+      {
+        "hash": "50d8387",
+        "type": "feat",
+        "message": "sidebar state persistence",
+        "date": "2026-01-14"
       }
     ]
   },
@@ -525,12 +557,6 @@
     "version": "0.1.4",
     "date": "2026-01-14",
     "entries": [
-      {
-        "hash": "50d8387",
-        "type": "feat",
-        "message": "sidebar state persistence",
-        "date": "2026-01-14"
-      },
       {
         "hash": "ce70aaa",
         "type": "fix",
@@ -548,13 +574,7 @@
         "type": "feat",
         "message": "tweaks & consistency improvement on codebase",
         "date": "2026-01-14"
-      }
-    ]
-  },
-  {
-    "version": "0.1.3",
-    "date": "2026-01-12",
-    "entries": [
+      },
       {
         "hash": "e6ede0c",
         "type": "feat",
@@ -590,7 +610,13 @@
         "type": "feat",
         "message": "user experience polish",
         "date": "2026-01-12"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.1.3",
+    "date": "2026-01-12",
+    "entries": [
       {
         "hash": "7f54810",
         "type": "feat",
@@ -602,13 +628,7 @@
         "type": "refactor",
         "message": "ai => llm rename",
         "date": "2026-01-12"
-      }
-    ]
-  },
-  {
-    "version": "0.1.2",
-    "date": "2026-01-10",
-    "entries": [
+      },
       {
         "hash": "b1678a9",
         "type": "feat",
@@ -644,13 +664,13 @@
         "type": "fix",
         "message": "bun build",
         "date": "2026-01-10"
-      },
-      {
-        "hash": "9e45641",
-        "type": "feat",
-        "message": "minor version bump",
-        "date": "2026-01-10"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.1.2",
+    "date": "2026-01-10",
+    "entries": [
       {
         "hash": "b1bd52a",
         "type": "feat",
@@ -680,13 +700,7 @@
         "type": "feat",
         "message": "ui & ux improvement",
         "date": "2026-01-10"
-      }
-    ]
-  },
-  {
-    "version": "0.1.1",
-    "date": "2026-01-05",
-    "entries": [
+      },
       {
         "hash": "643ba53",
         "type": "feat",
@@ -722,13 +736,7 @@
         "type": "feat",
         "message": "ui/toolbar improvement",
         "date": "2026-01-05"
-      }
-    ]
-  },
-  {
-    "version": "0.1.0",
-    "date": "2025-12-30",
-    "entries": [
+      },
       {
         "hash": "5c9b0b9",
         "type": "feat",
@@ -746,25 +754,19 @@
         "type": "fix",
         "message": "bun build",
         "date": "2025-12-30"
-      },
-      {
-        "hash": "a7d7bc0",
-        "type": "patch",
-        "message": "version bump",
-        "date": "2025-12-30"
-      },
+      }
+    ]
+  },
+  {
+    "version": "0.1.1",
+    "date": "2025-12-30",
+    "entries": [
       {
         "hash": "06fe059",
         "type": "fix",
         "message": "sidebar flash on breakpoint change & minimal window size",
         "date": "2025-12-30"
-      }
-    ]
-  },
-  {
-    "version": "Pre-release",
-    "date": "Initial",
-    "entries": [
+      },
       {
         "hash": "d53cee1",
         "type": "feat",
@@ -1022,13 +1024,12 @@
         "type": "fix",
         "message": "tauri frontend build command & identifier",
         "date": "2025-12-15"
-      },
-      {
-        "hash": "4729417",
-        "type": "feat",
-        "message": "tauri + tailwind + shadcn",
-        "date": "2025-12-15"
       }
     ]
+  },
+  {
+    "version": "0.1.0",
+    "date": "2025-12-15",
+    "entries": []
   }
 ]
