@@ -1,4 +1,4 @@
-:root[data-theme="terminal"],
+:root[data-theme="pony"],
 :root:not([data-theme]) {
   --background: oklch(0.9809 0.0025 228.7836);
   --foreground: oklch(0.3211 0 0);

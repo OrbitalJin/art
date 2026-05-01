@@ -197,7 +197,7 @@ export const useSessionStore = create<SessionState>()(
           id: crypto.randomUUID(),
           createdAt: Date.now(),
           updatedAt: Date.now(),
-          forkOf: session.id,
+          branchOf: session.id,
         };
 
         set({
@@ -226,7 +226,7 @@ export const useSessionStore = create<SessionState>()(
           id: crypto.randomUUID(),
           createdAt: Date.now(),
           updatedAt: Date.now(),
-          forkOf: session.id,
+          branchOf: session.id,
         };
 
         set({

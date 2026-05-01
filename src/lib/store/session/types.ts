@@ -27,7 +27,7 @@ export interface Session {
   journalRefs: string[];
   traits: TraitId[];
   mode: ModeId;
-  forkOf?: string;
+  branchOf?: string;
   archived?: boolean;
   pinned?: boolean;
   createdAt: number;

@@ -66,7 +66,7 @@ export const SessionListItem: React.FC<Props> = ({
 
   const getFn = useSessionStore((state) => state.getFn);
 
-  const { title, id, forkOf } = item;
+  const { title, id, branchOf } = item;
 
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
@@ -106,12 +106,14 @@ export const SessionListItem: React.FC<Props> = ({
         }
       }}
     >
-      {forkOf && (
+      {branchOf && (
         <Tooltip>
           <TooltipTrigger>
             <GitBranch className="h-4 w-4 text-muted-foreground/60 shrink-0" />
           </TooltipTrigger>
-          <TooltipContent>Branched from: {getFn(forkOf)?.title}</TooltipContent>
+          <TooltipContent>
+            Branched from: {getFn(branchOf)?.title}
+          </TooltipContent>
         </Tooltip>
       )}
       <div className="flex min-w-0 flex-1 items-center gap-2">
