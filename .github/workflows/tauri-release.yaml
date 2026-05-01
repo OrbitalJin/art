@@ -16,6 +16,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # Get the short commit hash to use as a version tag
       - name: Set short git commit SHA
@@ -43,6 +45,10 @@ jobs:
 
       - name: Install app dependencies
         run: bun install --frozen-lockfile
+
+      # Generate changelog
+      - name: Generate Changelog
+        run: bun run changelog
 
       - name: Build and release the Tauri app
         uses: tauri-apps/tauri-action@v0

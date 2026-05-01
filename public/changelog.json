@@ -1,5 +1,17 @@
 [
   {
+    "version": "Unreleased",
+    "date": "Latest",
+    "entries": [
+      {
+        "hash": "c44757f",
+        "type": "fix",
+        "message": "changelog generation issues",
+        "date": "2026-05-01"
+      }
+    ]
+  },
+  {
     "version": "0.3.5",
     "date": "2026-05-01",
     "entries": [
