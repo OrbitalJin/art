@@ -3,21 +3,19 @@ import { MessageList } from "@/components/chat/messages/list";
 import { StaticSidebar } from "@/components/chat/sidebar/static";
 import { Prompt } from "@/components/chat/prompt/prompt";
 import { FloatingSidebar } from "@/components/chat/sidebar/floating";
-import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useEffect, useRef } from "react";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
 export const Chat = () => {
   const chat = useActiveSession();
-  const isOpen = useSettingsStore((state) => state.chatSidebarOpen);
-  const setIsOpen = useSettingsStore((state) => state.setChatSidebarOpen);
+  const chatState = useUIStateStore((state) => state.chatState);
+  const setChatState = useUIStateStore((state) => state.setChatState);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const activeId = useSessionStore((state) => state.activeId);
 
-  useEffect(() => {
-    // check for active session
-    console.log(activeId);
-  }, [activeId]);
+  const isOpen = chatState.sidebarOpen;
+  const setIsOpen = (open: boolean) => {
+    setChatState({ ...chatState, sidebarOpen: open });
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

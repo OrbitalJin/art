@@ -36,6 +36,7 @@ const THEME_COLORS: Array<{ value: ThemeColor; label: string }> = [
   { value: "terminal", label: "Terminal" },
   { value: "claude", label: "Claude" },
   { value: "pony", label: "Pony" },
+  { value: "aero", label: "Aero" },
   { value: "zen", label: "Zen" },
   { value: "t3 chat", label: "T3" },
 ] as const;
@@ -58,8 +59,6 @@ export const AppearanceSettingTab = () => {
   const setCornerRadius = useSettingsStore((state) => state.setCornerRadius);
   const reducedMotion = useSettingsStore((state) => state.reducedMotion);
   const setReducedMotion = useSettingsStore((state) => state.setReducedMotion);
-  const compactMode = useSettingsStore((state) => state.compactMode);
-  const setCompactMode = useSettingsStore((state) => state.setCompactMode);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -90,15 +89,6 @@ export const AppearanceSettingTab = () => {
       root.classList.remove("reduce-motion");
     }
   }, [reducedMotion]);
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (compactMode) {
-      root.classList.add("compact-mode");
-    } else {
-      root.classList.remove("compact-mode");
-    }
-  }, [compactMode]);
 
   return (
     <>
@@ -255,18 +245,6 @@ export const AppearanceSettingTab = () => {
             </p>
           </div>
           <Switch checked={reducedMotion} onCheckedChange={setReducedMotion} />
-        </div>
-      </div>
-
-      <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-base font-medium">Compact Mode</p>
-            <p className="text-sm text-muted-foreground">
-              Use tighter spacing for denser layouts.
-            </p>
-          </div>
-          <Switch checked={compactMode} onCheckedChange={setCompactMode} />
         </div>
       </div>
     </>

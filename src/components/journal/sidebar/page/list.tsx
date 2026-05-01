@@ -4,6 +4,7 @@ import { useJournalEditor } from "@/contexts/note-editor-context";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Section } from "./section";
 import { Archive } from "lucide-react";
+import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
 interface Props {
   query: string;
@@ -14,6 +15,19 @@ export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
   const { currentTab } = useJournalEditor();
   const activeId = useJournalStore((state) => state.activeId);
   const pages = useJournalStore((state) => state.pages);
+  const journalState = useUIStateStore((s) => s.journalState);
+  const setJournalState = useUIStateStore((s) => s.setJournalState);
+
+  const isPinnedOpen = journalState.pinnedOpen;
+  const isPagesOpen = journalState.sessionsOpen;
+  const isArchivedOpen = journalState.archivedOpen;
+
+  const setIsPinnedOpen = (open: boolean) =>
+    setJournalState({ ...journalState, pinnedOpen: open });
+  const setIsPagesOpen = (open: boolean) =>
+    setJournalState({ ...journalState, sessionsOpen: open });
+  const setIsArchivedOpen = (open: boolean) =>
+    setJournalState({ ...journalState, archivedOpen: open });
 
   const filtered = pages.filter((page) => {
     const matchesSearch = page.title
@@ -55,7 +69,8 @@ export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
               title="Pinned"
               count={pinned.length}
               isPinned={true}
-              defaultCollapsed={false}
+              open={isPinnedOpen}
+              setOpen={setIsPinnedOpen}
             >
               {pinned.map((page) => (
                 <PageListItem
@@ -75,7 +90,8 @@ export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
             <Section
               title="Pages"
               count={regular.length}
-              defaultCollapsed={false}
+              open={isPagesOpen}
+              setOpen={setIsPagesOpen}
             >
               {regular.map((page) => (
                 <PageListItem
@@ -95,7 +111,8 @@ export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
               title="Archived"
               count={archived.length}
               isPinned={false}
-              defaultCollapsed={true}
+              open={isArchivedOpen}
+              setOpen={setIsArchivedOpen}
               icon={Archive}
             >
               {archived.map((page) => (

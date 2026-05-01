@@ -2,19 +2,15 @@ import { Toaster } from "@/components/ui/sonner";
 import { Sidebar } from "./sidebar";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { cn } from "@/lib/utils";
-import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
 interface LayoutProps {
   children?: React.ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
-  const settingsDialogOpen = useSettingsStore(
-    (state) => state.settingsDialogOpen,
-  );
-  const setSettingsDialogOpen = useSettingsStore(
-    (state) => state.setSettingsDialogOpen,
-  );
+  const open = useUIStateStore((state) => state.settingsDialogOpen);
+  const setOpen = useUIStateStore((state) => state.setSettingsDialogOpen);
 
   return (
     <>
@@ -33,10 +29,7 @@ export function Layout({ children }: LayoutProps) {
         </main>
         <Sidebar />
       </div>
-      <SettingsDialog
-        open={settingsDialogOpen}
-        onOpenChange={setSettingsDialogOpen}
-      />
+      <SettingsDialog open={open} onOpenChange={setOpen} />
       <Toaster position="top-center" expand={false} />
     </>
   );

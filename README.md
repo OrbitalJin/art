@@ -119,6 +119,7 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Branch out below message
 - [x] Solve the no session when deleting
 - [x] Custom task order
+- [x] Persist sidebar list grouping state
 - [ ] Edit message (prune + resend)
 - [ ] Change logs
 - [ ] id based /chat and /notes for specific redirection

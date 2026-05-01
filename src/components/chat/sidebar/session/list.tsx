@@ -3,6 +3,7 @@ import { SessionListItem } from "./item";
 import { SessionSection } from "./section";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Archive } from "lucide-react";
+import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
 interface Props {
   onSessionSwitch?: () => void;
@@ -12,6 +13,19 @@ interface Props {
 export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
   const activeId = useSessionStore((s) => s.activeId);
   const sessions = useSessionStore((s) => s.sessions);
+  const chatState = useUIStateStore((s) => s.chatState);
+  const setChatState = useUIStateStore((s) => s.setChatState);
+
+  const isPinnedOpen = chatState.pinnedOpen;
+  const isSessionsOpen = chatState.sessionsOpen;
+  const isArchivedOpen = chatState.archivedOpen;
+
+  const setIsPinnedOpen = (open: boolean) =>
+    setChatState({ ...chatState, pinnedOpen: open });
+  const setIsSessionsOpen = (open: boolean) =>
+    setChatState({ ...chatState, sessionsOpen: open });
+  const setIsArchivedOpen = (open: boolean) =>
+    setChatState({ ...chatState, archivedOpen: open });
 
   const filtered = sessions.filter((session) =>
     session.title.toLowerCase().includes(query.toLowerCase()),
@@ -41,7 +55,8 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
               title="Pinned"
               count={pinned.length}
               isPinned={true}
-              defaultCollapsed={false}
+              open={isPinnedOpen}
+              setOpen={setIsPinnedOpen}
             >
               {pinned.map((session) => (
                 <SessionListItem
@@ -59,7 +74,8 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
               title="Sessions"
               count={regular.length}
               isPinned={false}
-              defaultCollapsed={false}
+              open={isSessionsOpen}
+              setOpen={setIsSessionsOpen}
             >
               {regular.map((session) => (
                 <SessionListItem
@@ -77,8 +93,9 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
               title="Archived"
               count={archived.length}
               isPinned={false}
-              defaultCollapsed={true}
+              open={isArchivedOpen}
               icon={Archive}
+              setOpen={setIsArchivedOpen}
             >
               {archived.map((session) => (
                 <SessionListItem

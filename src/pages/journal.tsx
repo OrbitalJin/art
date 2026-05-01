@@ -8,7 +8,6 @@ import { FloatingSidebar } from "@/components/journal/sidebar/floating";
 import { EditorContextMenu } from "@/components/journal/editor/context-menu/context-menu";
 import { Command } from "@/components/journal/command";
 import { useJournalEditor } from "@/contexts/note-editor-context";
-import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Asterisk, Eye, Pen } from "lucide-react";
 import { useEffect } from "react";
@@ -18,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
 export const Journal = () => {
   const {
@@ -28,8 +28,13 @@ export const Journal = () => {
     isSaving,
     editor,
   } = useJournalEditor();
-  const isOpen = useSettingsStore((state) => state.notesSidebarOpen);
-  const setIsOpen = useSettingsStore((state) => state.setNotesSidebarOpen);
+  const journalState = useUIStateStore((state) => state.journalState);
+  const setJournalState = useUIStateStore((state) => state.setJournalState);
+
+  const isOpen = journalState.sidebarOpen;
+  const setIsOpen = (open: boolean) => {
+    setJournalState({ ...journalState, sidebarOpen: open });
+  };
 
   useEffect(() => {
     const keyDown = (e: KeyboardEvent) => {

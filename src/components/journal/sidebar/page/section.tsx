@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronRight, Pin, Scroll, type LucideIcon } from "lucide-react";
 
@@ -6,7 +5,8 @@ interface Props {
   title: string;
   count: number;
   isPinned?: boolean;
-  defaultCollapsed?: boolean;
+  open?: boolean;
+  setOpen: (open: boolean) => void;
   children: React.ReactNode;
   icon?: LucideIcon;
 }
@@ -16,11 +16,10 @@ export const Section: React.FC<Props> = ({
   count,
   icon: Icon,
   isPinned = false,
-  defaultCollapsed = false,
+  open = false,
+  setOpen,
   children,
 }) => {
-  const [collapsed, setCollapsed] = useState(defaultCollapsed);
-
   return (
     <div className="space-y-1">
       <div
@@ -29,7 +28,7 @@ export const Section: React.FC<Props> = ({
           "hover:text-foreground transition-colors",
           "text-xs font-medium text-muted-foreground cursor-pointer select-none",
         )}
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={() => setOpen(!open)}
       >
         <div className="flex items-center gap-2">
           {Icon ? (
@@ -42,10 +41,10 @@ export const Section: React.FC<Props> = ({
           <span>{title}</span>
           <span className="text-muted-foreground/60">({count})</span>
         </div>
-        <ChevronRight className={cn("h-3 w-3", !collapsed && "rotate-90")} />
+        <ChevronRight className={cn("h-3 w-3", open && "rotate-90")} />
       </div>
 
-      {!collapsed && <div className="space-y-1">{children}</div>}
+      {open && <div className="space-y-1">{children}</div>}
     </div>
   );
 };

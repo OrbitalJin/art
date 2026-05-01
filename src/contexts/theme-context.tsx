@@ -15,6 +15,7 @@ export type ThemeColor =
   | "terminal"
   | "t3 chat"
   | "claude"
+  | "aero"
   | "pony"
   | "zen";
 
