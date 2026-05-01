@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, Undo2, GitBranch, Pencil, ArrowUp } from "lucide-react";
+import { Check, Copy, Undo2, GitBranch, Pencil, ArrowUp, RefreshCcw } from "lucide-react";
 import { Renderer } from "./renderer";
 import type { Message } from "@/lib/store/session/types";
 import {
@@ -70,6 +70,12 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
   const handleCancelEdit = () => {
     setDraft(content);
     setIsEditing(false);
+  };
+
+  const handleRetry = () => {
+    if (!activeId || isCurrentSessionStreaming) return;
+    revertMessage(activeId, messageId);
+    sendMessage(content);
   };
 
   const handleSaveEdit = () => {
@@ -203,6 +209,34 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+
+            <HoverCard openDelay={300} closeDelay={150}>
+              <HoverCardTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-muted-foreground hover:bg-muted"
+                  onClick={handleRetry}
+                  disabled={isCurrentSessionStreaming}
+                >
+                  <RefreshCcw className="h-3.5 w-3.5" />
+                </Button>
+              </HoverCardTrigger>
+              <HoverCardContent
+                align="center"
+                side="bottom"
+                className="w-60 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
+              >
+                <div className="border-b bg-muted/30 p-2 px-3">
+                  <p className="text-sm font-medium">Retry</p>
+                </div>
+                <div className="p-3">
+                  <p className="text-[11px] text-muted-foreground/80">
+                    Revert to this point and resend.
+                  </p>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
 
             <HoverCard openDelay={300} closeDelay={150}>
               <HoverCardTrigger asChild>
