@@ -29,10 +29,10 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { useStreamingState } from "@/hooks/use-streaming-state";
 import { toast } from "sonner";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { useCreatePageFromSession } from "@/hooks/use-create-page-from-session";
 import type { Session } from "@/lib/store/session/types";
 import {
@@ -67,6 +67,8 @@ export const SessionListItem: React.FC<Props> = ({
   const getFn = useSessionStore((state) => state.getFn);
 
   const { title, id, branchOf } = item;
+
+  const parentSession = branchOf ? getFn(branchOf) : undefined;
 
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
@@ -107,14 +109,50 @@ export const SessionListItem: React.FC<Props> = ({
       }}
     >
       {branchOf && (
-        <Tooltip>
-          <TooltipTrigger>
-            <GitBranch className="h-4 w-4 text-muted-foreground/60 shrink-0" />
-          </TooltipTrigger>
-          <TooltipContent>
-            Branched from: {getFn(branchOf)?.title}
-          </TooltipContent>
-        </Tooltip>
+        <HoverCard openDelay={300} closeDelay={150}>
+          <HoverCardTrigger
+            asChild
+            onClick={(e) => {
+              e.stopPropagation();
+              if (parentSession) {
+                setActive(parentSession?.id);
+              }
+            }}
+          >
+            <span className="shrink-0 cursor-pointer">
+              <GitBranch className="h-4 w-4 text-muted-foreground/60" />
+            </span>
+          </HoverCardTrigger>
+          <HoverCardContent
+            align="center"
+            side="right"
+            className="w-64 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
+          >
+            <div className="flex items-center justify-between border-b bg-muted/30 p-2 px-3">
+              <p className="text-sm font-medium">Branched From</p>
+            </div>
+            <div className="p-3">
+              {parentSession ? (
+                <>
+                  <p className="text-xs font-medium text-foreground/80 truncate">
+                    {parentSession.title}
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted-foreground/80">
+                    Model: {parentSession.modelId}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/80">
+                    Created:{" "}
+                    {new Date(parentSession.createdAt).toLocaleDateString()}
+                  </p>
+                </>
+              ) : (
+                <p className="text-[11px] text-muted-foreground/80">
+                  Original session no longer exists.
+                </p>
+              )}
+            </div>
+          </HoverCardContent>
+        </HoverCard>
       )}
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {generating ? (
