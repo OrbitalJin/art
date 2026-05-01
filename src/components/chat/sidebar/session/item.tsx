@@ -27,6 +27,7 @@ import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useGenerateSessionTitle } from "@/hooks/use-generate-session-title";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useStreamingState } from "@/hooks/use-streaming-state";
+import { toast } from "sonner";
 import {
   Tooltip,
   TooltipContent,
@@ -185,6 +186,7 @@ const Menu: React.FC<MenuProps> = ({
 
   const handleDelete = () => {
     deleteFn(item.id);
+    toast.success("Session deleted successfully.");
     setOpen(false);
   };
 

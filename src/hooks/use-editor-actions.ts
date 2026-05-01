@@ -92,7 +92,7 @@ export const useEditorActions = (editor: Editor | null) => {
         if (target) {
           const updatedHtml = target.content.replace(selectedText, result);
 
-          updateContent(processingNoteId, updatedHtml, true);
+          updateContent(processingNoteId, updatedHtml);
         }
       }
 

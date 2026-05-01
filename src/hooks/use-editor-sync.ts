@@ -29,7 +29,7 @@ export const useEditorSync = (
     return () => {
       if (editor && activeId) {
         // @ts-expect-error tiptap-markdown adds this at runtime
-        updateContent(activeId, editor.storage.markdown.getMarkdown(), false);
+        updateContent(activeId, editor.storage.markdown.getMarkdown());
       }
     };
   }, [activeId, editor, updateContent]);

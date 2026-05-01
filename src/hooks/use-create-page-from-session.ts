@@ -37,7 +37,7 @@ export const useCreatePageFromSession = () => {
       }
 
       const id = createNote(currentWorkspace, session.title);
-      updateNoteContent(id, result, false);
+      updateNoteContent(id, result);
       navigate("/journal");
       toast.success("Note created from session", { id: toastId });
     } catch (err) {

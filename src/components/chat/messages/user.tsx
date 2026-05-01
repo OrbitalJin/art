@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useActiveSession } from "@/contexts/active-session-context";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { toast } from "sonner";
 
 export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -57,7 +58,12 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
 
   const handleBranch = () => {
     if (activeId && !isCurrentSessionStreaming) {
-      branchFrom(activeId, messageId, false);
+      const success = branchFrom(activeId, messageId, false);
+      if (success) {
+        toast.info("Session branched successfully");
+      } else {
+        toast.error("Failed to branch: Session not found");
+      }
     }
   };
 
@@ -202,7 +208,12 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     variant="destructive"
-                    onClick={() => revertMessage(activeId!, messageId)}
+                    onClick={() => {
+                      const success = revertMessage(activeId!, messageId);
+                      if (success) {
+                        toast.success("Message reverted successfully");
+                      }
+                    }}
                   >
                     Delete
                   </AlertDialogAction>

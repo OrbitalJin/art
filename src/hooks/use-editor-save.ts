@@ -32,7 +32,7 @@ export const useEditorSave = (activeId: string | null) => {
 
         const tags = extractTags(markdown);
         updateTags(activeId, tags);
-        updateContent(activeId, markdown, false);
+        updateContent(activeId, markdown);
 
         if (setIsSavingRef.current) {
           setIsSavingRef.current(false);

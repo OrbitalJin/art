@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/hover-card";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useStreamingState } from "@/hooks/use-streaming-state";
+import { toast } from "sonner";
 
 export const AssistantMessage: React.FC<Message> = ({
   content,
@@ -41,7 +42,12 @@ export const AssistantMessage: React.FC<Message> = ({
 
   const handleBranch = () => {
     if (activeId && !isCurrentSessionStreaming) {
-      branchFrom(activeId, messageId, true);
+      const success = branchFrom(activeId, messageId, true);
+      if (success) {
+        toast.info("Session branched successfully");
+      } else {
+        toast.error("Failed to branch: Session not found");
+      }
     }
   };
 

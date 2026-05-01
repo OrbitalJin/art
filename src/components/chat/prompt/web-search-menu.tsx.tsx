@@ -47,7 +47,10 @@ export const WebSearchMenu = () => {
     try {
       // Basic validation
       new URL(urlInput.startsWith("http") ? urlInput : `https://${urlInput}`);
-      addWebUrl(activeId, urlInput.trim());
+      const isDuplicate = addWebUrl(activeId, urlInput.trim());
+      if (isDuplicate) {
+        toast.warning("Duplicate URL detected.");
+      }
       if (!grounded) {
         toggleSearchGrounding(activeId);
       }

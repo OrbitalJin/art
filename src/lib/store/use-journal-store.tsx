@@ -1,6 +1,5 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
-import { toast } from "sonner";
 import type { Page, Workspace } from "./journal/types";
 import { journalStorage } from "./journal/adapter";
 import mockContent from "@/assets/mock.md?raw";
@@ -25,19 +24,15 @@ export interface State {
   currentWorkspace: Workspace;
 
   toggleArchived: (id: string) => void;
-  togglePinned: (id: string) => void;
-  importFn: (orphan: Page) => void;
+  togglePinned: (id: string) => boolean;
+  importFn: (orphan: Page) => boolean;
   setActive: (id: string) => void;
   deleteFn: (id: string) => void;
   create: (workspace?: Workspace, title?: string) => string;
   getFn: (id: string) => Page | undefined;
   save: (page: Page) => void;
-  updateContent: (
-    pageId: string,
-    newContent: string,
-    showToast: boolean,
-  ) => void;
-  updateTitle: (pageId: string, newTitle: string) => void;
+  updateContent: (pageId: string, newContent: string) => boolean;
+  updateTitle: (pageId: string, newTitle: string) => boolean;
   addTag: (pageId: string, tag: string) => void;
   removeTag: (pageId: string, tag: string) => void;
   updateTags: (pageId: string, tags: string[]) => void;
@@ -72,16 +67,16 @@ export const useJournalStore = create<State>()(
         }));
       },
 
-      importFn(orphan: Page) {
+      importFn(orphan: Page): boolean {
         const state = get();
         const duplicate = state.pages.find((s) => s.id === orphan.id);
         if (duplicate) {
           orphan.id = crypto.randomUUID();
-          toast.warning("Conflicting page id detected.");
         }
         set({
           pages: [...state.pages, orphan],
         });
+        return !!duplicate;
       },
 
       getFn(id: string) {
@@ -105,7 +100,6 @@ export const useJournalStore = create<State>()(
       deleteFn(id: string) {
         set((state: State) => {
           const newPages = state.pages.filter((s) => s.id !== id);
-          toast.success("Page deleted successfully.");
 
           return {
             pages: newPages,
@@ -127,15 +121,18 @@ export const useJournalStore = create<State>()(
         }));
       },
 
-      updateTitle(id: string, newTitle: string) {
+      updateTitle(id: string, newTitle: string): boolean {
+        let success = false;
         set((state: State) => ({
-          pages: state.pages.map((page) =>
-            page.id === id
-              ? { ...page, title: newTitle, updatedAt: Date.now() }
-              : page,
-          ),
+          pages: state.pages.map((page) => {
+            if (page.id === id) {
+              success = true;
+              return { ...page, title: newTitle, updatedAt: Date.now() };
+            }
+            return page;
+          }),
         }));
-        toast.success("Page title updated successfully.");
+        return success;
       },
 
       changeWorkspace(id: string, workspace: Workspace) {
@@ -150,11 +147,12 @@ export const useJournalStore = create<State>()(
         }));
       },
 
-      updateContent(pageId: string, newContent: string, showToast = true) {
+      updateContent(pageId: string, newContent: string): boolean {
+        let contentChanged = false;
         set((state: State) => {
           const updated = state.pages.map((page) => {
             if (page.id === pageId) {
-              const contentChanged = page.content !== newContent;
+              contentChanged = page.content !== newContent;
               return {
                 ...page,
                 content: newContent,
@@ -164,13 +162,9 @@ export const useJournalStore = create<State>()(
             return page;
           });
 
-          const page = state.pages.find((e) => e.id === pageId);
-          if (page && page.content !== newContent && showToast) {
-            toast.success("Page content updated successfully.");
-          }
-
           return { pages: updated };
         });
+        return contentChanged;
       },
 
       addTag(pageId: string, tag: string) {
@@ -219,15 +213,13 @@ export const useJournalStore = create<State>()(
         }));
       },
 
-      togglePinned(id: string) {
+      togglePinned(id: string): boolean {
         const state = get();
         const page = state.pages.find((e) => e.id === id);
-        if (!page) return toast.error("Page not found");
+        if (!page) return false;
         page.pinned = !page.pinned;
-        toast.success(
-          `Page ${!page.pinned ? "unpinned" : "pinned"} successfully.`,
-        );
         set({ pages: [...state.pages] });
+        return true;
       },
 
       getAllTags() {
@@ -262,9 +254,6 @@ export const useJournalStore = create<State>()(
           }
         }
 
-        // Example: Future breaking change (e.g., adding a new required field)
-        // if (version === 1) { ... }
-
         return persistedState;
       },
       onRehydrateStorage: () => (store) => {
@@ -276,7 +265,7 @@ export const useJournalStore = create<State>()(
           }
         } else {
           const id = store.create("personal", "Welcome to Art");
-          store.updateContent(id, mockContent, false);
+          store.updateContent(id, mockContent);
           store.togglePinned(id);
         }
       },

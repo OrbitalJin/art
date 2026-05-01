@@ -39,6 +39,7 @@ import { cn, formatDate } from "@/lib/utils";
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { toast } from "sonner";
 import { TagList } from "@/components/journal/sidebar/page/tag/list";
 import { WORKSPACES } from "@/lib/store/journal/types";
 import { ShimmerText } from "@/components/ui/shimmer-text";
@@ -179,6 +180,7 @@ const Menu: React.FC<MenuProps> = ({
 
   const handleDelete = () => {
     deleteFn(id);
+    toast.success("Page deleted successfully.");
     setOpen(false);
   };
 

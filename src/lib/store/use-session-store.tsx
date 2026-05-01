@@ -4,7 +4,6 @@ import { create } from "zustand";
 import { MODELS, type ModelId } from "@/lib/llm/common/types";
 import type { Message, Session } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
-import { toast } from "sonner";
 import { DEFAULT_MODE, MODES, type ModeId } from "../llm/prompts/modes";
 import type { TraitId } from "../llm/prompts/traits";
 import { useSettingsStore } from "./use-settings-store";
@@ -36,12 +35,12 @@ export interface SessionState {
   activeId: string | null;
 
   setMode: (id: string, mode: ModeId) => void;
-  branch: (id: string) => void;
+  branch: (id: string) => boolean;
   toggleArchived: (id: string) => void;
-  togglePinned: (id: string) => void;
+  togglePinned: (id: string) => boolean;
   toggleSearchGrounding: (id: string) => void;
 
-  addWebCtxUrl: (id: string, url: string) => void;
+  addWebCtxUrl: (id: string, url: string) => boolean;
   removeWebCtxUrl: (id: string, url: string) => void;
   clearWebCtxUrls: (id: string) => void;
 
@@ -54,7 +53,7 @@ export interface SessionState {
   clearJournalRefs: (id: string) => void;
 
   setActive: (id: string) => void;
-  importFn: (s: Session) => void;
+  importFn: (s: Session) => boolean;
   deleteFn: (id: string) => void;
   create: (title?: string) => void;
   getFn: (id: string) => Session | undefined;
@@ -62,10 +61,10 @@ export interface SessionState {
     sessionId: string,
     messageId: string,
     keepMessage: boolean,
-  ) => void;
+  ) => boolean;
   addMessage: (sessionId: string, message: Message) => void;
-  revertMessage: (sessionId: string, messageId: string) => void;
-  updateTitle: (sessionId: string, newTitle: string) => void;
+  revertMessage: (sessionId: string, messageId: string) => boolean;
+  updateTitle: (sessionId: string, newTitle: string) => boolean;
   setTitleGenerated: (sessionId: string, value: boolean) => void;
   setModel: (sessionId: string, modelId: ModelId) => void;
   purge: () => void;
@@ -77,7 +76,8 @@ export const useSessionStore = create<SessionState>()(
       sessions: [],
       activeId: null,
 
-      revertMessage: (sessionId: string, messageId: string) => {
+      revertMessage: (sessionId: string, messageId: string): boolean => {
+        let success = false;
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) => {
             if (session.id === sessionId) {
@@ -85,6 +85,7 @@ export const useSessionStore = create<SessionState>()(
                 (m) => m.id === messageId,
               );
               if (index >= 0) {
+                success = true;
                 return {
                   ...session,
                   messages: [...session.messages.slice(0, index)],
@@ -95,17 +96,15 @@ export const useSessionStore = create<SessionState>()(
             return session;
           }),
         }));
-        toast.success("Message reverted successfully");
+        return success;
       },
 
-      addWebCtxUrl: (id: string, url: string) => {
+      addWebCtxUrl: (id: string, url: string): boolean => {
+        let isDuplicate = false;
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) => {
             if (session.id === id) {
-              const isDuplicate = (session.webCtxUrls || []).includes(url);
-              if (isDuplicate) {
-                toast.warning("Duplicate URL detected.");
-              }
+              isDuplicate = (session.webCtxUrls || []).includes(url);
               return {
                 ...session,
                 webCtxUrls: isDuplicate
@@ -116,6 +115,7 @@ export const useSessionStore = create<SessionState>()(
             return session;
           }),
         }));
+        return isDuplicate;
       },
 
       removeWebCtxUrl: (id: string, url: string) => {
@@ -185,11 +185,11 @@ export const useSessionStore = create<SessionState>()(
         }));
       },
 
-      branch: (id: string) => {
+      branch: (id: string): boolean => {
         const state = get();
         const session = state.sessions.find((s) => s.id === id);
         if (!session) {
-          return toast.error("Failed to branch: Session not found");
+          return false;
         }
 
         const branch = {
@@ -200,22 +200,22 @@ export const useSessionStore = create<SessionState>()(
           forkOf: session.id,
         };
 
-        toast.info("Session branched successfully");
         set({
           activeId: branch.id,
           sessions: [...state.sessions, branch],
         });
+        return true;
       },
 
       branchFrom: (
         sessionId: string,
         messageId: string,
         keepMessage: boolean,
-      ) => {
+      ): boolean => {
         const state = get();
         const session = state.sessions.find((s) => s.id === sessionId);
         if (!session) {
-          return toast.error("Failed to branch: Session not found");
+          return false;
         }
 
         const index = session.messages.findIndex((m) => m.id === messageId);
@@ -229,11 +229,11 @@ export const useSessionStore = create<SessionState>()(
           forkOf: session.id,
         };
 
-        toast.info("Session branched successfully");
         set({
           activeId: branch.id,
           sessions: [...state.sessions, branch],
         });
+        return true;
       },
 
       addTrait: (id: string, trait: TraitId) => {
@@ -298,27 +298,25 @@ export const useSessionStore = create<SessionState>()(
         }));
       },
 
-      togglePinned: (id: string) => {
+      togglePinned: (id: string): boolean => {
         const state = get();
         const session = state.sessions.find((s) => s.id === id);
-        if (!session) return toast.error("Session not found");
+        if (!session) return false;
         session.pinned = !session.pinned;
-        toast.success(
-          `Session ${!session.pinned ? "unpinned" : "pinned"} successfully.`,
-        );
         set({ sessions: [...state.sessions] });
+        return true;
       },
 
-      importFn: (orphan: Session) => {
+      importFn: (orphan: Session): boolean => {
         const state = get();
         const duplicate = state.sessions.find((s) => s.id === orphan.id);
         if (duplicate) {
           orphan.id = crypto.randomUUID();
-          toast.warning("Conflicting session id detected.");
         }
         set({
           sessions: [...state.sessions, orphan],
         });
+        return !!duplicate;
       },
 
       getFn: (id: string) => {
@@ -358,7 +356,6 @@ export const useSessionStore = create<SessionState>()(
             activeId: newActiveId,
           };
         });
-        toast.success("Session deleted successfully.");
       },
 
       setActive: (id: string) => {
@@ -369,15 +366,22 @@ export const useSessionStore = create<SessionState>()(
         });
       },
 
-      updateTitle: (id: string, newTitle: string) => {
+      updateTitle: (id: string, newTitle: string): boolean => {
+        let success = false;
         set((state: SessionState) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id
-              ? { ...session, title: newTitle, updatedAt: Date.now() }
-              : session,
-          ),
+          sessions: state.sessions.map((session) => {
+            if (session.id === id) {
+              success = true;
+              return {
+                ...session,
+                title: newTitle,
+                updatedAt: Date.now(),
+              };
+            }
+            return session;
+          }),
         }));
-        toast.success("Session title updated successfully.");
+        return success;
       },
 
       setTitleGenerated: (id: string, value: boolean) => {
