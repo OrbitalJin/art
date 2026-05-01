@@ -2,7 +2,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, Sparkle, Cpu, Globe } from "lucide-react";
+import { Check, Copy, Sparkle, Cpu, Globe, GitBranch } from "lucide-react";
 import { estimateTokens } from "@/lib/llm/common/utils";
 import { Renderer } from "./renderer";
 import type { Message } from "@/lib/store/session/types";
@@ -14,17 +14,36 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { useSessionStore } from "@/lib/store/use-session-store";
+import { useStreamingState } from "@/hooks/use-streaming-state";
+
 export const AssistantMessage: React.FC<Message> = ({
   content,
   modelId,
+  id: messageId,
   status,
   grounded,
 }) => {
   const { copied, copy } = useCopy(content);
+  const activeId = useSessionStore((state) => state.activeId);
+  const branchFrom = useSessionStore((state) => state.branchFrom);
+  const { isCurrentSessionStreaming } = useStreamingState();
+
   const isThinking = status === "thinking";
   const hasContent = content.length > 0;
   const model = MODELS.find((m) => m.id === modelId);
   const premium = model?.tier === 3;
+
+  const handleBranch = () => {
+    if (activeId && !isCurrentSessionStreaming) {
+      branchFrom(activeId, messageId, true);
+    }
+  };
 
   return (
     <div className="group flex w-full gap-3 animate-in fade-in duration-100 select-auto">
@@ -40,14 +59,47 @@ export const AssistantMessage: React.FC<Message> = ({
 
         {hasContent && (
           <div className="flex items-center justify-between mt-2 opacity-0 group-hover:opacity-100">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={copy}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-            >
-              {copied ? <Check className="text-green-400" /> : <Copy />}
-            </Button>
+            <div className="flex flex-row gap-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={copy}
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              >
+                {copied ? <Check className="text-green-400" /> : <Copy />}
+              </Button>
+
+              <HoverCard openDelay={300} closeDelay={150}>
+                <HoverCardTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-muted-foreground hover:bg-muted"
+                    onClick={handleBranch}
+                  >
+                    <GitBranch className="h-3.5 w-3.5" />
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent
+                  align="center"
+                  side="bottom"
+                  className="w-72 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
+                >
+                  <div className="flex items-center justify-between border-b bg-muted/30 p-3">
+                    <p className="text-sm font-medium">Branch Off</p>
+                    <span className="rounded border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                      New Branch
+                    </span>
+                  </div>
+                  <div className="p-3">
+                    <p className="text-[11px] leading-relaxed text-muted-foreground/80">
+                      Create a duplicate of this conversation from the current
+                      point.
+                    </p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground cursor-default">
               {grounded && (

@@ -20,13 +20,6 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
   const { prompt } = useActiveSession();
   const activeId = useSessionStore((s) => s.activeId);
   const prevActiveIdRef = useRef(activeId);
-  const revertMessage = useSessionStore((s) => s.revertMessage);
-
-  const handleRevert = (messageId: string) => {
-    if (activeId) {
-      revertMessage(activeId, messageId);
-    }
-  };
 
   const scrollToBottom = useCallback(() => {
     virtuosoRef.current?.scrollToIndex({
@@ -61,7 +54,7 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
             atBottomStateChange={setAtBottom}
             itemContent={(_, msg) => (
               <div className="mx-auto max-w-2xl py-4 select-text">
-                <MessageBroker {...msg} onRevert={() => handleRevert(msg.id)} />
+                <MessageBroker {...msg} />
               </div>
             )}
           />

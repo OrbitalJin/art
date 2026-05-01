@@ -58,7 +58,11 @@ export interface SessionState {
   deleteFn: (id: string) => void;
   create: (title?: string) => void;
   getFn: (id: string) => Session | undefined;
-  branchFrom: (sessionId: string, messageId: string) => void;
+  branchFrom: (
+    sessionId: string,
+    messageId: string,
+    keepMessage: boolean,
+  ) => void;
   addMessage: (sessionId: string, message: Message) => void;
   revertMessage: (sessionId: string, messageId: string) => void;
   updateTitle: (sessionId: string, newTitle: string) => void;
@@ -83,7 +87,7 @@ export const useSessionStore = create<SessionState>()(
               if (index >= 0) {
                 return {
                   ...session,
-                  messages: session.messages.slice(0, index),
+                  messages: [...session.messages.slice(0, index)],
                   updatedAt: Date.now(),
                 };
               }
@@ -203,7 +207,11 @@ export const useSessionStore = create<SessionState>()(
         });
       },
 
-      branchFrom: (sessionId: string, messageId: string) => {
+      branchFrom: (
+        sessionId: string,
+        messageId: string,
+        keepMessage: boolean,
+      ) => {
         const state = get();
         const session = state.sessions.find((s) => s.id === sessionId);
         if (!session) {
@@ -214,7 +222,7 @@ export const useSessionStore = create<SessionState>()(
 
         const branch = {
           ...session,
-          messages: session.messages.slice(0, index),
+          messages: session.messages.slice(0, index + (keepMessage ? 1 : 0)),
           id: crypto.randomUUID(),
           createdAt: Date.now(),
           updatedAt: Date.now(),

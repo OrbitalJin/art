@@ -42,8 +42,9 @@ export const ActiveSessionProvider: React.FC<{
   const { llm } = useLLM();
   const activeId = useSessionStore((state) => state.activeId);
   const addMessage = useSessionStore((state) => state.addMessage);
-  const getFn = useSessionStore((state) => state.getFn);
-  const activeSession = getFn(activeId ?? "");
+  const activeSession = useSessionStore((state) =>
+    state.sessions.find((s) => s.id === state.activeId),
+  );
 
   const [prompt, setPrompt] = useState("");
   const [isSending, setIsSending] = useState(false);

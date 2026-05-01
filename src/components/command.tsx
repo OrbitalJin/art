@@ -21,8 +21,8 @@ import {
 import { useSessionStore } from "@/lib/store/use-session-store";
 import type { NavigationItem } from "@/components/layout/navigation";
 import { useJournalStore } from "@/lib/store/use-journal-store";
-import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { Kbd } from "./ui/kbd";
+import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 interface Props {
   items: NavigationItem[];
 }
@@ -30,7 +30,7 @@ interface Props {
 export const Command: React.FC<Props> = ({ items }) => {
   const { create: createSession } = useSessionStore();
   const { create: createNote } = useJournalStore();
-  const setSettingsDialogOpen = useSettingsStore(
+  const setSettingsDialogOpen = useUIStateStore(
     (state) => state.setSettingsDialogOpen,
   );
   const [open, setOpen] = useState(false);
