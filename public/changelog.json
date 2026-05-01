@@ -4,6 +4,12 @@
     "date": "Latest",
     "entries": [
       {
+        "hash": "b829f48",
+        "type": "fix",
+        "message": "build workflow not checking out entire git history",
+        "date": "2026-05-01"
+      },
+      {
         "hash": "c44757f",
         "type": "fix",
         "message": "changelog generation issues",

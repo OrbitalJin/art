@@ -5,6 +5,22 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Archive } from "lucide-react";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
+const getTimeGroup = (updatedAt: number) => {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayStartMs = todayStart.getTime();
+
+  if (updatedAt >= todayStartMs) return "today";
+
+  const yesterdayStartMs = todayStartMs - 86400000;
+  if (updatedAt >= yesterdayStartMs) return "yesterday";
+
+  const sevenDaysAgoMs = todayStartMs - 7 * 86400000;
+  if (updatedAt >= sevenDaysAgoMs) return "last7Days";
+
+  return "older";
+};
+
 interface Props {
   onSessionSwitch?: () => void;
   query: string;
@@ -17,15 +33,24 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
   const setChatState = useUIStateStore((s) => s.setChatState);
 
   const isPinnedOpen = chatState.pinnedOpen;
-  const isSessionsOpen = chatState.sessionsOpen;
   const isArchivedOpen = chatState.archivedOpen;
+  const isTodayOpen = chatState.todayOpen;
+  const isYesterdayOpen = chatState.yesterdayOpen;
+  const isLast7DaysOpen = chatState.last7DaysOpen;
+  const isOlderOpen = chatState.olderOpen;
 
   const setIsPinnedOpen = (open: boolean) =>
     setChatState({ ...chatState, pinnedOpen: open });
-  const setIsSessionsOpen = (open: boolean) =>
-    setChatState({ ...chatState, sessionsOpen: open });
   const setIsArchivedOpen = (open: boolean) =>
     setChatState({ ...chatState, archivedOpen: open });
+  const setIsTodayOpen = (open: boolean) =>
+    setChatState({ ...chatState, todayOpen: open });
+  const setIsYesterdayOpen = (open: boolean) =>
+    setChatState({ ...chatState, yesterdayOpen: open });
+  const setIsLast7DaysOpen = (open: boolean) =>
+    setChatState({ ...chatState, last7DaysOpen: open });
+  const setIsOlderOpen = (open: boolean) =>
+    setChatState({ ...chatState, olderOpen: open });
 
   const filtered = sessions.filter((session) =>
     session.title.toLowerCase().includes(query.toLowerCase()),
@@ -43,8 +68,19 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
     .filter((session) => session.archived)
     .sort((a, b) => b.updatedAt - a.updatedAt);
 
+  const today = regular.filter((s) => getTimeGroup(s.updatedAt) === "today");
+  const yesterday = regular.filter(
+    (s) => getTimeGroup(s.updatedAt) === "yesterday",
+  );
+  const last7Days = regular.filter(
+    (s) => getTimeGroup(s.updatedAt) === "last7Days",
+  );
+  const older = regular.filter((s) => getTimeGroup(s.updatedAt) === "older");
+
   const isEmpty =
-    archived.length === 0 && regular.length === 0 && pinned.length === 0;
+    archived.length === 0 &&
+    regular.length === 0 &&
+    pinned.length === 0;
 
   return (
     <div className="relative flex-1 overflow-hidden">
@@ -69,15 +105,72 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
             </SessionSection>
           )}
 
-          {regular.length > 0 && (
+          {today.length > 0 && (
             <SessionSection
-              title="Sessions"
-              count={regular.length}
+              title="Today"
+              count={today.length}
               isPinned={false}
-              open={isSessionsOpen}
-              setOpen={setIsSessionsOpen}
+              open={isTodayOpen}
+              setOpen={setIsTodayOpen}
             >
-              {regular.map((session) => (
+              {today.map((session) => (
+                <SessionListItem
+                  key={session.id}
+                  item={session}
+                  active={session.id === activeId}
+                  onSwitch={onSessionSwitch}
+                />
+              ))}
+            </SessionSection>
+          )}
+
+          {yesterday.length > 0 && (
+            <SessionSection
+              title="Yesterday"
+              count={yesterday.length}
+              isPinned={false}
+              open={isYesterdayOpen}
+              setOpen={setIsYesterdayOpen}
+            >
+              {yesterday.map((session) => (
+                <SessionListItem
+                  key={session.id}
+                  item={session}
+                  active={session.id === activeId}
+                  onSwitch={onSessionSwitch}
+                />
+              ))}
+            </SessionSection>
+          )}
+
+          {last7Days.length > 0 && (
+            <SessionSection
+              title="Last 7 days"
+              count={last7Days.length}
+              isPinned={false}
+              open={isLast7DaysOpen}
+              setOpen={setIsLast7DaysOpen}
+            >
+              {last7Days.map((session) => (
+                <SessionListItem
+                  key={session.id}
+                  item={session}
+                  active={session.id === activeId}
+                  onSwitch={onSessionSwitch}
+                />
+              ))}
+            </SessionSection>
+          )}
+
+          {older.length > 0 && (
+            <SessionSection
+              title="Older"
+              count={older.length}
+              isPinned={false}
+              open={isOlderOpen}
+              setOpen={setIsOlderOpen}
+            >
+              {older.map((session) => (
                 <SessionListItem
                   key={session.id}
                   item={session}

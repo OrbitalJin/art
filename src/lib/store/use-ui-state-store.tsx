@@ -7,6 +7,10 @@ interface ChatState {
   pinnedOpen: boolean;
   sessionsOpen: boolean;
   archivedOpen: boolean;
+  todayOpen: boolean;
+  yesterdayOpen: boolean;
+  last7DaysOpen: boolean;
+  olderOpen: boolean;
 }
 
 interface JournalState {
@@ -35,12 +39,20 @@ export const useUIStateStore = create<SettingsState>()(
         pinnedOpen: true,
         sessionsOpen: true,
         archivedOpen: false,
+        todayOpen: true,
+        yesterdayOpen: true,
+        last7DaysOpen: true,
+        olderOpen: true,
       },
       journalState: {
         sidebarOpen: false,
         pinnedOpen: true,
         sessionsOpen: true,
         archivedOpen: false,
+        todayOpen: true,
+        yesterdayOpen: true,
+        last7DaysOpen: true,
+        olderOpen: true,
       },
       settingsDialogOpen: false,
       changelogDialogOpen: false,
