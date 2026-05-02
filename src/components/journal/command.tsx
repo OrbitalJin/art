@@ -167,11 +167,10 @@ export const Command: React.FC<Props> = ({ editor }) => {
       </CommandDialog>
 
       <TextActionDialog
+        editor={editor}
         isOpen={actions.dialogs.llm.open}
         onOpenChange={actions.dialogs.llm.setOpen}
-        onProcess={actions.handlers.handleAiProcess}
         action={actions.dialogs.llm.action || "summarize"}
-        isProcessing={actions.isBusy}
       />
     </>
   );
