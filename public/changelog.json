@@ -1,8 +1,14 @@
 [
   {
-    "version": "Unreleased",
-    "date": "Latest",
+    "version": "0.3.6",
+    "date": "2026-05-02",
     "entries": [
+      {
+        "hash": "7be217a",
+        "type": "feat",
+        "message": "added session timeline groups",
+        "date": "2026-05-02"
+      },
       {
         "hash": "b829f48",
         "type": "fix",

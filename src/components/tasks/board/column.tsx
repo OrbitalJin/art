@@ -75,15 +75,15 @@ export const BoardColumn: React.FC<Props> = ({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex flex-1 flex-col rounded-md border border-border bg-background transition-colors md:min-h-0",
+        "flex min-h-0 flex-1 flex-col rounded-md border border-border bg-background transition-colors",
         isOverColumn && "border-primary bg-primary/5",
         className,
       )}
     >
       <div className="flex flex-row items-center justify-between border-b border-border px-3 py-2">
-        <div className="flex flex-row items-center gap-2 overflow-hidden">
+        <div className="flex flex-row items-center gap-2 overflow-y-scroll">
           <p className="truncate font-medium">{title}</p>
-          <span className="text-sm text-muted-foreground shrink-0">
+          <span className="shrink-0 text-sm text-muted-foreground">
             ({items.length})
           </span>
 
@@ -95,16 +95,16 @@ export const BoardColumn: React.FC<Props> = ({
               <HoverCardContent
                 align="start"
                 side="bottom"
-                className="w-64 p-0 shadow-xl border-muted-foreground/20 overflow-hidden"
+                className="w-64 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
               >
                 <div className="flex items-center justify-between border-b bg-muted/30 p-2 px-3">
-                  <p className="text-sm font-medium flex items-center gap-2">
+                  <p className="flex items-center gap-2 text-sm font-medium">
                     <Lock className="size-3 text-primary" />
                     Ordering Locked
                   </p>
                 </div>
                 <div className="p-3">
-                  <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
+                  <p className="text-[11px] leading-relaxed text-muted-foreground/80">
                     Manual reordering is disabled while a sort is active. Reset
                     the sort to move tasks freely.
                   </p>
@@ -179,24 +179,33 @@ export const BoardColumn: React.FC<Props> = ({
         items={sortedItems.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="flex min-h-[100px] flex-1 flex-col gap-2 p-2 md:overflow-y-auto">
-          {sortedItems.length > 0 ? (
-            sortedItems.map((item) => (
-              <BoardItem
-                key={item.id}
-                item={item}
-                onDelete={onDelete}
-                onEdit={onEdit}
-                disabled={!isManualOrder}
-              />
-            ))
-          ) : (
-            <div className="flex flex-1 flex-col items-center justify-center gap-2">
-              <p className="text-sm text-muted-foreground">
-                No tasks in this column.
-              </p>
+        <div className="flex-1 min-h-[100px] px-2">
+          <div className="relative h-full overflow-hidden rounded-b-md">
+            <div className="h-full overflow-y-auto mt-2">
+              <div className="space-y-2 pb-4">
+                {sortedItems.length > 0 ? (
+                  sortedItems.map((item) => (
+                    <BoardItem
+                      key={item.id}
+                      item={item}
+                      onDelete={onDelete}
+                      onEdit={onEdit}
+                      disabled={!isManualOrder}
+                    />
+                  ))
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center pt-[50%]">
+                    <p className="text-sm text-muted-foreground">
+                      No tasks in this column.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-4 bg-linear-to-b from-background to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-linear-to-t from-background to-transparent" />
+          </div>
         </div>
       </SortableContext>
     </div>
