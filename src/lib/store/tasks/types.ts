@@ -16,6 +16,7 @@ export interface Task {
   createdAt: number;
   updatedAt: number;
   completedAt?: number;
+  dependencies?: string[];
 }
 
 export interface Project {

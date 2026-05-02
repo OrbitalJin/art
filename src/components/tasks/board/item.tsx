@@ -10,6 +10,7 @@ import {
   Circle,
   Clock,
   Frown,
+  Link,
   Meh,
   Pencil,
   Smile,
@@ -31,6 +32,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import {
+  getUnmetDependencies,
+  hasUnmetDependencies,
+} from "@/lib/tasks/dependency-utils";
+import { toast } from "sonner";
 
 interface Props {
   item: Task;
@@ -48,6 +59,7 @@ export const BoardItem: React.FC<Props> = ({
   disabled = false,
 }) => {
   const moveTask = useTasksStore((state) => state.moveTask);
+  const tasks = useTasksStore((state) => state.tasks);
 
   const {
     attributes,
@@ -108,6 +120,14 @@ export const BoardItem: React.FC<Props> = ({
 
     if (isCompleted) {
       moveTask(item.id, "inProgress");
+      return;
+    }
+
+    const unmetDeps = getUnmetDependencies(item, tasks);
+    if (unmetDeps.length > 0) {
+      toast.error("Cannot complete task", {
+        description: `Unmet dependencies: ${unmetDeps.map((d) => d.title).join(", ")}`,
+      });
       return;
     }
 
@@ -217,24 +237,48 @@ export const BoardItem: React.FC<Props> = ({
             </AlertDialog>
 
             {!isOverlay ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "text-muted-foreground/40 transition-colors",
-                  isCompleted
-                    ? "text-green-600 hover:bg-green-500/10 hover:text-green-600 dark:text-green-400 dark:hover:text-green-400"
-                    : "hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400",
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "text-muted-foreground/40 transition-colors",
+                      isCompleted
+                        ? "text-green-600 hover:bg-green-500/10 hover:text-green-600 dark:text-green-400 dark:hover:text-green-400"
+                        : "hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400",
+                      !isCompleted &&
+                        hasUnmetDependencies(item, tasks) &&
+                        "opacity-50 cursor-not-allowed",
+                    )}
+                    onClick={handleToggleComplete}
+                    disabled={!isCompleted && hasUnmetDependencies(item, tasks)}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    ) : (
+                      <Circle className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                </HoverCardTrigger>
+                {!isCompleted && hasUnmetDependencies(item, tasks) && (
+                  <HoverCardContent className="w-auto p-3">
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium">Unmet dependencies:</p>
+                      {getUnmetDependencies(item, tasks).map((dep) => (
+                        <div
+                          key={dep.id}
+                          className="flex items-center gap-1.5 text-xs"
+                        >
+                          <Circle className="h-3 w-3 text-muted-foreground" />
+                          <span>{dep.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </HoverCardContent>
                 )}
-                onClick={handleToggleComplete}
-              >
-                {isCompleted ? (
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                ) : (
-                  <Circle className="h-3.5 w-3.5" />
-                )}
-              </Button>
+              </HoverCard>
             ) : null}
           </div>
         </div>
@@ -292,39 +336,156 @@ export const BoardItem: React.FC<Props> = ({
             ) : null}
           </div>
 
-          {item.due ? (
-            <div
-              className={cn(
-                "flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium",
-                "border-transparent bg-muted/30 text-muted-foreground",
-                (isDueTomorrow || isDueToday) && urgencyStyles.medium,
-                isOverDue && urgencyStyles.high,
-              )}
-            >
-              {isOverDue ? (
-                <AlertCircle className="h-3 w-3" />
-              ) : isDueTomorrow || isDueToday ? (
-                <Clock className="h-3 w-3" />
-              ) : (
-                <Calendar className="h-3 w-3" />
-              )}
+          <div className="flex items-center gap-2">
+            {item.dependencies && item.dependencies.length > 0 && (
+              <DependenciesHoverCard
+                dependencies={item.dependencies}
+                tasks={tasks}
+              />
+            )}
 
-              <span>
-                {isOverDue && "Overdue: "}
-                {isDueToday
-                  ? "Today"
-                  : isDueTomorrow
-                    ? "Tomorrow"
-                    : new Date(item.due).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                      })}
-              </span>
-            </div>
-          ) : null}
+            {item.due ? (
+              <div
+                className={cn(
+                  "flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium",
+                  "border-transparent bg-muted/30 text-muted-foreground",
+                  (isDueTomorrow || isDueToday) && urgencyStyles.medium,
+                  isOverDue && urgencyStyles.high,
+                )}
+              >
+                {isOverDue ? (
+                  <AlertCircle className="h-3 w-3" />
+                ) : isDueTomorrow || isDueToday ? (
+                  <Clock className="h-3 w-3" />
+                ) : (
+                  <Calendar className="h-3 w-3" />
+                )}
+
+                <span>
+                  {isOverDue && "Overdue: "}
+                  {isDueToday
+                    ? "Today"
+                    : isDueTomorrow
+                      ? "Tomorrow"
+                      : new Date(item.due).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                </span>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
+  );
+};
+
+const DependenciesHoverCard = ({
+  dependencies,
+  tasks,
+}: {
+  dependencies: string[];
+  tasks: Task[];
+}) => {
+  const dependencyTasks = dependencies
+    .map((depId) => tasks.find((t) => t.id === depId))
+    .filter((t): t is Task => Boolean(t));
+
+  const completedCount = dependencyTasks.filter(
+    (t) => t.status === "completed",
+  ).length;
+
+  return (
+    <HoverCard openDelay={100}>
+      <HoverCardTrigger asChild>
+        <div
+          className={cn(
+            "flex cursor-default items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium",
+            "border-transparent bg-muted/30 text-muted-foreground transition-all hover:bg-muted/50",
+          )}
+        >
+          <Link className="h-3 w-3" />
+          <span>
+            {completedCount}/{dependencyTasks.length}
+          </span>
+        </div>
+      </HoverCardTrigger>
+      <HoverCardContent
+        className="w-80 p-0 shadow-xl border-muted-foreground/20 overflow-hidden"
+        align="end"
+      >
+        <div className="flex flex-col gap-1 border-b bg-muted/30 p-3">
+          <p className="text-sm font-medium text-foreground">
+            Task Dependencies
+          </p>
+          <p className="text-[11px] text-muted-foreground leading-tight">
+            Complete these tasks to unblock this item.
+          </p>
+        </div>
+
+        <div className="flex flex-col p-2 gap-1">
+          {dependencyTasks.map((task) => {
+            const isCompleted = task.status === "completed";
+            return (
+              <div
+                key={task.id}
+                className={cn(
+                  "flex flex-col p-2 gap-2 rounded-sm transition-all duration-200 group",
+                  isCompleted
+                    ? "bg-primary/5 ring-1 ring-primary/20"
+                    : "hover:bg-accent/20",
+                )}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <p
+                    className={cn(
+                      "text-sm font-medium truncate",
+                      isCompleted
+                        ? "text-primary line-through opacity-70"
+                        : "text-foreground",
+                    )}
+                  >
+                    {task.title}
+                  </p>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-[10px] py-0 h-5 font-normal opacity-60 group-hover:opacity-100 transition-opacity capitalize",
+                      isCompleted &&
+                        "opacity-100 border-primary/30 text-primary",
+                    )}
+                  >
+                    {task.status}
+                  </Badge>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between p-2 border-t bg-muted/10">
+          <p className="text-[10px] text-muted-foreground px-1">
+            {completedCount} of {dependencyTasks.length} completed
+          </p>
+          {completedCount === dependencyTasks.length ? (
+            <Badge
+              variant="secondary"
+              className="bg-green-500/10 text-green-600 border-none text-[10px] h-5"
+            >
+              Ready
+            </Badge>
+          ) : (
+            <Badge
+              variant="secondary"
+              className="bg-amber-500/10 text-amber-600 border-none text-[10px] h-5"
+            >
+              Blocked
+            </Badge>
+          )}
+        </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 };
 
