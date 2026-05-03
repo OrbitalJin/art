@@ -1,6 +1,6 @@
 ### Art
 
-Art is a desktop productivity application (v0.2.2) that unifies LLM-powered chat, journaling, and task management in one interface. Built with Tauri + React + TypeScript, it features:
+Art is a desktop productivity application that unifies LLM-powered chat, journaling, and task management in one interface. Built with Tauri + React + TypeScript, it features:
 
 - Chat: Multi-session LLM conversations with research and tutor modes
 - Journal: Rich text entries with custom mentions, image support, and auto-save
@@ -40,7 +40,7 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Add modes (chat, research, tutor)
 - [x] add "archived" state.
 - [x] Search grounding
-- [ ] Pdf support
+- [~] Pdf support
 
 ### Productivity & Tools
 
@@ -88,8 +88,8 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] floating toggle/edit button
 - [x] Add typograpy plugin
 - [x] Headings menu instert
-- [ ] Battle test LLM features & simplify dialog logic
-- [ ] Popout (seperate feature, board)
+- [x] Battle test LLM features & simplify dialog logic
+- [x] Popout (seperate feature, board)
 
 ### Tasks
 
@@ -100,7 +100,7 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Editable project
 - [x] Merge task dialogs
 - [x] Merge project dialogs
-- [ ] Task dependencies
+- [x] Task dependencies
 
 ### User Experience
 
@@ -123,6 +123,5 @@ Intuitive navigation through command palette, theme customization, text utilitie
 - [x] Persist sidebar list grouping state
 - [x] Edit message (prune + resend)
 - [x] Change logs
-- [ ] id based /chat and /notes for specific redirection
 - [ ] Tauri hotswap + minisign for remote updates
 - [ ] "Super Prompt" a floating prompt you can ask global things to about the app and use agentic features to interact with the app

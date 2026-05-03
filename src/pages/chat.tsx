@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
 export const Chat = () => {
-  const chat = useActiveSession();
+  const { messages } = useActiveSession();
   const chatState = useUIStateStore((state) => state.chatState);
   const setChatState = useUIStateStore((state) => state.setChatState);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -36,7 +36,7 @@ export const Chat = () => {
       <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <div className="relative flex-1 flex flex-col selection:bg-primary/50 min-w-0">
-        <MessageList messages={chat.messages} textAreaRef={textAreaRef} />
+        <MessageList messages={messages} textAreaRef={textAreaRef} />
         <Prompt textAreaRef={textAreaRef} />
       </div>
     </div>
