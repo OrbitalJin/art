@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { writeFileSync } from "fs";
+import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 
 interface ChangelogEntry {
@@ -40,7 +40,10 @@ const CHANGELOG_REGEX =
   /^(feat|fix|fixed|updated|added|refactor|tweaks|semantics|patch):\s*(.*)$/i;
 
 function run(command: string): string {
-  return execSync(command, { encoding: "utf-8" }).trim();
+  return execSync(command, {
+    encoding: "utf-8",
+    cwd: process.cwd(),
+  }).trim();
 }
 
 function escapeArg(value: string): string {
@@ -205,8 +208,11 @@ function main() {
     });
   }
 
-  const changelogPath = join(__dirname, "..", "public", "changelog.json");
-  writeFileSync(changelogPath, JSON.stringify(output, null, 2));
+  const publicDir = join(process.cwd(), "public");
+  const changelogPath = join(publicDir, "changelog.json");
+
+  mkdirSync(publicDir, { recursive: true });
+  writeFileSync(changelogPath, JSON.stringify(output, null, 2), "utf-8");
 
   console.log(`Changelog written to ${changelogPath}`);
 }
