@@ -93,7 +93,7 @@ export const BoardItem: React.FC<Props> = ({
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    transition: transform ? transition : undefined,
+    transition: transition || 'transform 150ms ease-out',
     opacity: isDragging ? 0.3 : 1,
   };
 
@@ -236,50 +236,49 @@ export const BoardItem: React.FC<Props> = ({
               </AlertDialogContent>
             </AlertDialog>
 
-            {!isOverlay ? (
-              <HoverCard>
+            {!isOverlay && !isCompleted && hasUnmetDependencies(item, tasks) ? (
+              <HoverCard openDelay={200}>
                 <HoverCardTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "text-muted-foreground/40 transition-colors",
-                      isCompleted
-                        ? "text-green-600 hover:bg-green-500/10 hover:text-green-600 dark:text-green-400 dark:hover:text-green-400"
-                        : "hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400",
-                      !isCompleted &&
-                        hasUnmetDependencies(item, tasks) &&
+                  <div className="inline-flex">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "text-muted-foreground/40 transition-colors",
+                        "hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400",
                         "opacity-50 cursor-not-allowed",
-                    )}
-                    onClick={handleToggleComplete}
-                    disabled={!isCompleted && hasUnmetDependencies(item, tasks)}
-                  >
-                    {isCompleted ? (
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                    ) : (
+                      )}
+                      disabled
+                    >
                       <Circle className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
+                    </Button>
+                  </div>
                 </HoverCardTrigger>
-                {!isCompleted && hasUnmetDependencies(item, tasks) && (
-                  <HoverCardContent className="w-auto p-3">
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium">Unmet dependencies:</p>
-                      {getUnmetDependencies(item, tasks).map((dep) => (
-                        <div
-                          key={dep.id}
-                          className="flex items-center gap-1.5 text-xs"
-                        >
-                          <Circle className="h-3 w-3 text-muted-foreground" />
-                          <span>{dep.title}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </HoverCardContent>
-                )}
+                <HoverCardContent className="w-auto p-2" side="bottom" align="center">
+                  <p className="text-xs text-muted-foreground">Complete dependencies first</p>
+                </HoverCardContent>
               </HoverCard>
-            ) : null}
+            ) : (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "text-muted-foreground/40 transition-colors",
+                  isCompleted
+                    ? "text-green-600 hover:bg-green-500/10 hover:text-green-600 dark:text-green-400 dark:hover:text-green-400"
+                    : "hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400",
+                )}
+                onClick={handleToggleComplete}
+              >
+                {isCompleted ? (
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                ) : (
+                  <Circle className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -1,10 +1,5 @@
 import { cn } from "@/lib/utils";
-import {
-  ChevronRight,
-  MessageCircle,
-  Pin,
-  type LucideIcon,
-} from "lucide-react";
+import { ChevronRight, Pin, type LucideIcon } from "lucide-react";
 
 interface Props {
   title: string;
@@ -40,9 +35,7 @@ export const SessionSection: React.FC<Props> = ({
             <Icon className="h-3 w-3" />
           ) : isPinned ? (
             <Pin className="h-3 w-3 text-primary" />
-          ) : (
-            <MessageCircle className="h-3 w-3" />
-          )}
+          ) : null}
           <span>{title}</span>
           <span className="text-muted-foreground/60">({count})</span>
         </div>
