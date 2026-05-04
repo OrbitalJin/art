@@ -21,6 +21,8 @@ import {
   type Task,
   type TaskStatus,
 } from "@/lib/store/tasks/types";
+import { getUnmetDependencies } from "@/lib/tasks/dependency-utils";
+import { toast } from "sonner";
 import { BoardColumn } from "@/components/tasks/board/column";
 import { BoardItem } from "@/components/tasks/board/item";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -125,11 +127,16 @@ export const TaskBoard = ({ tasks, onEdit }: TaskBoardProps) => {
       const destStatus = overTargetId.replace("zone-", "") as TaskStatus;
 
       if (activeTask.status !== destStatus) {
-        moveTaskToPosition(
-          activeTask.id,
-          destStatus,
-          tasksByColumn[destStatus].length,
-        );
+        if (destStatus === "completed") {
+          const unmetDeps = getUnmetDependencies(activeTask, tasks);
+          if (unmetDeps.length > 0) {
+            toast.error("Cannot complete task", {
+              description: "All dependencies must be completed first.",
+            });
+            return;
+          }
+        }
+        moveTaskToPosition(activeTask.id, destStatus, 0);
         setActiveTab(destStatus as ColumnId);
       }
 
@@ -148,11 +155,16 @@ export const TaskBoard = ({ tasks, onEdit }: TaskBoardProps) => {
           arrayMove(ids, ids.indexOf(activeTask.id), ids.length - 1),
         );
       } else {
-        moveTaskToPosition(
-          activeTask.id,
-          destStatus,
-          tasksByColumn[destStatus].length,
-        );
+        if (destStatus === "completed") {
+          const unmetDeps = getUnmetDependencies(activeTask, tasks);
+          if (unmetDeps.length > 0) {
+            toast.error("Cannot complete task", {
+              description: "All dependencies must be completed first.",
+            });
+            return;
+          }
+        }
+        moveTaskToPosition(activeTask.id, destStatus, 0);
       }
 
       return;
@@ -178,9 +190,16 @@ export const TaskBoard = ({ tasks, onEdit }: TaskBoardProps) => {
         ),
       );
     } else {
-      const destItems = tasksByColumn[destStatus];
-      const overIndex = destItems.findIndex((t) => t.id === overTask.id);
-      moveTaskToPosition(activeTask.id, destStatus, overIndex);
+      if (destStatus === "completed") {
+        const unmetDeps = getUnmetDependencies(activeTask, tasks);
+        if (unmetDeps.length > 0) {
+          toast.error("Cannot complete task", {
+            description: `Unmet dependencies: ${unmetDeps.map((d) => d.title).join(", ")}`,
+          });
+          return;
+        }
+      }
+      moveTaskToPosition(activeTask.id, destStatus, 0);
     }
   };
 
