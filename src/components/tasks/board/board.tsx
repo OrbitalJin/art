@@ -262,7 +262,7 @@ export const TaskBoard = ({ tasks, onEdit }: TaskBoardProps) => {
         )}
 
         {!isLargeScreen && activeId && (
-          <div className="fixed inset-x-0 bottom-0 z-[100] animate-in px-4 pb-8 slide-in-from-bottom-full duration-200">
+          <div className="fixed inset-x-0 bottom-0 z-100 animate-in px-4 pb-8 slide-in-from-bottom-full duration-200">
             <div className="flex h-24 w-full overflow-hidden rounded-2xl border-2 border-primary/20 bg-background shadow-[0_-10px_50px_rgba(0,0,0,0.3)]">
               {COLUMNS.map((colId) => (
                 <MobileDropZone
@@ -278,7 +278,7 @@ export const TaskBoard = ({ tasks, onEdit }: TaskBoardProps) => {
 
       <DragOverlay dropAnimation={null}>
         {activeId && activeItem ? (
-          <div className="pointer-events-none scale-70 md:scale-100 opacity-80 shadow-2xl">
+          <div className="pointer-events-none scale-70 lg:scale-100 opacity-80 shadow-2xl">
             <BoardItem item={activeItem} disabled />
           </div>
         ) : null}
