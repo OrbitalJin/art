@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CloudDownload, Loader2 } from "lucide-react";
-import { check } from "@tauri-apps/plugin-updater";
+import { check, Update, type DownloadEvent } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 
 import { Button } from "./ui/button";
@@ -59,7 +59,7 @@ function formatDate(date?: string | null) {
 export const UpdaterDialog = () => {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<UpdaterStatus>("idle");
-  const [updateInfo, setUpdateInfo] = useState<any>(null);
+  const [updateInfo, setUpdateInfo] = useState<Update | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloaded, setDownloaded] = useState(0);
   const [contentLength, setContentLength] = useState(0);
@@ -111,7 +111,7 @@ export const UpdaterDialog = () => {
       setDownloaded(0);
       setContentLength(0);
 
-      await updateInfo.downloadAndInstall((event: any) => {
+      await updateInfo.downloadAndInstall((event: DownloadEvent) => {
         switch (event.event) {
           case "Started":
             setContentLength(event.data.contentLength ?? 0);
@@ -282,10 +282,7 @@ export const UpdaterDialog = () => {
               {(status === "idle" ||
                 status === "unavailable" ||
                 status === "error") && (
-                <Button
-                  onClick={handleCheckForUpdates}
-                  disabled={status === "checking"}
-                >
+                <Button onClick={handleCheckForUpdates}>
                   Check for updates
                 </Button>
               )}
