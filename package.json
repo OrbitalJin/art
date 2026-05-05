@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "changelog": "bun run scripts/generate-changelog.ts",
+    "generate:changelog": "bun run scripts/generate-changelog.ts",
+    "release": "bun run scripts/release.ts",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

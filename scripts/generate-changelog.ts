@@ -21,7 +21,6 @@ interface GitCommit {
   date: string;
   subject: string;
   body: string;
-  version: string | null;
 }
 
 const CHANGELOG_TYPES = new Set([
@@ -43,56 +42,64 @@ function run(command: string): string {
   return execSync(command, {
     encoding: "utf-8",
     cwd: process.cwd(),
+    stdio: ["pipe", "pipe", "pipe"],
   }).trim();
+}
+
+function safeRun(command: string): string | null {
+  try {
+    return run(command);
+  } catch {
+    return null;
+  }
 }
 
 function escapeArg(value: string): string {
   return `"${value.replace(/(["\\$`])/g, "\\$1")}"`;
 }
 
-function getVersionFromTauriConfigAtCommit(hash: string): string | null {
-  try {
-    const content = run(`git show ${hash}:src-tauri/tauri.conf.json`);
-    const match = content.match(/"version":\s*"([^"]+)"/);
-    return match ? match[1] : null;
-  } catch {
-    return null;
-  }
+function parseSemver(tag: string): [number, number, number] | null {
+  const match = tag.match(/^v(\d+)\.(\d+)\.(\d+)$/);
+  if (!match) return null;
+
+  return [
+    Number.parseInt(match[1], 10),
+    Number.parseInt(match[2], 10),
+    Number.parseInt(match[3], 10),
+  ];
 }
 
-function parseCommitMessageLines(
-  subject: string,
-  body: string,
-): ChangelogEntry[] {
-  const lines = [subject, ...body.split("\n")]
+function compareTags(a: string, b: string): number {
+  const av = parseSemver(a);
+  const bv = parseSemver(b);
+
+  if (!av || !bv) return a.localeCompare(b);
+
+  if (av[0] !== bv[0]) return av[0] - bv[0];
+  if (av[1] !== bv[1]) return av[1] - bv[1];
+  return av[2] - bv[2];
+}
+
+function getVersionTags(): string[] {
+  const raw = safeRun(`git tag --list "v*"`) ?? "";
+
+  return raw
+    .split("\n")
     .map((line) => line.trim())
-    .filter(Boolean);
-
-  const entries: Array<{ type: string; message: string }> = [];
-
-  for (const line of lines) {
-    const match = line.match(CHANGELOG_REGEX);
-    if (!match) continue;
-
-    const type = match[1].toLowerCase();
-    const message = match[2].trim();
-
-    if (!CHANGELOG_TYPES.has(type) || !message) continue;
-
-    entries.push({ type, message });
-  }
-
-  return entries.map((entry) => ({
-    hash: "",
-    type: entry.type,
-    message: entry.message,
-    date: "",
-  }));
+    .filter(Boolean)
+    .filter((tag) => parseSemver(tag) !== null)
+    .sort(compareTags);
 }
 
-function getAllCommits(): GitCommit[] {
-  const format = ["%H", "%h", "%cs", "%s", "%b"].join("%x1f");
-  const raw = run(`git log --reverse --pretty=format:${escapeArg(format)}%x1e`);
+function getTagDate(tag: string): string {
+  return safeRun(`git log -1 --format=%cs ${tag}`) || "Unknown";
+}
+
+function getCommitsInRange(range: string): GitCommit[] {
+  const format = ["%H", "%h", "%cs", "%s", "%b"].join("%x1f") + "%x1e";
+  const raw = safeRun(
+    `git log --reverse --pretty=format:${escapeArg(format)} ${range}`,
+  );
 
   if (!raw) return [];
 
@@ -104,108 +111,122 @@ function getAllCommits(): GitCommit[] {
       const [hash, shortHash, date, subject, body] = chunk.split("\x1f");
 
       return {
-        hash,
-        shortHash,
-        date,
+        hash: hash?.trim() ?? "",
+        shortHash: shortHash?.trim() ?? "",
+        date: date?.trim() ?? "",
         subject: subject?.trim() ?? "",
         body: body?.trim() ?? "",
-        version: getVersionFromTauriConfigAtCommit(hash),
       };
     });
 }
 
-function didTauriConfigChange(hash: string): boolean {
-  try {
-    const changed = run(`git diff-tree --no-commit-id --name-only -r ${hash}`)
-      .split("\n")
-      .map((line) => line.trim());
+function parseCommitMessageLines(
+  subject: string,
+  body: string,
+): ChangelogEntry[] {
+  const lines = [subject, ...body.split("\n")]
+    .map((line) => line.trim())
+    .filter(Boolean);
 
-    return changed.includes("src-tauri/tauri.conf.json");
-  } catch {
-    return false;
+  const entries: ChangelogEntry[] = [];
+
+  for (const line of lines) {
+    const match = line.match(CHANGELOG_REGEX);
+    if (!match) continue;
+
+    const type = match[1].toLowerCase();
+    const message = match[2].trim();
+
+    if (!CHANGELOG_TYPES.has(type) || !message) continue;
+
+    entries.push({
+      hash: "",
+      type,
+      message,
+      date: "",
+    });
   }
+
+  return entries;
 }
 
-function isVersionBumpCommit(
-  commit: GitCommit,
-  previousVersion: string | null,
-): boolean {
-  if (!didTauriConfigChange(commit.hash)) return false;
-  if (!commit.version) return false;
-  return commit.version !== previousVersion;
-}
+function commitsToEntries(commits: GitCommit[]): ChangelogEntry[] {
+  const entries: ChangelogEntry[] = [];
 
-function cloneEntries(entries: ChangelogEntry[]): ChangelogEntry[] {
-  return entries.map((entry) => ({ ...entry }));
+  for (const commit of commits) {
+    const parsedEntries = parseCommitMessageLines(commit.subject, commit.body);
+
+    for (const entry of parsedEntries) {
+      entries.push({
+        ...entry,
+        hash: commit.shortHash,
+        date: commit.date,
+      });
+    }
+  }
+
+  return entries.reverse();
 }
 
 function main() {
-  const commits = getAllCommits();
-
-  const versionGroups: VersionGroup[] = [];
-  const unreleasedEntries: ChangelogEntry[] = [];
-  const preReleaseEntries: ChangelogEntry[] = [];
-
-  let pendingEntries: ChangelogEntry[] = [];
-  let currentVersion: string | null = null;
-  let seenFirstVersion = false;
-
-  for (const commit of commits) {
-    const parsedEntries = parseCommitMessageLines(
-      commit.subject,
-      commit.body,
-    ).map((entry) => ({
-      ...entry,
-      hash: commit.shortHash,
-      date: commit.date,
-    }));
-
-    const nextVersion = commit.version;
-    const isBump = isVersionBumpCommit(commit, currentVersion);
-
-    if (isBump && nextVersion) {
-      versionGroups.push({
-        version: nextVersion,
-        date: commit.date,
-        entries: cloneEntries(pendingEntries).reverse(),
-      });
-
-      pendingEntries = [];
-      currentVersion = nextVersion;
-      seenFirstVersion = true;
-      continue;
-    }
-
-    if (parsedEntries.length > 0) {
-      pendingEntries.push(...parsedEntries);
-    }
-  }
-
-  if (!seenFirstVersion) {
-    preReleaseEntries.push(...pendingEntries);
-  } else {
-    unreleasedEntries.push(...pendingEntries);
-  }
-
+  const tags = getVersionTags();
   const output: VersionGroup[] = [];
 
-  if (unreleasedEntries.length > 0) {
-    output.push({
-      version: "Unreleased",
-      date: "Latest",
-      entries: cloneEntries(unreleasedEntries).reverse(),
-    });
-  }
+  if (tags.length === 0) {
+    const commits = getCommitsInRange("HEAD");
+    const entries = commitsToEntries(commits);
 
-  output.push(...versionGroups.reverse());
-
-  const firstVersionExists = versionGroups.length > 0;
-  if (!firstVersionExists && preReleaseEntries.length > 0) {
     output.push({
       version: "Pre-release",
       date: "Initial",
-      entries: cloneEntries(preReleaseEntries).reverse(),
+      entries,
     });
+  } else {
+    const firstTag = tags[0];
+    const preReleaseCommits = getCommitsInRange(`${firstTag}^@`);
+    const preReleaseEntries = commitsToEntries(
+      getCommitsInRange(`${firstTag} --not ${firstTag}^`),
+    );
+
+    const latestTag = tags[tags.length - 1];
+    const unreleasedEntries = commitsToEntries(
+      getCommitsInRange(`${latestTag}..HEAD`),
+    );
+
+    if (unreleasedEntries.length > 0) {
+      output.push({
+        version: "Unreleased",
+        date: "Latest",
+        entries: unreleasedEntries,
+      });
+    }
+
+    for (let i = tags.length - 1; i >= 0; i--) {
+      const currentTag = tags[i];
+      const previousTag = i > 0 ? tags[i - 1] : null;
+
+      let commits: GitCommit[];
+
+      if (previousTag) {
+        commits = getCommitsInRange(`${previousTag}..${currentTag}`);
+      } else {
+        commits = getCommitsInRange(currentTag);
+      }
+
+      output.push({
+        version: currentTag.replace(/^v/, ""),
+        date: getTagDate(currentTag),
+        entries: commitsToEntries(commits),
+      });
+    }
+
+    if (preReleaseCommits.length > 0 || preReleaseEntries.length > 0) {
+      output.push({
+        version: "Pre-release",
+        date: "Initial",
+        entries: preReleaseEntries,
+      });
+    }
   }
 
   const publicDir = join(process.cwd(), "public");

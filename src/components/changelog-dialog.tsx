@@ -29,6 +29,18 @@ interface GroupedByDateAndType {
   };
 }
 
+const TYPE_ORDER = [
+  "feat",
+  "added",
+  "fix",
+  "fixed",
+  "updated",
+  "refactor",
+  "tweaks",
+  "semantics",
+  "patch",
+];
+
 function groupByDateAndType(entries: ChangelogEntry[]): GroupedByDateAndType {
   const grouped: GroupedByDateAndType = {};
 
@@ -88,7 +100,7 @@ export function ChangelogDialog() {
 
     setLoading(true);
 
-    fetch("/changelog.json")
+    fetch("/changelog.json", { cache: "no-store" })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch changelog");
@@ -167,7 +179,7 @@ export function ChangelogDialog() {
 
                         {group.entries.length === 0 ? (
                           <div className="pl-1 text-sm text-muted-foreground">
-                            No changelog entries for this release.
+                            No user-facing changelog entries for this release.
                           </div>
                         ) : (
                           <div className="space-y-6 pl-1">
@@ -180,8 +192,13 @@ export function ChangelogDialog() {
                                   </h3>
 
                                   <div className="space-y-4 pl-3">
-                                    {Object.entries(types).map(
-                                      ([type, entries]) => (
+                                    {Object.entries(types)
+                                      .sort(
+                                        ([a], [b]) =>
+                                          TYPE_ORDER.indexOf(a) -
+                                          TYPE_ORDER.indexOf(b),
+                                      )
+                                      .map(([type, entries]) => (
                                         <div key={type} className="space-y-2.5">
                                           <Badge
                                             variant="outline"
@@ -206,8 +223,7 @@ export function ChangelogDialog() {
                                             ))}
                                           </ul>
                                         </div>
-                                      ),
-                                    )}
+                                      ))}
                                   </div>
                                 </div>
                               ))}
