@@ -65,9 +65,6 @@ jobs:
             exit 1
           fi
 
-      - name: Generate changelog
-        run: bun run changelog
-
       - name: Verify changelog is up to date
         shell: bash
         run: |
@@ -85,3 +82,27 @@ jobs:
           releaseBody: "Release v${{ steps.version.outputs.version }}"
           releaseDraft: false
           prerelease: false
+
+  publish-latest-json-pages:
+    needs: publish-tauri
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Download latest.json from latest release
+        run: |
+          mkdir -p dist
+          curl -L \
+            https://github.com/orbitaljin/art/releases/latest/download/latest.json \
+            -o dist/latest.json
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
