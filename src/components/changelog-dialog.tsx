@@ -39,6 +39,8 @@ const TYPE_ORDER = [
   "tweaks",
   "semantics",
   "patch",
+  "ci/cd",
+  "chore",
 ];
 
 function groupByDateAndType(entries: ChangelogEntry[]): GroupedByDateAndType {
@@ -83,6 +85,12 @@ function getTypeColor(type: string) {
 
     case "patch":
       return "border-orange-500/20 bg-orange-500/10 text-orange-700 dark:text-orange-300";
+
+    case "ci/cd":
+      return "border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300";
+
+    case "chore":
+      return "border-gray-500/20 bg-gray-500/10 text-gray-700 dark:text-gray-300";
 
     default:
       return "border-border bg-muted text-muted-foreground";

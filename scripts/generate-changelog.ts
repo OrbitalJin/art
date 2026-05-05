@@ -27,6 +27,8 @@ const CHANGELOG_TYPES = new Set([
   "feat",
   "fix",
   "fixed",
+  "chore",
+  "ci/cd",
   "updated",
   "added",
   "refactor",
@@ -36,7 +38,7 @@ const CHANGELOG_TYPES = new Set([
 ]);
 
 const CHANGELOG_REGEX =
-  /^(feat|fix|fixed|updated|added|refactor|tweaks|semantics|patch):\s*(.*)$/i;
+  /^(feat|fix|fixed|updated|added|refactor|tweaks|semantics|patch|chore|ci\/cd):\s*(.*)$/i;
 
 function run(command: string): string {
   return execSync(command, {

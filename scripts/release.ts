@@ -23,7 +23,6 @@ function fail(message: string): never {
 
 function assertCleanWorkingTree() {
   const status = run("git status --porcelain");
-
   if (status) {
     fail("working tree is not clean. Commit or stash your changes first.");
   }
@@ -37,7 +36,6 @@ function assertVersionLooksValid(version: string) {
 
 function assertTagDoesNotExist(tag: string) {
   const existing = safeRun(`git rev-parse --verify ${tag}`);
-
   if (existing) {
     fail(`tag "${tag}" already exists`);
   }
@@ -47,20 +45,11 @@ function getCurrentBranch(): string {
   return run("git branch --show-current");
 }
 
-function getCurrentTauriVersion(): string {
-  const raw = readFileSync("src-tauri/tauri.conf.json", "utf-8");
-  const json = JSON.parse(raw);
-
-  return json.version;
-}
-
 function updateTauriVersion(version: string) {
   const path = "src-tauri/tauri.conf.json";
   const raw = readFileSync(path, "utf-8");
   const json = JSON.parse(raw);
-
   json.version = version;
-
   writeFileSync(path, `${JSON.stringify(json, null, 2)}\n`, "utf-8");
 }
 
@@ -74,38 +63,33 @@ function main() {
   const tag = `v${version}`;
   const branch = getCurrentBranch();
 
+  if (branch !== "main") {
+    console.warn(
+      `Warning: You are releasing from branch "${branch}" instead of main.`,
+    );
+  }
+
   assertVersionLooksValid(version);
   assertCleanWorkingTree();
   assertTagDoesNotExist(tag);
 
-  const currentVersion = getCurrentTauriVersion();
+  console.log(`Preparing release ${tag}...`);
 
-  if (currentVersion === version) {
-    fail(`tauri version is already "${version}"`);
-  }
-
-  console.log(`Preparing release ${tag}`);
-  console.log(`Current branch: ${branch}`);
-  console.log(`Current Tauri version: ${currentVersion}`);
-  console.log(`Next Tauri version: ${version}\n`);
-
-  console.log("1. Updating Tauri version...");
+  // 1. Update Tauri Version
+  console.log("Updating src-tauri/tauri.conf.json...");
   updateTauriVersion(version);
 
-  console.log("2. Generating changelog...");
-  run("bun run changelog");
-
-  console.log("3. Staging release files...");
-  run("git add src-tauri/tauri.conf.json public/changelog.json");
-
-  console.log("4. Creating release commit...");
+  // 2. Commit the version bump
+  console.log("Creating release commit...");
+  run("git add src-tauri/tauri.conf.json");
   run(`git commit -m "release: ${tag}"`);
 
-  console.log("5. Creating tag...");
+  // 3. Tag the commit
+  console.log(`Creating tag ${tag}...`);
   run(`git tag ${tag}`);
 
-  console.log("\nRelease prepared successfully.\n");
-  console.log("Next steps:");
+  console.log("\nRelease prepared locally.");
+  console.log("\nNext steps to trigger the cloud build:");
   console.log(`  git push origin ${branch}`);
   console.log(`  git push origin ${tag}\n`);
 }

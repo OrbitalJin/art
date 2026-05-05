@@ -53,6 +53,9 @@ jobs:
       - name: Install app dependencies
         run: bun install --frozen-lockfile
 
+      - name: Generate changelog
+        run: bun run generate:changelog
+
       - name: Verify Tauri version matches tag
         shell: bash
         run: |
