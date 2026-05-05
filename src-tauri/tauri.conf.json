@@ -27,7 +27,6 @@
       "csp": null
     }
   },
-```
   "bundle": {
     "createUpdaterArtifacts": true,
     "active": true,
@@ -47,4 +46,3 @@
     }
   }
 }
-```
