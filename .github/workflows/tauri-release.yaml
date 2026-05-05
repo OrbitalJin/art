@@ -2,7 +2,7 @@ name: "publish"
 on:
   push:
     branches:
-      - "release"
+      - "*"
 
 jobs:
   publish-tauri:
@@ -54,6 +54,9 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
         with:
           tagName: build-${{ steps.vars.outputs.sha_short }}
           releaseName: "App Build ${{ steps.vars.outputs.sha_short }}"
