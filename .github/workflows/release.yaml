@@ -70,17 +70,6 @@ jobs:
         run: |
           git diff --exit-code public/changelog.json
 
-      - name: Generate release notes
-        id: release_notes
-        shell: bash
-        run: |
-          bun scripts/generate-release-notes.ts "${{ steps.version.outputs.tag }}"
-          {
-            echo 'content<<EOF'
-            cat release-notes.md
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
-
       - name: Build and release the Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
@@ -90,7 +79,7 @@ jobs:
         with:
           tagName: ${{ steps.version.outputs.tag }}
           releaseName: "Art v${{ steps.version.outputs.version }}"
-          releaseBody: ${{ steps.release_notes.outputs.content }}
+          releaseBody: "Release v${{ steps.version.outputs.version }}"
           releaseDraft: false
           prerelease: false
 
@@ -99,20 +88,10 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: read
-      actions: write
       pages: write
       id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Delete old github-pages artifacts
-        uses: geekyeggo/delete-artifact@v5
-        with:
-          name: github-pages
-          failOnError: false
-
       - name: Download latest.json from latest release
         run: |
           mkdir -p dist
@@ -126,5 +105,4 @@ jobs:
           path: dist
 
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
