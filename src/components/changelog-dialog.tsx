@@ -98,8 +98,8 @@ function getTypeColor(type: string) {
 }
 
 export function ChangelogDialog() {
-  const open = useUIStateStore((state) => state.changelogDialogOpen);
-  const setOpen = useUIStateStore((state) => state.setChangelogDialogOpen);
+  const open = useUIStateStore((state) => state.updateDialogOpen);
+  const setOpen = useUIStateStore((state) => state.setUpdateDialogOpen);
   const [versionGroups, setVersionGroups] = useState<VersionGroup[]>([]);
   const [loading, setLoading] = useState(false);
 

@@ -29,17 +29,19 @@ export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
   const setIsArchivedOpen = (open: boolean) =>
     setJournalState({ ...journalState, archivedOpen: open });
 
-  const filtered = pages.filter((page) => {
-    const matchesSearch = page.title
-      .toLowerCase()
-      .includes(query.toLowerCase());
-    const matchesTags =
-      selectedTags.length === 0 ||
-      selectedTags.every((tag) => page.tags.includes(tag));
+  const filtered = pages
+    .filter((page) => {
+      const matchesSearch = page.title
+        .toLowerCase()
+        .includes(query.toLowerCase());
+      const matchesTags =
+        selectedTags.length === 0 ||
+        selectedTags.every((tag) => page.tags.includes(tag));
 
-    const matchesWorkspace = page.workspace === currentTab;
-    return matchesSearch && matchesTags && matchesWorkspace;
-  });
+      const matchesWorkspace = page.workspace === currentTab;
+      return matchesSearch && matchesTags && matchesWorkspace;
+    })
+    .sort((a, b) => b.createdAt - a.createdAt);
 
   const pinned = filtered.filter((e) => e.pinned && !e.archived);
   const regular = filtered.filter((e) => !e.pinned && !e.archived);
@@ -99,7 +101,7 @@ export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
                   id={page.id}
                   title={page.title}
                   active={page.id === activeId}
-                  createdAt={page.updatedAt}
+                  createdAt={page.createdAt}
                   tags={page.tags}
                 />
               ))}
@@ -121,7 +123,7 @@ export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
                   id={page.id}
                   title={page.title}
                   active={page.id === activeId}
-                  createdAt={page.updatedAt}
+                  createdAt={page.createdAt}
                   tags={page.tags}
                 />
               ))}

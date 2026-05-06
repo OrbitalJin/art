@@ -70,6 +70,17 @@ jobs:
         run: |
           git diff --exit-code public/changelog.json
 
+      - name: Generate release notes
+        id: release_notes
+        shell: bash
+        run: |
+          bun scripts/generate-release-notes.ts "${{ steps.version.outputs.tag }}"
+          {
+            echo 'content<<EOF'
+            cat release-notes.md
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build and release the Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
@@ -79,7 +90,7 @@ jobs:
         with:
           tagName: ${{ steps.version.outputs.tag }}
           releaseName: "Art v${{ steps.version.outputs.version }}"
-          releaseBody: "Release v${{ steps.version.outputs.version }}"
+          releaseBody: ${{ steps.release_notes.outputs.content }}
           releaseDraft: false
           prerelease: false
 

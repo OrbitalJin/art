@@ -5,23 +5,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { MessageCircle, Palette, BookOpen } from "lucide-react";
+import { MessageCircle, Palette, BookOpen, Settings2 } from "lucide-react";
 import { ChatSettingsTab } from "./tabs/chat";
 import { JournalSettingsTab } from "./tabs/journal";
 import { AppearanceSettingTab } from "./tabs/appearance";
 import { getVersion } from "@tauri-apps/api/app";
 import { useEffect, useState } from "react";
-
-interface SettingsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
+import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
 function AppVersion() {
   const [version, setVersion] = useState<string | null>(null);
-
   useEffect(() => {
     let mounted = true;
 
@@ -53,9 +51,26 @@ function AppVersion() {
   );
 }
 
-export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
+export const SettingsDialog = () => {
+  const settingsOpen = useUIStateStore((state) => state.settingsDialogOpen);
+  const setSettingsOpen = useUIStateStore(
+    (state) => state.setSettingsDialogOpen,
+  );
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+      <DialogTrigger asChild>
+        <Button
+          size="icon"
+          variant="ghost"
+          className={cn(
+            "h-10 w-10 text-muted-foreground hover:text-foreground transition-all",
+            settingsOpen && "text-foreground bg-accent",
+          )}
+          aria-label="Settings"
+        >
+          <Settings2 size={20} />
+        </Button>
+      </DialogTrigger>
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-scroll p-0">
         <DialogHeader className="border-b px-6 py-4">
           <DialogTitle className="text-xl">Settings</DialogTitle>
@@ -97,7 +112,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </TabsContent>
 
             <TabsContent value="chat" className="m-0 space-y-4 p-6">
-              <ChatSettingsTab open={open} />
+              <ChatSettingsTab open={settingsOpen} />
             </TabsContent>
 
             <TabsContent value="journal" className="m-0 space-y-4 p-6">
@@ -112,4 +127,4 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       </DialogContent>
     </Dialog>
   );
-}
+};
