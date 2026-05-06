@@ -10,16 +10,17 @@ export const TaskDescriptionField: React.FC<TaskDescriptionFieldProps> = ({
   value,
   onChange,
 }) => (
-  <div className="space-y-2">
+  <div className="w-full min-w-0 space-y-2">
     <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <AlignLeft className="h-3 w-3" />
-      Description
+      <AlignLeft className="h-3 w-3 shrink-0" />
+      <span className="min-w-0">Description</span>
     </label>
+
     <Textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="Add details, notes, or subtasks..."
-      className="min-h-[90px] resize-none text-sm leading-relaxed"
+      className="block w-full min-w-0 max-w-full resize-none overflow-x-hidden whitespace-pre-wrap break-words text-sm leading-relaxed"
     />
   </div>
 );

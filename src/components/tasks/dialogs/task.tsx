@@ -99,7 +99,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
 
   const [internalOpen, setInternalOpen] = useState(false);
   const [formData, setFormData] = useState<TaskFormData>(() =>
-    getInitialFormData(mode, isEdit ? props.task : undefined),
+    getInitialFormData(mode, isEdit ? props.task : undefined, activeProjectId),
   );
 
   const isControlled = props.open !== undefined;
@@ -134,6 +134,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+
     if (!formData.title.trim()) return;
 
     const payload = {
@@ -176,63 +177,77 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
         due: addDays(new Date(), 1),
       });
     }
+
     onOpenChange(false);
   };
 
   const dialogContent = (
-    <DialogContent className="gap-0 p-0 sm:max-w-[520px]">
+    <DialogContent className="gap-0 overflow-x-hidden p-0 sm:max-w-[520px]">
       <TaskFormHeader mode={mode} />
-      <form onSubmit={handleSubmit} className="space-y-5 p-6">
-        <div className="space-y-4">
+
+      <form onSubmit={handleSubmit} className="min-w-0 space-y-5 p-6">
+        <div className="min-w-0 space-y-4">
           <TaskTitleField
             value={formData.title}
             onChange={(v) => updateField("title", v)}
           />
+
           <TaskDescriptionField
             value={formData.description}
             onChange={(v) => updateField("description", v)}
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <TaskProjectSelector
-            value={formData.projectId}
-            onChange={(v) => updateField("projectId", v)}
-            projects={projects}
-            inboxName={inboxName}
-          />
+        <div className="min-w-0 grid grid-cols-2 gap-4">
+          <div className="min-w-0">
+            <TaskProjectSelector
+              value={formData.projectId}
+              onChange={(v) => updateField("projectId", v)}
+              projects={projects}
+              inboxName={inboxName}
+            />
+          </div>
 
-          <TaskUrgencySelector
-            value={formData.urgency}
-            onChange={(v) => updateField("urgency", v)}
-          />
+          <div className="min-w-0">
+            <TaskUrgencySelector
+              value={formData.urgency}
+              onChange={(v) => updateField("urgency", v)}
+            />
+          </div>
 
-          <TaskDueDatePicker
-            value={formData.due}
-            onChange={(v) => updateField("due", v)}
-            required={isCreate}
-          />
+          <div className="min-w-0">
+            <TaskDueDatePicker
+              value={formData.due}
+              onChange={(v) => updateField("due", v)}
+              required={isCreate}
+            />
+          </div>
 
-          <TaskEnergySelector
-            value={formData.energy}
-            onChange={(v) => updateField("energy", v)}
-          />
+          <div className="min-w-0">
+            <TaskEnergySelector
+              value={formData.energy}
+              onChange={(v) => updateField("energy", v)}
+            />
+          </div>
 
-          <TaskDependenciesPopover
-            selectedIds={formData.dependencies}
-            onToggle={toggleDependency}
-            onClear={() => updateField("dependencies", [])}
-            tasks={tasks}
-            projects={projects}
-            inboxName={inboxName}
-            currentTaskId={isEdit ? props.task?.id : undefined}
-          />
+          <div className="col-span-2 min-w-0">
+            <TaskDependenciesPopover
+              selectedIds={formData.dependencies}
+              onToggle={toggleDependency}
+              onClear={() => updateField("dependencies", [])}
+              tasks={tasks}
+              projects={projects}
+              inboxName={inboxName}
+              currentTaskId={isEdit ? props.task?.id : undefined}
+            />
+          </div>
         </div>
 
         <div className="mt-6 flex justify-end gap-3 border-t pt-4">
           <Button type="button" variant="ghost" onClick={handleCancel}>
             Cancel
           </Button>
+
           <Button
             type="submit"
             disabled={!formData.title.trim()}
@@ -258,6 +273,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {isCreate && trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+
       {isCreate && !trigger && (
         <DialogTrigger asChild>
           <Button size="icon" variant="outline" className="gap-2">
@@ -265,6 +281,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
           </Button>
         </DialogTrigger>
       )}
+
       {dialogContent}
     </Dialog>
   );
