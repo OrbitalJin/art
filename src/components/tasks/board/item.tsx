@@ -142,7 +142,7 @@ export const BoardItem: React.FC<Props> = ({
       style={style}
       {...sortableProps}
       className={cn(
-        "group relative overflow-hidden rounded-lg border bg-background p-4 shadow-sm transition-all duration-300",
+        "group relative overflow-hidden rounded-lg border border-border bg-card/40 p-4 shadow-sm transition-all duration-300",
         disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing",
         isCompleted && "bg-muted/20",
         isOverlay &&

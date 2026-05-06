@@ -75,7 +75,7 @@ export const BoardColumn: React.FC<Props> = ({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex min-h-0 flex-1 flex-col rounded-md border border-border bg-background transition-colors h-full",
+        "flex min-h-0 flex-1 flex-col rounded-md border border-border/80 bg-background transition-colors h-full",
         isOverColumn && "border-primary bg-primary/5",
         className,
       )}
