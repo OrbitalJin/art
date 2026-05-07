@@ -157,5 +157,5 @@ Bento-style task board with drag-and-drop organization.
 ### Planned
 
 - [x] Ignore asset files such as demo screenshots from being packaged
-- [ ] Adapt syntax highlighting to current selected theme
+- [x] Adapt syntax highlighting to current selected theme
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

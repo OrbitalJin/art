@@ -79,6 +79,7 @@ export const SettingsDialog = () => {
   const setSettingsOpen = useUIStateStore(
     (state) => state.setSettingsDialogOpen,
   );
+  const [tab, setTab] = useState("chat");
 
   const [showResetDialog, setShowResetDialog] = useState(false);
   const handleReset = () => {
@@ -111,7 +112,8 @@ export const SettingsDialog = () => {
         </DialogHeader>
 
         <Tabs
-          defaultValue="chat"
+          value={tab}
+          onValueChange={setTab}
           className="flex h-full min-h-0 flex-col gap-0"
         >
           <div className="border-b bg-muted/20 p-2">
