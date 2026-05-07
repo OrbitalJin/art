@@ -153,6 +153,7 @@ Bento-style task board with drag-and-drop organization.
 - [x] Edit message with prune and resend
 - [x] Changelogs
 - [x] Tauri hot updates and signing for remote updates
+- [ ] Customizable user & agent identities
 
 ### Planned
 

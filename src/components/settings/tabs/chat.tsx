@@ -38,18 +38,14 @@ import {
   FileText,
   Save,
   Search,
-  Trash2,
+  Shredder,
   Upload,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 
-interface Props {
-  open: boolean;
-}
-
-export const ChatSettingsTab: React.FC<Props> = ({ open }) => {
+export const ChatSettingsTab: React.FC = () => {
   const apiKey = useSettingsStore((state) => state.apiKey);
   const setApiKey = useSettingsStore((state) => state.setApiKey);
   const defaultModel = useSettingsStore((state) => state.defaultModel);
@@ -82,15 +78,13 @@ export const ChatSettingsTab: React.FC<Props> = ({ open }) => {
   };
 
   useEffect(() => {
-    if (open) {
-      setValue(apiKey);
-      setShowKey(false);
-    }
-  }, [open, apiKey]);
+    setValue(apiKey);
+    setShowKey(false);
+  }, [apiKey]);
   return (
     <>
       <div className="max-w-3xl">
-        <h3 className="text-lg font-medium">Chat Settings</h3>
+        <h3 className="text-lg font-medium">Chat</h3>
         <p className="text-sm text-muted-foreground">
           Configure your chat experience.
         </p>
@@ -145,10 +139,12 @@ export const ChatSettingsTab: React.FC<Props> = ({ open }) => {
 
       <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
         <div className="space-y-4">
-          <p className="text-base font-medium">Default Model</p>
-          <p className="text-sm text-muted-foreground">
-            Model used for new sessions.
-          </p>
+          <div className="space-y-1">
+            <p className="text-base font-medium">Default Model</p>
+            <p className="text-sm text-muted-foreground">
+              Model used for new sessions.
+            </p>
+          </div>
           <div className="pt-2">
             <Select
               value={defaultModel}
@@ -228,26 +224,25 @@ export const ChatSettingsTab: React.FC<Props> = ({ open }) => {
             <AlertDialogTrigger asChild>
               <Button
                 variant="outline"
-                size="default"
+                size="icon"
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
               >
-                <Trash2 />
-                Purge
+                <Shredder />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Clear Chat History</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete all your conversations. This
-                  action cannot be undone.
+                  This will permanently delete all your sessions. This action
+                  cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleClearHistory}
-                  className="bg-destructive text-white hover:bg-destructive/90"
+                  variant="destructive"
                 >
                   Delete All
                 </AlertDialogAction>

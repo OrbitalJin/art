@@ -38,7 +38,7 @@ type ThemeProviderState = {
 const initialState: ThemeProviderState = {
   mode: "system",
   setMode: () => null,
-  color: "amethyst haze",
+  color: "zen",
   setColor: () => null,
 };
 
@@ -47,7 +47,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children,
   defaultMode = "system",
-  defaultColor = "amethyst haze",
+  defaultColor = "zen",
   storageKeyMode = "vite-ui-theme-mode",
   storageKeyColor = "vite-ui-theme-color",
   ...props

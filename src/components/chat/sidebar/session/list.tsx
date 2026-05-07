@@ -78,9 +78,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
   const older = regular.filter((s) => getTimeGroup(s.updatedAt) === "older");
 
   const isEmpty =
-    archived.length === 0 &&
-    regular.length === 0 &&
-    pinned.length === 0;
+    archived.length === 0 && regular.length === 0 && pinned.length === 0;
 
   return (
     <div className="relative flex-1 overflow-hidden">
@@ -209,8 +207,8 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
         </div>
       </ScrollArea>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-4 bg-linear-to-b from-background to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-linear-to-t from-background to-transparent" />
+      <div className="pointer-events-none opacity-60 absolute inset-x-0 top-0 h-4 bg-linear-to-b from-background to-transparent" />
+      <div className="pointer-events-none opacity-60 absolute inset-x-0 bottom-0 h-4 bg-linear-to-t from-background to-transparent" />
     </div>
   );
 };

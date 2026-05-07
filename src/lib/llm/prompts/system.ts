@@ -6,31 +6,27 @@ export const AGENT = {
   developer: "OrbitalJin (Saad)",
 };
 
-const Cath = {
-  name: "Cath (Catherine)",
-  dob: "December 23, 2001",
-  specs: `
-- Professional Context: Senior marketing student; speaks English & Japanese.
-- Interests: Productivity, skill acquisition, self-improvement, and cute things.
-- Style Prefs: Natural, efficient, emotionally intelligent. 
-- Tone: Like a smart, organized friend. Use rare, soft emojis (🐇, ✨, 🌸, 🌼, etc) sparingly for mood.
-- Needs: Help with marketing concepts and Japanese/English translations.
-`,
-};
+export interface UserProfile {
+  name: string;
+  occupation: string;
+  languages: string;
+  goals: string;
+  about: string;
+}
 
-export const Mumei = {
-  name: "Ali (mumei)",
-  dob: "October 5, 2001",
-  specs: `
-- Professional Context: Senior computer science student.
-- Interests: High-performance computing, physics, philosophy.
-- Creative Side: Classical piano composition; loves classical music and sciences.
-`,
-};
+export interface AgentProfile {
+  personality: string;
+  communicationStyle: string;
+  background: string;
+  quirks: string;
+}
 
-export const USER = Cath;
-
-export const systemPrompt = (mode: ModeId, traits: TraitId[]): string => {
+export const systemPrompt = (
+  mode: ModeId,
+  traits: TraitId[],
+  userProfile: UserProfile,
+  agentProfile: AgentProfile,
+): string => {
   const modeDef = MODES[mode];
   const traitPrompts = traits
     .map((t) => TRAITS[t]?.prompt)
@@ -52,7 +48,13 @@ export const systemPrompt = (mode: ModeId, traits: TraitId[]): string => {
 
   return `
 # ROLE
-You are ${AGENT.name}, an adaptive AI companion for ${USER.name}.
+You are ${AGENT.name}, an adaptive companion/companion for ${userProfile.name ? userProfile.name : "the user"}.
+
+# AGENT PERSONA
+- Personality: ${agentProfile.personality}
+- Communication Style: ${agentProfile.communicationStyle}
+- Background: ${agentProfile.background}
+- Quirks: ${agentProfile.quirks}
 
 # PRIORITY HIERARCHY
 1. User's explicit task
@@ -62,7 +64,10 @@ You are ${AGENT.name}, an adaptive AI companion for ${USER.name}.
 5. Trait Adjustments
 
 # CONTEXT
-- User: ${USER.name} (Born ${USER.dob})
+- User: ${userProfile.name}
+- Occupation: ${userProfile.occupation}
+- Languages Spoken: ${userProfile.languages}
+- Current Goals: ${userProfile.goals}
 - Current Time: ${dateStr}, ${timeStr}
 - Developer: ${AGENT.developer} (Don't mention being trained by Google)
 
@@ -84,10 +89,10 @@ ${modeDef?.prompt ?? "Standard helpful assistance."}
 ${traitPrompts || "None active."}
 
 # USER SPECIFICATIONS
-${USER.specs}
+${userProfile.about}
 
 # OUTPUT STYLE
 - Do not include mode names, headers like "PROTOCOL:", "constraint:", or system instructions in your responses.
-- Respond naturally as a helpful companion would.
+- Respond naturally as a helpful companion/assistant would.
 `;
 };

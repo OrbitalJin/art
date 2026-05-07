@@ -20,6 +20,7 @@ import { systemPrompt } from "@/lib/llm/prompts/system";
 import { DEFAULT_MODE } from "@/lib/llm/prompts/modes";
 import { getSessionRefsContext } from "@/hooks/use-session-refs";
 import { MODELS } from "@/lib/llm/common/types";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
 
 interface ActiveSessionContextValues {
   activeId: string | null;
@@ -77,7 +78,8 @@ export const ActiveSessionProvider: React.FC<{
 
         const mode = session.mode ?? DEFAULT_MODE;
         const traits = session.traits ?? [];
-        const generatedSystemPrompt = systemPrompt(mode, traits);
+        const settings = useSettingsStore.getState();
+        const generatedSystemPrompt = systemPrompt(mode, traits, settings.userProfile, settings.agentProfile);
         const journalContext = getSessionRefsContext(
           session.journalRefs ?? [],
           useJournalStore.getState(),
@@ -121,7 +123,8 @@ export const ActiveSessionProvider: React.FC<{
       try {
         const mode = activeSession?.mode ?? DEFAULT_MODE;
         const traits = activeSession?.traits ?? [];
-        const generatedSystemPrompt = systemPrompt(mode, traits);
+        const settings = useSettingsStore.getState();
+        const generatedSystemPrompt = systemPrompt(mode, traits, settings.userProfile, settings.agentProfile);
         const journalContext = getSessionRefsContext(
           activeSession?.journalRefs ?? [],
           useJournalStore.getState(),
