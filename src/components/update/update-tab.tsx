@@ -48,201 +48,190 @@ export const UpdateTab: React.FC<{ enabled: boolean }> = ({ enabled }) => {
     downloaded,
     contentLength,
     progress,
-    notes,
     checkForUpdates,
     downloadAndInstall,
     restartToFinish,
   } = useAppUpdater(enabled);
 
+  const showUpdateCard =
+    status === "available" ||
+    status === "downloading" ||
+    status === "installing" ||
+    status === "installed";
+
   return (
-    <div className="flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-        <div className="space-y-4">
-          {status === "checking" && (
-            <StatusCard
-              icon={<Loader2 className="size-5 animate-spin" />}
-              title="Checking for updates"
-              description="Looking for the latest available version."
-            />
-          )}
+    <div className="flex h-full flex-col bg-background">
+      <div className="min-h-0 flex-1">
+        <ScrollArea className="h-full">
+          <div className="mx-auto max-w-3xl px-6 py-6">
+            <div className="mb-6 space-y-1">
+              <h1 className="text-2xl font-medium tracking-tight">Updates</h1>
+              <p className="text-sm text-muted-foreground">
+                Keep your app up to date with the latest improvements and fixes.
+              </p>
+            </div>
 
-          {status === "unavailable" && (
-            <StatusCard
-              icon={<CheckCircle2 className="size-5 text-green-600" />}
-              title="You're up to date"
-              description="You already have the latest version installed."
-              tone="success"
-            />
-          )}
-
-          {status === "error" && (
-            <StatusCard
-              icon={<AlertTriangle className="size-5 text-red-600" />}
-              title="Couldn't install update"
-              description={error ?? "Something went wrong while updating."}
-              tone="error"
-            />
-          )}
-
-          {(status === "available" ||
-            status === "downloading" ||
-            status === "installing" ||
-            status === "installed") &&
-            updateInfo && (
-              <>
+            <div className="space-y-4">
+              {status === "checking" && (
                 <StatusCard
-                  icon={
-                    status === "installed" ? (
-                      <RefreshCw className="size-5 text-green-600" />
-                    ) : status === "installing" ? (
-                      <Loader2 className="size-5 animate-spin" />
-                    ) : status === "downloading" ? (
-                      <Loader2 className="size-5 animate-spin" />
-                    ) : (
-                      <CloudDownload className="size-5 text-blue-600" />
-                    )
-                  }
-                  title={
-                    status === "available"
-                      ? "Update available"
-                      : status === "downloading"
-                        ? "Downloading update"
-                        : status === "installing"
-                          ? "Installing update"
-                          : "Update ready"
-                  }
-                  description={
-                    status === "available"
-                      ? "A newer version is available to download and install."
-                      : status === "downloading"
-                        ? "Your update is currently being downloaded."
-                        : status === "installing"
-                          ? "Finalizing the installation."
-                          : "The update was installed successfully. Restart to finish."
-                  }
-                  badge={`v${updateInfo.version}`}
-                  tone={status === "installed" ? "success" : "info"}
+                  icon={<Loader2 className="size-5 animate-spin" />}
+                  title="Checking for updates"
+                  description="Looking for the latest available version."
                 />
+              )}
 
-                <div className="grid grid-cols-2 gap-3 rounded-xl border bg-background p-4 text-sm">
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Version
-                    </div>
-                    <div className="mt-1 font-medium">{updateInfo.version}</div>
-                  </div>
+              {status === "unavailable" && (
+                <StatusCard
+                  icon={<CheckCircle2 className="size-5 text-green-600" />}
+                  title="You're up to date"
+                  description="You already have the latest version installed."
+                  tone="success"
+                />
+              )}
 
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Released
-                    </div>
-                    <div className="mt-1 font-medium">
-                      {formatDate(updateInfo.date)}
-                    </div>
-                  </div>
-                </div>
+              {status === "error" && (
+                <StatusCard
+                  icon={<AlertTriangle className="size-5 text-red-600" />}
+                  title="Couldn't install update"
+                  description={error ?? "Something went wrong while updating."}
+                  tone="error"
+                />
+              )}
 
-                <div className="space-y-2">
-                  <div className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                    What's new
-                  </div>
+              {showUpdateCard && updateInfo && (
+                <section className="overflow-hidden rounded-2xl border border-border/60 bg-card/50">
+                  <div className="border-b border-border/50 px-5 py-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2.5">
+                          {status === "installed" ? (
+                            <RefreshCw className="size-4 text-green-600" />
+                          ) : status === "installing" ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : status === "downloading" ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <CloudDownload className="size-4 text-blue-600" />
+                          )}
 
-                  <ScrollArea className="max-h-40 rounded-xl border bg-muted/20">
-                    <div className="px-4 py-3">
-                      {notes.length > 0 ? (
-                        <ul className="space-y-2 text-sm text-foreground/90">
-                          {notes.map((line, index) => (
-                            <li
-                              key={`${line}-${index}`}
-                              className="flex items-start gap-2"
-                            >
-                              <span className="mt-2 h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
-                              <span>{line}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
+                          <h2 className="text-base font-medium tracking-tight">
+                            {status === "available"
+                              ? "Update available"
+                              : status === "downloading"
+                                ? "Downloading update"
+                                : status === "installing"
+                                  ? "Installing update"
+                                  : "Update ready"}
+                          </h2>
+                        </div>
+
                         <p className="text-sm text-muted-foreground">
-                          No release notes provided for this update.
+                          {status === "available"
+                            ? "A newer version is available to download and install."
+                            : status === "downloading"
+                              ? "Your update is currently being downloaded."
+                              : status === "installing"
+                                ? "Finalizing the installation."
+                                : "The update was installed successfully. Restart to finish."}
                         </p>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </div>
+                      </div>
 
-                {(status === "downloading" ||
-                  status === "installing" ||
-                  status === "installed") && (
-                  <div className="space-y-3 rounded-xl border bg-muted/20 p-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">
-                        {status === "downloading"
-                          ? "Downloading update"
-                          : status === "installing"
-                            ? "Installing update"
-                            : "Installation complete"}
-                      </span>
-                      <span className="text-muted-foreground">{progress}%</span>
-                    </div>
-
-                    <Progress value={progress} />
-
-                    <div className="text-xs text-muted-foreground">
-                      {status === "downloading" &&
-                        `${formatBytes(downloaded)} of ${formatBytes(contentLength)} downloaded`}
-                      {status === "installing" && "Finalizing installation..."}
-                      {status === "installed" &&
-                        "Update installed successfully. Restart the app to finish."}
+                      <div className="shrink-0 rounded-full border border-border/60 bg-background px-2.5 py-1 text-xs font-medium text-foreground/80">
+                        v{updateInfo.version}
+                      </div>
                     </div>
                   </div>
-                )}
-              </>
-            )}
 
-          {status === "idle" && (
-            <StatusCard
-              icon={<CloudDownload className="size-5" />}
-              title="Check for updates"
-              description="See whether a newer version of the app is available."
-            />
-          )}
-        </div>
+                  <div className="space-y-5 px-5 py-4">
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Version</span>
+                        <span className="font-medium">
+                          {updateInfo.version}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Released</span>
+                        <span className="font-medium">
+                          {formatDate(updateInfo.date)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {(status === "downloading" ||
+                      status === "installing" ||
+                      status === "installed") && (
+                      <div className="space-y-3 rounded-xl bg-muted/20 px-4 py-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="font-medium text-foreground">
+                            {status === "downloading"
+                              ? "Downloading update"
+                              : status === "installing"
+                                ? "Installing update"
+                                : "Installation complete"}
+                          </span>
+
+                          <span className="text-muted-foreground">
+                            {progress}%
+                          </span>
+                        </div>
+
+                        <Progress value={progress} />
+
+                        <p className="text-xs text-muted-foreground">
+                          {status === "downloading" &&
+                            `${formatBytes(downloaded)} of ${formatBytes(contentLength)} downloaded`}
+                          {status === "installing" &&
+                            "Finalizing installation..."}
+                          {status === "installed" &&
+                            "Update installed successfully. Restart the app to finish."}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {status === "idle" && (
+                <StatusCard
+                  icon={<CloudDownload className="size-5" />}
+                  title="Check for updates"
+                  description="See whether a newer version of the app is available."
+                />
+              )}
+            </div>
+          </div>
+        </ScrollArea>
       </div>
 
-      <div className="border-t px-6 py-4">
-        <div className="flex w-full items-center justify-between gap-2">
-          <div />
+      <div className="border-t border-border/60 bg-background/80 px-6 py-4 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-center justify-end gap-2">
+          {(status === "idle" ||
+            status === "unavailable" ||
+            status === "error" ||
+            status === "checking") && (
+            <Button onClick={checkForUpdates} disabled={status === "checking"}>
+              {status === "checking" && (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              )}
+              Check for updates
+            </Button>
+          )}
 
-          <div className="flex gap-2">
-            {(status === "idle" ||
-              status === "unavailable" ||
-              status === "error" ||
-              status === "checking") && (
-              <Button
-                onClick={checkForUpdates}
-                disabled={status === "checking"}
-              >
-                {status === "checking" && (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                )}
-                Check for updates
-              </Button>
-            )}
+          {status === "available" && (
+            <Button onClick={downloadAndInstall}>
+              <CloudDownload className="mr-2 size-4" />
+              Update
+            </Button>
+          )}
 
-            {status === "available" && (
-              <Button onClick={downloadAndInstall}>
-                <CloudDownload className="mr-2 size-4" />
-                Update
-              </Button>
-            )}
-
-            {status === "installed" && (
-              <Button onClick={restartToFinish}>
-                <RefreshCw className="mr-2 size-4" />
-                Restart to finish
-              </Button>
-            )}
-          </div>
+          {status === "installed" && (
+            <Button onClick={restartToFinish}>
+              <RefreshCw className="mr-2 size-4" />
+              Restart to finish
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ Bring your own AI key, keep your workflow close to home, and organize thinking, 
 
 [![Version](https://img.shields.io/github/v/release/orbitaljin/art?style=flat-square)](https://github.com/orbitaljin/art/releases)
 
-![Art overview](public/screenshots/overview.png)
+![Art overview](assets/screenshots/overview.png)
 
 ---
 
@@ -21,7 +21,7 @@ Art is built for people who want one personal workspace instead of juggling disc
 - Shared workflows across chat, writing, and planning
 - Customizable interface, settings, and navigation
 
-![Art overview](public/screenshots/settings.png)
+![Art overview](assets/screenshots/settings.png)
 
 ## Features
 
@@ -29,7 +29,7 @@ Art is built for people who want one personal workspace instead of juggling disc
 
 Multi-session AI conversations with dedicated workflow modes.
 
-![Art chat](public/screenshots/chat.png)
+![Art chat](assets/screenshots/chat.png)
 
 - Chat, research, and tutor modes
 - Rename, pin, archive, fork, import, and export sessions
@@ -42,7 +42,7 @@ Multi-session AI conversations with dedicated workflow modes.
 
 A rich writing space for notes, reflection, and reusable context.
 
-![Art journal](public/screenshots/journal.png)
+![Art journal](assets/screenshots/journal.png)
 
 - Rich text editor with auto-save
 - Custom mentions and categories
@@ -55,7 +55,7 @@ A rich writing space for notes, reflection, and reusable context.
 
 A flexible bento-style board for planning and execution.
 
-![Art tasks](public/screenshots/tasks.png)
+![Art tasks](assets/screenshots/tasks.png)
 
 - Drag-and-drop organization
 - Editable tasks and projects
@@ -64,7 +64,7 @@ A flexible bento-style board for planning and execution.
 - Custom ordering
 - Calendar view
 
-![Art Calendar](public/screenshots/calendar.png)
+![Art Calendar](assets/screenshots/calendar.png)
 
 ### Productivity Tools
 
@@ -89,7 +89,7 @@ Grab the latest build from [Releases](https://github.com/orbitaljin/art/releases
 
 Updates are handled in-app. Through the built-in updater, you can update to the latest version.
 
-![Updater](public/screenshots/changelog.png)
+![Updater](assets/screenshots/changelog.png)
 
 ## Detailed Progress
 
