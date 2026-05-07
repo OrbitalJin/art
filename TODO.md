@@ -116,7 +116,6 @@ Bento-style task board with drag-and-drop organization.
 - [ ] Food tracking
 - [ ] Screenshot paste support for single and multiple images, then save as PNG
 - [ ] Sticker overlay for PNGs on the window
-- [ ] Sticky notes
 
 ---
 
@@ -153,7 +152,7 @@ Bento-style task board with drag-and-drop organization.
 - [x] Edit message with prune and resend
 - [x] Changelogs
 - [x] Tauri hot updates and signing for remote updates
-- [ ] Customizable user & agent identities
+- [x] Customizable user & agent identities
 
 ### Planned
 
