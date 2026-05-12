@@ -41,7 +41,7 @@ const LazyPrism: React.FC<Props> = ({ code, language, wraps }) => {
     <div className="text-sm p-1">
       <Prism
         style={themePrismMap[color]}
-        language={language}
+        language={language.toLowerCase()}
         PreTag="div"
         customStyle={{
           background: "transparent",

@@ -16,7 +16,7 @@ const CodeBlockComponent = ({
 }: CodeBlockProps) => {
   const code = String(children ?? "").replace(/\n$/, "");
   const match = /language-(\w+)/.exec(className || "");
-  const language = match?.[1] ?? "text";
+  const language = (match?.[1] ?? "text").toLowerCase();
 
   const {
     lineCount,
