@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 import {
   ContextMenuItem,
-  ContextMenuShortcut,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
@@ -37,9 +36,6 @@ export const EditorItemRenderer = ({ item }: { item: any }) => {
     >
       <Icon className="h-4 w-4" />
       <span>{item.label}</span>
-      {item.shortcut && (
-        <ContextMenuShortcut>{item.shortcut}</ContextMenuShortcut>
-      )}
     </ContextMenuItem>
   );
 };

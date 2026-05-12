@@ -8,7 +8,6 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
-  CommandShortcut,
 } from "@/components/ui/command";
 import { getMenuGroups } from "@/components/journal/editor/editor-menu";
 import { useEditorActions } from "@/hooks/use-editor-actions";
@@ -65,7 +64,6 @@ const CommandItemRenderer = ({
     >
       <Icon className="mr-2 h-4 w-4" />
       {item.label}
-      {item.shortcut && <CommandShortcut>{item.shortcut}</CommandShortcut>}
     </CommandItem>
   );
 };
