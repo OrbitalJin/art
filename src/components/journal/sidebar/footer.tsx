@@ -1,4 +1,4 @@
-import { Edit3, Eye, FileText, Hash, Loader2, Copy, Check } from "lucide-react";
+import { Edit3, Eye, FileText, Hash, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useJournalEditor } from "@/contexts/note-editor-context";
 import { useCopy } from "@/hooks/use-copy";
@@ -16,7 +16,6 @@ export const SidebarFooter = () => {
     isDisabled,
     wordCount,
     charCount,
-    isSaving,
     toggleEditable,
   } = useJournalEditor();
   const currentNote = useJournalStore((s) => s.getFn(s.activeId ?? ""));
@@ -36,13 +35,11 @@ export const SidebarFooter = () => {
 
       <div className="flex items-center gap-2 p-2 border-t">
         <Button
-          variant={isEditable ? "default" : "outline"}
+          variant={"outline"}
           onClick={toggleEditable}
           className="flex-1 transition-all"
         >
-          {isSaving ? (
-            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin opacity-70" />
-          ) : isEditable ? (
+          {isEditable ? (
             <Edit3 className="h-3.5 w-3.5 mr-1.5" />
           ) : (
             <Eye className="h-3.5 w-3.5 mr-1.5" />

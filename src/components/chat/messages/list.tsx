@@ -53,7 +53,7 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
             followOutput={true}
             atBottomStateChange={setAtBottom}
             itemContent={(_, msg) => (
-              <div className="mx-auto max-w-2xl py-4 select-text">
+              <div className="mx-auto max-w-3xl py-4 select-text">
                 <MessageBroker {...msg} />
               </div>
             )}

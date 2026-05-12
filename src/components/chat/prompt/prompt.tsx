@@ -38,7 +38,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
 
   return (
     <footer className="z-20 px-4 pb-2">
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-3xl">
         <div
           className={cn(
             "relative flex flex-col gap-2 p-2 transition-all",

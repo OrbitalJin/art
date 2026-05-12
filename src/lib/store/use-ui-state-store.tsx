@@ -18,6 +18,7 @@ interface JournalState {
   pinnedOpen: boolean;
   sessionsOpen: boolean;
   archivedOpen: boolean;
+  zoomLevel: number;
 }
 
 interface SettingsState {
@@ -49,10 +50,7 @@ export const useUIStateStore = create<SettingsState>()(
         pinnedOpen: true,
         sessionsOpen: true,
         archivedOpen: false,
-        todayOpen: true,
-        yesterdayOpen: true,
-        last7DaysOpen: true,
-        olderOpen: true,
+        zoomLevel: 100,
       },
       settingsDialogOpen: false,
       updateDialogOpen: false,
