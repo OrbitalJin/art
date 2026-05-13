@@ -1,6 +1,7 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { settingsStorage } from "@/lib/store/settings/adapter";
 import { create } from "zustand";
+import type { ModelId } from "../llm/common/types";
 
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
@@ -24,7 +25,7 @@ interface SettingsState {
   apiKey: string;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
-  defaultModel: string;
+  defaultModel: ModelId;
   enterKeySends: boolean;
   reducedMotion: boolean;
   userProfile: UserProfile;
@@ -33,7 +34,7 @@ interface SettingsState {
   setApiKey: (key: string) => void;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
-  setDefaultModel: (model: string) => void;
+  setDefaultModel: (model: ModelId) => void;
   setEnterKeySends: (value: boolean) => void;
   setReducedMotion: (value: boolean) => void;
   setUserProfile: (profile: Partial<UserProfile>) => void;
@@ -63,7 +64,7 @@ const initialState = {
   apiKey: "",
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
-  defaultModel: "Genesis",
+  defaultModel: "model-1" as ModelId,
   enterKeySends: true,
   reducedMotion: false,
   userProfile: DEFAULT_USER_PROFILE,
@@ -77,7 +78,7 @@ export const useSettingsStore = create<SettingsState>()(
       setApiKey: (key: string) => set({ apiKey: key }),
       setFontSize: (size: FontSize) => set({ fontSize: size }),
       setCornerRadius: (radius: CornerRadius) => set({ cornerRadius: radius }),
-      setDefaultModel: (model: string) => set({ defaultModel: model }),
+      setDefaultModel: (model: ModelId) => set({ defaultModel: model }),
       setEnterKeySends: (value: boolean) => set({ enterKeySends: value }),
       setReducedMotion: (value: boolean) => set({ reducedMotion: value }),
       setUserProfile: (profile: Partial<UserProfile>) =>
@@ -92,7 +93,21 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
+      version: 2,
       storage: createJSONStorage(() => settingsStorage),
+      migrate: (persistedState: unknown, version: number) => {
+        if (version < 2) {
+          const state = persistedState as { defaultModel: ModelId };
+          if (state) {
+            state.defaultModel =
+              state.defaultModel in ["model-1", "model-2", "model-3"]
+                ? (state.defaultModel as ModelId)
+                : "model-1";
+            return state;
+          }
+        }
+        return persistedState as SettingsState;
+      },
     },
   ),
 );

@@ -8,9 +8,6 @@ import { DEFAULT_MODE, MODES, type ModeId } from "../llm/prompts/modes";
 import type { TraitId } from "../llm/prompts/traits";
 import { useSettingsStore } from "./use-settings-store";
 
-const DEFAULT_MODEL_ID: ModelId = useSettingsStore.getState()
-  .defaultModel as ModelId;
-
 const createNewSession = (
   title?: string,
   defaultModelId?: ModelId,
@@ -24,7 +21,7 @@ const createNewSession = (
     journalRefs: [],
     webCtxUrls: [],
     mode: DEFAULT_MODE,
-    modelId: defaultModelId ?? DEFAULT_MODEL_ID,
+    modelId: defaultModelId ?? (MODELS.find((m) => m.id === useSettingsStore.getState().defaultModel)?.id ?? MODELS[0].id),
     createdAt: date,
     updatedAt: date,
   };
@@ -409,7 +406,7 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -420,7 +417,7 @@ export const useSessionStore = create<SessionState>()(
               modelId:
                 session.modelId in MODELS
                   ? (session.modelId as ModelId)
-                  : DEFAULT_MODEL_ID,
+                  : MODELS[0].id,
               mode: session.mode in MODES ? session.mode : DEFAULT_MODE,
               webCtxUrls: Array.isArray(session.webCtxUrls)
                 ? session.webCtxUrls
@@ -432,7 +429,22 @@ export const useSessionStore = create<SessionState>()(
             }));
           }
         }
-        return persistedState as { sessions?: Session[]; version?: number };
+        if (version < 3) {
+          const state = persistedState as { sessions?: Session[] };
+          if (state && Array.isArray(state.sessions)) {
+            const modelIdMap: Record<string, ModelId> = {
+              Genesis: "model-1",
+              Bloom: "model-2",
+              Eden: "model-3",
+            };
+            state.sessions = state.sessions.map((session: Session) => ({
+              ...session,
+              modelId:
+                modelIdMap[session.modelId as string] ?? MODELS[0].id,
+            }));
+          }
+        }
+        return persistedState as SessionState;
       },
       onRehydrateStorage: () => (state) => {
         if (!state) return;

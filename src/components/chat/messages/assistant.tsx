@@ -135,7 +135,7 @@ export const AssistantMessage: React.FC<Message> = ({
               >
                 <Sparkle size={12} />
                 <ShimmerText className={cn(premium && "text-amber-300/60")}>
-                  {model?.id}
+                  {model?.displayName}
                 </ShimmerText>
               </span>
             </div>

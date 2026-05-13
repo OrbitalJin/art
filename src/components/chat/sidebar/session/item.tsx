@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/hover-card";
 import { useCreatePageFromSession } from "@/hooks/use-create-page-from-session";
 import type { Session } from "@/lib/store/session/types";
+import { MODELS } from "@/lib/llm/common/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -138,7 +139,7 @@ export const SessionListItem: React.FC<Props> = ({
                     {parentSession.title}
                   </p>
                   <p className="mt-1 text-[11px] text-muted-foreground/80">
-                    Model: {parentSession.modelId}
+                    Model: {MODELS.find((m) => m.id === parentSession.modelId)?.displayName ?? parentSession.modelId}
                   </p>
                   <p className="text-[11px] text-muted-foreground/80">
                     Created:{" "}

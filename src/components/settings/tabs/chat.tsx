@@ -158,7 +158,7 @@ export const ChatSettingsTab: React.FC = () => {
                   <SelectLabel>Models</SelectLabel>
                   {MODELS.map((m) => (
                     <SelectItem key={m.id} value={m.id}>
-                      <span>{m.id}</span>
+                      <span>{m.displayName}</span>
                     </SelectItem>
                   ))}
                 </SelectGroup>

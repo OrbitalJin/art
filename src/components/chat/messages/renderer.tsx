@@ -19,7 +19,7 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
   return (
     <div
       className={cn(
-        "max-w-none wrap-break-word text-foreground/90 leading-6",
+        "max-w-none wrap-break-word text-foreground leading-6",
         className,
       )}
     >

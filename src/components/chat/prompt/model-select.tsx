@@ -50,7 +50,7 @@ export const SelectModel = () => {
         hover:bg-accent/30 hover:text-primary
         inline-flex items-center justify-between rounded-md px-3 py-2 disabled:pointer-events-none disabled:opacity-50"
       >
-        <span className="truncate font-medium">{model?.id || "Model"}</span>
+        <span className="truncate font-medium">{model?.displayName || "Model"}</span>
         <ChevronUp
           className={cn(
             "h-3.5 w-3.5 opacity-50 shrink-0 transition-transform",
@@ -93,7 +93,7 @@ export const SelectModel = () => {
                       isSelected ? "text-primary" : "text-foreground",
                     )}
                   >
-                    {m.id}
+                    {m.displayName}
                   </p>
                   <Badge
                     variant="outline"
