@@ -5,6 +5,38 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function extractVideoId(url: string): string | null {
+  try {
+    const u = new URL(url);
+
+    if (u.hostname === "youtu.be") {
+      return u.pathname.slice(1).split(/[?&#]/)[0];
+    }
+
+    if (u.hostname.includes("youtube.com")) {
+      return u.searchParams.get("v");
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export type ThumbnailQuality =
+  | "maxresdefault"
+  | "hqdefault"
+  | "mqdefault"
+  | "default";
+
+export function getYoutubeThumbnail(
+  url: string,
+  quality: ThumbnailQuality = "mqdefault",
+): string | null {
+  const id = extractVideoId(url);
+  return id ? `https://img.youtube.com/vi/${id}/${quality}.jpg` : null;
+}
+
 export const formatDateAsAgo = (timestamp: number) => {
   const date = new Date(timestamp);
   const now = new Date();

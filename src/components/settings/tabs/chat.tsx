@@ -230,7 +230,7 @@ export const ChatSettingsTab: React.FC = () => {
                 <Shredder />
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent size="sm">
               <AlertDialogHeader>
                 <AlertDialogTitle>Clear Chat History</AlertDialogTitle>
                 <AlertDialogDescription>

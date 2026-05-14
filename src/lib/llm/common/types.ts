@@ -24,7 +24,8 @@ export const MODELS: readonly Model[] = [
     id: "model-1",
     type: "gemini-2.5-flash-lite",
     displayName: "Monet",
-    description: "Quick and simple, meant to keep ideas moving.",
+    description:
+      "Fast, lightweight, and responsive. Best for quick questions, drafting, and everyday chat.",
     limit: 1_000_000,
   },
   {
@@ -32,7 +33,8 @@ export const MODELS: readonly Model[] = [
     id: "model-2",
     type: "gemini-3.1-flash-lite",
     displayName: "Voltaire",
-    description: "More thoughtful, carefully connects ideas.",
+    description:
+      "Sharper and more composed. Better at structured writing, synthesis, and connecting ideas clearly.",
     limit: 1_000_000,
   },
   {
@@ -40,7 +42,8 @@ export const MODELS: readonly Model[] = [
     id: "model-3",
     type: "gemini-3.1-flash",
     displayName: "Chopin",
-    description: "Deep and deliberate, built to deliver.",
+    description:
+      "Most capable and deliberate. Best for nuanced reasoning, polished writing, and more demanding tasks.",
     limit: 1_000_000,
   },
 ];

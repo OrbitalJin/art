@@ -182,7 +182,7 @@ export const SettingsDialog = () => {
                   <RotateCcw />
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent size="sm">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Reset to Factory?</AlertDialogTitle>
                   <AlertDialogDescription>

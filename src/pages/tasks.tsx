@@ -23,7 +23,7 @@ export const Tasks = () => {
   const setView = useTasksStore((state) => state.setView);
 
   return (
-    <div className="flex-1 flex flex-col h-full p-2 gap-2">
+    <div className="flex-1 flex flex-col h-full gap-2">
       <div
         className={cn(
           "flex flex-row gap-2 items-center p-2",

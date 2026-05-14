@@ -9,6 +9,7 @@ lerna-debug.log*
 public/changelog.json
 
 .env
+AGENTS.md
 node_modules
 dist
 dist-ssr

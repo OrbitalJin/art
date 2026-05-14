@@ -308,7 +308,7 @@ const Menu: React.FC<MenuProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+      <AlertDialogContent size="sm" onClick={(e) => e.stopPropagation()}>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>

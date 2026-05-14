@@ -317,7 +317,7 @@ export const ProjectActions = () => {
         open={!!projectToDelete}
         onOpenChange={(open) => !open && setProjectToDelete(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent size="sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Project?</AlertDialogTitle>
             <AlertDialogDescription>

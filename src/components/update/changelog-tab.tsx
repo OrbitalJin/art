@@ -39,24 +39,24 @@ function getSectionAccent(type: string) {
   switch (type) {
     case "feat":
     case "added":
-      return "text-emerald-700 dark:text-emerald-300";
+      return "text-emerald-500";
     case "fix":
     case "fixed":
-      return "text-rose-700 dark:text-rose-300";
+      return "text-rose-500";
     case "updated":
-      return "text-sky-700 dark:text-sky-300";
+      return "text-sky-500";
     case "refactor":
-      return "text-amber-700 dark:text-amber-300";
+      return "text-amber-500";
     case "tweaks":
-      return "text-violet-700 dark:text-violet-300";
+      return "text-violet-500";
     case "semantics":
-      return "text-pink-700 dark:text-pink-300";
+      return "text-pink-500";
     case "patch":
-      return "text-orange-700 dark:text-orange-300";
+      return "text-orange-500";
     case "ci/cd":
-      return "text-cyan-700 dark:text-cyan-300";
+      return "text-cyan-500";
     case "chore":
-      return "text-zinc-700 dark:text-zinc-300";
+      return "text-zinc-500";
     default:
       return "text-foreground";
   }

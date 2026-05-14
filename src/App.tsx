@@ -4,6 +4,7 @@ import { Journal } from "@/pages/journal";
 import { Chat } from "@/pages/chat";
 import { Tasks } from "./pages/tasks";
 import { useAppearanceEffects } from "./hooks/use-appearance-effects";
+import { Interval } from "./pages/interval";
 
 export default function App() {
   useAppearanceEffects();
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/chat" element={<Chat />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/tasks" element={<Tasks />} />
+          <Route path="/interval" element={<Interval />} />
         </Routes>
       </Layout>
     </BrowserRouter>

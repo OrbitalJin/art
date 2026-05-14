@@ -1,7 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, Undo2, GitBranch, Pencil, ArrowUp, RefreshCcw } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Undo2,
+  GitBranch,
+  Pencil,
+  ArrowUp,
+  RefreshCcw,
+} from "lucide-react";
 import { Renderer } from "./renderer";
 import type { Message } from "@/lib/store/session/types";
 import {
@@ -197,7 +205,7 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
                 </HoverCardContent>
               </HoverCard>
 
-              <AlertDialogContent>
+              <AlertDialogContent size="sm">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                   <AlertDialogDescription>

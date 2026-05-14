@@ -206,7 +206,10 @@ export const BoardItem: React.FC<Props> = ({
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                <AlertDialogContent
+                  size="sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
@@ -216,6 +219,7 @@ export const BoardItem: React.FC<Props> = ({
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
+                      variant="destructive"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDelete?.(item.id);

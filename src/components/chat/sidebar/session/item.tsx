@@ -139,7 +139,9 @@ export const SessionListItem: React.FC<Props> = ({
                     {parentSession.title}
                   </p>
                   <p className="mt-1 text-[11px] text-muted-foreground/80">
-                    Model: {MODELS.find((m) => m.id === parentSession.modelId)?.displayName ?? parentSession.modelId}
+                    Model:{" "}
+                    {MODELS.find((m) => m.id === parentSession.modelId)
+                      ?.displayName ?? parentSession.modelId}
                   </p>
                   <p className="text-[11px] text-muted-foreground/80">
                     Created:{" "}
@@ -361,7 +363,7 @@ const Menu: React.FC<MenuProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialogContent>
+      <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>

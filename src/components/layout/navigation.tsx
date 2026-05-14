@@ -2,6 +2,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   Book,
   BookOpen,
+  Clock,
+  ClockFading,
   MessageCircle,
   MessageCircleDashed,
   SquareCheck,
@@ -14,11 +16,10 @@ import { Command } from "../command";
 
 export interface NavigationItem {
   href: string;
-  name: string;
   icon: LucideIcon;
   activeIcon: LucideIcon;
   shortcut: string;
-  description: string;
+  label: string;
 }
 
 export const Navigation = () => {
@@ -30,27 +31,31 @@ export const Navigation = () => {
   const items: NavigationItem[] = [
     {
       href: "/chat",
-      name: "Chat",
-      description: "Chat",
+      label: "Chat",
       icon: MessageCircleDashed,
       activeIcon: MessageCircle,
       shortcut: "1",
     },
     {
       icon: Book,
+      label: "Journal",
       activeIcon: BookOpen,
-      name: "Journal",
-      description: "Journal",
-      href: "/Journal",
+      href: "/journal",
       shortcut: "2",
     },
     {
       icon: SquareCheck,
+      label: "Tasks",
       activeIcon: SquareCheckBig,
-      name: "Tasks",
-      description: "Tasks",
       href: "/tasks",
       shortcut: "3",
+    },
+    {
+      icon: ClockFading,
+      activeIcon: Clock,
+      label: "Intervals",
+      href: "/interval",
+      shortcut: "4",
     },
   ];
 

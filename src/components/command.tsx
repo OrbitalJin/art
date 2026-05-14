@@ -3,9 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   BookPlus,
   CheckSquare,
-  CommandIcon,
   MessageCirclePlus,
-  Option,
   Settings2,
 } from "lucide-react";
 import {
@@ -67,7 +65,7 @@ export const Command: React.FC<Props> = ({ items }) => {
         setOpen((open) => !open);
       }
 
-      if (e.altKey && e.key >= "1" && e.key <= "4") {
+      if (e.altKey && e.key >= "1" && e.key <= "5") {
         e.preventDefault();
         const index = parseInt(e.key) - 1;
         if (items[index]) {
@@ -100,7 +98,7 @@ export const Command: React.FC<Props> = ({ items }) => {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen} title="Command Palette">
-      <CommandInput placeholder="Type a command or search..." />
+      <CommandInput placeholder="Search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
@@ -109,13 +107,7 @@ export const Command: React.FC<Props> = ({ items }) => {
             <MessageCirclePlus className="mr-2 h-4 w-4" />
             Quick Session
             <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
-              <Kbd>
-                <CommandIcon className="h-3 w-3" />
-              </Kbd>
-              <Kbd>
-                <Option className="h-3 w-3" />
-              </Kbd>
-              <Kbd className="text-lg">S</Kbd>
+              <Kbd>Ctrl</Kbd>+<Kbd>Alt</Kbd>+<Kbd>S</Kbd>
             </CommandShortcut>
           </CommandItem>
 
@@ -123,13 +115,7 @@ export const Command: React.FC<Props> = ({ items }) => {
             <BookPlus className="mr-2 h-4 w-4" />
             Quick Thought
             <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
-              <Kbd>
-                <CommandIcon className="h-3 w-3" />
-              </Kbd>
-              <Kbd>
-                <Option className="h-3 w-3" />
-              </Kbd>
-              <Kbd className="text-lg">N</Kbd>
+              <Kbd>Ctrl</Kbd>+<Kbd>Alt</Kbd>+<Kbd>N</Kbd>
             </CommandShortcut>
           </CommandItem>
 
@@ -137,13 +123,7 @@ export const Command: React.FC<Props> = ({ items }) => {
             <CheckSquare className="mr-2 h-3 w-3" />
             Quick Task
             <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
-              <Kbd>
-                <CommandIcon className="h-3 w-3" />
-              </Kbd>
-              <Kbd>
-                <Option className="h-3 w-3" />
-              </Kbd>
-              <Kbd className="text-lg">T</Kbd>
+              <Kbd>Ctrl</Kbd>+<Kbd>Alt</Kbd>+<Kbd>T</Kbd>
             </CommandShortcut>
           </CommandItem>
         </CommandGroup>
@@ -156,17 +136,14 @@ export const Command: React.FC<Props> = ({ items }) => {
             return (
               <CommandItem
                 key={item.href}
-                value={item.name.toLowerCase()}
+                value={item.label}
                 onSelect={() => handleNavigate(item.href)}
               >
                 <Icon className="mr-2 h-4 w-4" />
-                {item.description}
+                {item.label}
 
                 <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
-                  <Kbd>
-                    <Option className="h-3 w-3" />
-                  </Kbd>
-                  <Kbd className="text-lg">{item.shortcut}</Kbd>
+                  <Kbd>Alt</Kbd> +<Kbd>{item.shortcut}</Kbd>
                 </CommandShortcut>
               </CommandItem>
             );
@@ -176,10 +153,7 @@ export const Command: React.FC<Props> = ({ items }) => {
             <Settings2 className="mr-2 h-4 w-4" />
             Settings
             <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
-              <Kbd>
-                <CommandIcon className="h-3 w-3" />
-              </Kbd>
-              <Kbd className="text-lg">,</Kbd>
+              <Kbd>Ctrl</Kbd> +<Kbd>,</Kbd>
             </CommandShortcut>
           </CommandItem>
         </CommandGroup>

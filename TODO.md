@@ -101,6 +101,15 @@ Bento-style task board with drag-and-drop organization.
 
 ---
 
+## Interval work
+
+### Planned
+
+- [x] Implement a basic audio player with controls and playlist support
+- [ ] Create store & Persist playlist data
+- [ ] Add simple scratchpad
+- [ ] Work on implementing the interval work timer
+
 ## Productivity & Tools
 
 ### Shipped
@@ -112,8 +121,8 @@ Bento-style task board with drag-and-drop organization.
 
 ### Planned
 
-- [ ] Pomodoro timer
-- [ ] Food tracking
+- [ ] Interval work tracker
+- [ ] Food tracker
 - [ ] Screenshot paste support for single and multiple images, then save as PNG
 - [ ] Sticker overlay for PNGs on the window
 
