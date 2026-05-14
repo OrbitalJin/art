@@ -106,8 +106,8 @@ Bento-style task board with drag-and-drop organization.
 ### Planned
 
 - [x] Implement a basic audio player with controls and playlist support
-- [ ] Create store & Persist playlist data
-- [ ] Add simple scratchpad
+- [x] Create store & Persist playlist data
+- [x] Add simple memo
 - [ ] Work on implementing the interval work timer
 
 ## Productivity & Tools

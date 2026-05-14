@@ -1,5 +1,7 @@
+import { Memo } from "@/components/interval/memo";
 import { Player } from "@/components/interval/player";
 import { Playlist } from "@/components/interval/playlist";
+import { cn } from "@/lib/utils";
 
 export const Interval = () => {
   return (
@@ -12,7 +14,16 @@ export const Interval = () => {
       </div>
 
       <div className="rounded-md border bg-card/50 shadow-sm">setup</div>
-      <div className="rounded-md border bg-card/50 shadow-sm">scratchpad</div>
+
+      <div
+        className={cn(
+          "rounded-md border bg-card/50 transition-all",
+          "shadow-sm min-h-0 overflow-y-scroll",
+          "focus-within:border-primary/50 focus-within:border-2",
+        )}
+      >
+        <Memo />
+      </div>
     </div>
   );
 };
