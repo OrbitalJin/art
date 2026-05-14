@@ -9,7 +9,7 @@ export const Interval = () => {
       <div className="rounded-md border bg-card/50 shadow-sm">clock</div>
 
       <div className="flex flex-col gap-2 shadow-sm">
-        <Player />
+        <Player variant="default" />
         <Playlist />
       </div>
 

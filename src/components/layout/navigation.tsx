@@ -65,7 +65,7 @@ export const Navigation = () => {
         <Button
           key={item.href}
           className={cn(
-            "hover:scale-110 transition-all",
+            "text-muted-foreground hover:text-foreground",
             isSelected(item.href) && "text-primary",
           )}
           variant="ghost"

@@ -32,7 +32,7 @@ export const Memo = () => {
   return (
     <EditorContent
       editor={editor}
-      className="p-2 text-sm tiptap focus:outline-none"
+      className="p-6 text-sm tiptap focus:outline-none"
     />
   );
 };

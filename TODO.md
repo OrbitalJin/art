@@ -109,6 +109,7 @@ Bento-style task board with drag-and-drop organization.
 - [x] Create store & Persist playlist data
 - [x] Add simple memo
 - [x] Loop one song
+- [x] Floating player
 - [ ] Work on implementing the interval work timer
 
 ## Productivity & Tools
