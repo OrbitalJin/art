@@ -1,11 +1,15 @@
-import { useAudioPlayer } from "@/contexts/audio-player-context";
+import {
+  useAudioPlayerActions,
+  useAudioPlayerTimer,
+} from "@/contexts/audio-player-context";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
-import { getYoutubeThumbnail } from "@/lib/utils";
+import { cn, getYoutubeThumbnail } from "@/lib/utils";
 import {
   Music,
   Pause,
   Play,
+  Repeat2,
   SkipBack,
   SkipForward,
   Volume2,
@@ -22,15 +26,32 @@ const formatTime = (seconds: number) => {
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
+const PlayerProgress = () => {
+  const { playedSeconds, progress, duration } = useAudioPlayerTimer();
+
+  return (
+    <div className="flex min-w-[180px] flex-1 items-center gap-2">
+      <span className="w-9 shrink-0 text-right text-[10px] tabular-nums text-muted-foreground">
+        {formatTime(playedSeconds)}
+      </span>
+
+      <Progress value={progress} className="h-1.5 flex-1 rounded-full" />
+
+      <span className="w-9 shrink-0 text-[10px] tabular-nums text-muted-foreground">
+        {formatTime(duration)}
+      </span>
+    </div>
+  );
+};
+
 export const Player = () => {
   const {
     item,
+    loop,
+    toggleLoop,
     playing,
     volume,
     muted,
-    progress,
-    playedSeconds,
-    duration,
     error,
     togglePlay,
     setVolume,
@@ -39,7 +60,7 @@ export const Player = () => {
     currentIndex,
     playNext,
     playPrevious,
-  } = useAudioPlayer();
+  } = useAudioPlayerActions();
 
   const hasTrack = Boolean(item?.url);
   const thumbnailUrl = getYoutubeThumbnail(item?.url || "");
@@ -108,24 +129,11 @@ export const Player = () => {
                 onClick={playNext}
                 aria-label="Play next track"
               >
-                <SkipForward className="size-3.5" />
+                <SkipForward />
               </Button>
             </div>
 
-            <div className="flex min-w-[180px] flex-1 items-center gap-2">
-              <span className="w-9 shrink-0 text-right text-[10px] tabular-nums text-muted-foreground">
-                {formatTime(playedSeconds)}
-              </span>
-
-              <Progress
-                value={progress}
-                className="h-1.5 flex-1 rounded-full"
-              />
-
-              <span className="w-9 shrink-0 text-[10px] tabular-nums text-muted-foreground">
-                {formatTime(duration)}
-              </span>
-            </div>
+            <PlayerProgress />
 
             <div className="flex min-w-[120px] items-center gap-1.5">
               <Button
@@ -151,6 +159,18 @@ export const Player = () => {
                 disabled={!hasTrack}
               />
             </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                "scale-80 rounded-full opacity-80 hover:opacity-100",
+                loop && "text-primary",
+              )}
+              onClick={toggleLoop}
+              aria-label="Play next track"
+            >
+              <Repeat2 />
+            </Button>
           </div>
           {error && (
             <div

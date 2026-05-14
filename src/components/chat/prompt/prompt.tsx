@@ -54,7 +54,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
             placeholder="Message..."
             className={cn(
               "bg-transparent! border-0 shadow-none resize-none p-2",
-              "min-h-[60px] max-h-[250px] lg:max-h-[400px]",
+              "min-h-[80px] max-h-[250px] lg:max-h-[400px]",
               "text-foreground/80 placeholder:text-muted-foreground/50 focus-visible:ring-0",
             )}
             onKeyDown={handleKeyDown}

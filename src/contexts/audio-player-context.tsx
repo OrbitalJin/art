@@ -9,6 +9,7 @@ import {
 import ReactPlayer from "react-player";
 import { toast } from "sonner";
 import { useIntervalsStore } from "@/lib/store/use-intervals-store";
+import { isYoutubeUrl, useAudioMetadata } from "@/hooks/use-audio-metadata";
 
 interface PlaylistItem {
   url: string;
@@ -21,15 +22,14 @@ interface AudioPlayerState {
   playing: boolean;
   volume: number;
   muted: boolean;
-  progress: number;
-  playedSeconds: number;
-  duration: number;
+  loop: boolean;
   error: string | null;
   playlist: PlaylistItem[];
   currentIndex: number;
 }
 
 interface AudioPlayerActions {
+  toggleLoop: () => void;
   togglePlay: () => void;
   setVolume: (volume: number) => void;
   toggleMute: () => void;
@@ -43,47 +43,44 @@ interface AudioPlayerActions {
 
 type AudioPlayerContextValue = AudioPlayerState & AudioPlayerActions;
 
+interface AudioTimerState {
+  playedSeconds: number;
+  progress: number;
+  duration: number;
+}
+
 const AudioPlayerContext = createContext<AudioPlayerContextValue | null>(null);
-
-const isYoutubeUrl = (url: string) => {
-  try {
-    const parsed = new URL(url);
-    return (
-      parsed.hostname.includes("youtube.com") ||
-      parsed.hostname.includes("youtu.be")
-    );
-  } catch {
-    return false;
-  }
-};
-
-const fetchYoutubeMetadata = async (url: string) => {
-  try {
-    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
-    const res = await fetch(oembedUrl);
-    if (!res.ok) throw new Error("Failed to fetch metadata");
-    const data = await res.json();
-    return { title: data.title as string, author: data.author_name as string };
-  } catch {
-    return { title: "", author: "" };
-  }
-};
+const AudioTimerContext = createContext<AudioTimerState | null>(null);
 
 export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [playing, setPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.5);
-  const [muted, setMuted] = useState(false);
   const [playedSeconds, setPlayedSeconds] = useState(0);
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(-1);
+  const [playing, setPlaying] = useState(false);
 
+  const loop = useIntervalsStore((state) => state.loop);
+  const muted = useIntervalsStore((state) => state.muted);
+  const volume = useIntervalsStore((state) => state.volume);
   const storeUrls = useIntervalsStore((state) => state.playlist);
-  const [metadata, setMetadata] = useState<
-    Record<string, { title: string; author: string }>
-  >({});
+  const currentIndex = useIntervalsStore((state) => state.currentIndex);
+
+  const metadata = useAudioMetadata(storeUrls);
+
+  const setLoop = useIntervalsStore((state) => state.setLoop);
+  const setMuted = useIntervalsStore((state) => state.setMuted);
+  const setVolume = useIntervalsStore((state) => state.setVolume);
+  const setCurrentIndex = useIntervalsStore((state) => state.setCurrentIndex);
+  const _addToPlaylist = useIntervalsStore((state) => state.addToPlaylist);
+  const _clearPlaylist = useIntervalsStore((state) => state.clearPlaylist);
+  const _removeFromPlaylist = useIntervalsStore(
+    (state) => state.removeFromPlaylist,
+  );
+
+  const toggleLoop = useCallback(() => {
+    setLoop(!loop);
+  }, [loop, setLoop]);
 
   const playlist = useMemo(
     () =>
@@ -99,31 +96,14 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
       ? playlist[currentIndex]
       : null;
 
-  useEffect(() => {
-    if (playlist.length > 0 && currentIndex === -1) {
-      setCurrentIndex(0);
-    } else if (playlist.length === 0 && currentIndex >= 0) {
-      setCurrentIndex(-1);
-    }
-  }, [currentIndex, playlist]);
-
-  useEffect(() => {
-    const uncached = storeUrls.filter((url) => !metadata[url]);
-    for (const url of uncached) {
-      fetchYoutubeMetadata(url).then((meta) => {
-        setMetadata((prev) => ({ ...prev, [url]: meta }));
-      });
-    }
-  }, [storeUrls, metadata]);
-
   const togglePlay = useCallback(() => {
-    setPlaying((p) => !p);
+    setPlaying(!playing);
     setError(null);
-  }, []);
+  }, [playing, setPlaying]);
 
   const toggleMute = useCallback(() => {
-    setMuted((m) => !m);
-  }, []);
+    setMuted(!muted);
+  }, [setMuted, muted]);
 
   const addToPlaylist = useCallback(
     (url: string) => {
@@ -132,15 +112,14 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
 
-      const store = useIntervalsStore.getState();
-      store.addToPlaylist(url);
+      _addToPlaylist(url);
 
       if (currentIndex === -1) {
-        setCurrentIndex(store.playlist.length - 1);
+        setCurrentIndex(playlist.length - 1);
         setPlaying(true);
       }
     },
-    [currentIndex],
+    [currentIndex, setCurrentIndex, playlist, _addToPlaylist],
   );
 
   const removeFromPlaylist = useCallback(
@@ -149,23 +128,23 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
       const url = store.playlist[index];
       if (!url) return;
 
-      store.removeFromPlaylist(url);
+      _removeFromPlaylist(url);
 
       if (index === currentIndex) {
         setPlaying(false);
         setCurrentIndex(-1);
       } else if (currentIndex > index) {
-        setCurrentIndex((prev) => prev - 1);
+        setCurrentIndex(currentIndex - 1);
       }
     },
-    [currentIndex],
+    [currentIndex, setCurrentIndex, _removeFromPlaylist],
   );
 
   const clearPlaylist = useCallback(() => {
-    useIntervalsStore.getState().clearPlaylist();
+    _clearPlaylist();
     setCurrentIndex(-1);
     setPlaying(false);
-  }, []);
+  }, [setCurrentIndex, _clearPlaylist]);
 
   const playAt = useCallback(
     (index: number) => {
@@ -174,7 +153,7 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
       setPlayedSeconds(0);
       setPlaying(true);
     },
-    [playlist.length],
+    [playlist.length, setCurrentIndex],
   );
 
   const playNext = useCallback(() => {
@@ -185,26 +164,24 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
     setPlayedSeconds(0);
-  }, [currentIndex, playlist]);
+  }, [currentIndex, playlist, setPlaying, setCurrentIndex]);
 
   const playPrevious = useCallback(() => {
     if (currentIndex <= 0) return;
     const prevIndex = currentIndex - 1;
     setCurrentIndex(prevIndex);
     setPlayedSeconds(0);
-  }, [currentIndex]);
+  }, [currentIndex, setCurrentIndex]);
 
   const progress = duration > 0 ? (playedSeconds / duration) * 100 : 0;
 
-  const value = useMemo(
+  const actionsValue = useMemo(
     () => ({
       item,
       playing,
       volume,
       muted,
-      progress,
-      playedSeconds,
-      duration,
+      loop,
       error,
       togglePlay,
       setVolume,
@@ -214,6 +191,7 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
       addToPlaylist,
       removeFromPlaylist,
       clearPlaylist,
+      toggleLoop,
       playAt,
       playNext,
       playPrevious,
@@ -223,55 +201,101 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
       playing,
       volume,
       muted,
-      progress,
-      playedSeconds,
-      duration,
+      loop,
       error,
       togglePlay,
       toggleMute,
+      setVolume,
       playlist,
       currentIndex,
       addToPlaylist,
       removeFromPlaylist,
       clearPlaylist,
+      toggleLoop,
       playAt,
       playNext,
       playPrevious,
     ],
   );
 
+  const timerValue = useMemo(
+    () => ({
+      playedSeconds,
+      progress,
+      duration,
+    }),
+    [playedSeconds, progress, duration],
+  );
+
+  useEffect(() => {
+    if (playlist.length > 0 && currentIndex === -1) {
+      setCurrentIndex(0);
+    } else if (playlist.length === 0 && currentIndex >= 0) {
+      setCurrentIndex(-1);
+    }
+  }, [currentIndex, playlist, setCurrentIndex]);
+
   return (
-    <AudioPlayerContext.Provider value={value}>
-      {children}
-      <div className="fixed">
-        <ReactPlayer
-          src={item?.url}
-          playing={playing}
-          volume={volume}
-          muted={muted}
-          width={0}
-          height={0}
-          style={{ minWidth: 0, minHeight: 0 }}
-          onTimeUpdate={(e) => setPlayedSeconds(e.currentTarget.currentTime)}
-          onDurationChange={(e) => setDuration(e.currentTarget.duration)}
-          onError={() => setError("Playback error")}
-          onEnded={() => {
-            if (currentIndex >= 0 && currentIndex < playlist.length - 1) {
-              playNext();
-            } else {
-              setPlaying(false);
-            }
-          }}
-        />
-      </div>
+    <AudioPlayerContext.Provider value={actionsValue}>
+      <AudioTimerContext.Provider value={timerValue}>
+        {children}
+        <div className="fixed">
+          <ReactPlayer
+            src={item?.url}
+            playing={playing}
+            volume={volume}
+            muted={muted}
+            width={0}
+            height={0}
+            style={{ minWidth: 0, minHeight: 0 }}
+            onTimeUpdate={(e) => setPlayedSeconds(e.currentTarget.currentTime)}
+            onDurationChange={(e) => setDuration(e.currentTarget.duration)}
+            onError={() => setError("Playback error")}
+            onEnded={() => {
+              if (loop) {
+                setPlayedSeconds(0);
+              } else if (
+                currentIndex >= 0 &&
+                currentIndex < playlist.length - 1
+              ) {
+                playNext();
+              } else {
+                setPlayedSeconds(0);
+                setCurrentIndex(0);
+              }
+            }}
+          />
+        </div>
+      </AudioTimerContext.Provider>
     </AudioPlayerContext.Provider>
   );
 };
 
 export const useAudioPlayer = () => {
+  const actions = useContext(AudioPlayerContext);
+  const timer = useContext(AudioTimerContext);
+  if (!actions || !timer) {
+    throw new Error("useAudioPlayer must be used within AudioPlayerProvider");
+  }
+  return { ...actions, ...timer };
+};
+
+export const useAudioPlayerActions = () => {
   const context = useContext(AudioPlayerContext);
   if (!context) {
-    throw new Error("useAudioPlayer must be used within AudioPlayerProvider");
+    throw new Error(
+      "useAudioPlayerActions must be used within AudioPlayerProvider",
+    );
+  }
+  return context;
+};
+
+export const useAudioPlayerTimer = () => {
+  const context = useContext(AudioTimerContext);
+  if (!context) {
+    throw new Error(
+      "useAudioPlayerTimer must be used within AudioPlayerProvider",
+    );
   }
   return context;
 };

@@ -1,4 +1,4 @@
-import { useAudioPlayer } from "@/contexts/audio-player-context";
+import { useAudioPlayerActions } from "@/contexts/audio-player-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,7 +26,7 @@ export const Playlist = () => {
     removeFromPlaylist,
     clearPlaylist,
     playAt,
-  } = useAudioPlayer();
+  } = useAudioPlayerActions();
 
   const [playlistInput, setPlaylistInput] = useState("");
   const [clearDialogOpen, setClearDialogOpen] = useState(false);

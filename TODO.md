@@ -108,6 +108,7 @@ Bento-style task board with drag-and-drop organization.
 - [x] Implement a basic audio player with controls and playlist support
 - [x] Create store & Persist playlist data
 - [x] Add simple memo
+- [x] Loop one song
 - [ ] Work on implementing the interval work timer
 
 ## Productivity & Tools
@@ -167,4 +168,5 @@ Bento-style task board with drag-and-drop organization.
 
 - [x] Ignore asset files such as demo screenshots from being packaged
 - [x] Adapt syntax highlighting to current selected theme
+- [ ] Performance optimization, memoization, isolate state more
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

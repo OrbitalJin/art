@@ -6,8 +6,8 @@ export type ModelId = "model-1" | "model-2" | "model-3";
 export type ModelType =
   | "gemini-2.5-flash-lite"
   | "gemini-2.5-flash"
-  | "gemini-3.1-flash"
-  | "gemini-3.1-flash-lite";
+  | "gemini-3.1-flash-lite"
+  | "gemini-3-flash-preview";
 
 export type Model = {
   tier: ModelTier;
@@ -40,7 +40,7 @@ export const MODELS: readonly Model[] = [
   {
     tier: 3,
     id: "model-3",
-    type: "gemini-3.1-flash",
+    type: "gemini-3-flash-preview",
     displayName: "Chopin",
     description:
       "Most capable and deliberate. Best for nuanced reasoning, polished writing, and more demanding tasks.",
