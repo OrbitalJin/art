@@ -99,7 +99,6 @@ export const WebSearchMenu = () => {
         align="end"
         className="w-80 p-0 shadow-xl border-muted-foreground/20 overflow-hidden"
       >
-        {/* --- Section 1: Search Grounding Toggle --- */}
         <div
           className={cn(
             "flex flex-col gap-1 border-b p-3 transition-colors",
@@ -134,7 +133,6 @@ export const WebSearchMenu = () => {
           </p>
         </div>
 
-        {/* --- Section 2: Web Context (URLs) --- */}
         <div className="p-3 bg-muted/10 border-b">
           <p className="text-xs font-medium mb-2 text-foreground/70">
             Reference URLs
@@ -152,36 +150,38 @@ export const WebSearchMenu = () => {
           </form>
         </div>
 
-        <div className="flex flex-col p-2 gap-1 max-h-[200px] overflow-y-auto">
-          {selectedUrls.length === 0 ? (
-            <div className="py-6 text-center">
-              <LinkIcon className="h-6 w-6 text-muted-foreground/20 mx-auto mb-1" />
-              <p className="text-[11px] text-muted-foreground">
-                No custom links added
-              </p>
-            </div>
-          ) : (
-            selectedUrls.map((url, index) => (
-              <div
-                key={`${url}-${index}`}
-                className="flex items-center justify-between p-2 rounded-md bg-accent/30 group"
-              >
-                <span className="text-[11px] truncate flex-1 pr-2 text-foreground/80">
-                  {url}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeWebUrl(activeId, url);
-                  }}
-                  className="text-muted-foreground hover:text-destructive transition-colors"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+        {selectedUrls.length !== 0 && (
+          <div className="flex flex-col p-2 gap-1 max-h-[200px] overflow-y-auto">
+            {selectedUrls.length === 0 ? (
+              <div className="py-6 text-center">
+                <LinkIcon className="h-6 w-6 text-muted-foreground/20 mx-auto mb-1" />
+                <p className="text-[11px] text-muted-foreground">
+                  No custom links added
+                </p>
               </div>
-            ))
-          )}
-        </div>
+            ) : (
+              selectedUrls.map((url, index) => (
+                <div
+                  key={`${url}-${index}`}
+                  className="flex items-center justify-between p-2 rounded-md bg-accent/30 group"
+                >
+                  <span className="text-[11px] truncate flex-1 pr-2 text-foreground/80">
+                    {url}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeWebUrl(activeId, url);
+                    }}
+                    className="text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
         {selectedUrls.length > 0 && (
           <div className="flex items-center justify-between p-2 border-t bg-muted/10">
