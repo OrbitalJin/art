@@ -1,7 +1,7 @@
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useIntervalsStore } from "@/lib/store/use-intervals-store";
+import { useIntervalStore } from "@/lib/store/use-interval-store";
 import { TableKit } from "@tiptap/extension-table";
 import Typography from "@tiptap/extension-typography";
 import Highlight from "@tiptap/extension-highlight";
@@ -13,8 +13,8 @@ interface Props {
 }
 
 export const Memo: React.FC<Props> = ({ className }) => {
-  const setMemoContent = useIntervalsStore((state) => state.setMemoContent);
-  const content = useIntervalsStore((state) => state.memoContent);
+  const setMemoContent = useIntervalStore((state) => state.setMemoContent);
+  const content = useIntervalStore((state) => state.memoContent);
   const editor = useEditor({
     content,
     extensions: [

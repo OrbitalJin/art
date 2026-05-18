@@ -8,7 +8,7 @@ import {
 } from "react";
 import ReactPlayer from "react-player";
 import { toast } from "sonner";
-import { useIntervalsStore } from "@/lib/store/use-intervals-store";
+import { useIntervalStore } from "@/lib/store/use-interval-store";
 import { isYoutubeUrl, useAudioMetadata } from "@/hooks/use-audio-metadata";
 
 interface PlaylistItem {
@@ -60,21 +60,21 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [error, setError] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
 
-  const loop = useIntervalsStore((state) => state.loop);
-  const muted = useIntervalsStore((state) => state.muted);
-  const volume = useIntervalsStore((state) => state.volume);
-  const storeUrls = useIntervalsStore((state) => state.playlist);
-  const currentIndex = useIntervalsStore((state) => state.currentIndex);
+  const loop = useIntervalStore((state) => state.loop);
+  const muted = useIntervalStore((state) => state.muted);
+  const volume = useIntervalStore((state) => state.volume);
+  const storeUrls = useIntervalStore((state) => state.playlist);
+  const currentIndex = useIntervalStore((state) => state.currentIndex);
 
   const metadata = useAudioMetadata(storeUrls);
 
-  const setLoop = useIntervalsStore((state) => state.setLoop);
-  const setMuted = useIntervalsStore((state) => state.setMuted);
-  const setVolume = useIntervalsStore((state) => state.setVolume);
-  const setCurrentIndex = useIntervalsStore((state) => state.setCurrentIndex);
-  const _addToPlaylist = useIntervalsStore((state) => state.addToPlaylist);
-  const _clearPlaylist = useIntervalsStore((state) => state.clearPlaylist);
-  const _removeFromPlaylist = useIntervalsStore(
+  const setLoop = useIntervalStore((state) => state.setLoop);
+  const setMuted = useIntervalStore((state) => state.setMuted);
+  const setVolume = useIntervalStore((state) => state.setVolume);
+  const setCurrentIndex = useIntervalStore((state) => state.setCurrentIndex);
+  const _addToPlaylist = useIntervalStore((state) => state.addToPlaylist);
+  const _clearPlaylist = useIntervalStore((state) => state.clearPlaylist);
+  const _removeFromPlaylist = useIntervalStore(
     (state) => state.removeFromPlaylist,
   );
 
@@ -124,7 +124,7 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const removeFromPlaylist = useCallback(
     (index: number) => {
-      const store = useIntervalsStore.getState();
+      const store = useIntervalStore.getState();
       const url = store.playlist[index];
       if (!url) return;
 

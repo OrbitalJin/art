@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Play, RotateCcw, Settings2, SkipForward } from "lucide-react";
 import { Drawer, DrawerContent, DrawerTrigger } from "../ui/drawer";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
+import { useIntervalStore } from "@/lib/store/use-interval-store";
 
 interface Props {
   className?: string;
@@ -11,11 +12,22 @@ interface Props {
 
 type SessionVariant = "focus" | "short" | "long";
 
+const formatTime = (minutes: number): string => {
+  const totalSeconds = Math.floor(minutes * 60);
+  const mm = Math.floor(totalSeconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const ss = (totalSeconds % 60).toString().padStart(2, "0");
+
+  return `${mm}:${ss}`;
+};
+
 export const Timer: React.FC<Props> = ({ className }) => {
-  const totalSessions = 5;
-  const currentSession = 1;
-  const currentTime = "25:00";
+  const totalSessions = useIntervalStore((state) => state.sessionCount);
+  const currentTime = useIntervalStore((state) => state.focusTime);
+
   const variant: SessionVariant = "focus";
+  const currentSession = 1;
 
   return (
     <div
@@ -36,7 +48,7 @@ export const Timer: React.FC<Props> = ({ className }) => {
           className="text-5xl lg:text-6xl text-foreground/80"
           style={{ fontFamily: "monospace" }}
         >
-          {currentTime}
+          {formatTime(currentTime)}
         </p>
         <div className="mx-auto flex w-[9.5rem] flex-wrap justify-center gap-2">
           {[...Array(totalSessions).keys()].map((i) => (
@@ -115,31 +127,70 @@ const ResponsiveTimerSettings = () => {
 };
 
 const TimerSettingsContent = () => {
+  const sessionCount = useIntervalStore((state) => state.sessionCount);
+  const focusTime = useIntervalStore((state) => state.focusTime);
+  const shortBreakTime = useIntervalStore((state) => state.shortBreakTime);
+  const longBreakTime = useIntervalStore((state) => state.longBreakTime);
+
+  const setSessionCount = useIntervalStore((state) => state.setSessionCount);
+  const setFocusTime = useIntervalStore((state) => state.setFocusTime);
+  const setShortBreakTime = useIntervalStore(
+    (state) => state.setShortBreakTime,
+  );
+  const setLongBreakTime = useIntervalStore((state) => state.setLongBreakTime);
+
   return (
     <div className="space-y-6">
       <div className="space-y-3">
         <SettingRow
+          label="Sessions"
+          hint="Number of focus sessions"
+          control={
+            <StepInput
+              value={sessionCount}
+              increment={() => setSessionCount(sessionCount + 1)}
+              decrement={() => setSessionCount(sessionCount - 1)}
+            />
+          }
+        />
+
+        <SettingRow
           label="Focus"
           hint="Minutes per focus session"
-          control={<StepInput value={25} suffix="min" />}
+          control={
+            <StepInput
+              value={focusTime}
+              suffix="min"
+              increment={() => setFocusTime(focusTime + 5)}
+              decrement={() => setFocusTime(focusTime - 5)}
+            />
+          }
         />
 
         <SettingRow
           label="Short break"
           hint="Minutes between focus sessions"
-          control={<StepInput value={5} suffix="min" />}
+          control={
+            <StepInput
+              value={shortBreakTime}
+              suffix="min"
+              increment={() => setShortBreakTime(shortBreakTime + 5)}
+              decrement={() => setShortBreakTime(shortBreakTime - 5)}
+            />
+          }
         />
 
         <SettingRow
           label="Long break"
           hint="Minutes after a full cycle"
-          control={<StepInput value={15} suffix="min" />}
-        />
-
-        <SettingRow
-          label="Long break every"
-          hint="Number of focus sessions"
-          control={<StepInput value={4} suffix="sesh" />}
+          control={
+            <StepInput
+              value={longBreakTime}
+              suffix="min"
+              increment={() => setLongBreakTime(longBreakTime + 5)}
+              decrement={() => setLongBreakTime(longBreakTime - 5)}
+            />
+          }
         />
       </div>
     </div>
@@ -167,12 +218,19 @@ const SettingRow = ({ label, hint, control }: SettingRowProps) => {
 type StepInputProps = {
   value: number;
   suffix?: string;
+
+  increment: () => void;
+  decrement: () => void;
 };
 
-const StepInput = ({ value, suffix }: StepInputProps) => {
+const StepInput = ({ value, suffix, increment, decrement }: StepInputProps) => {
   return (
     <div className="flex items-center rounded-full bg-card/50 shadow-md">
-      <Button variant="ghost" className="rounded-full text-muted-foreground">
+      <Button
+        variant="ghost"
+        className="rounded-full text-muted-foreground"
+        onClick={decrement}
+      >
         -
       </Button>
 
@@ -185,7 +243,11 @@ const StepInput = ({ value, suffix }: StepInputProps) => {
         ) : null}
       </div>
 
-      <Button variant="ghost" className="rounded-full text-muted-foreground">
+      <Button
+        variant="ghost"
+        className="rounded-full text-muted-foreground"
+        onClick={increment}
+      >
         +
       </Button>
     </div>
