@@ -6,8 +6,13 @@ import { TableKit } from "@tiptap/extension-table";
 import Typography from "@tiptap/extension-typography";
 import Highlight from "@tiptap/extension-highlight";
 import { Markdown } from "tiptap-markdown";
+import { cn } from "@/lib/utils";
 
-export const Memo = () => {
+interface Props {
+  className?: string;
+}
+
+export const Memo: React.FC<Props> = ({ className }) => {
   const setMemoContent = useIntervalsStore((state) => state.setMemoContent);
   const content = useIntervalsStore((state) => state.memoContent);
   const editor = useEditor({
@@ -32,7 +37,7 @@ export const Memo = () => {
   return (
     <EditorContent
       editor={editor}
-      className="p-6 text-sm tiptap focus:outline-none"
+      className={cn(className, "p-6 text-sm tiptap focus:outline-none")}
     />
   );
 };

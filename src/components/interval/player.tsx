@@ -1,3 +1,4 @@
+// player.tsx
 import type React from "react";
 import {
   useAudioPlayerActions,
@@ -69,7 +70,7 @@ const FloatingPlayer: React.FC = () => {
             <img
               src={thumbnailUrl}
               alt={item?.title || "Track artwork"}
-              className="size-full object-cover transition-transform duration-300 hover:scale-105"
+              className="shrink-0 size-full object-cover transition-transform duration-300 hover:scale-105"
             />
           ) : (
             <div className="flex size-full items-center justify-center">
@@ -81,7 +82,7 @@ const FloatingPlayer: React.FC = () => {
         <div className="min-w-0 flex-1">
           <div className="min-w-0">
             <p
-              className="truncate text-sm font-medium text-foreground"
+              className="min-w-0 truncate text-sm font-medium text-foreground"
               title={item?.title || "Nothing playing"}
             >
               {item?.title || "Nothing playing"}
@@ -99,9 +100,10 @@ const FloatingPlayer: React.FC = () => {
             <Button
               size="icon"
               variant="ghost"
-              className="text-muted-foreground hover:text-foreground rounded-full"
+              className="rounded-full text-muted-foreground hover:text-foreground"
               disabled={currentIndex <= 0}
               onClick={playPrevious}
+              aria-label="Play previous track"
             >
               <SkipBack />
             </Button>
@@ -112,6 +114,7 @@ const FloatingPlayer: React.FC = () => {
               onClick={togglePlay}
               disabled={!hasTrack}
               className="rounded-full opacity-80"
+              aria-label={playing ? "Pause" : "Play"}
             >
               {playing ? <Pause /> : <Play />}
             </Button>
@@ -119,9 +122,10 @@ const FloatingPlayer: React.FC = () => {
             <Button
               size="icon"
               variant="ghost"
-              className="text-muted-foreground hover:text-foreground rounded-full"
+              className="rounded-full text-muted-foreground hover:text-foreground"
               disabled={currentIndex < 0 || currentIndex >= playlist.length - 1}
               onClick={playNext}
+              aria-label="Play next track"
             >
               <SkipForward className="size-4" />
             </Button>
@@ -193,9 +197,9 @@ const DefaultPlayer: React.FC = () => {
   const thumbnailUrl = getYoutubeThumbnail(item?.url || "");
 
   return (
-    <div className="rounded-md border bg-card/35 p-2">
+    <div className="rounded-md border bg-card/50 p-2">
       <div className="flex min-w-0 items-center gap-2">
-        <div className="size-21 overflow-hidden rounded-lg bg-muted shadow-md">
+        <div className="size-21 shrink-0 overflow-hidden rounded-lg bg-muted shadow-md">
           {thumbnailUrl ? (
             <img
               src={thumbnailUrl}
@@ -209,7 +213,7 @@ const DefaultPlayer: React.FC = () => {
           )}
         </div>
 
-        <div className="flex flex-1 flex-col gap-1">
+        <div className="flex flex-1 min-w-0 flex-col gap-1">
           <div className="min-w-0">
             <p className="truncate" title={item?.title || "Nothing playing"}>
               {item?.title || "Nothing playing"}

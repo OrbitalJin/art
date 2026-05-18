@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 export const SidebarFooter = () => {
   const { playing } = useAudioPlayerActions();
+
   return (
     <div className="flex flex-col gap-2 px-2 mt-auto">
       <DropdownMenu>

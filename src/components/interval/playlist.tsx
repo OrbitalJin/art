@@ -49,7 +49,7 @@ export const Playlist = () => {
           onKeyDown={(e) => {
             if (e.key === "Enter") handleAddToPlaylist();
           }}
-          className="rounded-md text-sm"
+          className="rounded-md text-sm bg-card/50! border border-border!"
         />
 
         <Button
@@ -111,7 +111,7 @@ export const Playlist = () => {
         </div>
       ) : (
         <ScrollArea
-          className="min-h-0 flex-1 bg-card/35 p-2 border rounded-md"
+          className="min-h-0 flex-1 bg-card/50 p-2 border rounded-md"
           scrollbar={false}
         >
           <div className="space-y-2">
@@ -159,14 +159,15 @@ const PlaylistItem = ({
   return (
     <div
       className={cn(
-        "group flex cursor-pointer items-center gap-3 rounded-md p-2 transition-all",
+        "group grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2rem] items-center gap-3 overflow-hidden rounded-md p-2 transition-all",
+        "cursor-pointer",
         isActive
           ? "border border-primary/50 bg-primary/10 text-primary ring-primary/20"
           : "bg-card/40 hover:bg-primary/5",
       )}
       onClick={onPlay}
     >
-      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-background/90 shadow-sm">
+      <span className="flex size-6 items-center justify-center rounded-full bg-background/90 shadow-sm">
         {isActive && isPlaying ? (
           <AudioLines className="animate-pulse" size={14} />
         ) : isActive ? (
@@ -176,7 +177,7 @@ const PlaylistItem = ({
         )}
       </span>
 
-      <div className="min-w-0 flex-1 space-y-1">
+      <div className="min-w-0 overflow-hidden">
         {item.title ? (
           <>
             <p
@@ -185,7 +186,10 @@ const PlaylistItem = ({
             >
               {item.title}
             </p>
-            <p className="truncate text-xs leading-snug text-muted-foreground">
+            <p
+              className="truncate text-xs leading-snug text-muted-foreground"
+              title={item.author || "Unknown artist"}
+            >
               {item.author || "Unknown artist"}
             </p>
           </>
@@ -200,7 +204,7 @@ const PlaylistItem = ({
       <Button
         size="icon"
         variant="ghost"
-        className="rounded-full opacity-0 transition-opacity group-hover:opacity-70 hover:opacity-100"
+        className="size-8 shrink-0 rounded-full opacity-0 transition-opacity group-hover:opacity-70 hover:opacity-100"
         onClick={(e) => {
           e.stopPropagation();
           onRemove();
