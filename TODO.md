@@ -110,7 +110,8 @@ Bento-style task board with drag-and-drop organization.
 - [x] Add simple memo
 - [x] Loop one song
 - [x] Floating player
-- [ ] Work on implementing the interval work timer
+- [x] Work on implementing the interval work timer
+- [ ] Persist the state across navigation by using a context
 
 ## Productivity & Tools
 

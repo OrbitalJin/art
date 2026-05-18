@@ -1,33 +1,32 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Play, RotateCcw, Settings2, SkipForward } from "lucide-react";
+import { Pause, Play, RotateCcw, Settings2, SkipForward } from "lucide-react";
 import { Drawer, DrawerContent, DrawerTrigger } from "../ui/drawer";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { useIntervalStore } from "@/lib/store/use-interval-store";
+import {
+  useIntervalTimer,
+  type SessionVariant,
+} from "@/hooks/use-interval-timer";
 
 interface Props {
   className?: string;
 }
 
-type SessionVariant = "focus" | "short" | "long";
-
-const formatTime = (minutes: number): string => {
-  const totalSeconds = Math.floor(minutes * 60);
-  const mm = Math.floor(totalSeconds / 60)
-    .toString()
-    .padStart(2, "0");
-  const ss = (totalSeconds % 60).toString().padStart(2, "0");
-
-  return `${mm}:${ss}`;
-};
-
 export const Timer: React.FC<Props> = ({ className }) => {
   const totalSessions = useIntervalStore((state) => state.sessionCount);
-  const currentTime = useIntervalStore((state) => state.focusTime);
+  const focusTime = useIntervalStore((state) => state.focusTime);
+  const shortBreakTime = useIntervalStore((state) => state.shortBreakTime);
+  const longBreakTime = useIntervalStore((state) => state.longBreakTime);
+  const sessionCount = useIntervalStore((state) => state.sessionCount);
 
-  const variant: SessionVariant = "focus";
-  const currentSession = 1;
+  const session = useIntervalTimer({
+    focusTime,
+    longBreakTime,
+    sessionCount,
+    shortBreakTime,
+  });
 
   return (
     <div
@@ -38,17 +37,19 @@ export const Timer: React.FC<Props> = ({ className }) => {
       )}
     >
       <div className="absolute -z-10 h-full w-full bg-secondary/5" />
-      <TimerFill variant={variant} progress={0} />
+      <TimerFill variant={session.variant} progress={0} />
 
-      <ResponsiveTimerSettings />
-
+      {!session.isRunning && <ResponsiveTimerSettings />}
       <div className="mx-auto flex flex-col items-center gap-4">
-        <p className="tracking-widest text-muted-foreground">Focus</p>
+        <p className="tracking-widest text-muted-foreground">
+          {session.variant.charAt(0).toUpperCase() + session.variant.slice(1)}
+        </p>
         <p
           className="text-5xl lg:text-6xl text-foreground/80"
           style={{ fontFamily: "monospace" }}
         >
-          {formatTime(currentTime)}
+          {session.minutes}:
+          {session.seconds < 10 ? `0${session.seconds}` : session.seconds}
         </p>
         <div className="mx-auto flex w-[9.5rem] flex-wrap justify-center gap-2">
           {[...Array(totalSessions).keys()].map((i) => (
@@ -56,7 +57,7 @@ export const Timer: React.FC<Props> = ({ className }) => {
               key={i}
               className={cn(
                 "h-4 w-2 rounded-full",
-                i < currentSession ? "bg-primary" : "bg-primary/30",
+                i < session.current ? "bg-primary" : "bg-primary/30",
               )}
             />
           ))}
@@ -65,19 +66,38 @@ export const Timer: React.FC<Props> = ({ className }) => {
 
       <div
         className={cn(
-          "absolute bottom-[15%] flex items-center gap-2 rounded-full border bg-background/70 p-1.5 shadow-sm backdrop-blur",
+          "absolute bottom-[15%] flex items-center",
+          "gap-2 rounded-full border bg-background/70 p-2 shadow-sm backdrop-blur",
           "opacity-0 transition-opacity duration-200 group-hover:opacity-80",
         )}
       >
-        <Button variant="ghost" size="icon" className="rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full"
+          onClick={session.reset}
+        >
           <RotateCcw className="h-4 w-4" />
         </Button>
 
-        <Button size="icon" className="rounded-full shadow-sm">
-          <Play className="h-4 w-4" />
+        <Button
+          size="icon"
+          className="rounded-full shadow-sm"
+          onClick={session.isRunning ? session.pause : session.resume}
+        >
+          {session.isRunning ? (
+            <Pause className="h-4 w-4" />
+          ) : (
+            <Play className="h-4 w-4" />
+          )}
         </Button>
 
-        <Button variant="ghost" size="icon" className="rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full"
+          onClick={session.skip}
+        >
           <SkipForward className="h-4 w-4" />
         </Button>
       </div>
@@ -86,7 +106,7 @@ export const Timer: React.FC<Props> = ({ className }) => {
 };
 
 const ResponsiveTimerSettings = () => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const trigger = (
@@ -264,7 +284,7 @@ const TimerFill = ({ progress, variant }: TimerFillProps) => {
   const bg =
     variant === "focus"
       ? "bg-primary"
-      : variant === "short"
+      : variant === "shortBreak"
         ? "bg-green-300"
         : "bg-blue-300";
 
@@ -282,9 +302,9 @@ const TimerFill = ({ progress, variant }: TimerFillProps) => {
 };
 
 const useMediaQuery = (query: string) => {
-  const [matches, setMatches] = React.useState(false);
+  const [matches, setMatches] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const media = window.matchMedia(query);
     const update = () => setMatches(media.matches);
 
