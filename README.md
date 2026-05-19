@@ -66,6 +66,19 @@ A flexible bento-style board for planning and execution.
 
 ![Art Calendar](assets/screenshots/calendar.png)
 
+### Intervals
+
+A customizable timer with an integrated audio player, playlist, and memo for focused work sessions.
+
+![Art intervals](assets/screenshots/intervals.png)
+
+- Adjustable focus, short break, and long break times
+- Integrated audio player with playlist management
+- Loop single songs or entire playlists
+- Floating player for easy access
+- Session persistence across navigation
+- Simple memo for quick notes during sessions
+
 ### Productivity Tools
 
 Extra utilities that support the rest of your workflow.

@@ -13,13 +13,13 @@ export function estimateTokens(text: string): number {
 export const estimateUsage = (
   session: Session,
   context: string = "",
-): string => {
+): number => {
   const messages = session.messages
     .map((m) => `${m.role}: ${m.content}`)
     .join("\n");
   const tokens = estimateTokens(context + messages);
   const limit = MODELS.find((m) => m.id === session.modelId)!.limit;
-  return `${((tokens / limit) * 100).toFixed(1)}%`;
+  return Number(((tokens / limit) * 100).toFixed(1));
 };
 
 export function withTimeout(userSignal?: AbortSignal, timeoutMs = 30_000) {

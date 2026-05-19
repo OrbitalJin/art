@@ -1,3 +1,4 @@
+import { Progress } from "@/components/ui/progress";
 import { useUsage } from "@/hooks/use-usage";
 
 export const SidebarFooter = () => {
@@ -10,21 +11,19 @@ export const SidebarFooter = () => {
   );
 };
 
-const UsageIndicator = ({ usage }: { usage?: string }) => {
+const UsageIndicator = ({ usage }: { usage?: number }) => {
   if (!usage) return null;
 
   return (
-    <div className="px-4 py-3 space-y-2">
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>Memory</span>
-        <span className="font-medium text-foreground">{usage}</span>
+    <div className="space-y-2 px-4 py-3">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">Memory</span>
+        <span className="font-medium tabular-nums text-foreground">
+          {usage} %
+        </span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-foreground/5 overflow-hidden">
-        <div
-          className="h-full bg-primary/80 transition-all duration-500 ease-out"
-          style={{ width: usage }}
-        />
-      </div>
+
+      <Progress value={Math.min(usage, 100)} className="h-2 bg-muted/70" />
     </div>
   );
 };

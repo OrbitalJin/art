@@ -8,7 +8,7 @@ import { useIntervalStore } from "@/lib/store/use-interval-store";
 import {
   useIntervalTimer,
   type SessionVariant,
-} from "@/hooks/use-interval-timer";
+} from "@/contexts/interval-context";
 
 interface Props {
   className?: string;
@@ -16,17 +16,7 @@ interface Props {
 
 export const Timer: React.FC<Props> = ({ className }) => {
   const totalSessions = useIntervalStore((state) => state.sessionCount);
-  const focusTime = useIntervalStore((state) => state.focusTime);
-  const shortBreakTime = useIntervalStore((state) => state.shortBreakTime);
-  const longBreakTime = useIntervalStore((state) => state.longBreakTime);
-  const sessionCount = useIntervalStore((state) => state.sessionCount);
-
-  const session = useIntervalTimer({
-    focusTime,
-    longBreakTime,
-    sessionCount,
-    shortBreakTime,
-  });
+  const session = useIntervalTimer();
 
   return (
     <div

@@ -11,7 +11,7 @@ export const useUsage = () => {
   const context = useSessionRefs(currentSession);
 
   const usage = useMemo(
-    () => (currentSession ? estimateUsage(currentSession, context) : ""),
+    () => (currentSession ? estimateUsage(currentSession, context) : 0),
     [currentSession, context],
   );
 

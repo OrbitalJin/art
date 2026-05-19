@@ -17,7 +17,7 @@ export const SidebarFooter = () => {
   return (
     <div className="flex flex-col gap-2 px-2 mt-auto">
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             size="icon"

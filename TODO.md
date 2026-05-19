@@ -32,7 +32,7 @@ Multi-session LLM conversations with research and tutor modes. Bring your own AP
 - [x] Cancel requests with `AbortController`
 - [x] Give system prompt more context
 - [x] Generate and regenerate chat title
-- [x] Fix session switching edge cases, such as deleting all sessions
+- [x] Fix session switching edge cases, suchs as deleting all sessions
 - [x] Fix deleting `activeId` issue
 - [x] Add traits to customize model behavior
 - [x] Fork session
@@ -57,7 +57,7 @@ Rich text editor with auto-save, image support, and custom mentions.
 - [x] Persistence
 - [x] Auto-save
 - [x] Custom mentions for people, places, things, categories, and more
-- [x] Image support
+- [x] Image support with resizing
 - [x] Sidebar with categories and `@` filter
 - [x] Proper context menu
 - [x] Resizable images
@@ -111,7 +111,7 @@ Bento-style task board with drag-and-drop organization.
 - [x] Loop one song
 - [x] Floating player
 - [x] Work on implementing the interval work timer
-- [ ] Persist the state across navigation by using a context
+- [x] Persist the state across navigation by using a context
 
 ## Productivity & Tools
 
@@ -121,10 +121,10 @@ Bento-style task board with drag-and-drop organization.
 - [x] Text utilities such as summarizer, reworder, and translator
 - [x] Markdown diary editor
 - [x] Categorized to-do board
+- [x] Interval work sessions with timer, audio player, and notes
 
 ### Planned
 
-- [ ] Interval work tracker
 - [ ] Food tracker
 - [ ] Screenshot paste support for single and multiple images, then save as PNG
 - [ ] Sticker overlay for PNGs on the window
@@ -170,5 +170,6 @@ Bento-style task board with drag-and-drop organization.
 
 - [x] Ignore asset files such as demo screenshots from being packaged
 - [x] Adapt syntax highlighting to current selected theme
+- [ ] Use `models.countTokens` for accurate token count
 - [ ] Performance optimization, memoization, isolate state more
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions
