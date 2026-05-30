@@ -1,4 +1,4 @@
-import { MODES, type ModeId } from "@/lib/llm/prompts/modes";
+import { MODES, type ModeId } from "@/lib/ai/prompts/modes";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,13 +11,14 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { useStreamingState } from "@/hooks/use-streaming-state";
 import { Eclipse } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useChat } from "@/contexts/chat-context";
 
 export const ModeSelect = () => {
-  const { isCurrentSessionStreaming: disabled } = useStreamingState();
+  const { isSending: disabled } = useChat();
+
   const setMode = useSessionStore((store) => store.setMode);
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),

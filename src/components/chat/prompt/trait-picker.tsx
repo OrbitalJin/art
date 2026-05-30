@@ -9,8 +9,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useStreamingState } from "@/hooks/use-streaming-state";
-import { TRAITS, type TraitId } from "@/lib/llm/prompts/traits";
+import { useChat } from "@/contexts/chat-context";
+import { TRAITS, type TraitId } from "@/lib/ai/prompts/traits";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
 import { Fingerprint } from "lucide-react";
@@ -22,7 +22,7 @@ export const TraitPicker = () => {
   const removeTrait = useSessionStore((state) => state.removeTrait);
   const clearTraits = useSessionStore((state) => state.clearTraits);
 
-  const { isCurrentSessionStreaming: disabled } = useStreamingState();
+  const { isSending: disabled } = useChat();
 
   const withinTraits = (sessionId: string, traitId: TraitId) => {
     const session = sessions.find((s) => s.id === sessionId);

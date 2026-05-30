@@ -1,27 +1,26 @@
+import React, { useMemo } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Sparkle, Cpu, Globe, GitBranch } from "lucide-react";
-import { estimateTokens } from "@/lib/llm/common/utils";
 import { Renderer } from "./renderer";
 import type { Message } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
-import { MODELS } from "@/lib/llm/common/types";
+import { MODELS } from "@/lib/ai/models";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { useStreamingState } from "@/hooks/use-streaming-state";
 import { toast } from "sonner";
+import { ToolCallCard } from "./tool-call-card";
 
 export const AssistantMessage: React.FC<Message> = ({
   content,
@@ -29,19 +28,30 @@ export const AssistantMessage: React.FC<Message> = ({
   id: messageId,
   status,
   grounded,
+  tokenUsage,
 }) => {
-  const { copied, copy } = useCopy(content);
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
-  const { isCurrentSessionStreaming } = useStreamingState();
+  const streaming = false;
+
+  const textRepresentation = useMemo(() => {
+    if (typeof content === "string") return content;
+    return content
+      .map((block) => (block.type === "text" ? block.text : ""))
+      .join("");
+  }, [content]);
+
+  const { copied, copy } = useCopy(textRepresentation);
 
   const isThinking = status === "thinking";
-  const hasContent = content.length > 0;
+  const hasContent =
+    textRepresentation.length > 0 ||
+    (Array.isArray(content) && content.length > 0);
   const model = MODELS.find((m) => m.id === modelId);
   const premium = model?.tier === 3;
 
   const handleBranch = () => {
-    if (activeId && !isCurrentSessionStreaming) {
+    if (activeId && !streaming) {
       const success = branchFrom(activeId, messageId, true);
       if (success) {
         toast.info("Session branched successfully");
@@ -61,9 +71,25 @@ export const AssistantMessage: React.FC<Message> = ({
           </div>
         )}
 
-        {hasContent && <Renderer content={content} />}
-
         {hasContent && (
+          <div className="space-y-1">
+            {typeof content === "string" ? (
+              <Renderer content={content} />
+            ) : (
+              content.map((block, idx) => {
+                if (block.type === "text") {
+                  return <Renderer key={idx} content={block.text} />;
+                }
+                if (block.type === "tool-call") {
+                  return <ToolCallCard key={block.id} block={block} />;
+                }
+                return null;
+              })
+            )}
+          </div>
+        )}
+
+        {hasContent && status !== "streaming" && (
           <div className="flex items-center justify-between mt-2 opacity-0 group-hover:opacity-100">
             <div className="flex flex-row gap-2">
               <Button
@@ -100,7 +126,7 @@ export const AssistantMessage: React.FC<Message> = ({
                   <div className="p-3">
                     <p className="text-[11px] leading-relaxed text-muted-foreground/80">
                       Create a duplicate of this conversation from the current
-                      point.
+                      Point.
                     </p>
                   </div>
                 </HoverCardContent>
@@ -125,7 +151,7 @@ export const AssistantMessage: React.FC<Message> = ({
               )}
 
               <span className="flex items-center gap-1">
-                <Cpu size={12} /> {estimateTokens(content)} tokens
+                <Cpu size={12} /> {tokenUsage} tokens
               </span>
               <span
                 className={cn(

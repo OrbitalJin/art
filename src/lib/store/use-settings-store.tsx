@@ -1,7 +1,7 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { settingsStorage } from "@/lib/store/settings/adapter";
 import { create } from "zustand";
-import type { ModelId } from "../llm/common/types";
+import type { ModelId } from "../ai/models";
 
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";

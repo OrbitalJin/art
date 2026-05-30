@@ -1,7 +1,7 @@
 import { AlertCircle } from "lucide-react";
 import type { Message } from "@/lib/store/session/types";
 
-export const ErrorMessage: React.FC<Message> = ({ errMsg }) => {
+export const ErrorMessage: React.FC<Message> = () => {
   return (
     <div className="flex w-full py-4">
       <div
@@ -11,7 +11,7 @@ export const ErrorMessage: React.FC<Message> = ({ errMsg }) => {
         p-4 text-sm text-destructive select-auto"
       >
         <AlertCircle className="h-4 w-4" />
-        <span>Error: {errMsg}</span>
+        <span>Error occured during request</span>
       </div>
     </div>
   );

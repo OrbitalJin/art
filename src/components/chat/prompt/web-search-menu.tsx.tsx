@@ -10,7 +10,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useStreamingState } from "@/hooks/use-streaming-state";
+import { useChat } from "@/contexts/chat-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
 import { Globe, Link as LinkIcon, Lock, Plus, Trash2 } from "lucide-react";
@@ -19,7 +19,7 @@ import { toast } from "sonner";
 
 export const WebSearchMenu = () => {
   const [urlInput, setUrlInput] = useState("");
-  const { isCurrentSessionStreaming: disabled } = useStreamingState();
+  const { isSending: disabled } = useChat();
 
   const activeId = useSessionStore((state) => state.activeId);
   const toggleSearchGrounding = useSessionStore(

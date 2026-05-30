@@ -2,12 +2,9 @@ import { useState } from "react";
 import { Editor } from "@tiptap/react";
 
 import { useImportImage } from "@/hooks/use-import-image";
-import type { LLMActions } from "@/lib/types";
 
 export const useEditorActions = (editor: Editor | null) => {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
-  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
-  const [textAction, setTextAction] = useState<LLMActions | null>(null);
 
   const { importImage } = useImportImage();
 
@@ -25,12 +22,6 @@ export const useEditorActions = (editor: Editor | null) => {
       link: {
         open: isLinkDialogOpen,
         setOpen: setIsLinkDialogOpen,
-      },
-      llm: {
-        open: isActionDialogOpen,
-        setOpen: setIsActionDialogOpen,
-        action: textAction,
-        setAction: setTextAction,
       },
     },
     isBusy: false,

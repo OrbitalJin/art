@@ -6,8 +6,8 @@ import type { Message } from "@/lib/store/session/types";
 import { ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useActiveSession } from "@/contexts/active-session-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
+import { useChat } from "@/contexts/chat-context";
 
 interface Props {
   messages: readonly Message[];
@@ -17,7 +17,7 @@ interface Props {
 export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
   const [atBottom, setAtBottom] = useState(true);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
-  const { prompt } = useActiveSession();
+  const { prompt } = useChat();
   const activeId = useSessionStore((s) => s.activeId);
   const prevActiveIdRef = useRef(activeId);
 

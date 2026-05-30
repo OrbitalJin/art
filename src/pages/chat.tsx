@@ -1,13 +1,13 @@
-import { useActiveSession } from "@/contexts/active-session-context";
 import { MessageList } from "@/components/chat/messages/list";
 import { StaticSidebar } from "@/components/chat/sidebar/static";
 import { Prompt } from "@/components/chat/prompt/prompt";
 import { FloatingSidebar } from "@/components/chat/sidebar/floating";
 import { useEffect, useRef } from "react";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
+import { useChat } from "@/contexts/chat-context";
 
 export const Chat = () => {
-  const { messages } = useActiveSession();
+  const { messages } = useChat();
   const chatState = useUIStateStore((state) => state.chatState);
   const setChatState = useUIStateStore((state) => state.setChatState);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);

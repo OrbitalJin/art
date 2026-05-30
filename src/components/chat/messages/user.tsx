@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,18 +29,24 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { useStreamingState } from "@/hooks/use-streaming-state";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useActiveSession } from "@/contexts/active-session-context";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
+import { useChat } from "@/contexts/chat-context";
 
 export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
+  const textRepresentation = useMemo(() => {
+    if (typeof content === "string") return content;
+    return content
+      .map((block) => (block.type === "text" ? block.text : ""))
+      .join("");
+  }, [content]);
+
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
-  const { copied, copy } = useCopy(content);
-  const { isCurrentSessionStreaming } = useStreamingState();
-  const { sendMessage } = useActiveSession();
+  const { copied, copy } = useCopy(textRepresentation);
+  const isCurrentSessionStreaming = false;
+  const { sendMessage } = useChat();
 
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
@@ -48,13 +54,13 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [draft, setDraft] = useState(content);
+  const [draft, setDraft] = useState<string>(textRepresentation);
 
   useEffect(() => {
     if (!isEditing) {
-      setDraft(content);
+      setDraft(textRepresentation);
     }
-  }, [content, isEditing]);
+  }, [textRepresentation, isEditing]);
 
   useEffect(() => {
     const textarea = textAreaRef.current;
@@ -77,19 +83,19 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
 
   const handleStartEdit = () => {
     if (isCurrentSessionStreaming) return;
-    setDraft(content);
+    setDraft(textRepresentation);
     setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
-    setDraft(content);
+    setDraft(textRepresentation);
     setIsEditing(false);
   };
 
   const handleRetry = () => {
     if (!activeId || isCurrentSessionStreaming) return;
     revertMessage(activeId, messageId);
-    sendMessage(content);
+    sendMessage(textRepresentation);
   };
 
   const handleSaveEdit = () => {
@@ -170,7 +176,7 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
       ) : (
         <>
           <div className="relative rounded-md rounded-tr-none border bg-muted/40 p-3 text-foreground/80 shadow-sm">
-            <Renderer content={content} />
+            <Renderer content={textRepresentation} />
           </div>
 
           <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">

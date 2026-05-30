@@ -26,7 +26,6 @@ import { Button } from "@/components/ui/button";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useGenerateSessionTitle } from "@/hooks/use-generate-session-title";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { useStreamingState } from "@/hooks/use-streaming-state";
 import { toast } from "sonner";
 import {
   HoverCard,
@@ -35,7 +34,7 @@ import {
 } from "@/components/ui/hover-card";
 import { useCreatePageFromSession } from "@/hooks/use-create-page-from-session";
 import type { Session } from "@/lib/store/session/types";
-import { MODELS } from "@/lib/llm/common/types";
+import { MODELS } from "@/lib/ai/models";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +46,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useChat } from "@/contexts/chat-context";
 
 interface Props {
   item: Session;
@@ -59,17 +59,16 @@ export const SessionListItem: React.FC<Props> = ({
   active,
   onSwitch,
 }) => {
-  const { generating, generateTitle } = useGenerateSessionTitle();
-  const { isSessionStreaming } = useStreamingState();
-
-  const setActive = useSessionStore((s) => s.setActive);
-  const updateTitle = useSessionStore((s) => s.updateTitle);
-
-  const getFn = useSessionStore((state) => state.getFn);
-
   const { title, id, branchOf } = item;
 
+  const { generating, generateTitle } = useGenerateSessionTitle();
+  const setActive = useSessionStore((s) => s.setActive);
+  const updateTitle = useSessionStore((s) => s.updateTitle);
+  const getFn = useSessionStore((state) => state.getFn);
   const parentSession = branchOf ? getFn(branchOf) : undefined;
+
+  const { streamingSessionId } = useChat();
+  const isStreaming = streamingSessionId === id;
 
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
@@ -177,7 +176,7 @@ export const SessionListItem: React.FC<Props> = ({
             onClick={(e) => e.stopPropagation()}
             className="w-full bg-transparent border-none outline-none focus:ring-0 p-0"
           />
-        ) : isSessionStreaming(id) ? (
+        ) : isStreaming ? (
           <ShimmerText>{title}</ShimmerText>
         ) : (
           <>
@@ -189,7 +188,7 @@ export const SessionListItem: React.FC<Props> = ({
       </div>
 
       <div className="flex h-7 w-7 shrink-0 items-center justify-center">
-        {isSessionStreaming(id) ? (
+        {isStreaming ? (
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
         ) : (
           !editing &&

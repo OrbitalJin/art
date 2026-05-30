@@ -10,7 +10,6 @@ import { LinkDialog } from "./link-dialog";
 import { useEditorActions } from "@/hooks/use-editor-actions";
 import { getMenuGroups } from "@/components/journal/editor/editor-menu";
 import { EditorItemRenderer } from "./item";
-import { TextActionDialog } from "./text-action-dialog";
 import { useEditorStateSelector } from "@/hooks/use-editor-state-selector";
 import { Copy } from "lucide-react";
 import { useJournalEditor } from "@/contexts/note-editor-context";
@@ -90,13 +89,6 @@ export const EditorContextMenu: React.FC<Props> = ({
             .run();
           actions.dialogs.link.setOpen(false);
         }}
-      />
-
-      <TextActionDialog
-        editor={editor}
-        isOpen={actions.dialogs.llm.open}
-        onOpenChange={actions.dialogs.llm.setOpen}
-        action={actions.dialogs.llm.action || "summarize"}
       />
     </>
   );

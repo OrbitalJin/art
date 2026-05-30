@@ -10,7 +10,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useStreamingState } from "@/hooks/use-streaming-state";
+import { useChat } from "@/contexts/chat-context";
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn, formatDateAsAgo } from "@/lib/utils";
@@ -28,7 +28,7 @@ export const ReferencePicker = () => {
 
   const [query, setQuery] = useState<string>("");
 
-  const { isCurrentSessionStreaming: disabled } = useStreamingState();
+  const { isSending: disabled } = useChat();
 
   const withinRefs = (sessionId: string, noteId: string) => {
     if (!activeId) return false;

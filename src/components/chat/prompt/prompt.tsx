@@ -4,21 +4,19 @@ import { SelectModel } from "@/components/chat/prompt/model-select";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useActiveSession } from "@/contexts/active-session-context";
-import { useStreamingState } from "@/hooks/use-streaming-state";
 import { ReferencePicker } from "@/components/chat/prompt/reference-picker";
 import { TraitPicker } from "./trait-picker";
 import { ModeSelect } from "../mode-select";
 import { WebSearchMenu } from "./web-search-menu.tsx";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { useChat } from "@/contexts/chat-context";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
 }
 
 export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
-  const { prompt, abortStream, setPrompt, sendMessage } = useActiveSession();
-  const { isCurrentSessionStreaming } = useStreamingState();
+  const { prompt, abortStream, setPrompt, sendMessage, isSending } = useChat();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
 
   useEffect(() => {
@@ -73,22 +71,14 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               size="icon"
               className={cn(
                 "transition-all duration-300",
-                isCurrentSessionStreaming || prompt.trim()
+                isSending || prompt.trim()
                   ? "opacity-100 scale-105"
                   : "opacity-0 scale-100 pointer-events-none",
               )}
-              onClick={
-                isCurrentSessionStreaming
-                  ? abortStream
-                  : () => sendMessage(prompt)
-              }
-              disabled={!isCurrentSessionStreaming && !prompt.trim()}
+              onClick={isSending ? abortStream : () => sendMessage(prompt)}
+              disabled={!isSending && !prompt.trim()}
             >
-              {isCurrentSessionStreaming ? (
-                <Square className="animate-pulse" />
-              ) : (
-                <ArrowUp />
-              )}
+              {isSending ? <Square className="animate-pulse" /> : <ArrowUp />}
             </Button>
           </div>
         </div>

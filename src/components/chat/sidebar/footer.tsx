@@ -1,19 +1,14 @@
 import { Progress } from "@/components/ui/progress";
-import { useUsage } from "@/hooks/use-usage";
 
 export const SidebarFooter = () => {
-  const { usage } = useUsage();
-
   return (
     <div className="border-t bg-card/50">
-      <UsageIndicator usage={usage} />
+      <UsageIndicator usage={50} />
     </div>
   );
 };
 
-const UsageIndicator = ({ usage }: { usage?: number }) => {
-  if (!usage) return null;
-
+const UsageIndicator = ({ usage }: { usage: number }) => {
   return (
     <div className="space-y-2 px-4 py-3">
       <div className="flex items-center justify-between text-xs">

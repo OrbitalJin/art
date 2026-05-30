@@ -1,11 +1,16 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
-import { MODELS, type ModelId } from "@/lib/llm/common/types";
-import type { Message, Session } from "@/lib/store/session/types";
+import { MODELS, type ModelId } from "@/lib/ai/models";
+import type {
+  ContentBlock,
+  Message,
+  MessageStatus,
+  Session,
+} from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
-import { DEFAULT_MODE, MODES, type ModeId } from "../llm/prompts/modes";
-import type { TraitId } from "../llm/prompts/traits";
+import { DEFAULT_MODE, MODES, type ModeId } from "../ai/prompts/modes";
+import type { TraitId } from "../ai/prompts/traits";
 import { useSettingsStore } from "./use-settings-store";
 
 const createNewSession = (
@@ -21,7 +26,11 @@ const createNewSession = (
     journalRefs: [],
     webCtxUrls: [],
     mode: DEFAULT_MODE,
-    modelId: defaultModelId ?? (MODELS.find((m) => m.id === useSettingsStore.getState().defaultModel)?.id ?? MODELS[0].id),
+    modelId:
+      defaultModelId ??
+      MODELS.find((m) => m.id === useSettingsStore.getState().defaultModel)
+        ?.id ??
+      MODELS[0].id,
     createdAt: date,
     updatedAt: date,
   };
@@ -406,7 +415,7 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -439,11 +448,72 @@ export const useSessionStore = create<SessionState>()(
             };
             state.sessions = state.sessions.map((session: Session) => ({
               ...session,
-              modelId:
-                modelIdMap[session.modelId as string] ?? MODELS[0].id,
+              modelId: modelIdMap[session.modelId as string] ?? MODELS[0].id,
             }));
           }
         }
+        if (version < 4) {
+          const state = persistedState as { sessions?: unknown[] };
+          if (state && Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((rawSession) => {
+              const session = rawSession as Record<string, unknown>;
+              const messages = Array.isArray(session.messages)
+                ? session.messages
+                : [];
+
+              const migratedMessages = messages.map((rawMessage) => {
+                const m = rawMessage as Record<string, unknown> & {
+                  role?: string;
+                  content?: unknown;
+                  status?: MessageStatus;
+                };
+
+                const isError = m.role === "error";
+
+                const role: Message["role"] =
+                  m.role === "user" ? "user" : "assistant";
+
+                const content: string | ContentBlock[] = Array.isArray(
+                  m.content,
+                )
+                  ? (m.content as ContentBlock[])
+                  : typeof m.content === "string"
+                    ? m.content
+                    : "";
+
+                const status: MessageStatus | undefined = isError
+                  ? "error"
+                  : m.status;
+
+                const migrated: Message = {
+                  id: typeof m.id === "string" ? m.id : crypto.randomUUID(),
+                  role,
+                  content,
+                  ...(status ? { status } : {}),
+                  ...(typeof m.grounded === "boolean"
+                    ? { grounded: m.grounded }
+                    : {}),
+                  ...(typeof m.modelId === "string"
+                    ? { modelId: m.modelId as ModelId }
+                    : {}),
+                  tokenUsage:
+                    typeof (m as { tokenUsage?: unknown }).tokenUsage ===
+                    "number"
+                      ? (m as { tokenUsage: number }).tokenUsage
+                      : 0,
+                };
+
+                return migrated;
+              });
+
+              return {
+                ...session,
+                messages: migratedMessages,
+              };
+            });
+          }
+        }
+
         return persistedState as SessionState;
       },
       onRehydrateStorage: () => (state) => {

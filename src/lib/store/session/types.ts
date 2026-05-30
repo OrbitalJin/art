@@ -1,6 +1,6 @@
-import type { ModelId } from "@/lib/llm/common/types";
-import type { ModeId } from "@/lib/llm/prompts/modes";
-import type { TraitId } from "@/lib/llm/prompts/traits";
+import type { ModelId } from "@/lib/ai/models";
+import type { ModeId } from "@/lib/ai/prompts/modes";
+import type { TraitId } from "@/lib/ai/prompts/traits";
 
 export type MessageStatus =
   | "thinking"
@@ -9,14 +9,31 @@ export type MessageStatus =
   | "aborted"
   | "error";
 
+export interface ToolCallBlock {
+  type: "tool-call";
+  id: string;
+  toolName: string;
+  input: unknown;
+  state: "executing" | "result" | "error";
+  output?: unknown;
+}
+
+export interface TextBlock {
+  type: "text";
+  text: string;
+}
+
+export type ContentBlock = TextBlock | ToolCallBlock;
+
 export interface Message {
   id: string;
-  role: "user" | "model" | "error";
-  content: string;
-  status: MessageStatus;
+  role: "user" | "assistant";
+  // Content can be a simple string (for user messages) or structured blocks (for assistant messages)
+  content: string | ContentBlock[];
+  status?: MessageStatus;
   grounded?: boolean;
   modelId?: ModelId;
-  errMsg?: string;
+  tokenUsage: number;
 }
 
 export interface Session {

@@ -1,5 +1,3 @@
-import type { GroundingMetadata } from "@google/genai";
-
 export type ModelTier = 1 | 2 | 3;
 export type ModelId = "model-1" | "model-2" | "model-3";
 
@@ -50,29 +48,5 @@ export const MODELS: readonly Model[] = [
 
 export const DEFAULT_MODEL = MODELS[0];
 
-export type StreamChunk = {
-  token: string;
-  isFinal?: boolean;
-  error?: LLMError;
-  metadata?: GroundingMetadata;
-};
-
-export type LLMErrorType =
-  | "aborted"
-  | "timeout"
-  | "network"
-  | "rate_limit"
-  | "provider"
-  | "unknown";
-
-export class LLMError extends Error {
-  readonly type: LLMErrorType;
-  readonly retryable: boolean;
-
-  constructor(type: LLMErrorType, message: string, retryable = false) {
-    super(message);
-    this.name = "LLMError";
-    this.type = type;
-    this.retryable = retryable;
-  }
-}
+export const modelById = (id?: ModelId) =>
+  MODELS.find((model) => model.id === id) ?? DEFAULT_MODEL;

@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTradeSession } from "@/hooks/use-trade-session";
-import { MODELS, type ModelId } from "@/lib/llm/common/types";
+import { MODELS, type ModelId } from "@/lib/ai/models";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import {

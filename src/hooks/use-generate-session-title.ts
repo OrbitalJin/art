@@ -1,18 +1,14 @@
 import { useCallback, useRef, useState } from "react";
-import { useLLM } from "@/contexts/llm-context";
-import { gen } from "@/lib/llm/prompts/gen";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
-import { MODELS } from "@/lib/llm/common/types";
 
 export const useGenerateSessionTitle = () => {
-  const { llm } = useLLM();
   const [generating, setGenerating] = useState(false);
   const genRef = useRef(false);
 
   const generateTitle = useCallback(
     async (sessionId: string) => {
-      if (genRef.current || generating || !llm) return;
+      if (genRef.current || generating) return;
       genRef.current = true;
       setGenerating(true);
 
@@ -21,9 +17,7 @@ export const useGenerateSessionTitle = () => {
         const session = sessions.find((s) => s.id === sessionId);
         if (!session?.messages.length) return;
 
-        const title = await llm.genFromMessages(gen.title, session.messages, {
-          model: MODELS.find((m) => m.tier === 2)?.type,
-        });
+        const title = "No Title";
         if (title?.trim()) {
           useSessionStore.getState().updateTitle(sessionId, title.trim());
           useSessionStore.getState().setTitleGenerated(sessionId, true);
@@ -37,7 +31,7 @@ export const useGenerateSessionTitle = () => {
         setGenerating(false);
       }
     },
-    [llm, generating],
+    [generating],
   );
 
   return { generateTitle, generating };

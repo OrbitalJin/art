@@ -170,6 +170,9 @@ Bento-style task board with drag-and-drop organization.
 
 - [x] Ignore asset files such as demo screenshots from being packaged
 - [x] Adapt syntax highlighting to current selected theme
-- [ ] Use `models.countTokens` for accurate token count
+- [x] Migrate to ai sdk
+- [x] Implement tool calling
+- [ ] Implement tool permissions
+- [ ] Globabl token count for session
 - [ ] Performance optimization, memoization, isolate state more
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

@@ -4,8 +4,8 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MODELS } from "@/lib/llm/common/types";
-import { useStreamingState } from "@/hooks/use-streaming-state";
+import { useChat } from "@/contexts/chat-context";
+import { MODELS } from "@/lib/ai/models";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
 import { ChevronUp } from "lucide-react";
@@ -28,9 +28,10 @@ export const SelectModel = () => {
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
-  const { isCurrentSessionStreaming } = useStreamingState();
   const model = MODELS.find((m) => m.id === session?.modelId);
   const [open, setOpen] = useState(false);
+
+  const { isSending: disabled } = useChat();
 
   const handleSelect = (key: string) => {
     if (session) {
@@ -43,14 +44,16 @@ export const SelectModel = () => {
   return (
     <DropdownMenu key={activeId} open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
-        disabled={isCurrentSessionStreaming}
+        disabled={disabled}
         className="
         w-[120px] text-xs border cursor-pointer
         shadow-none focus:ring-0 transition-colors
         hover:bg-accent/30 hover:text-primary
         inline-flex items-center justify-between rounded-md px-3 py-2 disabled:pointer-events-none disabled:opacity-50"
       >
-        <span className="truncate font-medium">{model?.displayName || "Model"}</span>
+        <span className="truncate font-medium">
+          {model?.displayName || "Model"}
+        </span>
         <ChevronUp
           className={cn(
             "h-3.5 w-3.5 opacity-50 shrink-0 transition-transform",

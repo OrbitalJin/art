@@ -2,7 +2,6 @@ import { Editor } from "@tiptap/react";
 import {
   Bold,
   Italic,
-  ListRestart,
   List,
   ListOrdered,
   Quote,
@@ -20,9 +19,6 @@ import {
   Trash2,
   SeparatorHorizontal,
   SquarePlus,
-  ArrowDownWideNarrow,
-  TextSelect,
-  Rainbow,
   Heading,
   Heading1,
   Heading2,
@@ -225,45 +221,6 @@ const INSERT_ITEMS: MenuItemConfig[] = [
   },
 ];
 
-const ACTION_ITEMS: MenuItemConfig[] = [
-  {
-    icon: ArrowDownWideNarrow,
-    label: "Summarize",
-    isDisabled: (state, actions) => !state.hasSelection || actions.isBusy,
-    action: (_, __, actions) => {
-      actions.dialogs.llm.setAction("summarize");
-      actions.dialogs.llm.setOpen(true);
-    },
-  },
-  {
-    icon: ListRestart,
-    label: "Rephrase",
-    isDisabled: (state, actions) => !state.hasSelection || actions.isBusy,
-    action: (_, __, actions) => {
-      actions.dialogs.llm.setAction("rephrase");
-      actions.dialogs.llm.setOpen(true);
-    },
-  },
-  {
-    icon: List,
-    label: "Convert to Bullets",
-    isDisabled: (state, actions) => !state.hasSelection || actions.isBusy,
-    action: (_, __, actions) => {
-      actions.dialogs.llm.setAction("bullet");
-      actions.dialogs.llm.setOpen(true);
-    },
-  },
-  {
-    icon: Rainbow,
-    label: "Organize Content",
-    isDisabled: (state, actions) => !state.hasSelection || actions.isBusy,
-    action: (_, __, actions) => {
-      actions.dialogs.llm.setAction("organize");
-      actions.dialogs.llm.setOpen(true);
-    },
-  },
-];
-
 // Helper functions
 const createMenuItem = (
   config: MenuItemConfig,
@@ -308,16 +265,5 @@ export const getMenuGroups = (
     createMenuGroup("Table", Table, TABLE_ITEMS, editor, state, actions),
     createMenuGroup("Insert", SquarePlus, INSERT_ITEMS, editor, state, actions),
   ];
-
-  const actionsGroup = createMenuGroup(
-    "Actions",
-    TextSelect,
-    ACTION_ITEMS,
-    editor,
-    state,
-    actions,
-  );
-  groups.push(actionsGroup);
-
   return groups.map((group) => [group]);
 };

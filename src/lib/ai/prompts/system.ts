@@ -1,4 +1,4 @@
-import { MODES, type ModeId } from "./modes";
+import { DEFAULT_MODE, MODES, type ModeId } from "./modes";
 import { TRAITS, type TraitId } from "./traits";
 
 export const AGENT = {
@@ -21,30 +21,27 @@ export interface AgentProfile {
   quirks: string;
 }
 
-export const systemPrompt = (
-  mode: ModeId,
-  traits: TraitId[],
-  userProfile: UserProfile,
-  agentProfile: AgentProfile,
-): string => {
-  const modeDef = MODES[mode];
-  const traitPrompts = traits
-    .map((t) => TRAITS[t]?.prompt)
-    .filter(Boolean)
-    .map((p) => `- ${p}`)
-    .join("\n");
+interface Opts {
+  mode?: ModeId;
+  traits?: TraitId[];
+  userProfile: UserProfile;
+  agentProfile: AgentProfile;
+}
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  const timeStr = now.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+export const systemPrompt = ({
+  mode,
+  traits,
+  userProfile,
+  agentProfile,
+}: Opts): string => {
+  const modeDef = MODES[mode ?? DEFAULT_MODE];
+  const traitPrompts = traits
+    ? traits
+        .map((t) => TRAITS[t]?.prompt)
+        .filter(Boolean)
+        .map((p) => `- ${p}`)
+        .join("\n")
+    : "";
 
   return `
 # ROLE
@@ -68,8 +65,7 @@ You are ${AGENT.name}, an adaptive companion/companion for ${userProfile.name ? 
 - Occupation: ${userProfile.occupation}
 - Languages Spoken: ${userProfile.languages}
 - Current Goals: ${userProfile.goals}
-- Current Time: ${dateStr}, ${timeStr}
-- Developer: ${AGENT.developer} (Don't mention being trained by Google)
+- Developer: You were developped by ${AGENT.developer}
 
 # GLOBAL RULES
 - Default to a human, calm, and natural tone.

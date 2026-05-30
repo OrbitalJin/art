@@ -13,7 +13,6 @@ import { getMenuGroups } from "@/components/journal/editor/editor-menu";
 import { useEditorActions } from "@/hooks/use-editor-actions";
 import { cn } from "@/lib/utils";
 import { useEditorStateSelector } from "@/hooks/use-editor-state-selector";
-import { TextActionDialog } from "@/components/journal/editor/context-menu/text-action-dialog";
 import { useJournalEditor } from "@/contexts/note-editor-context";
 
 interface MenuItem {
@@ -163,13 +162,6 @@ export const Command: React.FC<Props> = ({ editor }) => {
           {currentView === "main" ? renderMainView() : renderSubmenuView()}
         </CommandList>
       </CommandDialog>
-
-      <TextActionDialog
-        editor={editor}
-        isOpen={actions.dialogs.llm.open}
-        onOpenChange={actions.dialogs.llm.setOpen}
-        action={actions.dialogs.llm.action || "summarize"}
-      />
     </>
   );
 };
