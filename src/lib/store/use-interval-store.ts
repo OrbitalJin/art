@@ -28,7 +28,9 @@ interface IntervalState extends MemoState {
   focusTime: number;
   shortBreakTime: number;
   longBreakTime: number;
+  fullscreen: boolean;
 
+  setFullscreen: (state: boolean) => void;
   setSessionCount: (count: number) => void;
   setFocusTime: (time: number) => void;
   setShortBreakTime: (time: number) => void;
@@ -47,9 +49,16 @@ export const useIntervalStore = create<IntervalState>()(
       currentIndex: 0,
       muted: false,
       loop: false,
+      fullscreen: false,
 
       playlist: ["https://youtu.be/8ugK6BCZzyY?si=wcd5O2Or7W0eMK0Q"],
       memoContent: "",
+
+      setFullscreen: (state: boolean) => {
+        set(() => ({
+          fullscreen: state,
+        }));
+      },
 
       setSessionCount: (count: number) => {
         set(() => ({

@@ -37,8 +37,8 @@ export const CalendarView: React.FC<Props> = ({
   } = useCalendar(tasks);
 
   return (
-    <div className="flex flex-col h-full gap-2">
-      <div className="flex items-center justify-between p-2 border rounded-md">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between p-2 border-t">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <Button
@@ -65,8 +65,8 @@ export const CalendarView: React.FC<Props> = ({
         </Button>
       </div>
 
-      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden gap-2">
-        <div className="flex-1 flex flex-col p-2 md:p-4 overflow-y-auto border rounded-md ">
+      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden">
+        <div className="flex-1 flex flex-col p-2 md:p-4 overflow-y-auto border-r border-t">
           <div className="grid grid-cols-7 gap-1 mb-2">
             {WEEKDAYS.map((day) => (
               <div
@@ -93,13 +93,15 @@ export const CalendarView: React.FC<Props> = ({
 
         <div
           className={cn(
-            "w-full lg:w-72",
-            "flex flex-col overflow-y-auto h-[50%] md:h-[30%] lg:h-auto border rounded-md",
+            "w-full lg:w-72 border-t",
+            "flex flex-col overflow-y-auto h-[50%] lg:h-auto",
           )}
         >
           <div className="flex flex-row gap-2 items-center justify-between font-medium text text-muted-foreground border-b p-3">
             <p>Undated </p>
-            <Badge variant="outline">{tasksWithoutDue.length}</Badge>
+            <Badge variant="outline" className="aspect-square items-center">
+              {tasksWithoutDue.length}
+            </Badge>
           </div>
           <div className="flex flex-col gap-2 rounded-md h-full p-2">
             {tasksWithoutDue.map((task) => (

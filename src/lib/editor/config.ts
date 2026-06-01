@@ -49,7 +49,6 @@ export const editorProps = {
       toast.info("Opening link...");
       return true;
     }
-
     return false;
   },
 };

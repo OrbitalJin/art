@@ -75,12 +75,12 @@ export const BoardColumn: React.FC<Props> = ({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex min-h-0 flex-1 flex-col rounded-md border border-border/80 bg-background transition-colors h-full",
-        isOverColumn && "border-primary bg-primary/5",
+        "flex min-h-0 flex-1 flex-col bg-background transition-colors h-full",
+        isOverColumn && "border border-primary/80 bg-primary/5",
         className,
       )}
     >
-      <div className="flex flex-row items-center justify-between border-b border-border px-3 py-2">
+      <div className="flex flex-row items-center justify-between border-b border-t border-border px-3 py-2">
         <div className="flex flex-row items-center gap-2 overflow-y-scroll">
           <p className="truncate font-medium">{title}</p>
           <span className="shrink-0 text-sm text-muted-foreground">

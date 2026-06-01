@@ -1,16 +1,20 @@
-import React, {
-  useState,
-  useEffect,
-  type FormEvent,
-  type ReactNode,
-} from "react";
+import React, { useEffect, type ReactNode } from "react";
 import { addDays, parseISO } from "date-fns";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import * as z from "zod";
 import type { Project, Task } from "@/lib/store/tasks/types";
 import { useTasksStore } from "@/lib/store/use-tasks-store";
 
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Save } from "lucide-react";
+import { Field, FieldError, FieldGroup } from "@/components/ui/field";
+import { Plus } from "lucide-react";
 
 import { TaskFormHeader } from "./task-form-header";
 import { TaskTitleField } from "./task-title-field";
@@ -21,15 +25,46 @@ import { TaskDueDatePicker } from "./task-due-date-picker";
 import { TaskEnergySelector } from "./task-energy-selector";
 import { TaskDependenciesPopover } from "./task-dependencies-popover";
 
-type TaskFormData = {
-  title: string;
-  description: string;
-  urgency: "low" | "medium" | "high";
-  energy: 1 | 2 | 3 | 4 | 5;
-  due: Date | null;
-  projectId: string;
-  dependencies: string[];
-};
+const taskFormSchema = z.object({
+  title: z.string().min(1, "Title is required.").max(200, "Title is too long."),
+  description: z.string().max(2000, "Description is too long.").optional(),
+  urgency: z.enum(["low", "medium", "high"]),
+  energy: z.union([
+    z.literal(1),
+    z.literal(2),
+    z.literal(3),
+    z.literal(4),
+    z.literal(5),
+  ]),
+  due: z.date().nullable(),
+  projectId: z.string(),
+  dependencies: z.array(z.string()),
+});
+
+type TaskFormValues = z.infer<typeof taskFormSchema>;
+
+const defaultValues = (
+  activeProjectId: string,
+  isCreate: boolean,
+): TaskFormValues => ({
+  title: "",
+  description: "",
+  urgency: "medium",
+  energy: 3,
+  due: isCreate ? addDays(new Date(), 1) : null,
+  projectId: activeProjectId ?? "inbox",
+  dependencies: [],
+});
+
+const taskToFormValues = (task: Task): TaskFormValues => ({
+  title: task.title,
+  description: task.description ?? "",
+  urgency: task.urgency ?? "medium",
+  energy: task.energy ?? 3,
+  due: task.due ? parseISO(task.due) : null,
+  projectId: task.projectId ?? "inbox",
+  dependencies: task.dependencies ?? [],
+});
 
 interface BaseProps {
   projects: Project[];
@@ -55,98 +90,49 @@ interface EditModeProps extends BaseProps {
 
 type TaskFormDialogProps = CreateModeProps | EditModeProps;
 
-const defaultFormData: TaskFormData = {
-  title: "",
-  description: "",
-  urgency: "medium",
-  energy: 3,
-  due: null,
-  projectId: "inbox",
-  dependencies: [],
-};
-
-const getInitialFormData = (
-  mode: "create" | "edit",
-  task?: Task | null,
-  activeProjectId?: string | "inbox",
-): TaskFormData => {
-  if (mode === "edit" && task) {
-    return {
-      title: task.title,
-      description: task.description || "",
-      urgency: task.urgency || "medium",
-      energy: task.energy || 3,
-      due: task.due ? parseISO(task.due) : null,
-      projectId: task.projectId || "inbox",
-      dependencies: task.dependencies || [],
-    };
-  }
-
-  return {
-    ...defaultFormData,
-    projectId: activeProjectId ?? "inbox",
-    due: addDays(new Date(), 1),
-  };
-};
-
 export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
-  const { mode, projects, trigger } = props;
+  const { mode, projects } = props;
   const isEdit = mode === "edit";
   const isCreate = mode === "create";
+
   const activeProjectId = useTasksStore((state) => state.activeProjectId);
   const inboxName = useTasksStore((state) => state.inboxName);
   const tasks = useTasksStore((state) => state.tasks);
 
-  const [internalOpen, setInternalOpen] = useState(false);
-  const [formData, setFormData] = useState<TaskFormData>(() =>
-    getInitialFormData(mode, isEdit ? props.task : undefined, activeProjectId),
-  );
+  const [internalOpen, setInternalOpen] = React.useState(false);
 
   const isControlled = props.open !== undefined;
-  const open = isControlled ? props.open : internalOpen;
+  const open = isControlled ? props.open! : internalOpen;
   const onOpenChange = isControlled ? props.onOpenChange! : setInternalOpen;
 
+  const form = useForm<TaskFormValues>({
+    resolver: zodResolver(taskFormSchema),
+    defaultValues:
+      isEdit && props.task
+        ? taskToFormValues(props.task)
+        : defaultValues(activeProjectId, true),
+  });
+
   useEffect(() => {
-    if (isEdit && props.task && open) {
-      setFormData(getInitialFormData("edit", props.task));
-    } else if (isCreate && open) {
-      setFormData((prev) => ({ ...prev, projectId: activeProjectId }));
+    if (!open) return;
+
+    if (isEdit && props.task) {
+      form.reset(taskToFormValues(props.task));
+    } else if (isCreate) {
+      form.reset(defaultValues(activeProjectId, true));
     }
-  }, [isEdit, isCreate, props.task, open, activeProjectId]);
+  }, [open, isEdit, isCreate, props.task, activeProjectId, form]);
 
-  const updateField = <K extends keyof TaskFormData>(
-    field: K,
-    value: TaskFormData[K],
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const toggleDependency = (taskId: string) => {
-    if (formData.dependencies.includes(taskId)) {
-      updateField(
-        "dependencies",
-        formData.dependencies.filter((id) => id !== taskId),
-      );
-    } else {
-      updateField("dependencies", [...formData.dependencies, taskId]);
-    }
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.title.trim()) return;
-
+  const handleSubmit = form.handleSubmit((values) => {
     const payload = {
-      title: formData.title.trim(),
-      description: formData.description.trim() || undefined,
-      urgency: formData.urgency,
-      energy: formData.energy,
-      due: formData.due?.toISOString(),
-      projectId:
-        formData.projectId === "inbox" ? undefined : formData.projectId,
+      title: values.title.trim(),
+      description: values.description?.trim() || undefined,
+      urgency: values.urgency,
+      energy: values.energy,
+      due: values.due?.toISOString(),
+      projectId: values.projectId === "inbox" ? undefined : values.projectId,
       dependencies:
-        formData.dependencies.length > 0 ? formData.dependencies : undefined,
+        values.dependencies.length > 0 ? values.dependencies : undefined,
     };
 
     if (isEdit) {
@@ -158,123 +144,196 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
         ...payload,
         status: "backlog",
       } as Omit<Task, "id" | "createdAt" | "updatedAt">);
-
-      setFormData({
-        ...defaultFormData,
-        projectId: activeProjectId,
-        due: addDays(new Date(), 1),
-      });
     }
 
+    onOpenChange(false);
+  });
+
+  const handleCancel = () => {
+    form.reset();
     onOpenChange(false);
   };
 
-  const handleCancel = () => {
-    if (isCreate) {
-      setFormData({
-        ...defaultFormData,
-        projectId: activeProjectId,
-        due: addDays(new Date(), 1),
-      });
-    }
-
-    onOpenChange(false);
+  const toggleDependency = (taskId: string) => {
+    const current = form.getValues("dependencies");
+    form.setValue(
+      "dependencies",
+      current.includes(taskId)
+        ? current.filter((id) => id !== taskId)
+        : [...current, taskId],
+    );
   };
 
   const dialogContent = (
     <DialogContent className="gap-0 overflow-x-hidden p-0 sm:max-w-[520px]">
       <TaskFormHeader mode={mode} />
 
-      <form onSubmit={handleSubmit} className="min-w-0 space-y-5 p-6">
-        <div className="min-w-0 space-y-4">
-          <TaskTitleField
-            value={formData.title}
-            onChange={(v) => updateField("title", v)}
+      <form
+        id="task-form"
+        onSubmit={handleSubmit}
+        className="min-w-0 space-y-5 p-6"
+      >
+        <FieldGroup>
+          <Controller
+            name="title"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <TaskTitleField
+                  value={field.value}
+                  onChange={field.onChange}
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
           />
 
-          <TaskDescriptionField
-            value={formData.description}
-            onChange={(v) => updateField("description", v)}
+          <Controller
+            name="description"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <TaskDescriptionField
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
           />
-        </div>
+        </FieldGroup>
 
         <div className="min-w-0 grid grid-cols-2 gap-4">
+          {/* Project */}
           <div className="min-w-0">
-            <TaskProjectSelector
-              value={formData.projectId}
-              onChange={(v) => updateField("projectId", v)}
-              projects={projects}
-              inboxName={inboxName}
+            <Controller
+              name="projectId"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <TaskProjectSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    projects={projects}
+                    inboxName={inboxName}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
             />
           </div>
 
+          {/* Urgency */}
           <div className="min-w-0">
-            <TaskUrgencySelector
-              value={formData.urgency}
-              onChange={(v) => updateField("urgency", v)}
+            <Controller
+              name="urgency"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <TaskUrgencySelector
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
             />
           </div>
 
+          {/* Due date */}
           <div className="min-w-0">
-            <TaskDueDatePicker
-              value={formData.due}
-              onChange={(v) => updateField("due", v)}
-              required={isCreate}
+            <Controller
+              name="due"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <TaskDueDatePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    required={isCreate}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
             />
           </div>
 
+          {/* Energy */}
           <div className="min-w-0">
-            <TaskEnergySelector
-              value={formData.energy}
-              onChange={(v) => updateField("energy", v)}
+            <Controller
+              name="energy"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <TaskEnergySelector
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
             />
           </div>
 
+          {/* Dependencies */}
           <div className="col-span-2 min-w-0">
-            <TaskDependenciesPopover
-              selectedIds={formData.dependencies}
-              onToggle={toggleDependency}
-              onClear={() => updateField("dependencies", [])}
-              tasks={tasks}
-              projects={projects}
-              inboxName={inboxName}
-              currentTaskId={isEdit ? props.task?.id : undefined}
+            <Controller
+              name="dependencies"
+              control={form.control}
+              render={({ field }) => (
+                <Field>
+                  <TaskDependenciesPopover
+                    selectedIds={field.value}
+                    onToggle={toggleDependency}
+                    onClear={() => form.setValue("dependencies", [])}
+                    tasks={tasks}
+                    projects={projects}
+                    inboxName={inboxName}
+                    currentTaskId={isEdit ? props.task?.id : undefined}
+                  />
+                </Field>
+              )}
             />
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3 border-t pt-4">
-          <Button type="button" variant="ghost" onClick={handleCancel}>
+        <DialogFooter className="flex gap-2">
+          <Button type="button" variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-
           <Button
             type="submit"
-            disabled={!formData.title.trim()}
-            className="min-w-[100px] gap-2"
+            form="task-form"
+            disabled={!form.watch("title").trim()}
           >
-            {isEdit ? (
-              <>
-                <Save className="h-4 w-4" />
-                Save Changes
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4" />
-                Create Task
-              </>
-            )}
+            {isEdit ? "Save Changes" : "Create Task"}
           </Button>
-        </div>
+        </DialogFooter>
       </form>
     </DialogContent>
   );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {isCreate && trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+      {isCreate && props.trigger && (
+        <DialogTrigger asChild>{props.trigger}</DialogTrigger>
+      )}
 
-      {isCreate && !trigger && (
+      {isCreate && !props.trigger && (
         <DialogTrigger asChild>
           <Button size="icon" variant="outline" className="gap-2">
             <Plus className="h-4 w-4" />

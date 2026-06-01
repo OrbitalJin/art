@@ -110,10 +110,7 @@ export const Playlist = () => {
           </p>
         </div>
       ) : (
-        <ScrollArea
-          className="min-h-0 flex-1 bg-card/50 p-2 border rounded-md"
-          scrollbar={false}
-        >
+        <ScrollArea className="min-h-0 flex-1" scrollbar={false}>
           <div className="space-y-2">
             {playlist.map((item, i) => (
               <PlaylistItem
