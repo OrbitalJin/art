@@ -17,8 +17,8 @@ import type {
 } from "@/lib/store/session/types";
 import { systemPrompt } from "@/lib/ai/prompts/system";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { providerToolsFor } from "@/lib/tools/provider";
-import { customTools } from "@/lib/tools/custom";
+import { providerToolsFor } from "@/lib/ai/tools/provider";
+import { customTools } from "@/lib/ai/tools/custom";
 import { modelById } from "@/lib/ai/models";
 
 interface ChatContextValues {
@@ -110,7 +110,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         stream = streamText({
           model: google(modelType),
-          stopWhen: stepCountIs(5),
+          stopWhen: stepCountIs(10),
           abortSignal: controller.signal,
           system: systemPrompt({
             mode,

@@ -1,4 +1,4 @@
-import type { Session } from "../store/session/types";
+import type { Session } from "@/lib/store/session/types";
 import type { GoogleGenerativeAIProvider } from "@ai-sdk/google";
 import type { ToolSet } from "ai";
 

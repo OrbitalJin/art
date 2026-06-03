@@ -299,11 +299,7 @@ export const useTasksStore = create<TasksState>()(
       deleteProject: (id) => {
         set((state) => ({
           projects: state.projects.filter((project) => project.id !== id),
-          tasks: state.tasks.map((task) =>
-            task.projectId === id
-              ? { ...task, projectId: undefined, updatedAt: Date.now() }
-              : task,
-          ),
+          tasks: state.tasks.filter((task) => task.projectId !== id),
           activeProjectId:
             state.activeProjectId === id ? "inbox" : state.activeProjectId,
         }));

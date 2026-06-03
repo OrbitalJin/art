@@ -1,5 +1,5 @@
-import { useJournalStore } from "../store/use-journal-store";
-import { WORKSPACES } from "../store/journal/types";
+import { useJournalStore } from "@/lib/store/use-journal-store";
+import { WORKSPACES } from "@/lib/store/journal/types";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 
