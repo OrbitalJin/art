@@ -4,12 +4,12 @@ import { SelectModel } from "@/components/chat/prompt/model-select";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ReferencePicker } from "@/components/chat/prompt/reference-picker";
 import { TraitPicker } from "./trait-picker";
 import { ModeSelect } from "../mode-select";
 import { WebSearchMenu } from "./web-search-menu.tsx";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChat } from "@/contexts/chat-context";
+import { ToggleToolCalls } from "./toggle-tool-calls.tsx";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -63,8 +63,8 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               <SelectModel />
               <ModeSelect />
               <TraitPicker />
-              <ReferencePicker />
               <WebSearchMenu />
+              <ToggleToolCalls />
             </div>
             <Button
               variant="default"

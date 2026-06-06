@@ -172,6 +172,7 @@ Bento-style task board with drag-and-drop organization.
 - [x] Adapt syntax highlighting to current selected theme
 - [x] Migrate to ai sdk
 - [x] Implement tool calling
+- [ ] Update content generators to use new primitives (e.g. journal, title gen)
 - [ ] Implement tool permissions
 - [ ] Globabl token count for session
 - [ ] Performance optimization, memoization, isolate state more

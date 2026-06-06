@@ -21,6 +21,7 @@ import {
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
 import { ToolCallCard } from "./tool-call-card";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
 
 export const AssistantMessage: React.FC<Message> = ({
   content,
@@ -32,6 +33,7 @@ export const AssistantMessage: React.FC<Message> = ({
 }) => {
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
+  const showToolCalls = useSettingsStore((state) => state.showToolCalls);
   const streaming = false;
 
   const textRepresentation = useMemo(() => {
@@ -43,10 +45,11 @@ export const AssistantMessage: React.FC<Message> = ({
 
   const { copied, copy } = useCopy(textRepresentation);
 
-  const isThinking = status === "thinking";
   const hasContent =
     textRepresentation.length > 0 ||
     (Array.isArray(content) && content.length > 0);
+
+  const isThinking = status === "thinking" || !hasContent;
   const model = MODELS.find((m) => m.id === modelId);
   const premium = model?.tier === 3;
 
@@ -65,7 +68,7 @@ export const AssistantMessage: React.FC<Message> = ({
     <div className="group flex w-full gap-3 animate-in fade-in duration-100 select-auto">
       <div className="relative flex-1 leading-7 text-foreground/90">
         {isThinking && (
-          <div className="flex items-center gap-2 py-1 text-muted-foreground">
+          <div className="flex items-center gap-2 py-1 text-muted-foreground mb-2">
             <Spinner />
             <ShimmerText className="text-sm">Thinking</ShimmerText>
           </div>
@@ -80,7 +83,7 @@ export const AssistantMessage: React.FC<Message> = ({
                 if (block.type === "text") {
                   return <Renderer key={idx} content={block.text} />;
                 }
-                if (block.type === "tool-call") {
+                if (block.type === "tool-call" && showToolCalls) {
                   return <ToolCallCard key={block.id} block={block} />;
                 }
                 return null;

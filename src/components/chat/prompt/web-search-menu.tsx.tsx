@@ -105,8 +105,8 @@ export const WebSearchMenu = () => {
             grounded
               ? groundingForced
                 ? "bg-primary/10 cursor-default"
-                : "bg-primary/5 cursor-pointer hover:bg-accent/50"
-              : "bg-muted/30 cursor-pointer hover:bg-accent/50",
+                : "bg-primary/5 cursor-pointer hover:bg-accent/10"
+              : "bg-muted/30 cursor-pointer hover:bg-accent/10",
           )}
           onClick={() => !groundingForced && toggleSearchGrounding(activeId)}
         >

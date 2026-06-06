@@ -30,7 +30,9 @@ interface SettingsState {
   reducedMotion: boolean;
   userProfile: UserProfile;
   agentProfile: AgentProfile;
+  showToolCalls: boolean;
 
+  setShowToolCalls: (value: boolean) => void;
   setApiKey: (key: string) => void;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
@@ -69,6 +71,7 @@ const initialState = {
   reducedMotion: false,
   userProfile: DEFAULT_USER_PROFILE,
   agentProfile: DEFAULT_AGENT_PROFILE,
+  showToolCalls: true,
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -90,6 +93,7 @@ export const useSettingsStore = create<SettingsState>()(
           agentProfile: { ...state.agentProfile, ...profile },
         })),
       resetSettings: () => set(initialState),
+      setShowToolCalls: (value: boolean) => set({ showToolCalls: value }),
     }),
     {
       name: "settings-storage",

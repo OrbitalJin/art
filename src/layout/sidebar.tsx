@@ -8,7 +8,7 @@ export const Sidebar = () => (
     <aside
       className={cn(
         "flex flex-col items-center w-[60px] h-full",
-        "border rounded-lg bg-card/50 backdrop-blur-sm py-3",
+        "border rounded-lg bg-card/50 backdrop-blur-sm py-2",
         "transition-all duration-300",
       )}
     >

@@ -3,8 +3,12 @@ import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math"; // 1. Import remark-math
+import rehypeKatex from "rehype-katex";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
+
+import "katex/dist/katex.min.css";
 
 import { CodeBlock } from "@/components/chat/messages/code/block/block";
 import { InlineCode } from "@/components/chat/messages/code/inline";
@@ -24,7 +28,8 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
       )}
     >
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkBreaks]}
+        remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
         components={{
           h1({ children }) {
             return (
@@ -124,6 +129,9 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
 
           code({ className, children, ...props }) {
             const text = String(children).replace(/\n$/, "");
+            const isMath = className?.includes("language-math");
+            if (isMath) return null;
+
             const isBlock =
               !!className?.includes("language-") || text.includes("\n");
 
