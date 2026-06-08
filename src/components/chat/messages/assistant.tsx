@@ -33,7 +33,7 @@ export const AssistantMessage: React.FC<Message> = ({
 }) => {
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
-  const showToolCalls = useSettingsStore((state) => state.showToolCalls);
+  const { showCalls } = useSettingsStore((state) => state.toolOptions);
   const streaming = false;
 
   const textRepresentation = useMemo(() => {
@@ -45,13 +45,16 @@ export const AssistantMessage: React.FC<Message> = ({
 
   const { copied, copy } = useCopy(textRepresentation);
 
+  const model = MODELS.find((m) => m.id === modelId);
+  const premium = model?.tier === 3;
+
   const hasContent =
     textRepresentation.length > 0 ||
     (Array.isArray(content) && content.length > 0);
 
+  const shouldRenderFooter = hasContent && status !== "streaming";
+
   const isThinking = status === "thinking" || !hasContent;
-  const model = MODELS.find((m) => m.id === modelId);
-  const premium = model?.tier === 3;
 
   const handleBranch = () => {
     if (activeId && !streaming) {
@@ -66,7 +69,7 @@ export const AssistantMessage: React.FC<Message> = ({
 
   return (
     <div className="group flex w-full gap-3 animate-in fade-in duration-100 select-auto">
-      <div className="relative flex-1 leading-7 text-foreground/90">
+      <div className="relative flex-1 leading-7 text-foreground/90 min-w-0">
         {isThinking && (
           <div className="flex items-center gap-2 py-1 text-muted-foreground mb-2">
             <Spinner />
@@ -83,7 +86,7 @@ export const AssistantMessage: React.FC<Message> = ({
                 if (block.type === "text") {
                   return <Renderer key={idx} content={block.text} />;
                 }
-                if (block.type === "tool-call" && showToolCalls) {
+                if (block.type === "tool-call" && showCalls) {
                   return <ToolCallCard key={block.id} block={block} />;
                 }
                 return null;
@@ -92,7 +95,7 @@ export const AssistantMessage: React.FC<Message> = ({
           </div>
         )}
 
-        {hasContent && status !== "streaming" && (
+        {shouldRenderFooter && (
           <div className="flex items-center justify-between mt-2 opacity-0 group-hover:opacity-100">
             <div className="flex flex-row gap-2">
               <Button

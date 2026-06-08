@@ -22,7 +22,7 @@ const getTierLabel = (tier?: number) => {
   }
 };
 
-export const SelectModel = () => {
+export const ModelSelect = () => {
   const activeId = useSessionStore((state) => state.activeId);
   const setSessionModel = useSessionStore((store) => store.setModel);
   const session = useSessionStore((state) =>

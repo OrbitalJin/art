@@ -1,15 +1,14 @@
+import { useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, Square } from "lucide-react";
-import { SelectModel } from "@/components/chat/prompt/model-select";
-import { useEffect } from "react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { TraitPicker } from "./trait-picker";
-import { ModeSelect } from "../mode-select";
-import { WebSearchMenu } from "./web-search-menu.tsx";
+import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChat } from "@/contexts/chat-context";
-import { ToggleToolCalls } from "./toggle-tool-calls.tsx";
+import { TraitSelect } from "./trait-select";
+import { ModeSelect } from "./mode-select";
+import { ModelSelect } from "@/components/chat/prompt/model-select";
+import { ToolOptions } from "./tool-options";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -60,11 +59,10 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
 
           <div className="flex justify-between items-center px-1">
             <div className="flex flex-row gap-2">
-              <SelectModel />
+              <ModelSelect />
+              <ToolOptions />
               <ModeSelect />
-              <TraitPicker />
-              <WebSearchMenu />
-              <ToggleToolCalls />
+              <TraitSelect />
             </div>
             <Button
               variant="default"

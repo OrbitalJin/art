@@ -6,6 +6,16 @@ import type { ModelId } from "../ai/models";
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
 
+export interface ToolOptions {
+  showCalls: boolean;
+  // Provider
+  google_search: boolean;
+  url_context: boolean;
+  // Custom
+  journal: boolean;
+  tasks: boolean;
+}
+
 export interface UserProfile {
   name: string;
   occupation: string;
@@ -30,15 +40,15 @@ interface SettingsState {
   reducedMotion: boolean;
   userProfile: UserProfile;
   agentProfile: AgentProfile;
-  showToolCalls: boolean;
+  toolOptions: ToolOptions;
 
-  setShowToolCalls: (value: boolean) => void;
   setApiKey: (key: string) => void;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
   setDefaultModel: (model: ModelId) => void;
   setEnterKeySends: (value: boolean) => void;
   setReducedMotion: (value: boolean) => void;
+  setToolOptions: (options: Partial<ToolOptions>) => void;
   setUserProfile: (profile: Partial<UserProfile>) => void;
   setAgentProfile: (profile: Partial<AgentProfile>) => void;
   resetSettings: () => void;
@@ -62,6 +72,14 @@ export const DEFAULT_AGENT_PROFILE: AgentProfile = {
   quirks: "Silly, but wise.",
 };
 
+const DEFAULT_TOOL_OPTIONS: ToolOptions = {
+  showCalls: true,
+  google_search: true,
+  url_context: true,
+  journal: true,
+  tasks: true,
+};
+
 const initialState = {
   apiKey: "",
   fontSize: "medium" as FontSize,
@@ -71,7 +89,7 @@ const initialState = {
   reducedMotion: false,
   userProfile: DEFAULT_USER_PROFILE,
   agentProfile: DEFAULT_AGENT_PROFILE,
-  showToolCalls: true,
+  toolOptions: DEFAULT_TOOL_OPTIONS,
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -84,6 +102,10 @@ export const useSettingsStore = create<SettingsState>()(
       setDefaultModel: (model: ModelId) => set({ defaultModel: model }),
       setEnterKeySends: (value: boolean) => set({ enterKeySends: value }),
       setReducedMotion: (value: boolean) => set({ reducedMotion: value }),
+      setToolOptions: (options: Partial<ToolOptions>) =>
+        set((state) => ({
+          toolOptions: { ...state.toolOptions, ...options },
+        })),
       setUserProfile: (profile: Partial<UserProfile>) =>
         set((state) => ({
           userProfile: { ...state.userProfile, ...profile },
@@ -93,7 +115,6 @@ export const useSettingsStore = create<SettingsState>()(
           agentProfile: { ...state.agentProfile, ...profile },
         })),
       resetSettings: () => set(initialState),
-      setShowToolCalls: (value: boolean) => set({ showToolCalls: value }),
     }),
     {
       name: "settings-storage",

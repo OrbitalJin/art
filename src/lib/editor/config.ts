@@ -1,11 +1,8 @@
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import { CharacterCount } from "@tiptap/extension-character-count";
-import { ListKit } from "@tiptap/extension-list";
 import { Highlight } from "@tiptap/extension-highlight";
 import { TableKit } from "@tiptap/extension-table";
-import { TrailingNode } from "@tiptap/extensions";
-import { HorizontalRule } from "@tiptap/extension-horizontal-rule";
 import { TagHighlighter } from "@/lib/editor/extensions/tag-highlighter";
 import { Typography } from "@tiptap/extension-typography";
 import Image from "@tiptap/extension-image";
@@ -15,10 +12,7 @@ import { toast } from "sonner";
 export const editorExtensions = [
   StarterKit,
   TableKit,
-  ListKit,
   Highlight,
-  TrailingNode,
-  HorizontalRule,
   TagHighlighter,
   Typography,
   Image.configure({

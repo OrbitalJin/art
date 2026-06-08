@@ -25,10 +25,11 @@ export interface TextBlock {
 
 export type ContentBlock = TextBlock | ToolCallBlock;
 
+export type MessageRole = "user" | "assistant";
+
 export interface Message {
   id: string;
-  role: "user" | "assistant";
-  // Content can be a simple string (for user messages) or structured blocks (for assistant messages)
+  role: MessageRole;
   content: string | ContentBlock[];
   status?: MessageStatus;
   grounded?: boolean;
@@ -41,7 +42,6 @@ export interface Session {
   title: string;
   messages: Message[];
   modelId: ModelId;
-  journalRefs: string[];
   traits: TraitId[];
   mode: ModeId;
   branchOf?: string;
@@ -49,7 +49,6 @@ export interface Session {
   pinned?: boolean;
   createdAt: number;
   updatedAt: number;
-  searchGrounding?: boolean;
-  webCtxUrls: string[];
+  grounding?: boolean;
   titleGenerated?: boolean;
 }

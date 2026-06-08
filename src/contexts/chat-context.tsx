@@ -17,7 +17,7 @@ import type {
 } from "@/lib/store/session/types";
 import { systemPrompt } from "@/lib/ai/prompts/system";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { providerToolsFor } from "@/lib/ai/tools/provider";
+import { providerTools } from "@/lib/ai/tools/provider";
 import { customTools } from "@/lib/ai/tools/custom";
 import { modelById } from "@/lib/ai/models";
 
@@ -87,7 +87,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   const abortRef = useRef<AbortController | null>(null);
-  const google = useMemo(() => createGoogleGenerativeAI({ apiKey }), [apiKey]);
+  const provider = useMemo(
+    () => createGoogleGenerativeAI({ apiKey }),
+    [apiKey],
+  );
 
   const send = useCallback(
     async (text: string) => {
@@ -109,7 +112,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
 
       try {
         stream = streamText({
-          model: google(modelType),
+          model: provider(modelType),
           stopWhen: stepCountIs(10),
           abortSignal: controller.signal,
           system: systemPrompt({
@@ -119,7 +122,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
             agentProfile,
           }),
           tools: {
-            ...providerToolsFor({ provider: google, session: activeSession }),
+            ...providerTools({ provider: provider }),
             ...customTools(),
           },
           messages: [
@@ -238,7 +241,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
           content: currentBlocks,
           status: status !== "streaming" ? status : "complete",
           modelId: activeSession?.modelId,
-          grounded: activeSession?.searchGrounding,
+          grounded: activeSession?.grounding,
           tokenUsage: usage?.outputTokens || 0,
         });
       }
@@ -248,7 +251,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       apiKey,
       activeSession,
       addMessage,
-      google,
+      provider,
       agentProfile,
       userProfile,
       mode,
@@ -295,7 +298,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         id: "streaming-response",
         role: "assistant" as const,
         modelId: activeSession?.modelId,
-        grounded: activeSession?.searchGrounding,
+        grounded: activeSession?.grounding,
         content: state.blocks,
         status: state.status,
         tokenUsage: 0,

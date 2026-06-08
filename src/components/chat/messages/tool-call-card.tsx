@@ -49,7 +49,10 @@ export const ToolCallCard: React.FC<{ block: ToolCallBlock }> = ({ block }) => {
             )}
           >
             {isExecuting ? (
-              <LoaderPinwheel className="animate-spin" size={15} />
+              <LoaderPinwheel
+                className="animate-spin text-amber-600"
+                size={15}
+              />
             ) : (
               <ToolIcon className="text-primary" size={15} />
             )}
@@ -57,7 +60,7 @@ export const ToolCallCard: React.FC<{ block: ToolCallBlock }> = ({ block }) => {
 
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-muted-foreground">
-              Tool Call
+              {isExecuting ? "Tool Call" : "Tool Result"}
             </span>
             <span className="text-muted-foreground/40">·</span>
             <span className="font-mono text-xs font-semibold text-foreground/85">
@@ -78,16 +81,16 @@ export const ToolCallCard: React.FC<{ block: ToolCallBlock }> = ({ block }) => {
       </button>
 
       {isOpen && (
-        <div className="border-t border-border/30 bg-black/20 px-3.5 py-3 space-y-3">
+        <div className="min-w-0 space-y-3 border-t border-border/30 bg-black/20 px-3.5 py-3">
           <Section label="Parameters">
-            <pre className="max-h-48 overflow-x-auto rounded-lg bg-black/30 p-3 text-xs font-mono text-foreground/75 leading-relaxed">
+            <pre className="max-h-48 overflow-auto rounded-lg bg-black/30 p-3 font-mono text-xs leading-relaxed text-foreground/75">
               {JSON.stringify(block.input, null, 2)}
             </pre>
           </Section>
 
           {block.output !== undefined && (
             <Section label="Returned Value">
-              <pre className="max-h-48 overflow-x-auto rounded-lg bg-black/30 p-3 text-xs font-mono text-emerald-400/90 leading-relaxed">
+              <pre className="max-h-48 overflow-auto rounded-lg bg-black/30 p-3 font-mono text-xs leading-relaxed text-emerald-400/90">
                 {JSON.stringify(block.output, null, 2)}
               </pre>
             </Section>
@@ -102,7 +105,7 @@ const Section: React.FC<{ label: string; children: React.ReactNode }> = ({
   label,
   children,
 }) => (
-  <div className="flex flex-col gap-1.5">
+  <div className="flex min-w-0 flex-col gap-1.5">
     <span className="text-xs text-muted-foreground/50">{label}</span>
     {children}
   </div>

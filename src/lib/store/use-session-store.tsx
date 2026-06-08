@@ -2,14 +2,9 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
 import { MODELS, type ModelId } from "@/lib/ai/models";
-import type {
-  ContentBlock,
-  Message,
-  MessageStatus,
-  Session,
-} from "@/lib/store/session/types";
+import type { ContentBlock, Message, Session } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
-import { DEFAULT_MODE, MODES, type ModeId } from "../ai/prompts/modes";
+import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
 import type { TraitId } from "../ai/prompts/traits";
 import { useSettingsStore } from "./use-settings-store";
 
@@ -23,8 +18,6 @@ const createNewSession = (
     title: title ?? "New Session",
     traits: [],
     messages: [],
-    journalRefs: [],
-    webCtxUrls: [],
     mode: DEFAULT_MODE,
     modelId:
       defaultModelId ??
@@ -44,19 +37,10 @@ export interface SessionState {
   branch: (id: string) => boolean;
   toggleArchived: (id: string) => void;
   togglePinned: (id: string) => boolean;
-  toggleSearchGrounding: (id: string) => void;
-
-  addWebCtxUrl: (id: string, url: string) => boolean;
-  removeWebCtxUrl: (id: string, url: string) => void;
-  clearWebCtxUrls: (id: string) => void;
 
   addTrait: (id: string, trait: TraitId) => void;
   removeTrait: (id: string, trait: TraitId) => void;
   clearTraits: (id: string) => void;
-
-  addJournalRef: (id: string, pageId: string) => void;
-  removeJournalRef: (id: string, pageId: string) => void;
-  clearJournalRefs: (id: string) => void;
 
   setActive: (id: string) => void;
   importFn: (s: Session) => boolean;
@@ -69,6 +53,11 @@ export interface SessionState {
     keepMessage: boolean,
   ) => boolean;
   addMessage: (sessionId: string, message: Message) => void;
+  updateMessageBlocks: (
+    sessionId: string,
+    messageId: string,
+    updater: (blocks: ContentBlock[]) => ContentBlock[],
+  ) => boolean;
   revertMessage: (sessionId: string, messageId: string) => boolean;
   updateTitle: (sessionId: string, newTitle: string) => boolean;
   setTitleGenerated: (sessionId: string, value: boolean) => void;
@@ -105,67 +94,12 @@ export const useSessionStore = create<SessionState>()(
         return success;
       },
 
-      addWebCtxUrl: (id: string, url: string): boolean => {
-        let isDuplicate = false;
-        set((state: SessionState) => ({
-          sessions: state.sessions.map((session) => {
-            if (session.id === id) {
-              isDuplicate = (session.webCtxUrls || []).includes(url);
-              return {
-                ...session,
-                webCtxUrls: isDuplicate
-                  ? session.webCtxUrls || []
-                  : [...(session.webCtxUrls || []), url],
-              };
-            }
-            return session;
-          }),
-        }));
-        return isDuplicate;
-      },
-
-      removeWebCtxUrl: (id: string, url: string) => {
-        set((state: SessionState) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id
-              ? {
-                  ...session,
-                  webCtxUrls: (session.webCtxUrls || []).filter(
-                    (u) => u !== url,
-                  ),
-                }
-              : session,
-          ),
-        }));
-      },
-
-      clearWebCtxUrls: (id: string) => {
-        set((state: SessionState) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id ? { ...session, webCtxUrls: [] } : session,
-          ),
-        }));
-      },
-
       purge: () => {
         const newSession = createNewSession();
         set({
           sessions: [newSession],
           activeId: newSession.id,
         });
-      },
-
-      toggleSearchGrounding: (id: string) => {
-        set((state) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id
-              ? {
-                  ...session,
-                  searchGrounding: !session.searchGrounding,
-                }
-              : session,
-          ),
-        }));
       },
 
       toggleArchived: (id: string) => {
@@ -269,37 +203,6 @@ export const useSessionStore = create<SessionState>()(
         set((state: SessionState) => ({
           sessions: state.sessions.map((session) =>
             session.id === id ? { ...session, traits: [] } : session,
-          ),
-        }));
-      },
-
-      addJournalRef: (id: string, pageId: string) => {
-        set((state: SessionState) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id
-              ? { ...session, journalRefs: [...session.journalRefs, pageId] }
-              : session,
-          ),
-        }));
-      },
-
-      removeJournalRef: (id: string, pageId: string) => {
-        set((state: SessionState) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id
-              ? {
-                  ...session,
-                  journalRefs: session.journalRefs.filter((n) => n !== pageId),
-                }
-              : session,
-          ),
-        }));
-      },
-
-      clearJournalRefs: (id: string) => {
-        set((state: SessionState) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id ? { ...session, journalRefs: [] } : session,
           ),
         }));
       },
@@ -412,108 +315,41 @@ export const useSessionStore = create<SessionState>()(
           }),
         }));
       },
+
+      updateMessageBlocks: (id, messageId, updater) => {
+        let success = false;
+        set((state) => ({
+          sessions: state.sessions.map((session) => {
+            if (session.id !== id) return session;
+            return {
+              ...session,
+              messages: session.messages.map((msg) => {
+                if (msg.id !== messageId) return msg;
+                if (!Array.isArray(msg.content)) return msg;
+                success = true;
+                return {
+                  ...msg,
+                  content: updater(msg.content),
+                };
+              }),
+              updatedAt: Date.now(),
+            };
+          }),
+        }));
+        return success;
+      },
     }),
     {
       name: "session-storage",
-      version: 4,
+      version: 1,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
-        if (version < 2) {
-          const state = persistedState as { sessions?: Session[] };
-          if (state && Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session: Session) => ({
-              ...session,
-              modelId:
-                session.modelId in MODELS
-                  ? (session.modelId as ModelId)
-                  : MODELS[0].id,
-              mode: session.mode in MODES ? session.mode : DEFAULT_MODE,
-              webCtxUrls: Array.isArray(session.webCtxUrls)
-                ? session.webCtxUrls
-                : [],
-              journalRefs: Array.isArray(session.journalRefs)
-                ? session.journalRefs
-                : [],
-              traits: Array.isArray(session.traits) ? session.traits : [],
-            }));
+        if (version < 1) {
+          const state = persistedState as { sessions: Session[] };
+          if (state) {
+            return state;
           }
         }
-        if (version < 3) {
-          const state = persistedState as { sessions?: Session[] };
-          if (state && Array.isArray(state.sessions)) {
-            const modelIdMap: Record<string, ModelId> = {
-              Genesis: "model-1",
-              Bloom: "model-2",
-              Eden: "model-3",
-            };
-            state.sessions = state.sessions.map((session: Session) => ({
-              ...session,
-              modelId: modelIdMap[session.modelId as string] ?? MODELS[0].id,
-            }));
-          }
-        }
-        if (version < 4) {
-          const state = persistedState as { sessions?: unknown[] };
-          if (state && Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((rawSession) => {
-              const session = rawSession as Record<string, unknown>;
-              const messages = Array.isArray(session.messages)
-                ? session.messages
-                : [];
-
-              const migratedMessages = messages.map((rawMessage) => {
-                const m = rawMessage as Record<string, unknown> & {
-                  role?: string;
-                  content?: unknown;
-                  status?: MessageStatus;
-                };
-
-                const isError = m.role === "error";
-
-                const role: Message["role"] =
-                  m.role === "user" ? "user" : "assistant";
-
-                const content: string | ContentBlock[] = Array.isArray(
-                  m.content,
-                )
-                  ? (m.content as ContentBlock[])
-                  : typeof m.content === "string"
-                    ? m.content
-                    : "";
-
-                const status: MessageStatus | undefined = isError
-                  ? "error"
-                  : m.status;
-
-                const migrated: Message = {
-                  id: typeof m.id === "string" ? m.id : crypto.randomUUID(),
-                  role,
-                  content,
-                  ...(status ? { status } : {}),
-                  ...(typeof m.grounded === "boolean"
-                    ? { grounded: m.grounded }
-                    : {}),
-                  ...(typeof m.modelId === "string"
-                    ? { modelId: m.modelId as ModelId }
-                    : {}),
-                  tokenUsage:
-                    typeof (m as { tokenUsage?: unknown }).tokenUsage ===
-                    "number"
-                      ? (m as { tokenUsage: number }).tokenUsage
-                      : 0,
-                };
-
-                return migrated;
-              });
-
-              return {
-                ...session,
-                messages: migratedMessages,
-              };
-            });
-          }
-        }
-
         return persistedState as SessionState;
       },
       onRehydrateStorage: () => (state) => {

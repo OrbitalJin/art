@@ -1,19 +1,20 @@
-import type { Session } from "@/lib/store/session/types";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
 import type { GoogleGenerativeAIProvider } from "@ai-sdk/google";
 import type { ToolSet } from "ai";
 
 interface Opts {
   provider: GoogleGenerativeAIProvider;
-  session?: Session;
 }
 
-export const providerToolsFor = ({ provider, session }: Opts): ToolSet => {
+export const providerTools = ({ provider }: Opts): ToolSet => {
   const tools: ToolSet = {};
-  if (session?.searchGrounding) {
-    tools.google_search = provider.tools.googleSearch({});
-  }
-  if (session?.webCtxUrls?.length) {
-    tools.url_context = provider.tools.urlContext({});
-  }
-  return tools;
+  const { google_search, url_context } =
+    useSettingsStore.getState().toolOptions;
+  tools.google_search = provider.tools.googleSearch({});
+  tools.url_context = provider.tools.urlContext({});
+  return {
+    ...tools,
+    ...(google_search && { google_search: provider.tools.googleSearch({}) }),
+    ...(url_context && { url_context: provider.tools.urlContext({}) }),
+  };
 };

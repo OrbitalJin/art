@@ -15,7 +15,7 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
 import { Fingerprint } from "lucide-react";
 
-export const TraitPicker = () => {
+export const TraitSelect = () => {
   const activeId = useSessionStore((state) => state.activeId);
   const sessions = useSessionStore((state) => state.sessions);
   const addTrait = useSessionStore((state) => state.addTrait);
