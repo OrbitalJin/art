@@ -173,7 +173,7 @@ Bento-style task board with drag-and-drop organization.
 - [x] Migrate to ai sdk
 - [x] Implement tool calling
 - [x] Add tool option configuration
-- [ ] Update content generators to use new primitives (e.g. journal, title gen)
+- [x] Update content generators to use new primitives (e.g. journal, title gen)
 - [ ] Add interval toolkit
 - [ ] Add music player toolkit
 - [ ] Implement tool permissions

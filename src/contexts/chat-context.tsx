@@ -18,7 +18,7 @@ import type {
 import { systemPrompt } from "@/lib/ai/prompts/system";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { providerTools } from "@/lib/ai/tools/provider";
-import { customTools } from "@/lib/ai/tools/custom";
+import { customToolsFor } from "@/lib/ai/tools/custom";
 import { modelById } from "@/lib/ai/models";
 
 interface ChatContextValues {
@@ -123,7 +123,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
           }),
           tools: {
             ...providerTools({ provider: provider }),
-            ...customTools(),
+            ...customToolsFor({ session: activeSession }),
           },
           messages: [
             ...toSDKMessages(activeSession?.messages ?? []),

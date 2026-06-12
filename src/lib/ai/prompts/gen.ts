@@ -1,17 +1,5 @@
 export const gen = {
-  title: `
-        Generate a single, specific title that captures the main topic.
-        
-        Constraints:
-        - Maximum 5 words.
-        - Use Title Case.
-        - No quote marks.
-        - If context is empty, return nothing.
-        
-        Output *only* the title string.
-    `,
-
-  noteFromSession: `
+  pageFromSession: `
         TASK:
         Transform the provided conversation into high-quality educational study notes.
 

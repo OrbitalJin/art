@@ -12,7 +12,7 @@ export function Layout({ children }: LayoutProps) {
       <div
         className={cn(
           "relative flex flex-row h-screen w-screen bg-background",
-          "antialiased p-2 gap-2 select-none overflow-hidden",
+          "antialiased p-2 select-none overflow-hidden",
         )}
       >
         <main
