@@ -341,13 +341,26 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 1,
+      version: 4,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
-        if (version < 1) {
-          const state = persistedState as { sessions: Session[] };
-          if (state) {
-            return state;
+        if (version < 4) {
+          const state = persistedState as {
+            sessions?: Array<{ messages?: Array<Message & { role: string }> }>;
+          };
+          if (state && Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => ({
+              ...session,
+              messages: (session.messages ?? []).map((msg) => ({
+                ...msg,
+                role:
+                  // @ts-expect-error migration schema mismatch
+                  msg.role === "model" || msg.role === "error"
+                    ? "assistant"
+                    : msg.role,
+                tokenUsage: msg.tokenUsage ?? { input: 0, output: 0 },
+              })),
+            }));
           }
         }
         return persistedState as SessionState;

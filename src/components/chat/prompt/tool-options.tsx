@@ -12,13 +12,90 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 import { PocketKnife } from "lucide-react";
 import { useChat } from "@/contexts/chat-context";
+import { useMemo } from "react";
+import type { ToolCallBlock } from "@/lib/store/session/types";
+
+const CATEGORY_TOOLS: Record<string, string[]> = {
+  journal: [
+    "get_journals",
+    "get_journal",
+    "create_journal",
+    "update_journal",
+    "delete_journal",
+    "update_tags",
+    "get_all_tags",
+    "toggle_pinned",
+    "toggle_archived",
+  ],
+  tasks: [
+    "get_tasks",
+    "get_task",
+    "create_task",
+    "update_task",
+    "move_task",
+    "move_task_to_position",
+    "delete_task",
+    "get_projects",
+    "create_project",
+    "update_project",
+    "delete_project",
+    "create_project_with_tasks",
+  ],
+  audio: [
+    "toggle_playing_state",
+    "set_playing",
+    "set_volume",
+    "toggle_muted",
+    "set_muted",
+    "set_loop",
+    "add_to_playlist",
+    "remove_from_playlist",
+    "clear_playlist",
+    "play_next",
+    "play_previous",
+    "play_at",
+  ],
+};
+
+const CATEGORY_DOLLARS: Record<string, string> = {
+  google_search: "$",
+  url_context: "$",
+  journal: "$$$",
+  tasks: "$$$",
+  audio: "$$",
+};
+
+const toolNamesIn = (names: string[]) => new Set(names);
 
 export const ToolOptions = () => {
   const toolOptions = useSettingsStore((state) => state.toolOptions);
   const setToolOptions = useSettingsStore((state) => state.setToolOptions);
   const { isSending } = useChat();
+  const sessions = useSessionStore((state) => state.sessions);
+  const activeId = useSessionStore((state) => state.activeId);
+
+  const toolCounts = useMemo(() => {
+    const counts: Record<string, number> = { journal: 0, tasks: 0, audio: 0 };
+    const activeSession = sessions.find((s) => s.id === activeId);
+    if (!activeSession) return counts;
+
+    for (const msg of activeSession.messages) {
+      if (!Array.isArray(msg.content)) continue;
+      for (const block of msg.content) {
+        if (block.type !== "tool-call") continue;
+        const tc = block as ToolCallBlock;
+        for (const [cat, names] of Object.entries(CATEGORY_TOOLS)) {
+          if (toolNamesIn(names).has(tc.toolName)) {
+            counts[cat] = (counts[cat] ?? 0) + 1;
+          }
+        }
+      }
+    }
+    return counts;
+  }, [sessions, activeId]);
 
   return (
     <DropdownMenu>
@@ -32,7 +109,8 @@ export const ToolOptions = () => {
             >
               <PocketKnife
                 className={cn(
-                  "h-4 w-4 transition-all group-hover:-rotate-45 text-muted-foreground",
+                  "h-4 w-4 transition-all",
+                  "group-hover:-rotate-45 text-muted-foreground",
                 )}
               />
             </Button>
@@ -114,6 +192,8 @@ export const ToolOptions = () => {
           <ToolOptionRow
             label="Journal"
             isOn={toolOptions.journal}
+            dollars={CATEGORY_DOLLARS.journal}
+            calls={toolCounts.journal}
             onText="The model can read and write journal entries."
             offText="Journal access is disabled."
             onClick={() =>
@@ -127,6 +207,8 @@ export const ToolOptions = () => {
           <ToolOptionRow
             label="Tasks"
             isOn={toolOptions.tasks}
+            dollars={CATEGORY_DOLLARS.tasks}
+            calls={toolCounts.tasks}
             onText="The model can create and manage tasks."
             offText="Task management is disabled."
             onClick={() =>
@@ -140,6 +222,8 @@ export const ToolOptions = () => {
           <ToolOptionRow
             label="Player"
             isOn={toolOptions.audio}
+            dollars={CATEGORY_DOLLARS.audio}
+            calls={toolCounts.audio}
             onText="The model can interact with the music player."
             offText="Music player interaction is disabled."
             onClick={() =>
@@ -158,6 +242,8 @@ export const ToolOptions = () => {
 interface ToolOptionRowProps {
   label: string;
   isOn: boolean;
+  dollars?: string;
+  calls?: number;
   onText: string;
   offText: string;
   onClick: () => void;
@@ -166,10 +252,17 @@ interface ToolOptionRowProps {
 const ToolOptionRow = ({
   label,
   isOn,
+  dollars,
+  calls,
   onText,
   offText,
   onClick,
 }: ToolOptionRowProps) => {
+  const usageLabel =
+    dollars && calls !== undefined
+      ? `${dollars} · ${calls} call${calls === 1 ? "" : "s"}`
+      : dollars;
+
   return (
     <div
       onClick={onClick}
@@ -205,6 +298,14 @@ const ToolOptionRow = ({
           {isOn ? onText : offText}
         </p>
       </div>
+
+      {usageLabel && (
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] font-medium tabular-nums text-muted-foreground/50">
+            {usageLabel}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

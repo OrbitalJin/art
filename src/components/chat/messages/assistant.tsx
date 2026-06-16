@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import { Spinner } from "@/components/ui/spinner";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ export const AssistantMessage: React.FC<Message> = ({
   id: messageId,
   status,
   grounded,
-  tokenUsage,
+  tokenUsage: { output },
 }) => {
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
@@ -72,7 +71,6 @@ export const AssistantMessage: React.FC<Message> = ({
       <div className="relative flex-1 leading-7 text-foreground/90 min-w-0">
         {isThinking && (
           <div className="flex items-center gap-2 py-1 text-muted-foreground mb-2">
-            <Spinner />
             <ShimmerText className="text-sm">Thinking</ShimmerText>
           </div>
         )}
@@ -157,7 +155,7 @@ export const AssistantMessage: React.FC<Message> = ({
               )}
 
               <span className="flex items-center gap-1">
-                <Cpu size={12} /> {tokenUsage} tokens
+                <Cpu size={12} /> {output} tokens
               </span>
               <span
                 className={cn(

@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { toast } from "sonner";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { streamText, stepCountIs } from "ai";
+import { streamText, stepCountIs, smoothStream } from "ai";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import type {
   Message,
@@ -129,6 +129,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
             ...toSDKMessages(activeSession?.messages ?? []),
             { role: "user", content: text },
           ],
+          experimental_transform: smoothStream({
+            delayInMs: 15,
+            chunking: "word",
+          }),
         });
 
         for await (const event of stream.fullStream) {
@@ -242,7 +246,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
           status: status !== "streaming" ? status : "complete",
           modelId: activeSession?.modelId,
           grounded: activeSession?.grounding,
-          tokenUsage: usage?.outputTokens || 0,
+          tokenUsage: {
+            input: usage?.inputTokens ?? 0,
+            output: usage?.outputTokens ?? 0,
+          },
         });
       }
     },
@@ -275,7 +282,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         id: crypto.randomUUID(),
         role: "user",
         content: text,
-        tokenUsage: 0,
+        tokenUsage: { input: 0, output: 0 },
       });
       setPrompt("");
       await send(text);
@@ -301,7 +308,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         grounded: activeSession?.grounding,
         content: state.blocks,
         status: state.status,
-        tokenUsage: 0,
+        tokenUsage: { input: 0, output: 0 },
       } satisfies Message,
     ];
   }, [

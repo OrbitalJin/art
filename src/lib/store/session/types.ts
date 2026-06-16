@@ -34,7 +34,7 @@ export interface Message {
   status?: MessageStatus;
   grounded?: boolean;
   modelId?: ModelId;
-  tokenUsage: number;
+  tokenUsage: { input: number; output: number };
 }
 
 export interface Session {

@@ -77,9 +77,9 @@ const DEFAULT_TOOL_OPTIONS: ToolOptions = {
   showCalls: true,
   google_search: true,
   url_context: true,
-  journal: true,
-  tasks: true,
-  audio: true,
+  journal: false,
+  tasks: false,
+  audio: false,
 };
 
 const initialState = {
