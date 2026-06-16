@@ -136,6 +136,19 @@ export const ToolOptions = () => {
               })
             }
           />
+
+          <ToolOptionRow
+            label="Player"
+            isOn={toolOptions.audio}
+            onText="The model can interact with the music player."
+            offText="Music player interaction is disabled."
+            onClick={() =>
+              setToolOptions({
+                ...toolOptions,
+                audio: !toolOptions.audio,
+              })
+            }
+          />
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -12,11 +12,11 @@ export interface Opts {
 
 export const customToolsFor = ({ session }: Opts): ToolSet => {
   const tools: ToolSet = {};
-  const { journal, tasks } = useSettingsStore.getState().toolOptions;
+  const { journal, tasks, audio } = useSettingsStore.getState().toolOptions;
   return {
     ...tools,
-    ...playerTools(),
     ...sessionTools({ session }),
+    ...(audio && playerTools()),
     ...(journal && journalTools()),
     ...(tasks && tasksTools()),
   };

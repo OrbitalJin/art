@@ -14,6 +14,7 @@ export interface ToolOptions {
   // Custom
   journal: boolean;
   tasks: boolean;
+  audio: boolean;
 }
 
 export interface UserProfile {
@@ -78,6 +79,7 @@ const DEFAULT_TOOL_OPTIONS: ToolOptions = {
   url_context: true,
   journal: true,
   tasks: true,
+  audio: true,
 };
 
 const initialState = {
