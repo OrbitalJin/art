@@ -1,15 +1,12 @@
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
-  useState,
 } from "react";
 import ReactPlayer from "react-player";
-import { toast } from "sonner";
 import { useIntervalStore } from "@/lib/store/use-interval-store";
-import { isYoutubeUrl, useAudioMetadata } from "@/hooks/use-audio-metadata";
+import { useAudioMetadata } from "@/hooks/use-audio-metadata";
 
 interface PlaylistItem {
   url: string;
@@ -41,7 +38,7 @@ interface AudioPlayerActions {
   playPrevious: () => void;
 }
 
-type AudioPlayerContextValue = AudioPlayerState & AudioPlayerActions;
+export type AudioPlayerContextValue = AudioPlayerState & AudioPlayerActions;
 
 interface AudioTimerState {
   playedSeconds: number;
@@ -55,32 +52,32 @@ const AudioTimerContext = createContext<AudioTimerState | null>(null);
 export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [playedSeconds, setPlayedSeconds] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [playing, setPlaying] = useState(false);
-
   const loop = useIntervalStore((state) => state.loop);
   const muted = useIntervalStore((state) => state.muted);
   const volume = useIntervalStore((state) => state.volume);
   const storeUrls = useIntervalStore((state) => state.playlist);
   const currentIndex = useIntervalStore((state) => state.currentIndex);
+  const playing = useIntervalStore((state) => state.playing);
+  const error = useIntervalStore((state) => state.error);
+  const playedSeconds = useIntervalStore((state) => state.playedSeconds);
+  const duration = useIntervalStore((state) => state.duration);
 
   const metadata = useAudioMetadata(storeUrls);
 
-  const setLoop = useIntervalStore((state) => state.setLoop);
-  const setMuted = useIntervalStore((state) => state.setMuted);
   const setVolume = useIntervalStore((state) => state.setVolume);
   const setCurrentIndex = useIntervalStore((state) => state.setCurrentIndex);
-  const _addToPlaylist = useIntervalStore((state) => state.addToPlaylist);
-  const _clearPlaylist = useIntervalStore((state) => state.clearPlaylist);
-  const _removeFromPlaylist = useIntervalStore(
-    (state) => state.removeFromPlaylist,
-  );
-
-  const toggleLoop = useCallback(() => {
-    setLoop(!loop);
-  }, [loop, setLoop]);
+  const setPlayedSeconds = useIntervalStore((state) => state.setPlayedSeconds);
+  const setDuration = useIntervalStore((state) => state.setDuration);
+  const setError = useIntervalStore((state) => state.setError);
+  const togglePlay = useIntervalStore((state) => state.togglePlay);
+  const toggleMute = useIntervalStore((state) => state.toggleMute);
+  const toggleLoop = useIntervalStore((state) => state.toggleLoop);
+  const addToPlaylist = useIntervalStore((state) => state.addToPlaylist);
+  const removeFromPlaylist = useIntervalStore((state) => state.removeFromPlaylist);
+  const clearPlaylist = useIntervalStore((state) => state.clearPlaylist);
+  const playAt = useIntervalStore((state) => state.playAt);
+  const playNext = useIntervalStore((state) => state.playNext);
+  const playPrevious = useIntervalStore((state) => state.playPrevious);
 
   const playlist = useMemo(
     () =>
@@ -95,83 +92,6 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({
     currentIndex >= 0 && currentIndex < playlist.length
       ? playlist[currentIndex]
       : null;
-
-  const togglePlay = useCallback(() => {
-    setPlaying(!playing);
-    setError(null);
-  }, [playing, setPlaying]);
-
-  const toggleMute = useCallback(() => {
-    setMuted(!muted);
-  }, [setMuted, muted]);
-
-  const addToPlaylist = useCallback(
-    (url: string) => {
-      if (!isYoutubeUrl(url)) {
-        toast.error("Please enter a valid YouTube URL");
-        return;
-      }
-
-      _addToPlaylist(url);
-
-      if (currentIndex === -1) {
-        setCurrentIndex(playlist.length - 1);
-        setPlaying(true);
-      }
-    },
-    [currentIndex, setCurrentIndex, playlist, _addToPlaylist],
-  );
-
-  const removeFromPlaylist = useCallback(
-    (index: number) => {
-      const store = useIntervalStore.getState();
-      const url = store.playlist[index];
-      if (!url) return;
-
-      _removeFromPlaylist(url);
-
-      if (index === currentIndex) {
-        setPlaying(false);
-        setCurrentIndex(-1);
-      } else if (currentIndex > index) {
-        setCurrentIndex(currentIndex - 1);
-      }
-    },
-    [currentIndex, setCurrentIndex, _removeFromPlaylist],
-  );
-
-  const clearPlaylist = useCallback(() => {
-    _clearPlaylist();
-    setCurrentIndex(-1);
-    setPlaying(false);
-  }, [setCurrentIndex, _clearPlaylist]);
-
-  const playAt = useCallback(
-    (index: number) => {
-      if (index < 0 || index >= playlist.length) return;
-      setCurrentIndex(index);
-      setPlayedSeconds(0);
-      setPlaying(true);
-    },
-    [playlist.length, setCurrentIndex],
-  );
-
-  const playNext = useCallback(() => {
-    if (currentIndex < 0 || currentIndex >= playlist.length - 1) {
-      setPlaying(false);
-      return;
-    }
-    const nextIndex = currentIndex + 1;
-    setCurrentIndex(nextIndex);
-    setPlayedSeconds(0);
-  }, [currentIndex, playlist, setPlaying, setCurrentIndex]);
-
-  const playPrevious = useCallback(() => {
-    if (currentIndex <= 0) return;
-    const prevIndex = currentIndex - 1;
-    setCurrentIndex(prevIndex);
-    setPlayedSeconds(0);
-  }, [currentIndex, setCurrentIndex]);
 
   const progress = duration > 0 ? (playedSeconds / duration) * 100 : 0;
 

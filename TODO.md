@@ -174,9 +174,8 @@ Bento-style task board with drag-and-drop organization.
 - [x] Implement tool calling
 - [x] Add tool option configuration
 - [x] Update content generators to use new primitives (e.g. journal, title gen)
+- [x] Add music player toolkit
 - [ ] Global token count for session
-- [ ] Add interval toolkit
-- [ ] Add music player toolkit
 - [ ] Implement tool permissions
 - [ ] Performance optimization, memoization, isolate state more
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

@@ -4,6 +4,7 @@ import { journalTools } from "./journal";
 import { tasksTools } from "./tasks";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { sessionTools } from "./session";
+import { playerTools } from "./player";
 
 export interface Opts {
   session?: Session;
@@ -14,6 +15,7 @@ export const customToolsFor = ({ session }: Opts): ToolSet => {
   const { journal, tasks } = useSettingsStore.getState().toolOptions;
   return {
     ...tools,
+    ...playerTools(),
     ...sessionTools({ session }),
     ...(journal && journalTools()),
     ...(tasks && tasksTools()),

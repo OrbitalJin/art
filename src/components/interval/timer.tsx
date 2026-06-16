@@ -93,7 +93,10 @@ export const Timer: React.FC<TimerProps> = ({
         </p>
 
         <p
-          className="text-5xl lg:text-6xl text-foreground/80"
+          className={cn(
+            "text-5xl lg:text-6xl text-foreground/80",
+            "transition-opacity opacity-70 group-hover:opacity-100",
+          )}
           style={{ fontFamily: "monospace" }}
         >
           {session.minutes}:

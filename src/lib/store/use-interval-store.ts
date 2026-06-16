@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { intervalsStore } from "./interval/adapter";
+import { toast } from "sonner";
+import { isYoutubeUrl } from "@/hooks/use-audio-metadata";
 
 interface PlayerState {
   currentIndex: number;
@@ -8,14 +10,28 @@ interface PlayerState {
   muted: boolean;
   volume: number;
   loop: boolean;
+  playing: boolean;
+  error: string | null;
+  playedSeconds: number;
+  duration: number;
 
   setVolume: (volume: number) => void;
   setMuted: (state: boolean) => void;
   setCurrentIndex: (index: number) => void;
   setLoop: (state: boolean) => void;
+  setPlaying: (state: boolean) => void;
+  setError: (error: string | null) => void;
+  setPlayedSeconds: (seconds: number) => void;
+  setDuration: (duration: number) => void;
+  togglePlay: () => void;
+  toggleMute: () => void;
+  toggleLoop: () => void;
   addToPlaylist: (url: string) => void;
-  removeFromPlaylist: (url: string) => void;
+  removeFromPlaylist: (index: number) => void;
   clearPlaylist: () => void;
+  playNext: () => void;
+  playPrevious: () => void;
+  playAt: (index: number) => void;
 }
 
 interface MemoState extends PlayerState {
@@ -49,6 +65,10 @@ export const useIntervalStore = create<IntervalState>()(
       currentIndex: 0,
       muted: false,
       loop: false,
+      playing: false,
+      error: null,
+      playedSeconds: 0,
+      duration: 0,
       fullscreen: false,
 
       playlist: ["https://youtu.be/8ugK6BCZzyY?si=wcd5O2Or7W0eMK0Q"],
@@ -97,23 +117,45 @@ export const useIntervalStore = create<IntervalState>()(
       },
 
       addToPlaylist: (url: string) => {
-        const found = get().playlist.find((u) => u === url);
-        if (!found) {
-          set((state) => ({
-            playlist: [...state.playlist, url],
-          }));
+        if (!isYoutubeUrl(url)) {
+          toast.error("Please enter a valid YouTube URL");
+          return;
         }
+        const state = get();
+        const found = state.playlist.find((u) => u === url);
+        if (found) return;
+        const newPlaylist = [...state.playlist, url];
+        set({
+          playlist: newPlaylist,
+          ...(state.currentIndex === -1
+            ? { currentIndex: state.playlist.length, playing: true, playedSeconds: 0 }
+            : {}),
+        });
       },
-      removeFromPlaylist: (url: string) => {
-        set((state) => ({
-          playlist: state.playlist.filter((u) => u !== url),
-        }));
+      removeFromPlaylist: (index: number) => {
+        const state = get();
+        const url = state.playlist[index];
+        if (!url) return;
+        const newPlaylist = state.playlist.filter((u) => u !== url);
+        const { currentIndex } = state;
+        set({
+          playlist: newPlaylist,
+          currentIndex:
+            index === currentIndex
+              ? -1
+              : currentIndex > index
+                ? currentIndex - 1
+                : currentIndex,
+          playing: index === currentIndex ? false : state.playing,
+        });
       },
 
       clearPlaylist: () => {
-        set(() => ({
+        set({
           playlist: [],
-        }));
+          currentIndex: -1,
+          playing: false,
+        });
       },
 
       setMuted: (state: boolean) => {
@@ -128,6 +170,55 @@ export const useIntervalStore = create<IntervalState>()(
         }));
       },
 
+      setPlaying: (state: boolean) => {
+        set({ playing: state });
+      },
+
+      setError: (error: string | null) => {
+        set({ error });
+      },
+
+      setPlayedSeconds: (seconds: number) => {
+        set({ playedSeconds: seconds });
+      },
+
+      setDuration: (duration: number) => {
+        set({ duration });
+      },
+
+      togglePlay: () => {
+        set((state) => ({ playing: !state.playing, error: null }));
+      },
+
+      toggleMute: () => {
+        set((state) => ({ muted: !state.muted }));
+      },
+
+      toggleLoop: () => {
+        set((state) => ({ loop: !state.loop }));
+      },
+
+      playNext: () => {
+        const { currentIndex, playlist } = get();
+        if (currentIndex < 0 || currentIndex >= playlist.length - 1) {
+          set({ playing: false });
+          return;
+        }
+        set({ currentIndex: currentIndex + 1, playedSeconds: 0 });
+      },
+
+      playPrevious: () => {
+        const { currentIndex } = get();
+        if (currentIndex <= 0) return;
+        set({ currentIndex: currentIndex - 1, playedSeconds: 0 });
+      },
+
+      playAt: (index: number) => {
+        const { playlist } = get();
+        if (index < 0 || index >= playlist.length) return;
+        set({ currentIndex: index, playing: true, playedSeconds: 0 });
+      },
+
       setMemoContent: (content: string) => {
         set(() => ({
           memoContent: content,
@@ -138,6 +229,19 @@ export const useIntervalStore = create<IntervalState>()(
       name: "intervals-storage",
       version: 2,
       storage: createJSONStorage(() => intervalsStore),
+      partialize: (state) => ({
+        sessionCount: state.sessionCount,
+        focusTime: state.focusTime,
+        shortBreakTime: state.shortBreakTime,
+        longBreakTime: state.longBreakTime,
+        volume: state.volume,
+        currentIndex: state.currentIndex,
+        muted: state.muted,
+        loop: state.loop,
+        playlist: state.playlist,
+        memoContent: state.memoContent,
+        fullscreen: state.fullscreen,
+      }),
     },
   ),
 );

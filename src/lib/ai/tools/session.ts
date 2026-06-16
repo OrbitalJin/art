@@ -67,5 +67,5 @@ export const sessionTools = ({ session }: Opts): ToolSet => {
         return { pageId, title: session.title };
       },
     }),
-  };
+  } satisfies ToolSet;
 };
