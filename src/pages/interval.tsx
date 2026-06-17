@@ -21,7 +21,7 @@ export const Interval = () => {
         setFullscreen={setFullScreen}
       />
       {!fullscreen && (
-        <div className="hidden flex-col gap-2 shadow-sm lg:flex p-2 border-t border-r">
+        <div className="hidden flex-col shadow-sm lg:flex border-r">
           <Player variant="default" />
           <Playlist />
         </div>

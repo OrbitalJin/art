@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useChat } from "@/contexts/chat-context";
+import { useChatStream } from "@/contexts/chat-context";
 import { TRAITS, type TraitId } from "@/lib/ai/prompts/traits";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,7 @@ export const TraitSelect = () => {
   const removeTrait = useSessionStore((state) => state.removeTrait);
   const clearTraits = useSessionStore((state) => state.clearTraits);
 
-  const { isSending: disabled } = useChat();
+  const { isSending: disabled } = useChatStream();
 
   const withinTraits = (sessionId: string, traitId: TraitId) => {
     const session = sessions.find((s) => s.id === sessionId);

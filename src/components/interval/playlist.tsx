@@ -1,4 +1,5 @@
-import { useAudioPlayerActions } from "@/contexts/audio-player-context";
+import { useIntervalStore } from "@/lib/store/use-interval-store";
+import { usePlaylist } from "@/hooks/use-playlist";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,21 +13,23 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { AudioLines, ListMusic, ListPlus, ListX, Play, X } from "lucide-react";
-import { useState } from "react";
+import { AudioLines, ListPlus, ListX, X } from "lucide-react";
+import { memo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const Playlist = () => {
-  const {
-    playing,
-    playlist,
-    currentIndex,
-    addToPlaylist,
-    removeFromPlaylist,
-    clearPlaylist,
-    playAt,
-  } = useAudioPlayerActions();
+  const playing = useIntervalStore((state) => state.playing);
+  const currentIndex = useIntervalStore((state) => state.currentIndex);
+  const playlist = usePlaylist();
+
+  const addToPlaylist = useIntervalStore((state) => state.addToPlaylist);
+  const removeFromPlaylist = useIntervalStore(
+    (state) => state.removeFromPlaylist,
+  );
+  const clearPlaylist = useIntervalStore((state) => state.clearPlaylist);
+  const playAt = useIntervalStore((state) => state.playAt);
 
   const [playlistInput, setPlaylistInput] = useState("");
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
@@ -40,176 +43,192 @@ export const Playlist = () => {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <div className="flex flex-row gap-2 rounded-md">
-        <Input
-          placeholder="Add to playlist..."
-          value={playlistInput}
-          onChange={(e) => setPlaylistInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleAddToPlaylist();
-          }}
-          className="rounded-md text-sm bg-card/50! border border-border!"
-        />
+    <div className="flex flex-col bg-card/50 h-full border-t">
+      <div className="flex">
+        <div className="flex flex-row gap-2 flex-1 border-b p-2">
+          <Input
+            placeholder="Paste YouTube link..."
+            value={playlistInput}
+            onChange={(e) => setPlaylistInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleAddToPlaylist();
+              }
+            }}
+            className="h-8 text-sm"
+          />
 
-        <Button
-          size="icon"
-          variant="outline"
-          onClick={handleAddToPlaylist}
-          disabled={!playlistInput.trim()}
-          className="text-muted-foreground hover:text-primary"
-        >
-          <ListPlus />
-        </Button>
+          <Button
+            size="icon"
+            variant="secondary"
+            className="h-8 w-8 shrink-0"
+            onClick={handleAddToPlaylist}
+            disabled={!playlistInput.trim()}
+            aria-label="Add to queue"
+          >
+            <ListPlus className="size-4" />
+          </Button>
 
-        <Button
-          size="icon"
-          variant="outline"
-          onClick={() => setClearDialogOpen(true)}
-          disabled={playlist.length === 0}
-          className="text-muted-foreground hover:text-destructive"
-        >
-          <ListX />
-        </Button>
+          {playlist.length > 0 && (
+            <AlertDialog
+              open={clearDialogOpen}
+              onOpenChange={setClearDialogOpen}
+            >
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8 shrink-0"
+                  aria-label="Clear playlist"
+                >
+                  <ListX className="size-4" />
+                </Button>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent size="sm">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear the queue?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    onClick={() => {
+                      clearPlaylist();
+                      setClearDialogOpen(false);
+                    }}
+                  >
+                    Clear
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
       </div>
 
-      <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Clear playlist?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will remove all tracks from your queue. This action cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={() => {
-                clearPlaylist();
-                setClearDialogOpen(false);
-              }}
-            >
-              Clear
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ScrollArea className="h-full p-2">
+        <div className="space-y-1 h-full">
+          {playlist.map((item, index) => (
+            <PlaylistItem
+              key={item.url}
+              item={item}
+              index={index}
+              isActive={currentIndex === index}
+              isPlaying={playing && currentIndex === index}
+              onPlay={playAt}
+              onRemove={removeFromPlaylist}
+            />
+          ))}
 
-      {playlist.length === 0 ? (
-        <div
-          className={cn(
-            "flex h-full flex-1 flex-col items-center justify-center",
-            "gap-2 rounded-2xl bg-background/40 p-2 text-center text-sm text-muted-foreground",
+          {playlist.length === 0 && (
+            <div className="flex items-center justify-center flex-col gap-2 py-7 text-muted-foreground">
+              <AudioLines className="size-6" />
+              <p className="text-xs">Queue is empty</p>
+            </div>
           )}
-        >
-          <ListMusic />
-          <p className="max-w-xs text-xs">
-            Paste a YouTube URL above to add tracks to your queue.
-          </p>
         </div>
-      ) : (
-        <ScrollArea className="min-h-0 flex-1" scrollbar={false}>
-          <div className="space-y-2">
-            {playlist.map((item, i) => (
-              <PlaylistItem
-                key={`${item.url}-${i}`}
-                item={item}
-                index={i}
-                isActive={i === currentIndex}
-                isPlaying={playing}
-                onPlay={() => playAt(i)}
-                onRemove={() => removeFromPlaylist(i)}
-              />
-            ))}
-          </div>
-        </ScrollArea>
-      )}
+      </ScrollArea>
     </div>
   );
 };
 
-type PlaylistItemData = {
-  url: string;
-  title?: string;
-  author?: string;
-};
-
-type PlaylistItemProps = {
-  item: PlaylistItemData;
+interface PlaylistItemProps {
+  item: { url: string; title: string; author: string };
   index: number;
   isActive: boolean;
   isPlaying: boolean;
-  onPlay: () => void;
-  onRemove: () => void;
-};
+  onPlay: (index: number) => void;
+  onRemove: (index: number) => void;
+}
 
-const PlaylistItem = ({
-  item,
-  index,
-  isActive,
-  isPlaying,
-  onPlay,
-  onRemove,
-}: PlaylistItemProps) => {
-  return (
-    <div
-      className={cn(
-        "group grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2rem] items-center gap-3 overflow-hidden rounded-md p-2 transition-all",
-        "cursor-pointer",
-        isActive
-          ? "border border-primary/50 bg-primary/10 text-primary ring-primary/20"
-          : "bg-card/40 hover:bg-primary/5",
-      )}
-      onClick={onPlay}
-    >
-      <span className="flex size-6 items-center justify-center rounded-full bg-background/90 shadow-sm">
-        {isActive && isPlaying ? (
-          <AudioLines className="animate-pulse" size={14} />
-        ) : isActive ? (
-          <Play size={14} />
-        ) : (
-          <span className="text-xs text-muted-foreground">{index + 1}</span>
+const PlaylistItem = memo<PlaylistItemProps>(
+  ({ item, index, isActive, isPlaying, onPlay, onRemove }) => {
+    const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
+    const thumbnailUrl = `https://img.youtube.com/vi/${extractVideoId(item.url)}/default.jpg`;
+
+    return (
+      <div
+        className={cn(
+          "group relative flex items-center rounded-md p-2 transition-colors hover:bg-muted/50",
+          isActive && "bg-muted/80",
         )}
-      </span>
-
-      <div className="min-w-0 overflow-hidden">
-        {item.title ? (
-          <>
-            <p
-              className="truncate text-sm font-medium leading-snug"
-              title={item.title}
-            >
-              {item.title}
-            </p>
-            <p
-              className="truncate text-xs leading-snug text-muted-foreground"
-              title={item.author || "Unknown artist"}
-            >
-              {item.author || "Unknown artist"}
-            </p>
-          </>
-        ) : (
-          <>
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-          </>
-        )}
-      </div>
-
-      <Button
-        size="icon"
-        variant="ghost"
-        className="size-8 shrink-0 rounded-full opacity-0 transition-opacity group-hover:opacity-70 hover:opacity-100"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove();
-        }}
-        aria-label={`Remove ${item.title || item.url} from playlist`}
       >
-        <X size={12} />
-      </Button>
-    </div>
-  );
+        <div className="relative size-8 shrink-0 overflow-hidden rounded bg-muted">
+          {thumbnailUrl && !thumbnailLoaded && (
+            <Skeleton className="size-full rounded-none" />
+          )}
+
+          <img
+            src={thumbnailUrl}
+            alt={item.title || "Track thumbnail"}
+            className={cn(
+              "size-full object-cover",
+              thumbnailLoaded ? "opacity-100" : "opacity-0",
+            )}
+            onLoad={() => setThumbnailLoaded(true)}
+          />
+
+          {isPlaying && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <AudioLines className="size-3.5 text-white drop-shadow-md" />
+            </div>
+          )}
+        </div>
+
+        <div className="ml-2 min-w-0 flex-1">
+          <p
+            className={cn(
+              "truncate text-xs font-medium",
+              isActive ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            {item.title || "Untitled"}
+          </p>
+          {item.author && (
+            <p className="truncate text-[10px] text-muted-foreground/60">
+              {item.author}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1">
+          {!isPlaying && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground"
+              onClick={() => onPlay(index)}
+              aria-label="Play track"
+            ></Button>
+          )}
+
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+            onClick={() => onRemove(index)}
+            aria-label="Remove track"
+          >
+            <X className="size-3" />
+          </Button>
+        </div>
+      </div>
+    );
+  },
+);
+
+const extractVideoId = (url: string): string => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes("youtu.be")) {
+      return parsed.pathname.slice(1).split("?")[0];
+    }
+    return parsed.searchParams.get("v") ?? "";
+  } catch {
+    return "";
+  }
 };

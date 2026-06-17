@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { PocketKnife } from "lucide-react";
-import { useChat } from "@/contexts/chat-context";
+import { useChatStream } from "@/contexts/chat-context";
 import { useMemo } from "react";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 
@@ -71,9 +71,14 @@ const CATEGORY_DOLLARS: Record<string, string> = {
 const toolNamesIn = (names: string[]) => new Set(names);
 
 export const ToolOptions = () => {
-  const toolOptions = useSettingsStore((state) => state.toolOptions);
+  const showCalls = useSettingsStore((state) => state.toolOptions.showCalls);
+  const google_search = useSettingsStore((state) => state.toolOptions.google_search);
+  const url_context = useSettingsStore((state) => state.toolOptions.url_context);
+  const journal = useSettingsStore((state) => state.toolOptions.journal);
+  const tasks = useSettingsStore((state) => state.toolOptions.tasks);
+  const audio = useSettingsStore((state) => state.toolOptions.audio);
   const setToolOptions = useSettingsStore((state) => state.setToolOptions);
-  const { isSending } = useChat();
+  const { isSending } = useChatStream();
   const sessions = useSessionStore((state) => state.sessions);
   const activeId = useSessionStore((state) => state.activeId);
 
@@ -138,15 +143,10 @@ export const ToolOptions = () => {
 
           <ToolOptionRow
             label="Tool Calls"
-            isOn={toolOptions.showCalls}
+            isOn={showCalls}
             onText="Tool calls are shown in the chat."
             offText="Tool calls are hidden from the chat."
-            onClick={() =>
-              setToolOptions({
-                ...toolOptions,
-                showCalls: !toolOptions.showCalls,
-              })
-            }
+            onClick={() => setToolOptions({ showCalls: !showCalls })}
           />
         </div>
 
@@ -158,28 +158,18 @@ export const ToolOptions = () => {
 
           <ToolOptionRow
             label="Google Search"
-            isOn={toolOptions.google_search}
+            isOn={google_search}
             onText="The model can search the web for current information."
             offText="Web search is disabled for this conversation."
-            onClick={() =>
-              setToolOptions({
-                ...toolOptions,
-                google_search: !toolOptions.google_search,
-              })
-            }
+            onClick={() => setToolOptions({ google_search: !google_search })}
           />
 
           <ToolOptionRow
             label="URL Context"
-            isOn={toolOptions.url_context}
+            isOn={url_context}
             onText="The model can fetch and read content from URLs."
             offText="URL fetching is disabled."
-            onClick={() =>
-              setToolOptions({
-                ...toolOptions,
-                url_context: !toolOptions.url_context,
-              })
-            }
+            onClick={() => setToolOptions({ url_context: !url_context })}
           />
         </div>
 
@@ -191,47 +181,32 @@ export const ToolOptions = () => {
 
           <ToolOptionRow
             label="Journal"
-            isOn={toolOptions.journal}
+            isOn={journal}
             dollars={CATEGORY_DOLLARS.journal}
             calls={toolCounts.journal}
             onText="The model can read and write journal entries."
             offText="Journal access is disabled."
-            onClick={() =>
-              setToolOptions({
-                ...toolOptions,
-                journal: !toolOptions.journal,
-              })
-            }
+            onClick={() => setToolOptions({ journal: !journal })}
           />
 
           <ToolOptionRow
             label="Tasks"
-            isOn={toolOptions.tasks}
+            isOn={tasks}
             dollars={CATEGORY_DOLLARS.tasks}
             calls={toolCounts.tasks}
             onText="The model can create and manage tasks."
             offText="Task management is disabled."
-            onClick={() =>
-              setToolOptions({
-                ...toolOptions,
-                tasks: !toolOptions.tasks,
-              })
-            }
+            onClick={() => setToolOptions({ tasks: !tasks })}
           />
 
           <ToolOptionRow
             label="Player"
-            isOn={toolOptions.audio}
+            isOn={audio}
             dollars={CATEGORY_DOLLARS.audio}
             calls={toolCounts.audio}
             onText="The model can interact with the music player."
             offText="Music player interaction is disabled."
-            onClick={() =>
-              setToolOptions({
-                ...toolOptions,
-                audio: !toolOptions.audio,
-              })
-            }
+            onClick={() => setToolOptions({ audio: !audio })}
           />
         </div>
       </DropdownMenuContent>

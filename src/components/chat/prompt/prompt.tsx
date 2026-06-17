@@ -4,7 +4,7 @@ import { ArrowUp, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { useChat } from "@/contexts/chat-context";
+import { useChatInput, useChatStream } from "@/contexts/chat-context";
 import { TraitSelect } from "./trait-select";
 import { ModeSelect } from "./mode-select";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
@@ -15,7 +15,8 @@ interface Props {
 }
 
 export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
-  const { prompt, abortStream, setPrompt, sendMessage, isSending } = useChat();
+  const { prompt, setPrompt, sendMessage } = useChatInput();
+  const { abortStream, isSending } = useChatStream();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
 
   useEffect(() => {

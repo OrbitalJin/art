@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { memo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -433,7 +433,7 @@ interface TimerFillProps {
   variant: SessionVariant;
 }
 
-const TimerFill: React.FC<TimerFillProps> = ({
+const TimerFill = memo<TimerFillProps>(({
   progress,
   variant,
   fullscreen,
@@ -457,4 +457,4 @@ const TimerFill: React.FC<TimerFillProps> = ({
       />
     </div>
   );
-};
+});

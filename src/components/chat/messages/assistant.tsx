@@ -21,7 +21,7 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
 import { ToolCallCard } from "./tool-call-card";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { useChat } from "@/contexts/chat-context";
+import { useChatStream } from "@/contexts/chat-context";
 
 export const AssistantMessage: React.FC<Message> = ({
   content: _content,
@@ -32,8 +32,8 @@ export const AssistantMessage: React.FC<Message> = ({
 }) => {
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
-  const { showCalls } = useSettingsStore((state) => state.toolOptions);
-  const { isSending } = useChat();
+  const showCalls = useSettingsStore((state) => state.toolOptions.showCalls);
+  const { isSending } = useChatStream();
 
   const content = useMemo(() => {
     if (typeof _content === "string") return _content;

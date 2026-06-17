@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { SessionListItem } from "./item";
 import { SessionSection } from "./section";
@@ -40,42 +41,52 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
   const isOlderOpen = chatState.olderOpen;
 
   const setIsPinnedOpen = (open: boolean) =>
-    setChatState({ ...chatState, pinnedOpen: open });
+    setChatState({ pinnedOpen: open });
   const setIsArchivedOpen = (open: boolean) =>
-    setChatState({ ...chatState, archivedOpen: open });
+    setChatState({ archivedOpen: open });
   const setIsTodayOpen = (open: boolean) =>
-    setChatState({ ...chatState, todayOpen: open });
+    setChatState({ todayOpen: open });
   const setIsYesterdayOpen = (open: boolean) =>
-    setChatState({ ...chatState, yesterdayOpen: open });
+    setChatState({ yesterdayOpen: open });
   const setIsLast7DaysOpen = (open: boolean) =>
-    setChatState({ ...chatState, last7DaysOpen: open });
+    setChatState({ last7DaysOpen: open });
   const setIsOlderOpen = (open: boolean) =>
-    setChatState({ ...chatState, olderOpen: open });
+    setChatState({ olderOpen: open });
 
-  const filtered = sessions.filter((session) =>
-    session.title.toLowerCase().includes(query.toLowerCase()),
+  const { pinned, regular, archived } = useMemo(() => {
+    const filtered = sessions.filter((session) =>
+      session.title.toLowerCase().includes(query.toLowerCase()),
+    );
+
+    return {
+      pinned: filtered
+        .filter((session) => session.pinned && !session.archived)
+        .sort((a, b) => b.updatedAt - a.updatedAt),
+      regular: filtered
+        .filter((session) => !session.pinned && !session.archived)
+        .sort((a, b) => b.updatedAt - a.updatedAt),
+      archived: filtered
+        .filter((session) => session.archived)
+        .sort((a, b) => b.updatedAt - a.updatedAt),
+    };
+  }, [sessions, query]);
+
+  const today = useMemo(
+    () => regular.filter((s) => getTimeGroup(s.updatedAt) === "today"),
+    [regular],
   );
-
-  const pinned = filtered
-    .filter((session) => session.pinned && !session.archived)
-    .sort((a, b) => b.updatedAt - a.updatedAt);
-
-  const regular = filtered
-    .filter((session) => !session.pinned && !session.archived)
-    .sort((a, b) => b.updatedAt - a.updatedAt);
-
-  const archived = filtered
-    .filter((session) => session.archived)
-    .sort((a, b) => b.updatedAt - a.updatedAt);
-
-  const today = regular.filter((s) => getTimeGroup(s.updatedAt) === "today");
-  const yesterday = regular.filter(
-    (s) => getTimeGroup(s.updatedAt) === "yesterday",
+  const yesterday = useMemo(
+    () => regular.filter((s) => getTimeGroup(s.updatedAt) === "yesterday"),
+    [regular],
   );
-  const last7Days = regular.filter(
-    (s) => getTimeGroup(s.updatedAt) === "last7Days",
+  const last7Days = useMemo(
+    () => regular.filter((s) => getTimeGroup(s.updatedAt) === "last7Days"),
+    [regular],
   );
-  const older = regular.filter((s) => getTimeGroup(s.updatedAt) === "older");
+  const older = useMemo(
+    () => regular.filter((s) => getTimeGroup(s.updatedAt) === "older"),
+    [regular],
+  );
 
   const isEmpty =
     archived.length === 0 && regular.length === 0 && pinned.length === 0;

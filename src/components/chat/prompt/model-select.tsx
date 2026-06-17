@@ -4,7 +4,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useChat } from "@/contexts/chat-context";
+import { useChatStream } from "@/contexts/chat-context";
 import { MODELS } from "@/lib/ai/models";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ export const ModelSelect = () => {
   const model = MODELS.find((m) => m.id === session?.modelId);
   const [open, setOpen] = useState(false);
 
-  const { isSending: disabled } = useChat();
+  const { isSending: disabled } = useChatStream();
 
   const handleSelect = (key: string) => {
     if (session) {

@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { Sidebar } from "./sidebar";
+import { HiddenPlayer } from "@/components/audio/hidden-player";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -24,6 +25,7 @@ export function Layout({ children }: LayoutProps) {
         </main>
         <Sidebar />
       </div>
+      <HiddenPlayer />
       <Toaster position="top-center" expand={false} />
     </>
   );

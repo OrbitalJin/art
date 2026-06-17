@@ -14,10 +14,10 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { Eclipse } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { useChat } from "@/contexts/chat-context";
+import { useChatStream } from "@/contexts/chat-context";
 
 export const ModeSelect = () => {
-  const { isSending: disabled } = useChat();
+  const { isSending: disabled } = useChatStream();
 
   const setMode = useSessionStore((store) => store.setMode);
   const session = useSessionStore((state) =>

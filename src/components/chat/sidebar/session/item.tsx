@@ -46,7 +46,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useChat } from "@/contexts/chat-context";
+import { useChatStream } from "@/contexts/chat-context";
 
 interface Props {
   item: Session;
@@ -69,7 +69,7 @@ export const SessionListItem: React.FC<Props> = ({
   const getFn = useSessionStore((state) => state.getFn);
   const parentSession = branchOf ? getFn(branchOf) : undefined;
 
-  const { streamingSessionId } = useChat();
+  const { streamingSessionId } = useChatStream();
   const isStreaming = streamingSessionId === id;
 
   const [editing, setEditing] = useState(false);

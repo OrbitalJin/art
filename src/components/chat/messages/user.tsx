@@ -39,7 +39,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
-import { useChat } from "@/contexts/chat-context";
+import { useChatMessages, useChatStream } from "@/contexts/chat-context";
 
 export const UserMessage: React.FC<Message> = ({
   id: messageId,
@@ -54,7 +54,8 @@ export const UserMessage: React.FC<Message> = ({
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const { copied, copy } = useCopy(content);
-  const { editMessage, isSending: disabled } = useChat();
+  const { editMessage } = useChatMessages();
+  const { isSending: disabled } = useChatStream();
 
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);

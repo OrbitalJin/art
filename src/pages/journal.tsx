@@ -29,12 +29,9 @@ export const Journal = () => {
 
   const setZoomLevel = useCallback(
     (level: number) => {
-      setJournalState({
-        ...journalState,
-        zoomLevel: Math.min(200, Math.max(50, level)),
-      });
+      setJournalState({ zoomLevel: Math.min(200, Math.max(50, level)) });
     },
-    [journalState, setJournalState],
+    [setJournalState],
   );
 
   const zoomIn = useCallback(() => {
@@ -51,7 +48,7 @@ export const Journal = () => {
 
   const isOpen = journalState.sidebarOpen;
   const setIsOpen = (open: boolean) => {
-    setJournalState({ ...journalState, sidebarOpen: open });
+    setJournalState({ sidebarOpen: open });
   };
 
   useEffect(() => {

@@ -26,8 +26,8 @@ interface SettingsState {
   journalState: JournalState;
   settingsDialogOpen: boolean;
   updateDialogOpen: boolean;
-  setChatState: (state: ChatState) => void;
-  setJournalState: (state: JournalState) => void;
+  setChatState: (partial: Partial<ChatState>) => void;
+  setJournalState: (partial: Partial<JournalState>) => void;
   setSettingsDialogOpen: (open: boolean) => void;
   setUpdateDialogOpen: (open: boolean) => void;
 }
@@ -54,8 +54,10 @@ export const useUIStateStore = create<SettingsState>()(
       },
       settingsDialogOpen: false,
       updateDialogOpen: false,
-      setChatState: (state: ChatState) => set({ chatState: state }),
-      setJournalState: (state: JournalState) => set({ journalState: state }),
+      setChatState: (partial: Partial<ChatState>) =>
+        set((state) => ({ chatState: { ...state.chatState, ...partial } })),
+      setJournalState: (partial: Partial<JournalState>) =>
+        set((state) => ({ journalState: { ...state.journalState, ...partial } })),
       setSettingsDialogOpen: (open: boolean) =>
         set({ settingsDialogOpen: open }),
       setUpdateDialogOpen: (open: boolean) => set({ updateDialogOpen: open }),

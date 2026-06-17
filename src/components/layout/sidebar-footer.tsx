@@ -8,11 +8,11 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useAudioPlayerActions } from "@/contexts/audio-player-context";
+import { useIntervalStore } from "@/lib/store/use-interval-store";
 import { cn } from "@/lib/utils";
 
 export const SidebarFooter = () => {
-  const { playing } = useAudioPlayerActions();
+  const playing = useIntervalStore((state) => state.playing);
 
   return (
     <div className="flex flex-col gap-2 px-2 mt-auto">

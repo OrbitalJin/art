@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import { PageListItem } from "@/components/journal/sidebar/page/item";
 import { useJournalEditor } from "@/contexts/note-editor-context";
@@ -23,41 +24,34 @@ export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
   const isArchivedOpen = journalState.archivedOpen;
 
   const setIsPinnedOpen = (open: boolean) =>
-    setJournalState({ ...journalState, pinnedOpen: open });
+    setJournalState({ pinnedOpen: open });
   const setIsPagesOpen = (open: boolean) =>
-    setJournalState({ ...journalState, sessionsOpen: open });
+    setJournalState({ sessionsOpen: open });
   const setIsArchivedOpen = (open: boolean) =>
-    setJournalState({ ...journalState, archivedOpen: open });
+    setJournalState({ archivedOpen: open });
 
-  const filtered = pages
-    .filter((page) => {
+  const { pinned, regular, archived } = useMemo(() => {
+    const matchesQuery = (page: { title: string; tags: string[]; workspace: string }) => {
       const matchesSearch = page.title
         .toLowerCase()
         .includes(query.toLowerCase());
       const matchesTags =
         selectedTags.length === 0 ||
         selectedTags.every((tag) => page.tags.includes(tag));
-
       const matchesWorkspace = page.workspace === currentTab;
       return matchesSearch && matchesTags && matchesWorkspace;
-    })
-    .sort((a, b) => b.createdAt - a.createdAt);
+    };
 
-  const pinned = filtered.filter((e) => e.pinned && !e.archived);
-  const regular = filtered.filter((e) => !e.pinned && !e.archived);
-  const archived = pages
-    .filter((e) => e.archived)
-    .filter((page) => {
-      const matchesSearch = page.title
-        .toLowerCase()
-        .includes(query.toLowerCase());
-      const matchesTags =
-        selectedTags.length === 0 ||
-        selectedTags.every((tag) => page.tags.includes(tag));
+    const filtered = pages
+      .filter(matchesQuery)
+      .sort((a, b) => b.createdAt - a.createdAt);
 
-      const matchesWorkspace = page.workspace === currentTab;
-      return matchesSearch && matchesTags && matchesWorkspace;
-    });
+    return {
+      pinned: filtered.filter((e) => e.pinned && !e.archived),
+      regular: filtered.filter((e) => !e.pinned && !e.archived),
+      archived: pages.filter((e) => e.archived).filter(matchesQuery),
+    };
+  }, [pages, query, selectedTags, currentTab]);
 
   const isEmpty =
     pinned.length === 0 && regular.length === 0 && archived.length === 0;

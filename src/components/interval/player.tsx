@@ -1,9 +1,6 @@
-// player.tsx
 import type React from "react";
-import {
-  useAudioPlayerActions,
-  useAudioPlayerTimer,
-} from "@/contexts/audio-player-context";
+import { useIntervalStore } from "@/lib/store/use-interval-store";
+import { useCurrentItem, usePlaylist, useProgress } from "@/hooks/use-playlist";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { cn, getYoutubeThumbnail } from "@/lib/utils";
@@ -43,21 +40,20 @@ export const Player: React.FC<Props> = ({ variant = "default" }) => {
 };
 
 const FloatingPlayer: React.FC = () => {
-  const {
-    item,
-    loop,
-    toggleLoop,
-    playing,
-    volume,
-    muted,
-    error,
-    togglePlay,
-    toggleMute,
-    playlist,
-    currentIndex,
-    playNext,
-    playPrevious,
-  } = useAudioPlayerActions();
+  const item = useCurrentItem();
+  const loop = useIntervalStore((state) => state.loop);
+  const playing = useIntervalStore((state) => state.playing);
+  const volume = useIntervalStore((state) => state.volume);
+  const muted = useIntervalStore((state) => state.muted);
+  const error = useIntervalStore((state) => state.error);
+  const playlist = usePlaylist();
+  const currentIndex = useIntervalStore((state) => state.currentIndex);
+
+  const toggleLoop = useIntervalStore((state) => state.toggleLoop);
+  const togglePlay = useIntervalStore((state) => state.togglePlay);
+  const toggleMute = useIntervalStore((state) => state.toggleMute);
+  const playNext = useIntervalStore((state) => state.playNext);
+  const playPrevious = useIntervalStore((state) => state.playPrevious);
 
   const hasTrack = Boolean(item?.url);
   const thumbnailUrl = getYoutubeThumbnail(item?.url || "");
@@ -176,28 +172,27 @@ const FloatingPlayer: React.FC = () => {
 };
 
 const DefaultPlayer: React.FC = () => {
-  const {
-    item,
-    loop,
-    toggleLoop,
-    playing,
-    volume,
-    muted,
-    error,
-    togglePlay,
-    setVolume,
-    toggleMute,
-    playlist,
-    currentIndex,
-    playNext,
-    playPrevious,
-  } = useAudioPlayerActions();
+  const item = useCurrentItem();
+  const loop = useIntervalStore((state) => state.loop);
+  const playing = useIntervalStore((state) => state.playing);
+  const volume = useIntervalStore((state) => state.volume);
+  const muted = useIntervalStore((state) => state.muted);
+  const error = useIntervalStore((state) => state.error);
+  const playlist = usePlaylist();
+  const currentIndex = useIntervalStore((state) => state.currentIndex);
+
+  const toggleLoop = useIntervalStore((state) => state.toggleLoop);
+  const togglePlay = useIntervalStore((state) => state.togglePlay);
+  const setVolume = useIntervalStore((state) => state.setVolume);
+  const toggleMute = useIntervalStore((state) => state.toggleMute);
+  const playNext = useIntervalStore((state) => state.playNext);
+  const playPrevious = useIntervalStore((state) => state.playPrevious);
 
   const hasTrack = Boolean(item?.url);
   const thumbnailUrl = getYoutubeThumbnail(item?.url || "");
 
   return (
-    <div className="rounded-md border bg-card/50 p-2">
+    <div className="bg-card/50 p-4">
       <div className="flex min-w-0 items-center gap-2">
         <div className="size-21 shrink-0 overflow-hidden rounded-lg bg-muted shadow-md">
           {thumbnailUrl ? (
@@ -326,7 +321,9 @@ const DefaultPlayer: React.FC = () => {
 };
 
 const PlayerProgress: React.FC = () => {
-  const { playedSeconds, progress, duration } = useAudioPlayerTimer();
+  const playedSeconds = useIntervalStore((state) => state.playedSeconds);
+  const duration = useIntervalStore((state) => state.duration);
+  const progress = useProgress();
 
   return (
     <div className="flex flex-1 items-center gap-2">

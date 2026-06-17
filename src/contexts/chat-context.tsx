@@ -22,22 +22,34 @@ import { customToolsFor } from "@/lib/ai/tools/custom";
 import { modelById } from "@/lib/ai/models";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 
-interface ChatContextValues {
+// --- Stream context ---
+interface ChatStreamValues {
   streamingSessionId: string | null;
-  messages: Message[];
   isSending: boolean;
+  abortStream: () => void;
+}
+
+// --- Input context ---
+interface ChatInputValues {
   prompt: string;
   setPrompt: (value: string) => void;
   sendMessage: (text: string) => Promise<void>;
-  editMessage: (messageId: string, text: string) => void;
-  abortStream: () => void;
 }
+
+// --- Messages context ---
+interface ChatMessagesValues {
+  messages: Message[];
+  editMessage: (messageId: string, text: string) => void;
+}
+
+const ChatStreamContext = createContext<ChatStreamValues | null>(null);
+const ChatInputContext = createContext<ChatInputValues | null>(null);
+const ChatMessagesContext = createContext<ChatMessagesValues | null>(null);
 
 function toSDKMessages(messages: Message[]) {
   return messages
     .filter((m) => m.role === "user" || m.role === "assistant")
     .map((m) => {
-      // If the content is structured blocks, serialize it back to markdown text for the SDK
       let contentString = "";
       if (Array.isArray(m.content)) {
         contentString = m.content
@@ -68,8 +80,6 @@ const INITIAL_STATE: State = {
   status: "thinking",
 };
 
-const ChatContext = createContext<ChatContextValues | null>(null);
-
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -80,9 +90,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   const activeSession = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
-
-  const userProfile = useSettingsStore((state) => state.userProfile);
-  const agentProfile = useSettingsStore((state) => state.agentProfile);
 
   const [prompt, setPrompt] = useState("");
   const [state, setState] = useState<State>(INITIAL_STATE);
@@ -101,6 +108,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         .getState()
         .sessions.find((s) => s.id === activeId);
       if (!session) return;
+
+      const { userProfile, agentProfile } = useSettingsStore.getState();
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -208,13 +217,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
 
             case "abort": {
               status = "aborted";
-              // still runs the finally block
               return;
             }
 
             case "error": {
               status = "error";
-              // still runs the finally block
               return;
             }
           }
@@ -271,7 +278,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
     },
-    [activeId, apiKey, addMessage, provider, agentProfile, userProfile],
+    [activeId, apiKey, addMessage, provider],
   );
 
   const sendMessage = useCallback(
@@ -350,35 +357,69 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     activeId,
   ]);
 
-  const value = useMemo(
+  const streamValue = useMemo(
     () => ({
       streamingSessionId: state.isSending ? state.sessionId : null,
-      messages,
+      isSending: state.isSending,
+      abortStream,
+    }),
+    [state.isSending, state.sessionId, abortStream],
+  );
+
+  const inputValue = useMemo(
+    () => ({
       prompt,
       setPrompt,
       sendMessage,
-      abortStream,
-      isSending: state.isSending,
-      editMessage,
     }),
-    [
-      editMessage,
-      state.sessionId,
-      messages,
-      state.isSending,
-      prompt,
-      sendMessage,
-      abortStream,
-    ],
+    [prompt, setPrompt, sendMessage],
   );
 
-  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+  const messagesValue = useMemo(
+    () => ({
+      messages,
+      editMessage,
+    }),
+    [messages, editMessage],
+  );
+
+  return (
+    <ChatMessagesContext.Provider value={messagesValue}>
+      <ChatStreamContext.Provider value={streamValue}>
+        <ChatInputContext.Provider value={inputValue}>
+          {children}
+        </ChatInputContext.Provider>
+      </ChatStreamContext.Provider>
+    </ChatMessagesContext.Provider>
+  );
 };
 
-export const useChat = () => {
-  const context = useContext(ChatContext);
+export const useChatStream = () => {
+  const context = useContext(ChatStreamContext);
   if (!context) {
-    throw new Error("useChat must be used within ChatProvider");
+    throw new Error("useChatStream must be used within ChatProvider");
   }
   return context;
+};
+
+export const useChatInput = () => {
+  const context = useContext(ChatInputContext);
+  if (!context) {
+    throw new Error("useChatInput must be used within ChatProvider");
+  }
+  return context;
+};
+
+export const useChatMessages = () => {
+  const context = useContext(ChatMessagesContext);
+  if (!context) {
+    throw new Error("useChatMessages must be used within ChatProvider");
+  }
+  return context;
+};
+
+export const useChat = (): ChatStreamValues &
+  ChatInputValues &
+  ChatMessagesValues => {
+  return { ...useChatStream(), ...useChatInput(), ...useChatMessages() };
 };

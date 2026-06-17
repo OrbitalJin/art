@@ -4,17 +4,17 @@ import { Prompt } from "@/components/chat/prompt/prompt";
 import { FloatingSidebar } from "@/components/chat/sidebar/floating";
 import { useEffect, useRef } from "react";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
-import { useChat } from "@/contexts/chat-context";
+import { useChatMessages } from "@/contexts/chat-context";
 
 export const Chat = () => {
-  const { messages } = useChat();
+  const { messages } = useChatMessages();
   const chatState = useUIStateStore((state) => state.chatState);
   const setChatState = useUIStateStore((state) => state.setChatState);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const isOpen = chatState.sidebarOpen;
   const setIsOpen = (open: boolean) => {
-    setChatState({ ...chatState, sidebarOpen: open });
+    setChatState({ sidebarOpen: open });
   };
 
   useEffect(() => {

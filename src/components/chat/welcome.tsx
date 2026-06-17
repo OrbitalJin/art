@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { HelpCircle, MessagesSquare, Type, Pi } from "lucide-react";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { useChat } from "@/contexts/chat-context";
+import { useChatInput } from "@/contexts/chat-context";
 
 interface Suggestion {
   id: string;
@@ -48,7 +48,7 @@ interface Props {
 }
 
 const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
-  const { setPrompt } = useChat();
+  const { setPrompt } = useChatInput();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
