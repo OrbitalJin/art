@@ -34,6 +34,7 @@ const THEME_COLORS: Array<{ value: ThemeColor; label: string }> = [
   { value: "claude plus", label: "Claude Plus" },
   { value: "dark matter", label: "Dark Matter" },
   { value: "terminal", label: "Terminal" },
+  { value: "vercel", label: "Vercel" },
   { value: "claude", label: "Claude" },
   { value: "pony", label: "Pony" },
   { value: "aero", label: "Aero" },

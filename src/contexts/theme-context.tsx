@@ -15,6 +15,7 @@ export type ThemeColor =
   | "claude plus"
   | "terminal"
   | "t3 chat"
+  | "vercel"
   | "claude"
   | "aero"
   | "pony"

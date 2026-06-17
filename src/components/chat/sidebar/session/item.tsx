@@ -102,6 +102,7 @@ export const SessionListItem: React.FC<Props> = ({
         "hover:bg-accent/30 hover:text-accent-foreground",
         active &&
           "bg-accent/20 font-medium text-accent-foreground ring-1 ring-inset ring-foreground/5",
+        isStreaming && "animate-pulse",
       )}
       onClick={() => {
         if (!editing && !isTitleGenerating) {

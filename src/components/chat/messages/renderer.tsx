@@ -1,14 +1,12 @@
 import type React from "react";
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math"; // 1. Import remark-math
+import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
-
-import "katex/dist/katex.min.css";
 
 import { CodeBlock } from "@/components/chat/messages/code/block/block";
 import { InlineCode } from "@/components/chat/messages/code/inline";
@@ -19,7 +17,16 @@ interface Props {
   className?: string;
 }
 
+let katexCssLoaded = false;
+
 const RendererComponent: React.FC<Props> = ({ content, className }) => {
+  useEffect(() => {
+    if (!katexCssLoaded) {
+      katexCssLoaded = true;
+      import("katex/dist/katex.min.css");
+    }
+  }, []);
+
   return (
     <div className={cn("max-w-none wrap-break-word leading-6", className)}>
       <ReactMarkdown
