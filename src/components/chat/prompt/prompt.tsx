@@ -55,6 +55,11 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               "text-foreground/80 placeholder:text-muted-foreground/50 focus-visible:ring-0",
             )}
             onKeyDown={handleKeyDown}
+            onFocus={(e) => {
+              const val = e.target.value;
+              e.target.value = "";
+              e.target.value = val;
+            }}
           />
 
           <div className="flex justify-between items-center px-1">

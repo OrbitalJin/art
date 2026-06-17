@@ -43,12 +43,10 @@ export const SidebarFooter = () => {
 
         <Progress value={pct} className="h-2 bg-muted/70" />
 
-        {usage.total > 0 && (
-          <div className="flex justify-between text-[10px] text-muted-foreground">
-            <span>↑ {fmt(usage.output)} out</span>
-            <span>↓ {fmt(usage.input)} in</span>
-          </div>
-        )}
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>↑ {fmt(usage.output)} out</span>
+          <span>↓ {fmt(usage.input)} in</span>
+        </div>
       </div>
     </div>
   );

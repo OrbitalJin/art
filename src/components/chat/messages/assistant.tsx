@@ -21,42 +21,40 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
 import { ToolCallCard } from "./tool-call-card";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { useChat } from "@/contexts/chat-context";
 
 export const AssistantMessage: React.FC<Message> = ({
-  content,
+  content: _content,
   modelId,
   id: messageId,
-  status,
   grounded,
   tokenUsage: { output },
 }) => {
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
   const { showCalls } = useSettingsStore((state) => state.toolOptions);
-  const streaming = false;
+  const { isSending } = useChat();
 
-  const textRepresentation = useMemo(() => {
-    if (typeof content === "string") return content;
-    return content
+  const content = useMemo(() => {
+    if (typeof _content === "string") return _content;
+    return _content
       .map((block) => (block.type === "text" ? block.text : ""))
       .join("");
-  }, [content]);
+  }, [_content]);
 
-  const { copied, copy } = useCopy(textRepresentation);
+  const { copied, copy } = useCopy(content);
 
   const model = MODELS.find((m) => m.id === modelId);
   const premium = model?.tier === 3;
 
   const hasContent =
-    textRepresentation.length > 0 ||
-    (Array.isArray(content) && content.length > 0);
+    content.length > 0 || (Array.isArray(_content) && _content.length > 0);
 
-  const shouldRenderFooter = hasContent && status !== "streaming";
-
-  const isThinking = status === "thinking" || !hasContent;
+  const shouldRenderFooter = hasContent && !isSending;
+  const isThinking = !hasContent;
 
   const handleBranch = () => {
-    if (activeId && !streaming) {
+    if (activeId && !isSending) {
       const success = branchFrom(activeId, messageId, true);
       if (success) {
         toast.info("Session branched successfully");
@@ -68,7 +66,11 @@ export const AssistantMessage: React.FC<Message> = ({
 
   return (
     <div className="group flex w-full gap-3 animate-in fade-in duration-100 select-auto">
-      <div className="relative flex-1 leading-7 text-foreground/90 min-w-0">
+      <div
+        className={cn(
+          "relative flex-1 leading-7 min-w-0 transition-all text-foreground",
+        )}
+      >
         {isThinking && (
           <div className="flex items-center gap-2 py-1 text-muted-foreground mb-2">
             <ShimmerText className="text-sm">Thinking</ShimmerText>
@@ -76,11 +78,16 @@ export const AssistantMessage: React.FC<Message> = ({
         )}
 
         {hasContent && (
-          <div className="space-y-1">
-            {typeof content === "string" ? (
-              <Renderer content={content} />
+          <div
+            className={cn(
+              "space-y-1",
+              isThinking ? "opacity-50" : "opacity-90",
+            )}
+          >
+            {typeof _content === "string" ? (
+              <Renderer content={_content} />
             ) : (
-              content.map((block, idx) => {
+              _content.map((block, idx) => {
                 if (block.type === "text") {
                   return <Renderer key={idx} content={block.text} />;
                 }

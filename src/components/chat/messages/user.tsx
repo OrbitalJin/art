@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,18 +41,20 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
 import { useChat } from "@/contexts/chat-context";
 
-export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
-  const textRepresentation = useMemo(() => {
-    if (typeof content === "string") return content;
-    return content
+export const UserMessage: React.FC<Message> = ({
+  id: messageId,
+  content: _content,
+}) => {
+  const content = useMemo(() => {
+    if (typeof _content === "string") return _content;
+    return _content
       .map((block) => (block.type === "text" ? block.text : ""))
       .join("");
-  }, [content]);
+  }, [_content]);
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
-  const { copied, copy } = useCopy(textRepresentation);
-  const isCurrentSessionStreaming = false;
-  const { sendMessage } = useChat();
+  const { copied, copy } = useCopy(content);
+  const { editMessage, isSending: disabled } = useChat();
 
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
@@ -54,24 +62,19 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [draft, setDraft] = useState<string>(textRepresentation);
+  const [draft, setDraft] = useState<string>(content);
 
-  useEffect(() => {
+  const [prevText, setPrevText] = useState<string>(content);
+
+  if (content !== prevText) {
+    setPrevText(content);
     if (!isEditing) {
-      setDraft(textRepresentation);
+      setDraft(content);
     }
-  }, [textRepresentation, isEditing]);
-
-  useEffect(() => {
-    const textarea = textAreaRef.current;
-    if (textarea && isEditing) {
-      textarea.style.height = "auto";
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
-  }, [draft, isEditing]);
+  }
 
   const handleBranch = () => {
-    if (activeId && !isCurrentSessionStreaming) {
+    if (activeId && !disabled) {
       const success = branchFrom(activeId, messageId, false);
       if (success) {
         toast.info("Session branched successfully");
@@ -82,21 +85,19 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
   };
 
   const handleStartEdit = () => {
-    if (isCurrentSessionStreaming) return;
-    setDraft(textRepresentation);
+    if (disabled) return;
+    setDraft(content);
     setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
-    setDraft(textRepresentation);
+    setDraft(content);
     setIsEditing(false);
   };
 
-  const handleRetry = () => {
-    if (!activeId || isCurrentSessionStreaming) return;
-    revertMessage(activeId, messageId);
-    sendMessage(textRepresentation);
-  };
+  const handleRetry = useCallback(() => {
+    editMessage(messageId, content);
+  }, [content, editMessage, messageId]);
 
   const handleSaveEdit = () => {
     const trimmed = draft.trim();
@@ -106,8 +107,7 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
       return;
     }
 
-    revertMessage(activeId!, messageId);
-    sendMessage(trimmed);
+    editMessage(messageId, trimmed);
     setIsEditing(false);
   };
 
@@ -122,6 +122,14 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
       handleCancelEdit();
     }
   };
+
+  useEffect(() => {
+    const textarea = textAreaRef.current;
+    if (textarea && isEditing) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [draft, isEditing]);
 
   return (
     <div className="group flex w-full flex-col items-end gap-1 animate-in fade-in duration-100 select-auto">
@@ -146,6 +154,11 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
                 "lg:max-h-[400px]",
               )}
               onKeyDown={handleKeyDown}
+              onFocus={(e) => {
+                const val = e.target.value;
+                e.target.value = "";
+                e.target.value = val;
+              }}
             />
 
             <div className="flex items-center justify-between px-1">
@@ -176,7 +189,7 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
       ) : (
         <>
           <div className="relative rounded-md rounded-tr-none border bg-muted/40 p-3 text-foreground/80 shadow-sm">
-            <Renderer content={textRepresentation} />
+            <Renderer content={content} />
           </div>
 
           <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -188,7 +201,7 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
                       size="icon"
                       variant="ghost"
                       className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                      disabled={isCurrentSessionStreaming}
+                      disabled={disabled}
                     >
                       <Undo2 className="h-3.5 w-3.5" />
                     </Button>
@@ -242,7 +255,7 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
                   variant="ghost"
                   className="h-8 w-8 text-muted-foreground hover:bg-muted"
                   onClick={handleRetry}
-                  disabled={isCurrentSessionStreaming}
+                  disabled={disabled}
                 >
                   <RefreshCcw className="h-3.5 w-3.5" />
                 </Button>
@@ -270,7 +283,7 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
                   variant="ghost"
                   className="h-8 w-8 text-muted-foreground hover:bg-muted"
                   onClick={handleBranch}
-                  disabled={isCurrentSessionStreaming}
+                  disabled={disabled}
                 >
                   <GitBranch className="h-3.5 w-3.5" />
                 </Button>
@@ -302,7 +315,7 @@ export const UserMessage: React.FC<Message> = ({ id: messageId, content }) => {
                   variant="ghost"
                   className="h-8 w-8 text-muted-foreground hover:bg-muted"
                   onClick={handleStartEdit}
-                  disabled={isCurrentSessionStreaming}
+                  disabled={disabled}
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>

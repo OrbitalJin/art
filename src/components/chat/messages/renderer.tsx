@@ -21,12 +21,7 @@ interface Props {
 
 const RendererComponent: React.FC<Props> = ({ content, className }) => {
   return (
-    <div
-      className={cn(
-        "max-w-none wrap-break-word text-foreground leading-6",
-        className,
-      )}
-    >
+    <div className={cn("max-w-none wrap-break-word leading-6", className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
         rehypePlugins={[rehypeKatex]}

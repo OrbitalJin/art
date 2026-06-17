@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ShimmerText } from "@/components/ui/shimmer-text";
-import { useGenerateSessionTitle } from "@/hooks/use-generate-session-title";
+import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
 import {
@@ -61,7 +61,9 @@ export const SessionListItem: React.FC<Props> = ({
 }) => {
   const { title, id, branchOf } = item;
 
-  const { generating, generateTitle } = useGenerateSessionTitle();
+  const isTitleGenerating = useSessionStore((s) =>
+    s.titleGeneratingIds.includes(id),
+  );
   const setActive = useSessionStore((s) => s.setActive);
   const updateTitle = useSessionStore((s) => s.updateTitle);
   const getFn = useSessionStore((state) => state.getFn);
@@ -102,7 +104,7 @@ export const SessionListItem: React.FC<Props> = ({
           "bg-accent/20 font-medium text-accent-foreground ring-1 ring-inset ring-foreground/5",
       )}
       onClick={() => {
-        if (!editing && !generating) {
+        if (!editing && !isTitleGenerating) {
           setActive(id);
           onSwitch?.();
         }
@@ -157,7 +159,7 @@ export const SessionListItem: React.FC<Props> = ({
         </HoverCard>
       )}
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        {generating ? (
+        {isTitleGenerating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
             <ShimmerText className="truncate">Generating title...</ShimmerText>
@@ -192,12 +194,12 @@ export const SessionListItem: React.FC<Props> = ({
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
         ) : (
           !editing &&
-          !generating && (
+          !isTitleGenerating && (
             <Menu
               item={item}
               setText={setText}
               setEditing={setEditing}
-              generateTitle={generateTitle}
+              generateTitle={generateSessionTitle}
             />
           )
         )}
@@ -210,7 +212,7 @@ interface MenuProps {
   item: Session;
   setText: (text: string) => void;
   setEditing: (value: boolean) => void;
-  generateTitle: (id: string) => Promise<string | void>;
+  generateTitle: typeof generateSessionTitle;
 }
 
 const Menu: React.FC<MenuProps> = ({

@@ -32,6 +32,7 @@ const createNewSession = (
 export interface SessionState {
   sessions: Session[];
   activeId: string | null;
+  titleGeneratingIds: string[];
 
   setMode: (id: string, mode: ModeId) => void;
   branch: (id: string) => boolean;
@@ -61,6 +62,8 @@ export interface SessionState {
   revertMessage: (sessionId: string, messageId: string) => boolean;
   updateTitle: (sessionId: string, newTitle: string) => boolean;
   setTitleGenerated: (sessionId: string, value: boolean) => void;
+  startTitleGeneration: (sessionId: string) => void;
+  endTitleGeneration: (sessionId: string) => void;
   setModel: (sessionId: string, modelId: ModelId) => void;
   purge: () => void;
 }
@@ -70,6 +73,7 @@ export const useSessionStore = create<SessionState>()(
     (set, get) => ({
       sessions: [],
       activeId: null,
+      titleGeneratingIds: [],
 
       revertMessage: (sessionId: string, messageId: string): boolean => {
         let success = false;
@@ -298,6 +302,18 @@ export const useSessionStore = create<SessionState>()(
           sessions: state.sessions.map((session) =>
             session.id === id ? { ...session, titleGenerated: value } : session,
           ),
+        }));
+      },
+
+      startTitleGeneration: (id: string) => {
+        set((state) => ({
+          titleGeneratingIds: [...state.titleGeneratingIds, id],
+        }));
+      },
+
+      endTitleGeneration: (id: string) => {
+        set((state) => ({
+          titleGeneratingIds: state.titleGeneratingIds.filter((i) => i !== id),
         }));
       },
 

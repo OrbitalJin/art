@@ -20,6 +20,7 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { providerTools } from "@/lib/ai/tools/provider";
 import { customToolsFor } from "@/lib/ai/tools/custom";
 import { modelById } from "@/lib/ai/models";
+import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 
 interface ChatContextValues {
   streamingSessionId: string | null;
@@ -28,6 +29,7 @@ interface ChatContextValues {
   prompt: string;
   setPrompt: (value: string) => void;
   sendMessage: (text: string) => Promise<void>;
+  editMessage: (messageId: string, text: string) => void;
   abortStream: () => void;
 }
 
@@ -59,6 +61,13 @@ interface State {
   status: MessageStatus;
 }
 
+const INITIAL_STATE: State = {
+  sessionId: null,
+  isSending: false,
+  blocks: [],
+  status: "thinking",
+};
+
 const ChatContext = createContext<ChatContextValues | null>(null);
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -67,6 +76,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   const apiKey = useSettingsStore((state) => state.apiKey);
   const activeId = useSessionStore((state) => state.activeId);
   const addMessage = useSessionStore((state) => state.addMessage);
+  const revertMessage = useSessionStore((state) => state.revertMessage);
   const activeSession = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
@@ -74,17 +84,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   const userProfile = useSettingsStore((state) => state.userProfile);
   const agentProfile = useSettingsStore((state) => state.agentProfile);
 
-  const modelType = modelById(activeSession?.modelId).type;
-  const mode = activeSession?.mode;
-  const traits = activeSession?.traits;
-
   const [prompt, setPrompt] = useState("");
-  const [state, setState] = useState<State>({
-    sessionId: null,
-    isSending: false,
-    blocks: [],
-    status: "thinking",
-  });
+  const [state, setState] = useState<State>(INITIAL_STATE);
 
   const abortRef = useRef<AbortController | null>(null);
   const provider = useMemo(
@@ -95,6 +96,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   const send = useCallback(
     async (text: string) => {
       if (!activeId || !apiKey) return;
+
+      const session = useSessionStore
+        .getState()
+        .sessions.find((s) => s.id === activeId);
+      if (!session) return;
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -112,21 +118,24 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
 
       try {
         stream = streamText({
-          model: provider(modelType),
+          model: provider(modelById(session.modelId).type),
           stopWhen: stepCountIs(10),
           abortSignal: controller.signal,
           system: systemPrompt({
-            mode,
-            traits,
+            mode: session.mode,
+            traits: session.traits,
             userProfile,
             agentProfile,
           }),
           tools: {
-            ...providerTools({ provider: provider }),
-            ...customToolsFor({ session: activeSession }),
+            ...providerTools({ provider }),
+            ...customToolsFor({ session }),
           },
           messages: [
-            ...toSDKMessages(activeSession?.messages ?? []),
+            ...toSDKMessages(
+              useSessionStore.getState().sessions.find((s) => s.id === activeId)
+                ?.messages ?? [],
+            ),
             { role: "user", content: text },
           ],
           experimental_transform: smoothStream({
@@ -244,27 +253,25 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
           role: "assistant",
           content: currentBlocks,
           status: status !== "streaming" ? status : "complete",
-          modelId: activeSession?.modelId,
-          grounded: activeSession?.grounding,
+          modelId: session.modelId,
+          grounded: session.grounding,
           tokenUsage: {
             input: usage?.inputTokens ?? 0,
             output: usage?.outputTokens ?? 0,
           },
         });
+
+        if (status === "streaming") {
+          const ss = useSessionStore
+            .getState()
+            .sessions.find((s) => s.id === activeId);
+          if (ss && !ss.titleGenerated && ss.messages.length === 2) {
+            generateSessionTitle(activeId);
+          }
+        }
       }
     },
-    [
-      activeId,
-      apiKey,
-      activeSession,
-      addMessage,
-      provider,
-      agentProfile,
-      userProfile,
-      mode,
-      modelType,
-      traits,
-    ],
+    [activeId, apiKey, addMessage, provider, agentProfile, userProfile],
   );
 
   const sendMessage = useCallback(
@@ -293,6 +300,29 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   const abortStream = useCallback(() => {
     abortRef.current?.abort();
   }, []);
+
+  const editMessage = useCallback(
+    async (messageId: string, text: string) => {
+      if (!activeId) return;
+
+      if (!text.trim()) {
+        toast.warning("Please enter a message");
+        return;
+      }
+
+      revertMessage(activeId, messageId);
+
+      addMessage(activeId, {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: text,
+        tokenUsage: { input: 0, output: 0 },
+      });
+      setPrompt("");
+      await send(text);
+    },
+    [addMessage, send, setPrompt, activeId, revertMessage],
+  );
 
   const messages = useMemo(() => {
     const base = activeSession?.messages ?? [];
@@ -329,8 +359,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       sendMessage,
       abortStream,
       isSending: state.isSending,
+      editMessage,
     }),
     [
+      editMessage,
       state.sessionId,
       messages,
       state.isSending,

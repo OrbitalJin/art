@@ -45,6 +45,7 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
           <Virtuoso
             ref={virtuosoRef}
             data={messages}
+            computeItemKey={(_, msg) => msg.id}
             className="h-full"
             initialTopMostItemIndex={{
               index: messages.length - 1,
