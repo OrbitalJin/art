@@ -30,8 +30,8 @@ export const Interval = () => {
         <Memo
           className={cn(
             "flex-1 border-r border-b border-l rounded-bl-md lg:rounded-md-none lg:border-t bg-card/50 transition-all",
-            "min-h-0 overflow-y-scroll",
-            "focus-within:border-primary/50 focus-within:border-2",
+            "min-h-0 overflow-y-scroll h-full",
+            "focus-within:border-primary/50 focus-within:border",
           )}
         />
       )}
