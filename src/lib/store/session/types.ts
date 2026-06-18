@@ -51,4 +51,5 @@ export interface Session {
   updatedAt: number;
   grounding?: boolean;
   titleGenerated?: boolean;
+  readOnly?: boolean;
 }

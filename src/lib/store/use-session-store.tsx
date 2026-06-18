@@ -357,16 +357,17 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 4,
+      version: 6,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
-        if (version < 4) {
+        if (version < 6) {
           const state = persistedState as {
             sessions?: Array<{ messages?: Array<Message & { role: string }> }>;
           };
           if (state && Array.isArray(state.sessions)) {
             state.sessions = state.sessions.map((session) => ({
               ...session,
+              readOnly: true,
               messages: (session.messages ?? []).map((msg) => ({
                 ...msg,
                 role:
