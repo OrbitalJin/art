@@ -12,6 +12,7 @@ import {
   TextCursor,
   Archive,
   ArchiveRestore,
+  Download,
 } from "lucide-react";
 
 import {
@@ -47,6 +48,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useChatStream } from "@/contexts/chat-context";
+import { useTradeSession } from "@/hooks/use-trade-session";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   item: Session;
@@ -64,8 +67,8 @@ export const SessionListItem: React.FC<Props> = ({
   const isTitleGenerating = useSessionStore((s) =>
     s.titleGeneratingIds.includes(id),
   );
-  const setActive = useSessionStore((s) => s.setActive);
   const updateTitle = useSessionStore((s) => s.updateTitle);
+  const navigate = useNavigate();
   const getFn = useSessionStore((state) => state.getFn);
   const parentSession = branchOf ? getFn(branchOf) : undefined;
 
@@ -106,7 +109,7 @@ export const SessionListItem: React.FC<Props> = ({
       )}
       onClick={() => {
         if (!editing && !isTitleGenerating) {
-          setActive(id);
+          navigate(`/chat/${id}`);
           onSwitch?.();
         }
       }}
@@ -118,7 +121,7 @@ export const SessionListItem: React.FC<Props> = ({
             onClick={(e) => {
               e.stopPropagation();
               if (parentSession) {
-                setActive(parentSession?.id);
+                navigate(`/chat/${parentSession.id}`);
               }
             }}
           >
@@ -227,6 +230,7 @@ const Menu: React.FC<MenuProps> = ({
   const toggleArchived = useSessionStore((s) => s.toggleArchived);
 
   const { creating, create } = useCreatePageFromSession();
+  const { exportSession } = useTradeSession();
   const [open, setOpen] = useState(false);
 
   const handleDelete = () => {
@@ -257,9 +261,7 @@ const Menu: React.FC<MenuProps> = ({
           <Button
             variant="link"
             size="icon"
-            className="
-            h-7 w-7 opacity-0 group-hover:opacity-100 
-            focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+            className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
           >
@@ -270,60 +272,54 @@ const Menu: React.FC<MenuProps> = ({
 
         <DropdownMenuContent
           align="end"
-          className="w-56"
+          className="w-52"
           onClick={(e) => e.stopPropagation()}
         >
-          {!item.archived && (
-            <>
-              <DropdownMenuGroup>
-                <DropdownMenuItem
-                  disabled={creating}
-                  onSelect={handleCreate}
-                  className="gap-2 focus:text-primary focus:bg-primary/10"
-                >
-                  {creating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <BookDashed className="h-4 w-4" />
-                  )}
-                  <span>{creating ? "Generating..." : "Generate Notes"}</span>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  onSelect={handleGenerate}
-                  className="gap-2 focus:text-primary focus:bg-primary/10"
-                >
-                  <Wand2 className="h-4 w-4" />
-                  <span>Generate Title</span>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-
-              <DropdownMenuSeparator />
-            </>
-          )}
-
+          {/* Edit actions */}
           {!item.archived && (
             <>
               <DropdownMenuGroup>
                 <DropdownMenuItem
                   onSelect={() => togglePinned(item.id)}
-                  className="gap-2"
+                  className="gap-2.5"
                 >
                   {item.pinned ? (
-                    <PinOff className="h-4 w-4 text-muted-foreground" />
+                    <PinOff className="h-3.5 w-3.5 text-muted-foreground" />
                   ) : (
-                    <Pin className="h-4 w-4 text-muted-foreground" />
+                    <Pin className="h-3.5 w-3.5 text-muted-foreground" />
                   )}
-                  <span>{item.pinned ? "Unpin Session" : "Pin Session"}</span>
+                  <span>{item.pinned ? "Unpin" : "Pin"}</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onSelect={() => setEditing(true)}
+                  className="gap-2.5"
+                >
+                  <TextCursor className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>Rename</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+
+              <DropdownMenuSeparator />
+
+              {/* AI actions */}
+              <DropdownMenuGroup>
+                <DropdownMenuItem onSelect={handleGenerate} className="gap-2.5">
+                  <Wand2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>Generate Title</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
                   disabled={creating}
-                  onSelect={() => setEditing(true)}
-                  className="gap-2"
+                  onSelect={handleCreate}
+                  className="gap-2.5"
                 >
-                  <TextCursor className="h-4 w-4 text-muted-foreground" />
-                  <span>Rename</span>
+                  {creating ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                  ) : (
+                    <BookDashed className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  <span>{creating ? "Generating..." : "Generate Notes"}</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
@@ -331,22 +327,26 @@ const Menu: React.FC<MenuProps> = ({
             </>
           )}
 
+          {/* Session-level actions */}
           <DropdownMenuGroup>
             <DropdownMenuItem
+              onSelect={() => exportSession(item.id)}
+              className="gap-2.5"
+            >
+              <Download className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Export</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
               onSelect={() => toggleArchived(item.id)}
-              className="gap-2"
+              className="gap-2.5"
             >
               {item.archived ? (
-                <>
-                  <ArchiveRestore className="h-4 w-4 text-muted-foreground" />
-                  <span>Unarchive</span>
-                </>
+                <ArchiveRestore className="h-3.5 w-3.5 text-muted-foreground" />
               ) : (
-                <>
-                  <Archive className="h-4 w-4 text-muted-foreground" />
-                  <span>Archive</span>
-                </>
+                <Archive className="h-3.5 w-3.5 text-muted-foreground" />
               )}
+              <span>{item.archived ? "Unarchive" : "Archive"}</span>
             </DropdownMenuItem>
           </DropdownMenuGroup>
 
@@ -354,11 +354,11 @@ const Menu: React.FC<MenuProps> = ({
 
           <AlertDialogTrigger asChild>
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive focus:bg-destructive/10 gap-2"
+              className="gap-2.5 text-destructive focus:bg-destructive/10 focus:text-destructive"
               onSelect={(e) => e.preventDefault()}
               onPointerDown={(e) => e.stopPropagation()}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5" />
               <span>Delete Session</span>
             </DropdownMenuItem>
           </AlertDialogTrigger>

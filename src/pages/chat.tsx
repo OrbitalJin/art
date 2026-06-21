@@ -3,14 +3,29 @@ import { StaticSidebar } from "@/components/chat/sidebar/static";
 import { Prompt } from "@/components/chat/prompt/prompt";
 import { FloatingSidebar } from "@/components/chat/sidebar/floating";
 import { useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 import { useChatMessages } from "@/contexts/chat-context";
+import { useSessionStore } from "@/lib/store/use-session-store";
 
 export const Chat = () => {
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const navigate = useNavigate();
   const { messages } = useChatMessages();
   const chatState = useUIStateStore((state) => state.chatState);
   const setChatState = useUIStateStore((state) => state.setChatState);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    const store = useSessionStore.getState();
+    const session = store.getFn(sessionId);
+    if (session) {
+      store.setActive(sessionId);
+    } else {
+      navigate("/chat", { replace: true });
+    }
+  }, [sessionId, navigate]);
 
   const isOpen = chatState.sidebarOpen;
   const setIsOpen = (open: boolean) => {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useEditor, Editor } from "@tiptap/react";
 
 import { useJournalStore } from "@/lib/store/use-journal-store";
@@ -34,6 +34,10 @@ export const JournalEditorProvider: React.FC<Props> = ({ children }) => {
   const activeId = useJournalStore((s) => s.activeId);
   const currentWorkspace = useJournalStore((s) => s.currentWorkspace);
   const [currentTab, setCurrentTab] = useState<Workspace>(currentWorkspace);
+
+  useEffect(() => {
+    setCurrentTab(currentWorkspace);
+  }, [currentWorkspace]);
 
   const editor = useEditor({
     editable: true,

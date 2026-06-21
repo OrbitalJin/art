@@ -17,10 +17,27 @@ import {
 } from "@/components/ui/tooltip";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { Button } from "@/components/ui/button";
+import { useParams, useNavigate } from "react-router-dom";
 
 export const Journal = () => {
-  const { isDisabled, isEditable, toggleEditable, editor } = useJournalEditor();
+  const { pageId } = useParams<{ pageId: string }>();
+  const navigate = useNavigate();
+  const { isDisabled, isEditable, toggleEditable, editor, setCurrentTab } =
+    useJournalEditor();
+
+  useEffect(() => {
+    if (!pageId) return;
+    const store = useJournalStore.getState();
+    const page = store.getFn(pageId);
+    if (page) {
+      store.setActive(pageId);
+      setCurrentTab(page.workspace);
+    } else {
+      navigate("/journal", { replace: true });
+    }
+  }, [pageId, navigate, setCurrentTab]);
 
   const journalState = useUIStateStore((state) => state.journalState);
   const setJournalState = useUIStateStore((state) => state.setJournalState);

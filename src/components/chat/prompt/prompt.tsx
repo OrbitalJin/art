@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp, Square } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
@@ -9,6 +9,7 @@ import { TraitSelect } from "./trait-select";
 import { ModeSelect } from "./mode-select";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
 import { ToolOptions } from "./tool-options";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -82,7 +83,11 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               onClick={isSending ? abortStream : () => sendMessage(prompt)}
               disabled={!isSending && !prompt.trim()}
             >
-              {isSending ? <Square className="animate-pulse" /> : <ArrowUp />}
+              {isSending ? (
+                <Spinner className="animate-pulse animate-spin" />
+              ) : (
+                <ArrowUp />
+              )}
             </Button>
           </div>
         </div>

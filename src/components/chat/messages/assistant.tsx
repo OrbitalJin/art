@@ -4,7 +4,11 @@ import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Sparkle, Cpu, Globe, GitBranch } from "lucide-react";
 import { Renderer } from "./renderer";
-import type { Message } from "@/lib/store/session/types";
+import type {
+  Message,
+  TextBlock,
+  ToolCallBlock,
+} from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 import { MODELS } from "@/lib/ai/models";
 import {
@@ -20,6 +24,7 @@ import {
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
 import { ToolCallCard } from "./tool-call-card";
+import { ToolCallGroup } from "./tool-call-group";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatStream } from "@/contexts/chat-context";
 
@@ -40,6 +45,27 @@ export const AssistantMessage: React.FC<Message> = ({
     return _content
       .map((block) => (block.type === "text" ? block.text : ""))
       .join("");
+  }, [_content]);
+
+  const groupedBlocks = useMemo(() => {
+    if (typeof _content === "string") return null;
+    const groups: (TextBlock | ToolCallBlock[])[] = [];
+    let currentGroup: ToolCallBlock[] = [];
+    for (const block of _content) {
+      if (block.type === "tool-call") {
+        currentGroup.push(block);
+      } else {
+        if (currentGroup.length > 0) {
+          groups.push(currentGroup);
+          currentGroup = [];
+        }
+        groups.push(block);
+      }
+    }
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+    return groups;
   }, [_content]);
 
   const { copied, copy } = useCopy(content);
@@ -81,20 +107,26 @@ export const AssistantMessage: React.FC<Message> = ({
           <div
             className={cn(
               "space-y-1",
-              isThinking ? "opacity-50" : "opacity-90",
+              isThinking ? "opacity-50 animate-pulse" : "opacity-90",
             )}
           >
             {typeof _content === "string" ? (
               <Renderer content={_content} />
             ) : (
-              _content.map((block, idx) => {
-                if (block.type === "text") {
-                  return <Renderer key={idx} content={block.text} />;
+              groupedBlocks?.map((item, idx) => {
+                if (Array.isArray(item)) {
+                  if (!showCalls) return null;
+                  if (item.length === 1) {
+                    return <ToolCallCard key={item[0].id} block={item[0]} />;
+                  }
+                  return (
+                    <ToolCallGroup
+                      key={`tool-group-${item[0].id}`}
+                      blocks={item}
+                    />
+                  );
                 }
-                if (block.type === "tool-call" && showCalls) {
-                  return <ToolCallCard key={block.id} block={block} />;
-                }
-                return null;
+                return <Renderer key={idx} content={item.text} />;
               })
             )}
           </div>

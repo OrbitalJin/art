@@ -34,6 +34,7 @@ import {
   Archive,
   ArchiveRestore,
   Wand2,
+  Download,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { useJournalStore } from "@/lib/store/use-journal-store";
@@ -44,6 +45,8 @@ import { TagList } from "@/components/journal/sidebar/page/tag/list";
 import { WORKSPACES } from "@/lib/store/journal/types";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useGeneratePageTitle } from "@/hooks/use-generate-page-title";
+import { useTradeJournal } from "@/hooks/use-trade-journal";
+import { useNavigate } from "react-router-dom";
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   id: string;
@@ -64,8 +67,8 @@ export const PageListItem: React.FC<Props> = ({
   tags,
 }) => {
   const updateTitle = useJournalStore((state) => state.updateTitle);
-  const setActive = useJournalStore((state) => state.setActive);
   const { generating, generateTitle } = useGeneratePageTitle();
+  const navigate = useNavigate();
 
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
@@ -96,7 +99,7 @@ export const PageListItem: React.FC<Props> = ({
       )}
       onClick={() => {
         if (!editing && !generating) {
-          setActive(id);
+          navigate(`/journal/${id}`);
         }
       }}
     >
@@ -166,6 +169,8 @@ const Menu: React.FC<MenuProps> = ({
   const setActive = useJournalStore((state) => state.setActive);
   const page = useJournalStore((state) => state.getFn(id));
 
+  const { exportPage } = useTradeJournal();
+
   const [open, setOpen] = useState(false);
 
   const handleGenerate = async (e: Event) => {
@@ -191,7 +196,7 @@ const Menu: React.FC<MenuProps> = ({
           <Button
             variant="link"
             size="icon"
-            className="h-7 w-7 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+            className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
             onClick={(e) => e.stopPropagation()}
           >
             <MoreVertical className="h-4 w-4" />
@@ -206,26 +211,46 @@ const Menu: React.FC<MenuProps> = ({
         >
           {!page?.archived && (
             <>
+              {/* Edit actions */}
               <DropdownMenuGroup>
                 <DropdownMenuItem
-                  className="focus:text-primary focus:bg-primary/10 gap-2"
-                  onSelect={handleGenerate}
+                  onSelect={() => togglePin(id)}
+                  className="gap-2.5"
                 >
-                  <Wand2 className="h-4 w-4" />
-                  <span>Generate title</span>
+                  {pinned ? (
+                    <PinOff className="h-3.5 w-3.5 text-muted-foreground" />
+                  ) : (
+                    <Pin className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                  <span>{pinned ? "Unpin" : "Pin"}</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  className="gap-2.5"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setActive(id);
+                    setEditing(true);
+                    setOpen(false);
+                  }}
+                >
+                  <TextCursor className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>Rename</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />
-            </>
-          )}
 
-          {!page?.archived && (
-            <>
+              {/* AI + organization */}
               <DropdownMenuGroup>
+                <DropdownMenuItem className="gap-2.5" onSelect={handleGenerate}>
+                  <Wand2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>Generate Title</span>
+                </DropdownMenuItem>
+
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="gap-2">
-                    <ArrowRightLeft className="h-4 w-4" />
+                  <DropdownMenuSubTrigger className="gap-2.5">
+                    <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
                     <span>Move to</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
@@ -245,63 +270,43 @@ const Menu: React.FC<MenuProps> = ({
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
-
-                <DropdownMenuItem
-                  onSelect={() => togglePin(id)}
-                  className="gap-2"
-                >
-                  {pinned ? (
-                    <PinOff className="h-4 w-4" />
-                  ) : (
-                    <Pin className="h-4 w-4" />
-                  )}
-                  <span>{pinned ? "Unpin" : "Pin"}</span>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  className="gap-2"
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    setActive(id);
-                    setEditing(true);
-                    setOpen(false);
-                  }}
-                >
-                  <TextCursor className="h-4 w-4" />
-                  <span>Rename</span>
-                </DropdownMenuItem>
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />
             </>
           )}
 
+          {/* Page-level actions */}
           <DropdownMenuGroup>
             <DropdownMenuItem
+              onSelect={() => exportPage(id)}
+              className="gap-2.5"
+            >
+              <Download className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Export</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
               onSelect={() => toggleArchived(id)}
-              className="gap-2"
+              className="gap-2.5"
             >
               {page?.archived ? (
-                <>
-                  <ArchiveRestore className="h-4 w-4" />
-                  <span>Unarchive</span>
-                </>
+                <ArchiveRestore className="h-3.5 w-3.5 text-muted-foreground" />
               ) : (
-                <>
-                  <Archive className="h-4 w-4" />
-                  <span>Archive</span>
-                </>
+                <Archive className="h-3.5 w-3.5 text-muted-foreground" />
               )}
+              <span>{page?.archived ? "Unarchive" : "Archive"}</span>
             </DropdownMenuItem>
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
+
           <AlertDialogTrigger asChild>
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive focus:bg-destructive/10 gap-2"
+              className="gap-2.5 text-destructive focus:bg-destructive/10 focus:text-destructive"
               onSelect={(e) => e.preventDefault()}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5" />
               <span>Delete</span>
             </DropdownMenuItem>
           </AlertDialogTrigger>

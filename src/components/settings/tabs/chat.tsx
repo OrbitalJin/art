@@ -21,11 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useTradeSession } from "@/hooks/use-trade-session";
 import { MODELS, type ModelId } from "@/lib/ai/models";
 import { useSessionStore } from "@/lib/store/use-session-store";
@@ -35,9 +30,7 @@ import {
   Download,
   Eye,
   EyeOff,
-  FileText,
   Save,
-  Search,
   Shredder,
   Upload,
 } from "lucide-react";
@@ -53,19 +46,11 @@ export const ChatSettingsTab: React.FC = () => {
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const setEnterKeySends = useSettingsStore((state) => state.setEnterKeySends);
   const purgeSessions = useSessionStore((state) => state.purge);
-  const { sortedSessions, exportSession, exportAllSessions, importSessions } =
+  const { sortedSessions, exportAllSessions, importSessions } =
     useTradeSession();
 
   const [showKey, setShowKey] = useState(false);
   const [value, setValue] = useState(apiKey);
-
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
 
   const handleSave = () => {
     setApiKey(value);
@@ -191,20 +176,20 @@ export const ChatSettingsTab: React.FC = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <ExportSessionDialog
-              sessions={sortedSessions}
-              onExport={exportSession}
-              formatDate={formatDate}
-            />
             <Button
               variant="outline"
+              className="flex-1"
               onClick={exportAllSessions}
               disabled={sortedSessions.length === 0}
             >
               <Upload className="h-4 w-4 mr-2" />
               Export All
             </Button>
-            <Button variant="outline" onClick={importSessions}>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={importSessions}
+            >
               <Download className="h-4 w-4 mr-2" />
               Import
             </Button>
@@ -254,92 +239,3 @@ export const ChatSettingsTab: React.FC = () => {
     </>
   );
 };
-
-interface ExportSessionDialogProps {
-  sessions: Array<{ id: string; title: string; createdAt: number }>;
-  onExport: (id: string) => void;
-  formatDate: (timestamp: number) => string;
-}
-
-function ExportSessionDialog({
-  sessions,
-  onExport,
-  formatDate,
-}: ExportSessionDialogProps) {
-  const [open, setOpen] = React.useState(false);
-  const [query, setQuery] = React.useState("");
-
-  const sortedSessions = [...sessions].sort(
-    (a, b) => b.createdAt - a.createdAt,
-  );
-
-  const filtered = !query
-    ? sortedSessions
-    : sessions.filter((session) =>
-        session.title.toLowerCase().includes(query.toLowerCase()),
-      );
-
-  const handleExport = (id: string) => {
-    onExport(id);
-    setOpen(false);
-    setQuery("");
-  };
-
-  return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex-1">
-          <FileText className="h-4 w-4 mr-2" />
-          Export Session
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-80 p-0 shadow-xl">
-        <div className="flex flex-col gap-1 border-b bg-muted/30 p-3">
-          <p className="text-sm font-medium">Export Session</p>
-          <p className="text-[11px] text-muted-foreground leading-tight">
-            Select a session to export. Sessions are sorted by most recent
-            first.
-          </p>
-        </div>
-
-        <div className="p-2 border-b">
-          <div className="flex items-center gap-2 p-2 rounded-md border">
-            <Search className="h-3.5 w-3.5 text-muted-foreground" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              autoFocus
-              placeholder="Search sessions..."
-              className="bg-transparent outline-none flex-1 text-sm"
-            />
-          </div>
-        </div>
-
-        <div className="max-h-[300px] overflow-y-auto p-2">
-          {filtered.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              {query ? "No sessions found" : "No sessions to export"}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {filtered.map((session) => (
-                <button
-                  key={session.id}
-                  onClick={() => handleExport(session.id)}
-                  className="w-full p-3 text-left border rounded-md hover:bg-accent/30 transition-colors"
-                >
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-medium">{session.title}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDate(session.createdAt)}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { PanelLeftClose, Plus, Search, X } from "lucide-react";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   onClose?: () => void;
@@ -15,13 +16,17 @@ export const SidebarHeader: React.FC<Props> = ({
   setQuery,
 }) => {
   const { create } = useSessionStore();
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col">
       <div className="flex border-b p-2 gap-2">
         <Button
           variant="outline"
           className="flex-1 items-center"
-          onClick={() => create("New Session")}
+          onClick={() => {
+            create("New Session");
+            navigate("/chat");
+          }}
         >
           <Plus className="h-4 w-4" /> New Session
         </Button>

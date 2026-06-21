@@ -177,5 +177,7 @@ Bento-style task board with drag-and-drop organization.
 - [x] Add music player toolkit
 - [x] Global token count for session
 - [x] Performance optimization, memoization, isolate state more
+- [x] id based routing for chat & journal
+- [x] Tool call grouping for contiguous calls
 - [ ] Implement tool permissions
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

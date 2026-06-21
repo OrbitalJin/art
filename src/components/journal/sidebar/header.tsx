@@ -20,6 +20,7 @@ import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useMemo } from "react";
 import { useJournalEditor } from "@/contexts/note-editor-context";
 import { TagFilterDropdown } from "./page/tag/filter-dropdown";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   onClose: (open: boolean) => void;
@@ -39,6 +40,7 @@ export const SidebarHeader: React.FC<Props> = ({
   const create = useJournalStore((state) => state.create);
   const pages = useJournalStore((state) => state.pages);
   const { currentTab, setCurrentTab } = useJournalEditor();
+  const navigate = useNavigate();
 
   const tagCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -68,7 +70,10 @@ export const SidebarHeader: React.FC<Props> = ({
         <Button
           variant="outline"
           className="flex-1"
-          onClick={() => create(currentTab)}
+          onClick={() => {
+            create(currentTab);
+            navigate("/journal");
+          }}
         >
           <Plus />
           New Page

@@ -35,8 +35,17 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/chat" replace />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/chat/:sessionId" element={<Chat />} />
             <Route
               path="/journal"
+              element={
+                <JournalEditorProvider>
+                  <Journal />
+                </JournalEditorProvider>
+              }
+            />
+            <Route
+              path="/journal/:pageId"
               element={
                 <JournalEditorProvider>
                   <Journal />
