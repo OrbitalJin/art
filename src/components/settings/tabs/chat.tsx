@@ -38,9 +38,87 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 
+interface SecretKeyFieldProps {
+  label: string;
+  description: string;
+  placeholder: string;
+  value: string;
+  onSave: (value: string) => void;
+}
+
+const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
+  label,
+  description,
+  placeholder,
+  value,
+  onSave,
+}) => {
+  const [showKey, setShowKey] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    setDraft(value);
+    setShowKey(false);
+  }, [value]);
+
+  const handleSave = () => {
+    onSave(draft);
+    toast.success("Settings saved");
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium">{label}</p>
+      <p className="text-xs text-muted-foreground">{description}</p>
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <div className="relative flex-1">
+          <Input
+            type={showKey ? "text" : "password"}
+            placeholder={placeholder}
+            className="pr-10 font-mono text-sm"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => setShowKey(!showKey)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+          >
+            {showKey ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+
+        <Button
+          onClick={handleSave}
+          disabled={draft === value}
+          className="min-w-[100px] w-full sm:w-auto"
+        >
+          {draft === value ? (
+            <>
+              <Check className="mr-2 h-4 w-4" />
+              Saved
+            </>
+          ) : (
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              Save
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export const ChatSettingsTab: React.FC = () => {
   const apiKey = useSettingsStore((state) => state.apiKey);
   const setApiKey = useSettingsStore((state) => state.setApiKey);
+  const searchApiKey = useSettingsStore((state) => state.searchApiKey);
+  const setSearchApiKey = useSettingsStore((state) => state.setSearchApiKey);
   const defaultModel = useSettingsStore((state) => state.defaultModel);
   const setDefaultModel = useSettingsStore((state) => state.setDefaultModel);
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
@@ -49,23 +127,11 @@ export const ChatSettingsTab: React.FC = () => {
   const { sortedSessions, exportAllSessions, importSessions } =
     useTradeSession();
 
-  const [showKey, setShowKey] = useState(false);
-  const [value, setValue] = useState(apiKey);
-
-  const handleSave = () => {
-    setApiKey(value);
-    toast.success("Settings saved");
-  };
-
   const handleClearHistory = () => {
     purgeSessions();
     toast.success("Chat history cleared");
   };
 
-  useEffect(() => {
-    setValue(apiKey);
-    setShowKey(false);
-  }, [apiKey]);
   return (
     <>
       <div className="max-w-3xl">
@@ -76,48 +142,27 @@ export const ChatSettingsTab: React.FC = () => {
       </div>
 
       <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="space-y-4">
-          <p className="text-base font-medium">Secret Key</p>
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <div className="relative flex-1">
-              <Input
-                id="apiKey"
-                type={showKey ? "text" : "password"}
-                placeholder="secret key"
-                className="pr-10 font-mono text-sm"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey(!showKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
-              >
-                {showKey ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-
-            <Button
-              onClick={handleSave}
-              disabled={value === apiKey}
-              className="min-w-[100px] w-full sm:w-auto"
-            >
-              {value === apiKey ? (
-                <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Saved
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save
-                </>
-              )}
-            </Button>
+        <div className="space-y-1 mb-3">
+          <p className="text-base font-medium">Secrets</p>
+        </div>
+        <div className="space-y-6">
+          <div>
+            <SecretKeyField
+              label="Gateway"
+              description="Vercel AI gateway key."
+              placeholder="secret key"
+              value={apiKey}
+              onSave={setApiKey}
+            />
+          </div>
+          <div>
+            <SecretKeyField
+              label="Web Discovery"
+              description="Exa web discovery key."
+              placeholder="secret key"
+              value={searchApiKey}
+              onSave={setSearchApiKey}
+            />
           </div>
         </div>
       </div>

@@ -61,8 +61,8 @@ const CATEGORY_TOOLS: Record<string, string[]> = {
 };
 
 const CATEGORY_DOLLARS: Record<string, string> = {
-  google_search: "$",
-  url_context: "$",
+  web_search: "$",
+  fetch_url: "$",
   journal: "$$$",
   tasks: "$$$",
   audio: "$$",
@@ -72,8 +72,8 @@ const toolNamesIn = (names: string[]) => new Set(names);
 
 export const ToolOptions = () => {
   const showCalls = useSettingsStore((state) => state.toolOptions.showCalls);
-  const google_search = useSettingsStore((state) => state.toolOptions.google_search);
-  const url_context = useSettingsStore((state) => state.toolOptions.url_context);
+  const web_search = useSettingsStore((state) => state.toolOptions.web_search);
+  const fetch_url = useSettingsStore((state) => state.toolOptions.fetch_url);
   const journal = useSettingsStore((state) => state.toolOptions.journal);
   const tasks = useSettingsStore((state) => state.toolOptions.tasks);
   const audio = useSettingsStore((state) => state.toolOptions.audio);
@@ -81,6 +81,11 @@ export const ToolOptions = () => {
   const { isSending } = useChatStream();
   const sessions = useSessionStore((state) => state.sessions);
   const activeId = useSessionStore((state) => state.activeId);
+
+  const activeToolCount = useMemo(
+    () => [web_search, fetch_url, journal, tasks, audio].filter(Boolean).length,
+    [web_search, fetch_url, journal, tasks, audio],
+  );
 
   const toolCounts = useMemo(() => {
     const counts: Record<string, number> = { journal: 0, tasks: 0, audio: 0 };
@@ -102,33 +107,54 @@ export const ToolOptions = () => {
     return counts;
   }, [sessions, activeId]);
 
+  const disableAllTools = () =>
+    setToolOptions({
+      web_search: false,
+      fetch_url: false,
+      journal: false,
+      tasks: false,
+      audio: false,
+    });
+
   return (
     <DropdownMenu>
-      <Tooltip delayDuration={400}>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild disabled={isSending}>
-            <Button
-              variant="outline"
-              size="icon"
-              className={cn("h-9 w-9 transition-all relative group")}
-            >
-              <PocketKnife
+      <DropdownMenuTrigger asChild disabled={isSending}>
+        <div className="relative inline-block">
+          <Tooltip delayDuration={400}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
                 className={cn(
-                  "h-4 w-4 transition-all",
-                  "group-hover:-rotate-45 text-muted-foreground",
+                  "h-9 w-9 transition-all group",
+                  activeToolCount > 0 && "border-primary/50 bg-primary/5",
                 )}
-              />
-            </Button>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">Tools</TooltipContent>
-      </Tooltip>
+              >
+                <PocketKnife
+                  className={cn(
+                    "h-4 w-4 transition-all group-hover:-rotate-45",
+                    activeToolCount > 0
+                      ? "text-primary"
+                      : "text-muted-foreground",
+                  )}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Tools</TooltipContent>
+          </Tooltip>
+          {activeToolCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground font-bold">
+              {activeToolCount}
+            </span>
+          )}
+        </div>
+      </DropdownMenuTrigger>
 
       <DropdownMenuContent
         align="start"
         className="w-72 p-0 shadow-xl border-muted-foreground/20"
       >
-        <div className="flex flex-col gap-1 border-b bg-muted/30 p-3">
+        <div className="flex flex-col gap-1 border-b bg-muted/30 p-2.5">
           <p className="text-sm font-medium">Tools</p>
           <p className="text-[11px] text-muted-foreground leading-tight">
             Configure what the model can see and use.
@@ -144,32 +170,29 @@ export const ToolOptions = () => {
           <ToolOptionRow
             label="Tool Calls"
             isOn={showCalls}
-            onText="Tool calls are shown in the chat."
-            offText="Tool calls are hidden from the chat."
+            subtitle="Show tool calls in the chat"
             onClick={() => setToolOptions({ showCalls: !showCalls })}
           />
         </div>
 
-        {/* Provider Tools */}
+        {/* Search Tools */}
         <div className="flex flex-col p-2 gap-1 border-t">
           <p className="px-2 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/60">
-            Provider Tools
+            Search Tools
           </p>
 
           <ToolOptionRow
-            label="Google Search"
-            isOn={google_search}
-            onText="The model can search the web for current information."
-            offText="Web search is disabled for this conversation."
-            onClick={() => setToolOptions({ google_search: !google_search })}
+            label="Web Search"
+            isOn={web_search}
+            subtitle="Search the web for current info"
+            onClick={() => setToolOptions({ web_search: !web_search })}
           />
 
           <ToolOptionRow
-            label="URL Context"
-            isOn={url_context}
-            onText="The model can fetch and read content from URLs."
-            offText="URL fetching is disabled."
-            onClick={() => setToolOptions({ url_context: !url_context })}
+            label="Fetch URL"
+            isOn={fetch_url}
+            subtitle="Fetch and read content from URLs"
+            onClick={() => setToolOptions({ fetch_url: !fetch_url })}
           />
         </div>
 
@@ -184,8 +207,7 @@ export const ToolOptions = () => {
             isOn={journal}
             dollars={CATEGORY_DOLLARS.journal}
             calls={toolCounts.journal}
-            onText="The model can read and write journal entries."
-            offText="Journal access is disabled."
+            subtitle="Read & write journal entries"
             onClick={() => setToolOptions({ journal: !journal })}
           />
 
@@ -194,8 +216,7 @@ export const ToolOptions = () => {
             isOn={tasks}
             dollars={CATEGORY_DOLLARS.tasks}
             calls={toolCounts.tasks}
-            onText="The model can create and manage tasks."
-            offText="Task management is disabled."
+            subtitle="Create and manage tasks"
             onClick={() => setToolOptions({ tasks: !tasks })}
           />
 
@@ -204,10 +225,24 @@ export const ToolOptions = () => {
             isOn={audio}
             dollars={CATEGORY_DOLLARS.audio}
             calls={toolCounts.audio}
-            onText="The model can interact with the music player."
-            offText="Music player interaction is disabled."
+            subtitle="Control the music player"
             onClick={() => setToolOptions({ audio: !audio })}
           />
+        </div>
+
+        <div className="flex items-center justify-between p-2 border-t bg-muted/10">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs h-8 text-muted-foreground hover:text-destructive"
+            onClick={disableAllTools}
+            disabled={activeToolCount === 0}
+          >
+            Disable all
+          </Button>
+          <p className="text-[10px] text-muted-foreground px-2">
+            {activeToolCount} of 5 enabled
+          </p>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -219,8 +254,7 @@ interface ToolOptionRowProps {
   isOn: boolean;
   dollars?: string;
   calls?: number;
-  onText: string;
-  offText: string;
+  subtitle: string;
   onClick: () => void;
 }
 
@@ -229,8 +263,7 @@ const ToolOptionRow = ({
   isOn,
   dollars,
   calls,
-  onText,
-  offText,
+  subtitle,
   onClick,
 }: ToolOptionRowProps) => {
   const usageLabel =
@@ -242,45 +275,42 @@ const ToolOptionRow = ({
     <div
       onClick={onClick}
       className={cn(
-        "flex flex-col p-2 gap-2 cursor-pointer rounded-sm transition-all duration-200 group",
+        "flex flex-col p-2.5 gap-1 cursor-pointer rounded-md transition-all duration-200 group",
         isOn ? "bg-primary/5 ring-1 ring-primary/20" : "hover:bg-accent/20",
       )}
     >
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <p
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <span
             className={cn(
               "text-sm font-medium truncate",
               isOn ? "text-primary" : "text-foreground",
             )}
           >
             {label}
-          </p>
+          </span>
+          {usageLabel && (
+            <span className="text-[10px] font-medium tabular-nums text-muted-foreground/50 shrink-0">
+              {usageLabel}
+            </span>
+          )}
         </div>
         <Badge
           variant="outline"
           className={cn(
-            "text-[10px] py-0 h-5 font-normal opacity-60 group-hover:opacity-100 transition-opacity",
-            isOn && "opacity-100 border-primary/30 text-primary",
+            "text-[9px] py-0 h-4 px-1.5 font-normal shrink-0",
+            isOn
+              ? "border-primary/30 text-primary"
+              : "text-muted-foreground/70",
           )}
         >
           {isOn ? "On" : "Off"}
         </Badge>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] text-muted-foreground/70 leading-snug pr-4">
-          {isOn ? onText : offText}
-        </p>
-      </div>
-
-      {usageLabel && (
-        <div className="flex items-center gap-1">
-          <span className="text-[10px] font-medium tabular-nums text-muted-foreground/50">
-            {usageLabel}
-          </span>
-        </div>
-      )}
+      <p className="text-[11px] text-muted-foreground/70 leading-snug truncate">
+        {subtitle}
+      </p>
     </div>
   );
 };

@@ -2,10 +2,9 @@ export type ModelTier = 1 | 2 | 3;
 export type ModelId = "model-1" | "model-2" | "model-3";
 
 export type ModelType =
-  | "gemini-2.5-flash-lite"
-  | "gemini-2.5-flash"
-  | "gemini-3.1-flash-lite"
-  | "gemini-3-flash-preview";
+  | "deepseek/deepseek-v4-flash"
+  | "deepseek/deepseek-v4-pro"
+  | "alibaba/qwen3.7-plus";
 
 export type Model = {
   tier: ModelTier;
@@ -20,7 +19,7 @@ export const MODELS: readonly Model[] = [
   {
     tier: 1,
     id: "model-1",
-    type: "gemini-2.5-flash-lite",
+    type: "deepseek/deepseek-v4-flash",
     displayName: "Monet",
     description:
       "Fast, lightweight, and responsive. Best for quick questions, drafting, and everyday chat.",
@@ -29,7 +28,7 @@ export const MODELS: readonly Model[] = [
   {
     tier: 2,
     id: "model-2",
-    type: "gemini-3.1-flash-lite",
+    type: "alibaba/qwen3.7-plus",
     displayName: "Voltaire",
     description:
       "Sharper and more composed. Better at structured writing, synthesis, and connecting ideas clearly.",
@@ -38,7 +37,7 @@ export const MODELS: readonly Model[] = [
   {
     tier: 3,
     id: "model-3",
-    type: "gemini-3-flash-preview",
+    type: "deepseek/deepseek-v4-pro",
     displayName: "Chopin",
     description:
       "Most capable and deliberate. Best for nuanced reasoning, polished writing, and more demanding tasks.",
@@ -50,3 +49,6 @@ export const DEFAULT_MODEL = MODELS[0];
 
 export const modelById = (id?: ModelId) =>
   MODELS.find((model) => model.id === id) ?? DEFAULT_MODEL;
+
+export const modelTypeById = (id?: ModelId) =>
+  (MODELS.find((model) => model.id === id) ?? DEFAULT_MODEL).type;

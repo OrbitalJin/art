@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, Sparkle, Cpu, Globe, GitBranch } from "lucide-react";
+import { Check, Copy, Sparkle, Cpu, GitBranch } from "lucide-react";
 import { Renderer } from "./renderer";
 import type {
   Message,
@@ -11,11 +11,6 @@ import type {
 } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 import { MODELS } from "@/lib/ai/models";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   HoverCard,
   HoverCardContent,
@@ -32,7 +27,6 @@ export const AssistantMessage: React.FC<Message> = ({
   content: _content,
   modelId,
   id: messageId,
-  grounded,
   tokenUsage: { output },
 }) => {
   const activeId = useSessionStore((state) => state.activeId);
@@ -177,22 +171,6 @@ export const AssistantMessage: React.FC<Message> = ({
             </div>
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground cursor-default">
-              {grounded && (
-                <Tooltip>
-                  <TooltipTrigger>
-                    <span className="flex items-center gap-1">
-                      <Globe size={12} />
-                      Grounded
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <p className="text-xs">
-                      This response is based on information from the internet.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-
               <span className="flex items-center gap-1">
                 <Cpu size={12} /> {output} tokens
               </span>

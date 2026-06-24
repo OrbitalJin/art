@@ -8,9 +8,9 @@ export type CornerRadius = "none" | "small" | "medium" | "large";
 
 export interface ToolOptions {
   showCalls: boolean;
-  // Provider
-  google_search: boolean;
-  url_context: boolean;
+  // Search (Exa)
+  web_search: boolean;
+  fetch_url: boolean;
   // Custom
   journal: boolean;
   tasks: boolean;
@@ -34,6 +34,7 @@ export interface AgentProfile {
 
 interface SettingsState {
   apiKey: string;
+  searchApiKey: string;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
@@ -44,6 +45,7 @@ interface SettingsState {
   toolOptions: ToolOptions;
 
   setApiKey: (key: string) => void;
+  setSearchApiKey: (key: string) => void;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
   setDefaultModel: (model: ModelId) => void;
@@ -75,8 +77,8 @@ export const DEFAULT_AGENT_PROFILE: AgentProfile = {
 
 const DEFAULT_TOOL_OPTIONS: ToolOptions = {
   showCalls: true,
-  google_search: true,
-  url_context: true,
+  web_search: true,
+  fetch_url: true,
   journal: false,
   tasks: false,
   audio: false,
@@ -84,6 +86,7 @@ const DEFAULT_TOOL_OPTIONS: ToolOptions = {
 
 const initialState = {
   apiKey: "",
+  searchApiKey: "",
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
@@ -99,6 +102,7 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       ...initialState,
       setApiKey: (key: string) => set({ apiKey: key }),
+      setSearchApiKey: (key: string) => set({ searchApiKey: key }),
       setFontSize: (size: FontSize) => set({ fontSize: size }),
       setCornerRadius: (radius: CornerRadius) => set({ cornerRadius: radius }),
       setDefaultModel: (model: ModelId) => set({ defaultModel: model }),
@@ -120,7 +124,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => settingsStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -130,7 +134,30 @@ export const useSettingsStore = create<SettingsState>()(
               state.defaultModel in ["model-1", "model-2", "model-3"]
                 ? (state.defaultModel as ModelId)
                 : "model-1";
-            return state;
+          }
+        }
+        if (version < 3) {
+          const state = persistedState as {
+            searchApiKey?: string;
+            toolOptions?: {
+              google_search?: boolean;
+              url_context?: boolean;
+              web_search?: boolean;
+              fetch_url?: boolean;
+            };
+          };
+          if (state) {
+            if (state.searchApiKey === undefined) state.searchApiKey = "";
+            if (state.toolOptions) {
+              const { google_search, url_context, ...rest } = state.toolOptions;
+              void google_search;
+              void url_context;
+              state.toolOptions = {
+                ...rest,
+                web_search: rest.web_search ?? true,
+                fetch_url: rest.fetch_url ?? true,
+              };
+            }
           }
         }
         return persistedState as SettingsState;

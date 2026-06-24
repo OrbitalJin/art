@@ -7,7 +7,6 @@ import React, {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { streamText, stepCountIs, smoothStream } from "ai";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import type {
@@ -17,26 +16,23 @@ import type {
 } from "@/lib/store/session/types";
 import { systemPrompt } from "@/lib/ai/prompts/system";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { providerTools } from "@/lib/ai/tools/provider";
-import { customToolsFor } from "@/lib/ai/tools/custom";
-import { modelById } from "@/lib/ai/models";
+import { toolsFor } from "@/lib/ai/tools/tools";
+import { modelTypeById } from "@/lib/ai/models";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
+import { useGateway } from "@/hooks/use-gateway";
 
-// --- Stream context ---
 interface ChatStreamValues {
   streamingSessionId: string | null;
   isSending: boolean;
   abortStream: () => void;
 }
 
-// --- Input context ---
 interface ChatInputValues {
   prompt: string;
   setPrompt: (value: string) => void;
   sendMessage: (text: string) => Promise<void>;
 }
 
-// --- Messages context ---
 interface ChatMessagesValues {
   messages: Message[];
   editMessage: (messageId: string, text: string) => void;
@@ -91,14 +87,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     state.sessions.find((s) => s.id === state.activeId),
   );
 
+  const gateway = useGateway();
+
   const [prompt, setPrompt] = useState("");
   const [state, setState] = useState<State>(INITIAL_STATE);
 
   const abortRef = useRef<AbortController | null>(null);
-  const provider = useMemo(
-    () => createGoogleGenerativeAI({ apiKey }),
-    [apiKey],
-  );
 
   const send = useCallback(
     async (text: string) => {
@@ -127,7 +121,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
 
       try {
         stream = streamText({
-          model: provider(modelById(session.modelId).type),
+          model: gateway(modelTypeById(session.modelId)),
           stopWhen: stepCountIs(10),
           abortSignal: controller.signal,
           system: systemPrompt({
@@ -136,10 +130,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
             userProfile,
             agentProfile,
           }),
-          tools: {
-            ...providerTools({ provider }),
-            ...customToolsFor({ session }),
-          },
+          tools: toolsFor({ session }),
           messages: [
             ...toSDKMessages(
               useSessionStore.getState().sessions.find((s) => s.id === activeId)
@@ -261,7 +252,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
           content: currentBlocks,
           status: status !== "streaming" ? status : "complete",
           modelId: session.modelId,
-          grounded: session.grounding,
           tokenUsage: {
             input: usage?.inputTokens ?? 0,
             output: usage?.outputTokens ?? 0,
@@ -278,7 +268,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
     },
-    [activeId, apiKey, addMessage, provider],
+    [activeId, apiKey, addMessage],
   );
 
   const sendMessage = useCallback(
@@ -342,7 +332,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         id: "streaming-response",
         role: "assistant" as const,
         modelId: activeSession?.modelId,
-        grounded: activeSession?.grounding,
         content: state.blocks,
         status: state.status,
         tokenUsage: { input: 0, output: 0 },

@@ -1,10 +1,9 @@
-import { generateText, Output } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createGateway, generateText, Output } from "ai";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { modelById } from "@/lib/ai/models";
+import { modelTypeById } from "@/lib/ai/models";
 
 export async function generateSessionTitle(
   sessionId: string,
@@ -37,11 +36,17 @@ export async function generateSessionTitle(
 
     if (!conversationText) return;
 
-    const provider = createGoogleGenerativeAI({ apiKey });
-    const modelType = modelById("model-1").type;
+    const gateway = createGateway({
+      apiKey,
+      fetch: (url, init) => {
+        const headers = new Headers(init?.headers);
+        headers.delete("User-Agent");
+        return fetch(url, { ...init, headers });
+      },
+    });
 
     const { output: genOutput } = await generateText({
-      model: provider(modelType),
+      model: gateway(modelTypeById("model-1")),
       output: Output.object({
         schema: z.object({
           title: z

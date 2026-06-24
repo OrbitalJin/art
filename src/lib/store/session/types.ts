@@ -32,7 +32,6 @@ export interface Message {
   role: MessageRole;
   content: string | ContentBlock[];
   status?: MessageStatus;
-  grounded?: boolean;
   modelId?: ModelId;
   tokenUsage: { input: number; output: number };
 }
@@ -49,7 +48,6 @@ export interface Session {
   pinned?: boolean;
   createdAt: number;
   updatedAt: number;
-  grounding?: boolean;
   titleGenerated?: boolean;
   readOnly?: boolean;
 }

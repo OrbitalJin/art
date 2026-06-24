@@ -3,12 +3,13 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useState } from "react";
 import { toast } from "sonner";
 import { generateText, Output } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { modelById } from "@/lib/ai/models";
+import { modelTypeById } from "@/lib/ai/models";
 import { z } from "zod";
+import { useGateway } from "./use-gateway";
 
 export const useGeneratePageTitle = () => {
   const [generating, setGenerating] = useState(false);
+  const gateway = useGateway();
 
   const generateTitle = async (pageId: string) => {
     if (generating) return;
@@ -25,11 +26,8 @@ export const useGeneratePageTitle = () => {
       const contentPreview = page.content.slice(0, 2000).trim();
       if (!contentPreview) return;
 
-      const provider = createGoogleGenerativeAI({ apiKey });
-      const modelType = modelById("model-1").type;
-
       const { output: genOutput } = await generateText({
-        model: provider(modelType),
+        model: gateway(modelTypeById("model-1")),
         output: Output.object({
           schema: z.object({
             title: z

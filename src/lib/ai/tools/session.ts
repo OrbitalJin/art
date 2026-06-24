@@ -1,10 +1,9 @@
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { tool, type ToolSet } from "ai";
+import { createGateway, tool, type ToolSet } from "ai";
 import { z } from "zod";
 import { generateText } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { modelById } from "@/lib/ai/models";
+import { modelTypeById } from "@/lib/ai/models";
 import { gen } from "@/lib/ai/prompts/gen";
 import type { Session } from "@/lib/store/session/types";
 
@@ -46,11 +45,10 @@ export const sessionTools = ({ session }: Opts): ToolSet => {
         const apiKey = useSettingsStore.getState().apiKey;
         if (!apiKey) throw new Error("API key not configured");
 
-        const provider = createGoogleGenerativeAI({ apiKey });
-        const modelType = modelById("model-1").type;
+        const gateway = createGateway({ apiKey });
 
         const { text: notes } = await generateText({
-          model: provider(modelType),
+          model: gateway(modelTypeById("model-1")),
           messages: [
             {
               role: "user",

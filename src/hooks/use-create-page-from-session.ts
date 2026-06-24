@@ -5,12 +5,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { generateText } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { modelById } from "@/lib/ai/models";
+import { modelTypeById } from "@/lib/ai/models";
 import { gen } from "@/lib/ai/prompts/gen";
+import { useGateway } from "./use-gateway";
 
 export const useCreatePageFromSession = () => {
   const navigate = useNavigate();
+  const gateway = useGateway();
   const [creating, setCreating] = useState<boolean>(false);
 
   const create = async (sessionId: string) => {
@@ -50,11 +51,8 @@ export const useCreatePageFromSession = () => {
         });
       }
 
-      const provider = createGoogleGenerativeAI({ apiKey });
-      const modelType = modelById("model-1").type;
-
       const { text: pages } = await generateText({
-        model: provider(modelType),
+        model: gateway(modelTypeById("model-1")),
         messages: [
           {
             role: "user",
