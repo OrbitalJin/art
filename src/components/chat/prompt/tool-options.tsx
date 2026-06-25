@@ -82,11 +82,6 @@ export const ToolOptions = () => {
   const sessions = useSessionStore((state) => state.sessions);
   const activeId = useSessionStore((state) => state.activeId);
 
-  const activeToolCount = useMemo(
-    () => [web_search, fetch_url, journal, tasks, audio].filter(Boolean).length,
-    [web_search, fetch_url, journal, tasks, audio],
-  );
-
   const toolCounts = useMemo(() => {
     const counts: Record<string, number> = { journal: 0, tasks: 0, audio: 0 };
     const activeSession = sessions.find((s) => s.id === activeId);
@@ -122,31 +117,14 @@ export const ToolOptions = () => {
         <div className="relative inline-block">
           <Tooltip delayDuration={400}>
             <TooltipTrigger asChild disabled={isSending}>
-              <Button
-                variant="outline"
-                size="icon"
-                className={cn(
-                  "h-9 w-9 transition-all group",
-                  activeToolCount > 0 && "border-primary/50 bg-primary/5",
-                )}
-              >
+              <Button variant="outline" size="icon">
                 <Hammer
-                  className={cn(
-                    "h-4 w-4 transition-all",
-                    activeToolCount > 0
-                      ? "text-primary"
-                      : "text-muted-foreground",
-                  )}
+                  className={cn("h-4 w-4 transition-all text-muted-foreground")}
                 />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">Tools</TooltipContent>
           </Tooltip>
-          {activeToolCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground font-bold">
-              {activeToolCount}
-            </span>
-          )}
         </div>
       </DropdownMenuTrigger>
 
@@ -236,13 +214,9 @@ export const ToolOptions = () => {
             size="sm"
             className="text-xs h-8 text-muted-foreground hover:text-destructive"
             onClick={disableAllTools}
-            disabled={activeToolCount === 0}
           >
             Disable all
           </Button>
-          <p className="text-[10px] text-muted-foreground px-2">
-            {activeToolCount} of 5 enabled
-          </p>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
