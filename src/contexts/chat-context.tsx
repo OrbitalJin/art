@@ -21,8 +21,11 @@ import { modelTypeById } from "@/lib/ai/models";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 import { useGateway } from "@/hooks/use-gateway";
 
+const STREAMING_MESSAGE_ID = "streaming-response";
+
 interface ChatStreamValues {
   streamingSessionId: string | null;
+  streamingMessageId: string | null;
   isSending: boolean;
   abortStream: () => void;
 }
@@ -67,6 +70,8 @@ interface State {
   isSending: boolean;
   blocks: ContentBlock[];
   status: MessageStatus;
+  reasoningText: string;
+  reasoningStatus: "hidden" | "streaming" | "done";
 }
 
 const INITIAL_STATE: State = {
@@ -74,6 +79,8 @@ const INITIAL_STATE: State = {
   isSending: false,
   blocks: [],
   status: "thinking",
+  reasoningText: "",
+  reasoningStatus: "hidden",
 };
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -113,9 +120,12 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         isSending: true,
         blocks: [],
         status: "thinking",
+        reasoningText: "",
+        reasoningStatus: "hidden",
       });
 
       let currentBlocks: ContentBlock[] = [];
+      let currentReasoningText = "";
       let status: MessageStatus = "streaming";
       let stream: ReturnType<typeof streamText> | null = null;
 
@@ -206,6 +216,33 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
               break;
             }
 
+            case "reasoning-start": {
+              currentReasoningText = "";
+              setState((prev) => ({
+                ...prev,
+                reasoningStatus: "streaming",
+                reasoningText: "",
+              }));
+              break;
+            }
+
+            case "reasoning-delta": {
+              currentReasoningText += event.text;
+              setState((prev) => ({
+                ...prev,
+                reasoningText: currentReasoningText,
+              }));
+              break;
+            }
+
+            case "reasoning-end": {
+              setState((prev) => ({
+                ...prev,
+                reasoningStatus: "done",
+              }));
+              break;
+            }
+
             case "abort": {
               status = "aborted";
               return;
@@ -232,6 +269,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
           isSending: false,
           blocks: [],
           status: "thinking",
+          reasoningText: "",
+          reasoningStatus: "hidden",
         });
 
         if (status === "error") toast.error("Something went wrong");
@@ -256,6 +295,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
             input: usage?.inputTokens ?? 0,
             output: usage?.outputTokens ?? 0,
           },
+          reasoning: currentReasoningText || undefined,
         });
 
         if (status === "streaming") {
@@ -268,7 +308,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
     },
-    [activeId, apiKey, addMessage],
+    [activeId, apiKey, addMessage, gateway],
   );
 
   const sendMessage = useCallback(
@@ -329,12 +369,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     return [
       ...base,
       {
-        id: "streaming-response",
+        id: STREAMING_MESSAGE_ID,
         role: "assistant" as const,
         modelId: activeSession?.modelId,
         content: state.blocks,
         status: state.status,
         tokenUsage: { input: 0, output: 0 },
+        reasoning: state.reasoningText || undefined,
       } satisfies Message,
     ];
   }, [
@@ -344,11 +385,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     state.status,
     state.sessionId,
     activeId,
+    state.reasoningText,
   ]);
 
   const streamValue = useMemo(
     () => ({
       streamingSessionId: state.isSending ? state.sessionId : null,
+      streamingMessageId: state.isSending ? STREAMING_MESSAGE_ID : null,
       isSending: state.isSending,
       abortStream,
     }),

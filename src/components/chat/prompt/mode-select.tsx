@@ -54,7 +54,7 @@ export const ModeSelect = () => {
                 <span className="sr-only">{currentMode?.label}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{currentMode?.label}</TooltipContent>
+            <TooltipContent>Mode</TooltipContent>
           </Tooltip>
         </div>
       </DropdownMenuTrigger>

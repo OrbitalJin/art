@@ -4,11 +4,7 @@ import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Sparkle, Cpu, GitBranch } from "lucide-react";
 import { Renderer } from "./renderer";
-import type {
-  Message,
-  TextBlock,
-  ToolCallBlock,
-} from "@/lib/store/session/types";
+import type { Message, ToolCallBlock } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 import { MODELS } from "@/lib/ai/models";
 import {
@@ -18,8 +14,7 @@ import {
 } from "@/components/ui/hover-card";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
-import { ToolCallCard } from "./tool-call-card";
-import { ToolCallGroup } from "./tool-call-group";
+import { ThinkingSection } from "./thinking-section";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatStream } from "@/contexts/chat-context";
 
@@ -28,11 +23,12 @@ export const AssistantMessage: React.FC<Message> = ({
   modelId,
   id: messageId,
   tokenUsage: { output },
+  reasoning,
 }) => {
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
   const showCalls = useSettingsStore((state) => state.toolOptions.showCalls);
-  const { isSending } = useChatStream();
+  const { isSending, streamingMessageId } = useChatStream();
 
   const content = useMemo(() => {
     if (typeof _content === "string") return _content;
@@ -41,26 +37,13 @@ export const AssistantMessage: React.FC<Message> = ({
       .join("");
   }, [_content]);
 
-  const groupedBlocks = useMemo(() => {
-    if (typeof _content === "string") return null;
-    const groups: (TextBlock | ToolCallBlock[])[] = [];
-    let currentGroup: ToolCallBlock[] = [];
-    for (const block of _content) {
-      if (block.type === "tool-call") {
-        currentGroup.push(block);
-      } else {
-        if (currentGroup.length > 0) {
-          groups.push(currentGroup);
-          currentGroup = [];
-        }
-        groups.push(block);
-      }
-    }
-    if (currentGroup.length > 0) {
-      groups.push(currentGroup);
-    }
-    return groups;
-  }, [_content]);
+  const toolCalls = useMemo<ToolCallBlock[]>(() => {
+    if (typeof _content === "string") return [];
+    if (!showCalls) return [];
+    return _content.filter(
+      (block): block is ToolCallBlock => block.type === "tool-call",
+    );
+  }, [_content, showCalls]);
 
   const { copied, copy } = useCopy(content);
 
@@ -68,10 +51,12 @@ export const AssistantMessage: React.FC<Message> = ({
   const premium = model?.tier === 3;
 
   const hasContent =
-    content.length > 0 || (Array.isArray(_content) && _content.length > 0);
+    content.length > 0 ||
+    (Array.isArray(_content) && _content.length > 0) ||
+    !!reasoning;
 
-  const shouldRenderFooter = hasContent && !isSending;
-  const isThinking = !hasContent;
+  const isStreamingMessage = messageId === streamingMessageId;
+  const shouldRenderFooter = hasContent && !isStreamingMessage;
 
   const handleBranch = () => {
     if (activeId && !isSending) {
@@ -91,38 +76,15 @@ export const AssistantMessage: React.FC<Message> = ({
           "relative flex-1 leading-7 min-w-0 transition-all text-foreground",
         )}
       >
-        {isThinking && (
-          <div className="flex items-center gap-2 py-1 text-muted-foreground mb-2">
-            <ShimmerText className="text-sm">Thinking</ShimmerText>
-          </div>
-        )}
+        <ThinkingSection
+          reasoning={reasoning}
+          toolCalls={toolCalls}
+          status={isStreamingMessage ? "streaming" : "done"}
+        />
 
-        {hasContent && (
-          <div
-            className={cn(
-              "space-y-1",
-              isThinking ? "opacity-50 animate-pulse" : "opacity-90",
-            )}
-          >
-            {typeof _content === "string" ? (
-              <Renderer content={_content} />
-            ) : (
-              groupedBlocks?.map((item, idx) => {
-                if (Array.isArray(item)) {
-                  if (!showCalls) return null;
-                  if (item.length === 1) {
-                    return <ToolCallCard key={item[0].id} block={item[0]} />;
-                  }
-                  return (
-                    <ToolCallGroup
-                      key={`tool-group-${item[0].id}`}
-                      blocks={item}
-                    />
-                  );
-                }
-                return <Renderer key={idx} content={item.text} />;
-              })
-            )}
+        {content.length > 0 && (
+          <div className="space-y-1 opacity-90">
+            <Renderer content={content} />
           </div>
         )}
 

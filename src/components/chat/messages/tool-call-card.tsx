@@ -13,7 +13,12 @@ import { cn } from "@/lib/utils";
 
 const ICONS = [Hammer, Wrench, Pickaxe, Drill, DraftingCompass];
 
-export const ToolCallCard: React.FC<{ block: ToolCallBlock }> = ({ block }) => {
+interface Props {
+  block: ToolCallBlock;
+  className?: string;
+}
+
+export const ToolCallCard: React.FC<Props> = ({ className, block }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const isExecuting = block.state !== "result";
@@ -24,73 +29,45 @@ export const ToolCallCard: React.FC<{ block: ToolCallBlock }> = ({ block }) => {
   });
 
   return (
-    <div
-      className={cn(
-        "mb-2 max-w-3xl overflow-hidden rounded-md border select-none",
-        "border-border/40 bg-card/20 backdrop-blur-sm",
-        "transition-all duration-200",
-        isOpen && "border-border/70 bg-card/30 shadow-sm",
-      )}
-    >
+    <div className={cn("select-none", className)}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex w-full cursor-pointer items-center justify-between",
-          "px-3.5 py-2.5 transition-colors duration-150",
-          "hover:bg-muted/20",
-          isOpen && "bg-muted/10",
+          "flex w-full cursor-pointer items-center gap-2",
+          "-ml-1.5 rounded-sm px-1.5 py-1 transition-colors duration-150",
+          "hover:bg-muted/30",
         )}
       >
-        <div className="flex items-center gap-2.5">
-          <div
-            className={cn(
-              "flex h-6 w-6 items-center justify-center rounded-md",
-              isExecuting ? "text-secondary" : "text-primary",
-            )}
-          >
-            {isExecuting ? (
-              <LoaderPinwheel
-                className="animate-spin text-amber-600"
-                size={15}
-              />
-            ) : (
-              <ToolIcon className="text-primary" size={15} />
-            )}
-          </div>
+        {isExecuting ? (
+          <LoaderPinwheel className="animate-spin text-amber-600" size={13} />
+        ) : (
+          <ToolIcon className="text-primary" size={13} />
+        )}
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">
-              {isExecuting ? "Tool Call" : "Tool Result"}
-            </span>
-            <span className="text-muted-foreground/40">·</span>
-            <span className="font-mono text-xs font-semibold text-foreground/85">
-              {block.toolName}
-            </span>
-          </div>
-        </div>
+        <span className="font-mono text-xs font-medium text-foreground/85">
+          {block.toolName}
+        </span>
 
-        <div className="flex items-center gap-2">
-          <ChevronRight
-            size={14}
-            className={cn(
-              "text-muted-foreground/50 transition-transform duration-200",
-              isOpen && "rotate-90",
-            )}
-          />
-        </div>
+        <ChevronRight
+          size={13}
+          className={cn(
+            "ml-auto text-muted-foreground/50 transition-transform duration-200",
+            isOpen && "rotate-90",
+          )}
+        />
       </button>
 
       {isOpen && (
-        <div className="min-w-0 space-y-3 border-t border-border/30 bg-black/20 px-3.5 py-3">
+        <div className="mt-1 ml-5 space-y-2">
           <Section label="Parameters">
-            <pre className="max-h-48 overflow-auto rounded-lg bg-black/30 p-3 font-mono text-xs leading-relaxed text-foreground/75">
+            <pre className="max-h-48 overflow-auto rounded bg-muted/30 p-2 font-mono text-xs leading-relaxed text-foreground/75">
               {JSON.stringify(block.input, null, 2)}
             </pre>
           </Section>
 
           {block.output !== undefined && (
             <Section label="Returned Value">
-              <pre className="max-h-48 overflow-auto rounded-lg bg-black/30 p-3 font-mono text-xs leading-relaxed text-emerald-400/90">
+              <pre className="max-h-48 overflow-auto rounded bg-muted/30 p-2 font-mono text-xs leading-relaxed text-emerald-400/90">
                 {JSON.stringify(block.output, null, 2)}
               </pre>
             </Section>
@@ -105,7 +82,7 @@ const Section: React.FC<{ label: string; children: React.ReactNode }> = ({
   label,
   children,
 }) => (
-  <div className="flex min-w-0 flex-col gap-1.5">
+  <div className="flex min-w-0 flex-col gap-1">
     <span className="text-xs text-muted-foreground/50">{label}</span>
     {children}
   </div>

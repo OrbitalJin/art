@@ -162,7 +162,12 @@ export const SessionListItem: React.FC<Props> = ({
           </HoverCardContent>
         </HoverCard>
       )}
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 items-center gap-2",
+          isStreaming && "blur-xs",
+        )}
+      >
         {isTitleGenerating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />

@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { PocketKnife } from "lucide-react";
+import { Hammer } from "lucide-react";
 import { useChatStream } from "@/contexts/chat-context";
 import { useMemo } from "react";
 import type { ToolCallBlock } from "@/lib/store/session/types";
@@ -121,7 +121,7 @@ export const ToolOptions = () => {
       <DropdownMenuTrigger asChild disabled={isSending}>
         <div className="relative inline-block">
           <Tooltip delayDuration={400}>
-            <TooltipTrigger asChild>
+            <TooltipTrigger asChild disabled={isSending}>
               <Button
                 variant="outline"
                 size="icon"
@@ -130,9 +130,9 @@ export const ToolOptions = () => {
                   activeToolCount > 0 && "border-primary/50 bg-primary/5",
                 )}
               >
-                <PocketKnife
+                <Hammer
                   className={cn(
-                    "h-4 w-4 transition-all group-hover:-rotate-45",
+                    "h-4 w-4 transition-all",
                     activeToolCount > 0
                       ? "text-primary"
                       : "text-muted-foreground",
