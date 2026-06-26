@@ -118,7 +118,7 @@ export const Journal = () => {
   }
 
   return (
-    <div className="relative flex flex-1 flex-row gap-2 lg:px-0 border rounded-l-md">
+    <div className="relative flex flex-1 flex-row gap-2 lg:px-0">
       <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
 

@@ -71,7 +71,7 @@ export const Timer: React.FC<TimerProps> = ({
       className={cn(
         className,
         "group relative flex h-full flex-col",
-        "items-center justify-center rounded-tl-md lg:rounded-l-md border bg-card/50 p-2 shadow-sm",
+        "items-center justify-center rounded-tl-md lg:rounded-l-md bg-card/50 p-2 shadow-sm",
         fullscreen ? "rounded-l-md" : "rounded-tl-md lg:rounded-l-md",
       )}
     >
@@ -433,11 +433,7 @@ interface TimerFillProps {
   variant: SessionVariant;
 }
 
-const TimerFill = memo<TimerFillProps>(({
-  progress,
-  variant,
-  fullscreen,
-}) => {
+const TimerFill = memo<TimerFillProps>(({ progress, variant, fullscreen }) => {
   const clamped = 100 - Math.max(0, Math.min(100, progress));
 
   return (

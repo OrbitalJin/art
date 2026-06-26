@@ -16,12 +16,12 @@ export const Interval = () => {
       )}
     >
       <Timer
-        className="lg:row-span-2"
+        className="lg:row-span-2 lg:border-r"
         fullscreen={fullscreen}
         setFullscreen={setFullScreen}
       />
       {!fullscreen && (
-        <div className="hidden flex-col shadow-sm lg:flex border-r">
+        <div className="hidden flex-col shadow-sm lg:flex ">
           <Player variant="default" />
           <Playlist />
         </div>
@@ -29,7 +29,7 @@ export const Interval = () => {
       {!fullscreen && (
         <Memo
           className={cn(
-            "flex-1 border-r border-b border-l rounded-bl-md lg:rounded-md-none lg:border-t bg-card/50 transition-all",
+            "flex-1 border-b border-t lg:border-t-none rounded-bl-md lg:rounded-md-none lg:border-t bg-card/50 transition-all",
             "min-h-0 overflow-y-scroll h-full",
             "focus-within:border-primary/50 focus-within:border",
           )}

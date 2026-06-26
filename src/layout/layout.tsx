@@ -12,13 +12,13 @@ export function Layout({ children }: LayoutProps) {
     <>
       <div
         className={cn(
-          "relative flex flex-row h-screen w-screen bg-background",
+          "relative flex flex-row h-screen w-screen bg-background border rounded-md",
           "antialiased select-none overflow-hidden",
         )}
       >
         <main
           className={cn(
-            "flex-1 flex transition-all duration-300 overflow-hidden",
+            "flex-1 flex transition-all duration-300 overflow-hidden border-r",
           )}
         >
           {children}

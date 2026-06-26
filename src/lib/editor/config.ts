@@ -5,6 +5,7 @@ import { Highlight } from "@tiptap/extension-highlight";
 import { TableKit } from "@tiptap/extension-table";
 import { TagHighlighter } from "@/lib/editor/extensions/tag-highlighter";
 import { Typography } from "@tiptap/extension-typography";
+import { Youtube } from "@tiptap/extension-youtube";
 import Image from "@tiptap/extension-image";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
@@ -15,6 +16,9 @@ export const editorExtensions = [
   Highlight,
   TagHighlighter,
   Typography,
+  Youtube.configure({
+    inline: true,
+  }),
   Image.configure({
     inline: true,
     allowBase64: true,

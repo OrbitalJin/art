@@ -125,9 +125,7 @@ Bento-style task board with drag-and-drop organization.
 
 ### Planned
 
-- [ ] Food tracker
-- [ ] Screenshot paste support for single and multiple images, then save as PNG
-- [ ] Sticker overlay for PNGs on the window
+- [ ] Macroscope - Food tracker
 
 ---
 

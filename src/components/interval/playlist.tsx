@@ -60,7 +60,7 @@ export const Playlist = () => {
 
           <Button
             size="icon"
-            variant="secondary"
+            variant="outline"
             className="h-8 w-8 shrink-0"
             onClick={handleAddToPlaylist}
             disabled={!playlistInput.trim()}
@@ -77,8 +77,8 @@ export const Playlist = () => {
               <AlertDialogTrigger asChild>
                 <Button
                   size="icon"
-                  variant="secondary"
                   className="h-8 w-8 shrink-0"
+                  variant="outline"
                   aria-label="Clear playlist"
                 >
                   <ListX className="size-4" />

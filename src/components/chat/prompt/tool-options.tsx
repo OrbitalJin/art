@@ -9,7 +9,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
@@ -269,17 +268,6 @@ const ToolOptionRow = ({
             </span>
           )}
         </div>
-        <Badge
-          variant="outline"
-          className={cn(
-            "text-[9px] py-0 h-4 px-1.5 font-normal shrink-0",
-            isOn
-              ? "border-primary/30 text-primary"
-              : "text-muted-foreground/70",
-          )}
-        >
-          {isOn ? "On" : "Off"}
-        </Badge>
       </div>
 
       <p className="text-[11px] text-muted-foreground/70 leading-snug truncate">
