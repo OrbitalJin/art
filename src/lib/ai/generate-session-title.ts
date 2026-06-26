@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { modelTypeById } from "@/lib/ai/models";
+import { nativeFetch } from "@/lib/native-fetch";
 
 export async function generateSessionTitle(
   sessionId: string,
@@ -36,14 +37,7 @@ export async function generateSessionTitle(
 
     if (!conversationText) return;
 
-    const gateway = createGateway({
-      apiKey,
-      fetch: (url, init) => {
-        const headers = new Headers(init?.headers);
-        headers.delete("User-Agent");
-        return fetch(url, { ...init, headers });
-      },
-    });
+    const gateway = createGateway({ apiKey, fetch: nativeFetch });
 
     const { output: genOutput } = await generateText({
       model: gateway(modelTypeById("model-1")),

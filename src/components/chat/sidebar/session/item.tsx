@@ -45,7 +45,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useChatStream } from "@/contexts/chat-context";
 import { useTradeSession } from "@/hooks/use-trade-session";
@@ -233,15 +232,26 @@ const Menu: React.FC<MenuProps> = ({
   const togglePinned = useSessionStore((s) => s.togglePinned);
   const deleteFn = useSessionStore((s) => s.deleteFn);
   const toggleArchived = useSessionStore((s) => s.toggleArchived);
+  const branch = useSessionStore((s) => s.branch);
 
   const { creating, create } = useCreatePageFromSession();
   const { exportSession } = useTradeSession();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
 
   const handleDelete = () => {
+    setAlertOpen(false);
+    if (item.id === useSessionStore.getState().activeId) {
+      navigate("/chat", { replace: true });
+    }
     deleteFn(item.id);
     toast.success("Session deleted successfully.");
+  };
+
+  const handleDeleteSelect = () => {
     setOpen(false);
+    requestAnimationFrame(() => setAlertOpen(true));
   };
 
   const handleGenerate = async (e: Event) => {
@@ -259,8 +269,19 @@ const Menu: React.FC<MenuProps> = ({
     setOpen(false);
   };
 
+  const handleBranch = (e: Event) => {
+    e.preventDefault();
+    setOpen(false);
+    const success = branch(item.id);
+    if (success) {
+      toast.success("Session branched successfully");
+    } else {
+      toast.error("Failed to branch session");
+    }
+  };
+
   return (
-    <AlertDialog>
+    <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
@@ -334,6 +355,11 @@ const Menu: React.FC<MenuProps> = ({
 
           {/* Session-level actions */}
           <DropdownMenuGroup>
+            <DropdownMenuItem onSelect={handleBranch} className="gap-2.5">
+              <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Branch</span>
+            </DropdownMenuItem>
+
             <DropdownMenuItem
               onSelect={() => exportSession(item.id)}
               className="gap-2.5"
@@ -357,16 +383,17 @@ const Menu: React.FC<MenuProps> = ({
 
           <DropdownMenuSeparator />
 
-          <AlertDialogTrigger asChild>
-            <DropdownMenuItem
-              className="gap-2.5 text-destructive focus:bg-destructive/10 focus:text-destructive"
-              onSelect={(e) => e.preventDefault()}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              <span>Delete Session</span>
-            </DropdownMenuItem>
-          </AlertDialogTrigger>
+          <DropdownMenuItem
+            className="gap-2.5 text-destructive focus:bg-destructive/10 focus:text-destructive"
+            onSelect={(e) => {
+              e.preventDefault();
+              handleDeleteSelect();
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Delete Session</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -378,9 +405,7 @@ const Menu: React.FC<MenuProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setOpen(false)}>
-            Cancel
-          </AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             onClick={(e) => {

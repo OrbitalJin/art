@@ -6,6 +6,7 @@ import { generateText } from "ai";
 import { modelTypeById } from "@/lib/ai/models";
 import { gen } from "@/lib/ai/prompts/gen";
 import type { Session } from "@/lib/store/session/types";
+import { nativeFetch } from "@/lib/native-fetch";
 
 interface Opts {
   session?: Session;
@@ -45,7 +46,7 @@ export const sessionTools = ({ session }: Opts): ToolSet => {
         const apiKey = useSettingsStore.getState().apiKey;
         if (!apiKey) throw new Error("API key not configured");
 
-        const gateway = createGateway({ apiKey });
+        const gateway = createGateway({ apiKey, fetch: nativeFetch });
 
         const { text: notes } = await generateText({
           model: gateway(modelTypeById("model-1")),

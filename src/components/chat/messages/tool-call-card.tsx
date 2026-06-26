@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   ChevronRight,
   DraftingCompass,
-  Drill,
   Hammer,
   LoaderPinwheel,
   Pickaxe,
@@ -11,7 +10,7 @@ import {
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 
-const ICONS = [Hammer, Wrench, Pickaxe, Drill, DraftingCompass];
+const ICONS = [Hammer, Wrench, Pickaxe, DraftingCompass];
 
 interface Props {
   block: ToolCallBlock;
@@ -33,9 +32,9 @@ export const ToolCallCard: React.FC<Props> = ({ className, block }) => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex w-full cursor-pointer items-center gap-2",
+          "flex w-full cursor-pointer items-center gap-2 text-foreground/85",
           "-ml-1.5 rounded-sm px-1.5 py-1 transition-colors duration-150",
-          "hover:bg-muted/30",
+          "hover:text-foreground",
         )}
       >
         {isExecuting ? (
@@ -44,30 +43,28 @@ export const ToolCallCard: React.FC<Props> = ({ className, block }) => {
           <ToolIcon className="text-primary" size={13} />
         )}
 
-        <span className="font-mono text-xs font-medium text-foreground/85">
-          {block.toolName}
-        </span>
+        <span className="font-mono text-xs font-medium">{block.toolName}</span>
 
         <ChevronRight
           size={13}
           className={cn(
-            "ml-auto text-muted-foreground/50 transition-transform duration-200",
+            "text-muted-foreground/50 transition-transform duration-200",
             isOpen && "rotate-90",
           )}
         />
       </button>
 
       {isOpen && (
-        <div className="mt-1 ml-5 space-y-2">
+        <div className="flex flex-col gap-2 p-2">
           <Section label="Parameters">
-            <pre className="max-h-48 overflow-auto rounded bg-muted/30 p-2 font-mono text-xs leading-relaxed text-foreground/75">
+            <pre className="max-h-24 overflow-auto rounded bg-muted/30 p-2 font-mono text-xs leading-relaxed text-foreground/75">
               {JSON.stringify(block.input, null, 2)}
             </pre>
           </Section>
 
           {block.output !== undefined && (
             <Section label="Returned Value">
-              <pre className="max-h-48 overflow-auto rounded bg-muted/30 p-2 font-mono text-xs leading-relaxed text-emerald-400/90">
+              <pre className="max-h-36 overflow-auto rounded bg-muted/30 p-2 font-mono text-xs leading-relaxed text-emerald-400/90">
                 {JSON.stringify(block.output, null, 2)}
               </pre>
             </Section>

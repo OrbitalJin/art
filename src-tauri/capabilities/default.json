@@ -23,6 +23,13 @@
     "fs:allow-appcache-read",
     "fs:allow-appcache-read-recursive",
     "fs:allow-appconfig-read",
-    "opener:default"
+    "opener:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://api.exa.ai" },
+        { "url": "https://ai-gateway.vercel.sh" }
+      ]
+    }
   ]
 }

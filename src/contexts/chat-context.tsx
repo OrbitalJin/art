@@ -9,17 +9,19 @@ import React, {
 import { toast } from "sonner";
 import { streamText, stepCountIs, smoothStream } from "ai";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import type {
-  Message,
-  MessageStatus,
-  ContentBlock,
-} from "@/lib/store/session/types";
+import type { Message, MessageStatus } from "@/lib/store/session/types";
 import { systemPrompt } from "@/lib/ai/prompts/system";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toolsFor } from "@/lib/ai/tools/tools";
 import { modelTypeById } from "@/lib/ai/models";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 import { useGateway } from "@/hooks/use-gateway";
+import {
+  applyStreamEvent,
+  initialAccumulator,
+  isTerminal,
+  type StreamAccumulator,
+} from "@/lib/ai/stream/stream-accumulator";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 
@@ -68,19 +70,13 @@ function toSDKMessages(messages: Message[]) {
 interface State {
   sessionId: string | null;
   isSending: boolean;
-  blocks: ContentBlock[];
-  status: MessageStatus;
-  reasoningText: string;
-  reasoningStatus: "hidden" | "streaming" | "done";
+  snapshot: StreamAccumulator;
 }
 
 const INITIAL_STATE: State = {
   sessionId: null,
   isSending: false,
-  blocks: [],
-  status: "thinking",
-  reasoningText: "",
-  reasoningStatus: "hidden",
+  snapshot: initialAccumulator,
 };
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -118,14 +114,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       setState({
         sessionId: activeId,
         isSending: true,
-        blocks: [],
-        status: "thinking",
-        reasoningText: "",
-        reasoningStatus: "hidden",
+        snapshot: initialAccumulator,
       });
 
-      let currentBlocks: ContentBlock[] = [];
-      let currentReasoningText = "";
+      let acc: StreamAccumulator = initialAccumulator;
       let status: MessageStatus = "streaming";
       let stream: ReturnType<typeof streamText> | null = null;
 
@@ -149,116 +141,26 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
             { role: "user", content: text },
           ],
           experimental_transform: smoothStream({
-            delayInMs: 15,
+            delayInMs: 5,
             chunking: "word",
           }),
         });
 
         for await (const event of stream.fullStream) {
-          switch (event.type) {
-            case "text-delta": {
-              const lastBlock = currentBlocks[currentBlocks.length - 1];
-
-              if (lastBlock && lastBlock.type === "text") {
-                currentBlocks = [
-                  ...currentBlocks.slice(0, -1),
-                  { ...lastBlock, text: lastBlock.text + event.text },
-                ];
-              } else {
-                currentBlocks = [
-                  ...currentBlocks,
-                  { type: "text", text: event.text },
-                ];
-              }
-
-              setState((prev) => ({
-                ...prev,
-                blocks: currentBlocks,
-              }));
-              break;
-            }
-
-            case "tool-call": {
-              currentBlocks.push({
-                type: "tool-call",
-                id: event.toolCallId,
-                toolName: event.toolName,
-                input: event.input,
-                state: "executing",
-              });
-
-              setState((prev) => ({
-                ...prev,
-                blocks: [...currentBlocks],
-              }));
-              break;
-            }
-
-            case "tool-result": {
-              currentBlocks = currentBlocks.map((block) => {
-                if (
-                  block.type === "tool-call" &&
-                  block.id === event.toolCallId
-                ) {
-                  return {
-                    ...block,
-                    state: "result" as const,
-                    output: event.output,
-                  };
-                }
-                return block;
-              });
-
-              setState((prev) => ({
-                ...prev,
-                blocks: [...currentBlocks],
-              }));
-              break;
-            }
-
-            case "reasoning-start": {
-              currentReasoningText = "";
-              setState((prev) => ({
-                ...prev,
-                reasoningStatus: "streaming",
-                reasoningText: "",
-              }));
-              break;
-            }
-
-            case "reasoning-delta": {
-              currentReasoningText += event.text;
-              setState((prev) => ({
-                ...prev,
-                reasoningText: currentReasoningText,
-              }));
-              break;
-            }
-
-            case "reasoning-end": {
-              setState((prev) => ({
-                ...prev,
-                reasoningStatus: "done",
-              }));
-              break;
-            }
-
-            case "abort": {
-              status = "aborted";
-              return;
-            }
-
-            case "error": {
-              status = "error";
-              return;
-            }
+          acc = applyStreamEvent(acc, event);
+          if (isTerminal(acc)) {
+            status = acc.status;
+            break;
           }
+          setState((prev) => ({ ...prev, snapshot: acc }));
         }
       } catch (err) {
         if (controller.signal.aborted) {
           status = "aborted";
+          acc = { ...acc, status: "aborted" };
         } else {
           status = "error";
+          acc = { ...acc, status: "error" };
           console.error(err);
         }
       } finally {
@@ -267,10 +169,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         setState({
           sessionId: activeId,
           isSending: false,
-          blocks: [],
-          status: "thinking",
-          reasoningText: "",
-          reasoningStatus: "hidden",
+          snapshot: initialAccumulator,
         });
 
         if (status === "error") toast.error("Something went wrong");
@@ -288,14 +187,14 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         addMessage(activeId, {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: currentBlocks,
+          content: acc.blocks,
           status: status !== "streaming" ? status : "complete",
           modelId: session.modelId,
           tokenUsage: {
             input: usage?.inputTokens ?? 0,
             output: usage?.outputTokens ?? 0,
           },
-          reasoning: currentReasoningText || undefined,
+          reasoning: acc.reasoningText || undefined,
         });
 
         if (status === "streaming") {
@@ -372,20 +271,18 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         id: STREAMING_MESSAGE_ID,
         role: "assistant" as const,
         modelId: activeSession?.modelId,
-        content: state.blocks,
-        status: state.status,
+        content: state.snapshot.blocks,
+        status: state.snapshot.status,
         tokenUsage: { input: 0, output: 0 },
-        reasoning: state.reasoningText || undefined,
+        reasoning: state.snapshot.reasoningText || undefined,
       } satisfies Message,
     ];
   }, [
     activeSession,
     state.isSending,
-    state.blocks,
-    state.status,
+    state.snapshot,
     state.sessionId,
     activeId,
-    state.reasoningText,
   ]);
 
   const streamValue = useMemo(

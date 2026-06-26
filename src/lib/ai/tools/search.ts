@@ -1,3 +1,4 @@
+import { nativeFetch } from "@/lib/native-fetch";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
@@ -24,6 +25,9 @@ const fetchResultSchema = z.object({
   author: z.string().optional(),
 });
 
+const NO_KEY_ERROR =
+  "Exa API key is not configured. Ask the user to add one in Settings > Chat.";
+
 export const searchTools = (): ToolSet => {
   const getKey = () => useSettingsStore.getState().searchApiKey;
 
@@ -44,20 +48,16 @@ export const searchTools = (): ToolSet => {
       }),
       outputSchema: z.object({
         results: z.array(searchResultSchema),
-        costDollars: z.number().optional(),
+        costDollars: z.unknown().optional(),
         error: z.string().optional(),
       }),
       execute: async ({ query, numResults }) => {
         const apiKey = getKey();
         if (!apiKey) {
-          return {
-            results: [],
-            error:
-              "Exa API key is not configured. Ask the user to add one in Settings > Chat.",
-          };
+          return { results: [], error: NO_KEY_ERROR };
         }
 
-        const res = await fetch(`${EXA_BASE}/search`, {
+        const res = await nativeFetch(`${EXA_BASE}/search`, {
           method: "POST",
           headers: {
             "x-api-key": apiKey,
@@ -84,7 +84,7 @@ export const searchTools = (): ToolSet => {
 
         const data = (await res.json()) as {
           results: z.infer<typeof searchResultSchema>[];
-          costDollars?: number;
+          costDollars?: unknown;
         };
         return {
           results: data.results ?? [],
@@ -102,20 +102,16 @@ export const searchTools = (): ToolSet => {
       }),
       outputSchema: z.object({
         results: z.array(fetchResultSchema),
-        costDollars: z.number().optional(),
+        costDollars: z.unknown().optional(),
         error: z.string().optional(),
       }),
       execute: async ({ url }) => {
         const apiKey = getKey();
         if (!apiKey) {
-          return {
-            results: [],
-            error:
-              "Exa API key is not configured. Ask the user to add one in Settings > Chat.",
-          };
+          return { results: [], error: NO_KEY_ERROR };
         }
 
-        const res = await fetch(`${EXA_BASE}/contents`, {
+        const res = await nativeFetch(`${EXA_BASE}/contents`, {
           method: "POST",
           headers: {
             "x-api-key": apiKey,
@@ -138,7 +134,7 @@ export const searchTools = (): ToolSet => {
 
         const data = (await res.json()) as {
           results: z.infer<typeof fetchResultSchema>[];
-          costDollars?: number;
+          costDollars?: unknown;
         };
         return {
           results: data.results ?? [],
