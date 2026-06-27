@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
@@ -9,7 +9,7 @@ import { TraitSelect } from "./trait-select";
 import { ModeSelect } from "./mode-select";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
 import { ToolOptions } from "./tool-options";
-import { Spinner } from "@/components/ui/spinner";
+import { useSessionStore } from "@/lib/store/use-session-store";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -17,8 +17,10 @@ interface Props {
 
 export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   const { prompt, setPrompt, sendMessage } = useChatInput();
-  const { abortStream, isSending } = useChatStream();
+  const { abortStream, isSending, streamingSessionId } = useChatStream();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
+  const activeSession = useSessionStore((state) => state.activeId);
+  const disabled = activeSession !== streamingSessionId;
 
   useEffect(() => {
     const textarea = textAreaRef.current;
@@ -43,6 +45,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
             "relative flex flex-col gap-2 p-2 transition-all",
             "rounded-md border hover:border-primary/30 bg-card/50 shadow-md",
             "focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10",
+            disabled && "pointer-events-none opacity-50",
           )}
         >
           <Textarea
@@ -83,8 +86,8 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               onClick={isSending ? abortStream : () => sendMessage(prompt)}
               disabled={!isSending && !prompt.trim()}
             >
-              {isSending ? (
-                <Spinner className="animate-pulse animate-spin" />
+              {isSending && !disabled ? (
+                <Square className="animate-pulse" />
               ) : (
                 <ArrowUp />
               )}
