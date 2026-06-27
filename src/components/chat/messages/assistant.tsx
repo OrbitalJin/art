@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Sparkle, Cpu, GitBranch } from "lucide-react";
@@ -15,7 +14,6 @@ import {
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
 import { ThinkingSection } from "./thinking-section";
-import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatStream } from "@/contexts/chat-context";
 
 export const AssistantMessage: React.FC<Message> = ({
@@ -27,7 +25,6 @@ export const AssistantMessage: React.FC<Message> = ({
 }) => {
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
-  const showCalls = useSettingsStore((state) => state.toolOptions.showCalls);
   const { isSending, streamingMessageId } = useChatStream();
 
   const content = useMemo(() => {
@@ -39,11 +36,10 @@ export const AssistantMessage: React.FC<Message> = ({
 
   const toolCalls = useMemo<ToolCallBlock[]>(() => {
     if (typeof _content === "string") return [];
-    if (!showCalls) return [];
     return _content.filter(
       (block): block is ToolCallBlock => block.type === "tool-call",
     );
-  }, [_content, showCalls]);
+  }, [_content]);
 
   const { copied, copy } = useCopy(content);
 
@@ -143,9 +139,9 @@ export const AssistantMessage: React.FC<Message> = ({
                 )}
               >
                 <Sparkle size={12} />
-                <ShimmerText className={cn(premium && "text-amber-300/60")}>
+                <p className={cn("shimmer", premium && "text-amber-300/60")}>
                   {model?.displayName}
-                </ShimmerText>
+                </p>
               </span>
             </div>
           </div>

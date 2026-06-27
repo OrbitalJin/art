@@ -123,7 +123,9 @@ export const SidebarFooter = () => {
               </div>
             </HoverCardContent>
           </HoverCard>
-          <span className="font-mono text-xs tabular-nums text-foreground">
+
+          {/* Fixed-width right side prevents "Context usage" label from shifting */}
+          <span className="min-w-[10ch] text-right font-mono text-xs tabular-nums text-foreground">
             <span className="font-semibold">{fmt(usage.total)}</span>
             <span className="text-muted-foreground"> / {fmt(limit)}</span>
           </span>
@@ -138,12 +140,13 @@ export const SidebarFooter = () => {
           )}
         />
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
+        {/* Fixed halves — neither side reflows when numbers change length */}
+        <div className="flex items-center text-xs text-muted-foreground">
+          <span className="flex w-1/2 items-center gap-1">
             <ArrowUp className="h-3 w-3" />
             {fmt(usage.input)} in
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex w-1/2 items-center justify-end gap-1">
             <ArrowDown className="h-3 w-3" />
             {fmt(usage.output)} out
           </span>

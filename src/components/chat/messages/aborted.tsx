@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import React, { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/lib/store/session/types";
-import { ShimmerText } from "@/components/ui/shimmer-text";
 import { Renderer } from "@/components/chat/messages/renderer";
 import { useCopy } from "@/hooks/use-copy";
 import {
@@ -92,7 +91,7 @@ export const AbortedMessage: React.FC<Message> = ({ content, modelId }) => {
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Sparkle size={12} />
-                  <ShimmerText>{model?.displayName}</ShimmerText>
+                  <p className="shimmer">{model?.displayName}</p>
                 </span>
               </div>
             </div>

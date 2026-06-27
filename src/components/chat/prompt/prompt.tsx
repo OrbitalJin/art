@@ -9,6 +9,7 @@ import { TraitSelect } from "./trait-select";
 import { ModeSelect } from "./mode-select";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
 import { ToolOptions } from "./tool-options";
+import { JumpSelect } from "./jump-select";
 import { useSessionStore } from "@/lib/store/use-session-store";
 
 interface Props {
@@ -20,7 +21,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   const { abortStream, isSending, streamingSessionId } = useChatStream();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const activeSession = useSessionStore((state) => state.activeId);
-  const disabled = activeSession !== streamingSessionId;
+  const disabled = activeSession !== streamingSessionId && isSending;
 
   useEffect(() => {
     const textarea = textAreaRef.current;
@@ -73,6 +74,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               <ToolOptions />
               <ModeSelect />
               <TraitSelect />
+              <JumpSelect />
             </div>
             <Button
               variant="default"

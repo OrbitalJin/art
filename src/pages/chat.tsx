@@ -2,6 +2,7 @@ import { MessageList } from "@/components/chat/messages/list";
 import { StaticSidebar } from "@/components/chat/sidebar/static";
 import { Prompt } from "@/components/chat/prompt/prompt";
 import { FloatingSidebar } from "@/components/chat/sidebar/floating";
+import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 import { useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
@@ -51,8 +52,14 @@ export const Chat = () => {
       <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <div className="relative flex-1 flex flex-col selection:bg-primary/50 min-w-0">
-        <MessageList messages={messages} textAreaRef={textAreaRef} />
-        <Prompt textAreaRef={textAreaRef} />
+        <MessageScrollerProvider
+          autoScroll
+          defaultScrollPosition="last-anchor"
+          scrollPreviousItemPeek={64}
+        >
+          <MessageList messages={messages} textAreaRef={textAreaRef} />
+          <Prompt textAreaRef={textAreaRef} />
+        </MessageScrollerProvider>
       </div>
     </div>
   );

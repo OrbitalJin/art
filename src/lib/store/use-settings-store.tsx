@@ -7,7 +7,6 @@ export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
 
 export interface ToolOptions {
-  showCalls: boolean;
   // Search (Exa)
   web_search: boolean;
   fetch_url: boolean;
@@ -76,7 +75,6 @@ export const DEFAULT_AGENT_PROFILE: AgentProfile = {
 };
 
 const DEFAULT_TOOL_OPTIONS: ToolOptions = {
-  showCalls: true,
   web_search: true,
   fetch_url: true,
   journal: false,

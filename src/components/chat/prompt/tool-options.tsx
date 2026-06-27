@@ -70,7 +70,6 @@ const CATEGORY_DOLLARS: Record<string, string> = {
 const toolNamesIn = (names: string[]) => new Set(names);
 
 export const ToolOptions = () => {
-  const showCalls = useSettingsStore((state) => state.toolOptions.showCalls);
   const web_search = useSettingsStore((state) => state.toolOptions.web_search);
   const fetch_url = useSettingsStore((state) => state.toolOptions.fetch_url);
   const journal = useSettingsStore((state) => state.toolOptions.journal);
@@ -136,20 +135,6 @@ export const ToolOptions = () => {
           <p className="text-[11px] text-muted-foreground leading-tight">
             Configure what the model can see and use.
           </p>
-        </div>
-
-        {/* Display */}
-        <div className="flex flex-col p-2 gap-1">
-          <p className="px-2 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/60">
-            Display
-          </p>
-
-          <ToolOptionRow
-            label="Tool Calls"
-            isOn={showCalls}
-            subtitle="Show tool calls in the chat"
-            onClick={() => setToolOptions({ showCalls: !showCalls })}
-          />
         </div>
 
         {/* Search Tools */}

@@ -43,7 +43,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { TagList } from "@/components/journal/sidebar/page/tag/list";
 import { WORKSPACES } from "@/lib/store/journal/types";
-import { ShimmerText } from "@/components/ui/shimmer-text";
 import { useGeneratePageTitle } from "@/hooks/use-generate-page-title";
 import { useTradeJournal } from "@/hooks/use-trade-journal";
 import { useNavigate } from "react-router-dom";
@@ -107,9 +106,7 @@ export const PageListItem: React.FC<Props> = ({
         {generating ? (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
-            <ShimmerText className="text-sm truncate">
-              Generating title...
-            </ShimmerText>
+            <p className="shimmer text-sm truncate">Generating title...</p>
           </div>
         ) : editing ? (
           <input

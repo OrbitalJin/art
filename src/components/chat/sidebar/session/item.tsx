@@ -7,7 +7,7 @@ import {
   Pin,
   PinOff,
   GitBranch,
-  Wand2,
+  PencilSparkles,
   BookDashed,
   TextCursor,
   Archive,
@@ -24,7 +24,6 @@ import {
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ShimmerText } from "@/components/ui/shimmer-text";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
@@ -170,7 +169,7 @@ export const SessionListItem: React.FC<Props> = ({
         {isTitleGenerating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
-            <ShimmerText className="truncate">Generating title...</ShimmerText>
+            <p className="shimmer truncate">Generating title...</p>
           </>
         ) : editing ? (
           <input
@@ -187,7 +186,7 @@ export const SessionListItem: React.FC<Props> = ({
             className="w-full bg-transparent border-none outline-none focus:ring-0 p-0"
           />
         ) : isStreaming ? (
-          <ShimmerText>{title}</ShimmerText>
+          <p className="shimmer">{title}</p>
         ) : (
           <>
             <span className="wrap-break-word text-left text-foreground/80">
@@ -331,8 +330,8 @@ const Menu: React.FC<MenuProps> = ({
               {/* AI actions */}
               <DropdownMenuGroup>
                 <DropdownMenuItem onSelect={handleGenerate} className="gap-2.5">
-                  <Wand2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span>Generate Title</span>
+                  <PencilSparkles className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>Regenerate Title</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem

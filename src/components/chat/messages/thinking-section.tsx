@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { ShimmerText } from "@/components/ui/shimmer-text";
 import { ToolCallCard } from "./tool-call-card";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
@@ -27,7 +26,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
     return (
       <div className="flex items-center gap-2 text-muted-foreground">
         <Spinner className="animate-spin" />
-        <ShimmerText className="text-sm">Thinking</ShimmerText>
+        <p className="shimmer text-sm">Thinking</p>
       </div>
     );
   }
@@ -45,11 +44,9 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
         )}
       >
         {isStreaming && <Spinner className="animate-spin" />}
-        {isStreaming ? (
-          <ShimmerText className="text-sm">Thinking</ShimmerText>
-        ) : (
-          <span className="text-sm">Thoughts</span>
-        )}
+        <p className="shimmer text-sm">
+          {isStreaming ? "Thinking" : "Thoughts"}
+        </p>
 
         <ChevronRight
           size={13}
@@ -61,9 +58,9 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
       </button>
 
       {isOpen && (
-        <div className="flex flex-col gap-2 p-2">
+        <div className="flex flex-col gap-2">
           {hasReasoning && (
-            <p className="text-sm leading-relaxed text-muted-foreground/80 italic whitespace-pre-wrap">
+            <p className="text-sm leading-relaxed text-muted-foreground/60 italic whitespace-pre-wrap">
               {reasoning}
               {isStreaming && (
                 <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-amber-600/60 align-middle" />
