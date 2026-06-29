@@ -95,7 +95,7 @@ export const ChangelogTab: React.FC<{ enabled: boolean }> = ({ enabled }) => {
 
   return (
     <div className="min-h-0 h-full flex-1 bg-background">
-      <ScrollArea className="h-full">
+      <ScrollArea className="h-full scroll-fade-y">
         <div className="mx-auto max-w-3xl px-5 py-6">
           <div className="mb-6 space-y-1.5">
             <p className="text-[11px] font-medium text-muted-foreground">

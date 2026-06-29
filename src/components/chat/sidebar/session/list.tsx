@@ -40,18 +40,15 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
   const isLast7DaysOpen = chatState.last7DaysOpen;
   const isOlderOpen = chatState.olderOpen;
 
-  const setIsPinnedOpen = (open: boolean) =>
-    setChatState({ pinnedOpen: open });
+  const setIsPinnedOpen = (open: boolean) => setChatState({ pinnedOpen: open });
   const setIsArchivedOpen = (open: boolean) =>
     setChatState({ archivedOpen: open });
-  const setIsTodayOpen = (open: boolean) =>
-    setChatState({ todayOpen: open });
+  const setIsTodayOpen = (open: boolean) => setChatState({ todayOpen: open });
   const setIsYesterdayOpen = (open: boolean) =>
     setChatState({ yesterdayOpen: open });
   const setIsLast7DaysOpen = (open: boolean) =>
     setChatState({ last7DaysOpen: open });
-  const setIsOlderOpen = (open: boolean) =>
-    setChatState({ olderOpen: open });
+  const setIsOlderOpen = (open: boolean) => setChatState({ olderOpen: open });
 
   const { pinned, regular, archived } = useMemo(() => {
     const filtered = sessions.filter((session) =>
@@ -92,8 +89,8 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
     archived.length === 0 && regular.length === 0 && pinned.length === 0;
 
   return (
-    <div className="relative flex-1 overflow-hidden">
-      <ScrollArea className="h-full px-2 mt-2">
+    <div className="flex-1 overflow-hidden">
+      <ScrollArea className="h-full px-2 scroll-fade-y">
         <div className="space-y-2 pb-4">
           {pinned.length > 0 && (
             <SessionSection
@@ -217,9 +214,6 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
           )}
         </div>
       </ScrollArea>
-
-      <div className="pointer-events-none opacity-60 absolute inset-x-0 top-0 h-4 bg-linear-to-b from-background to-transparent" />
-      <div className="pointer-events-none opacity-60 absolute inset-x-0 bottom-0 h-4 bg-linear-to-t from-background to-transparent" />
     </div>
   );
 };

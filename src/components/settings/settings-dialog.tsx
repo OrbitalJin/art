@@ -105,7 +105,7 @@ export const SettingsDialog = () => {
           <Settings2 size={20} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-scroll p-0">
+      <DialogContent className="flex max-h-[85vh] flex-col gap-0 scrollbar-none overflow-scroll p-0">
         <DialogHeader className="border-b px-6 py-4">
           <DialogTitle className="text-xl">Settings</DialogTitle>
           <DialogDescription>Manage your preferences.</DialogDescription>
@@ -148,7 +148,7 @@ export const SettingsDialog = () => {
             </TabsList>
           </div>
 
-          <div className="scrollbar-thin overflow-y-auto bg-background">
+          <div className="overflow-y-auto bg-background">
             <TabsContent value="chat" className="m-0 space-y-4 p-6">
               <ChatSettingsTab />
             </TabsContent>
