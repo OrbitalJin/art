@@ -1,14 +1,5 @@
-import { useEffect } from "react";
+import { useHotkey } from "@tanstack/react-hotkeys";
 
 export const useSidebarToggle = (onToggle: () => void) => {
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-        onToggle();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onToggle]);
+  useHotkey("Alt+S", () => onToggle(), { ignoreInputs: false });
 };

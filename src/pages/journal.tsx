@@ -3,6 +3,7 @@ import "@/styles/tiptap.css";
 import { EditorContent } from "@tiptap/react";
 import { useCallback, useEffect } from "react";
 import { Eye, Pen, ZoomIn, ZoomOut } from "lucide-react";
+import { useHotkey } from "@tanstack/react-hotkeys";
 
 import { cn } from "@/lib/utils";
 import { StaticSidebar } from "@/components/journal/sidebar/static";
@@ -68,36 +69,20 @@ export const Journal = () => {
     setJournalState({ sidebarOpen: open });
   };
 
+  useHotkey("Alt+T", () => toggleEditable(), { ignoreInputs: false });
+
+  useHotkey("Mod+H", () => {
+    if (editor && !editor.state.selection.empty) {
+      editor.chain().focus().toggleHighlight().run();
+    }
+  });
+
+  useHotkey("Mod+=", zoomIn);
+  useHotkey({ key: "+", mod: true, shift: true }, zoomIn);
+  useHotkey("Mod+-", zoomOut);
+  useHotkey("Mod+0", zoomReset);
+
   useEffect(() => {
-    const keyDown = (e: KeyboardEvent) => {
-      if (e.key === "t" && e.altKey) {
-        e.preventDefault();
-        toggleEditable();
-      }
-
-      if (e.key === "h" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        if (editor && !editor.state.selection.empty) {
-          editor.chain().focus().toggleHighlight().run();
-        }
-      }
-
-      if ((e.key === "=" || e.key === "+") && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        zoomIn();
-      }
-
-      if (e.key === "-" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        zoomOut();
-      }
-
-      if (e.key === "0" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        zoomReset();
-      }
-    };
-
     const onWheel = (e: WheelEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return;
       e.preventDefault();
@@ -105,13 +90,11 @@ export const Journal = () => {
       else zoomOut();
     };
 
-    window.addEventListener("keydown", keyDown);
     window.addEventListener("wheel", onWheel, { passive: false });
     return () => {
-      window.removeEventListener("keydown", keyDown);
       window.removeEventListener("wheel", onWheel);
     };
-  }, [toggleEditable, editor, zoomIn, zoomOut, zoomReset]);
+  }, [zoomIn, zoomOut]);
 
   if (!editor) {
     return null;

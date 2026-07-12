@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { useTasksStore } from "@/lib/store/use-tasks-store";
 import type { Task } from "@/lib/store/tasks/types";
 
@@ -18,16 +19,11 @@ export const useTaskManager = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Keyboard Shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && e.key.toLowerCase() === "t") {
-        e.preventDefault();
-        setView(currentView === "board" ? "calendar" : "board");
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentView, setView]);
+  useHotkey(
+    "Alt+T",
+    () => setView(currentView === "board" ? "calendar" : "board"),
+    { ignoreInputs: false },
+  );
 
   // Handle URL Trigger
   useEffect(() => {

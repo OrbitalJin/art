@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useHotkey } from "@tanstack/react-hotkeys";
 import {
   BookPlus,
   CheckSquare,
@@ -58,43 +59,57 @@ export const Command: React.FC<Props> = ({ items }) => {
     setOpen(false);
   };
 
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((open) => !open);
-      }
+  useHotkey("Mod+K", () => setOpen((open) => !open));
 
-      if (e.altKey && e.key >= "1" && e.key <= "5") {
-        e.preventDefault();
-        const index = parseInt(e.key) - 1;
-        if (items[index]) {
-          navigate(items[index].href);
-          setOpen(false);
-        }
-      }
+  useHotkey(
+    "Alt+1",
+    () => {
+      const item = items[0];
+      if (item) handleNavigate(item.href);
+    },
+    { ignoreInputs: false },
+  );
 
-      if (e.key === "s" && e.altKey && (e.ctrlKey || e.metaKey)) {
-        handleQuickSession();
-      }
+  useHotkey(
+    "Alt+2",
+    () => {
+      const item = items[1];
+      if (item) handleNavigate(item.href);
+    },
+    { ignoreInputs: false },
+  );
 
-      if (e.key === "n" && e.altKey && (e.ctrlKey || e.metaKey)) {
-        handleQuickThought();
-      }
+  useHotkey(
+    "Alt+3",
+    () => {
+      const item = items[2];
+      if (item) handleNavigate(item.href);
+    },
+    { ignoreInputs: false },
+  );
 
-      if (e.key === "t" && e.altKey && (e.ctrlKey || e.metaKey)) {
-        handleQuickTask();
-      }
+  useHotkey(
+    "Alt+4",
+    () => {
+      const item = items[3];
+      if (item) handleNavigate(item.href);
+    },
+    { ignoreInputs: false },
+  );
 
-      if (e.key === "," && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        handleOpenSettings();
-      }
-    };
+  useHotkey(
+    "Alt+5",
+    () => {
+      const item = items[4];
+      if (item) handleNavigate(item.href);
+    },
+    { ignoreInputs: false },
+  );
 
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  });
+  useHotkey("Mod+Alt+S", handleQuickSession);
+  useHotkey("Mod+Alt+N", handleQuickThought);
+  useHotkey("Mod+Alt+T", handleQuickTask);
+  useHotkey("Mod+,", handleOpenSettings);
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen} title="Command Palette">

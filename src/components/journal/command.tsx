@@ -1,6 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { ChevronRight } from "lucide-react";
 import type { Editor } from "@tiptap/react";
+import { useHotkey } from "@tanstack/react-hotkeys";
 import {
   CommandDialog,
   CommandInput,
@@ -87,17 +88,7 @@ export const Command: React.FC<Props> = ({ editor }) => {
     return getMenuGroups(editor, selector.state, actions);
   }, [editor, selector, actions]);
 
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "o" && (e.metaKey || e.ctrlKey) && isEditable) {
-        e.preventDefault();
-        setOpen((open) => !open);
-      }
-    };
-
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  });
+  useHotkey("Mod+O", () => setOpen((open) => !open), { enabled: isEditable });
 
   const handleNavigateToSubmenu = (items: MenuItem[], title: string) => {
     setSubmenuItems(items);

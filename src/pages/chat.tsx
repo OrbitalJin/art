@@ -5,6 +5,7 @@ import { FloatingSidebar } from "@/components/chat/sidebar/floating";
 import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 import { useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 import { useChatMessages } from "@/contexts/chat-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
@@ -33,25 +34,13 @@ export const Chat = () => {
     setChatState({ sidebarOpen: open });
   };
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "/" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        textAreaRef.current?.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  useHotkey("Mod+/", () => textAreaRef.current?.focus());
 
   return (
     <div className="relative flex-1 flex flex-row select-none">
       <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-      <div className="relative flex-1 flex flex-col selection:bg-primary/50 min-w-0">
+      <div className="relative flex-1 flex flex-col selection:bg-primary/50 min-w-0 overflow-x-hidden">
         <MessageScrollerProvider
           autoScroll
           defaultScrollPosition="last-anchor"

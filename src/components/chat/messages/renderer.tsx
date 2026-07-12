@@ -146,7 +146,7 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
             }
 
             return (
-              <div className="my-4 grid max-w-full overflow-x-auto first:mt-0 last:mb-0">
+              <div className="my-4 grid max-w-full overflow-x-auto min-w-0 first:mt-0 last:mb-0">
                 <CodeBlock className={className}>{text}</CodeBlock>
               </div>
             );
