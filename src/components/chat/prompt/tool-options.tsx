@@ -115,7 +115,7 @@ export const ToolOptions = () => {
         <div className="relative inline-block">
           <Tooltip delayDuration={400}>
             <TooltipTrigger asChild disabled={isSending}>
-              <Button variant="outline" size="icon">
+              <Button className="h-9 w-9" variant="outline" size="icon">
                 <Hammer
                   className={cn("h-4 w-4 transition-all text-muted-foreground")}
                 />

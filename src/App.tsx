@@ -19,6 +19,9 @@ const Tasks = lazy(() =>
 const Interval = lazy(() =>
   import("@/pages/interval").then((m) => ({ default: m.Interval })),
 );
+const Capture = lazy(() =>
+  import("@/pages/capture").then((m) => ({ default: m.Capture })),
+);
 
 export default function App() {
   useAppearanceEffects();
@@ -61,6 +64,7 @@ export default function App() {
                 </IntervalContextProvider>
               }
             />
+            <Route path="/capture" element={<Capture />} />
           </Routes>
         </Suspense>
       </Layout>

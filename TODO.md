@@ -113,6 +113,28 @@ Bento-style task board with drag-and-drop organization.
 - [x] Work on implementing the interval work timer
 - [x] Persist the state across navigation by using a context
 
+## Capture
+
+A quick inbox for anything — text, links, and screenshots — with a global hotkey and a dedicated page.
+
+- [x] Basic capture page
+- [ ] Add image support
+- [ ] Add voice notes
+- [ ] Add canvas view
+
+### Shipped
+
+- [x] Capture page with vertical feed, newest on top
+- [x] Text, link, and image capture kinds
+- [x] Paste/drop image support in the composer
+- [x] Global quick-capture dialog (`Mod+Shift+C`) from anywhere in the app
+- [x] Per-capture star, copy, and delete actions
+- [x] Search and all/starred/unstarred filters
+- [x] Clear-all with confirmation dialog
+- [x] Tauri persistence (`captures.json`)
+
+---
+
 ## Productivity & Tools
 
 ### Shipped

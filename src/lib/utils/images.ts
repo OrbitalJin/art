@@ -1,3 +1,5 @@
+import { readImage } from "@tauri-apps/plugin-clipboard-manager";
+
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp", "image/svg+xml"];
@@ -66,4 +68,24 @@ export const extractImageFromDrop = async (dataTransfer: DataTransfer | null): P
   }
 
   return null;
+};
+
+export const extractImageFromTauriClipboard = async (): Promise<string | null> => {
+  try {
+    const img = await readImage();
+    const { width, height } = await img.size();
+    const rgba = await img.rgba();
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    const imageData = new ImageData(new Uint8ClampedArray(rgba), width, height);
+    ctx.putImageData(imageData, 0, 0);
+    return canvas.toDataURL("image/png");
+  } catch {
+    return null;
+  }
 };

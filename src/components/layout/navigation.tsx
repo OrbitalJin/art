@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Book,
+  Bookmark,
   BookOpen,
   Clock,
   ClockFading,
@@ -57,6 +58,13 @@ export const Navigation = () => {
       href: "/interval",
       shortcut: "4",
     },
+    {
+      icon: Bookmark,
+      activeIcon: Bookmark,
+      label: "Capture",
+      href: "/capture",
+      shortcut: "5",
+    },
   ];
 
   return (
@@ -65,7 +73,7 @@ export const Navigation = () => {
         <Button
           key={item.href}
           className={cn(
-            "text-muted-foreground hover:text-foreground",
+            "text-muted-foreground hover:text-foreground h-10 w-10",
             isSelected(item.href) && "text-primary",
           )}
           variant="ghost"

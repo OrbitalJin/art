@@ -43,8 +43,8 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
       <div className="mx-auto max-w-3xl">
         <div
           className={cn(
-            "relative flex flex-col gap-2 p-2 transition-all",
-            "rounded-md border hover:border-primary/30 bg-card/50 shadow-md",
+            "relative flex flex-col gap-2 transition-all",
+            "rounded-md border hover:border-primary/30 bg-card shadow-md",
             "focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10",
             disabled && "pointer-events-none opacity-50",
           )}
@@ -56,7 +56,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Message..."
             className={cn(
-              "bg-transparent! border-0 shadow-none resize-none p-2",
+              "bg-transparent! border-0 shadow-none resize-none p-4",
               "min-h-[80px] max-h-[250px] lg:max-h-[400px]",
               "text-foreground/80 placeholder:text-muted-foreground/50 focus-visible:ring-0",
             )}
@@ -68,7 +68,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
             }}
           />
 
-          <div className="flex justify-between items-center px-1">
+          <div className="flex justify-between items-center p-2 bg-background/50 rounded-b-md">
             <div className="flex flex-row gap-2">
               <ModelSelect />
               <ToolOptions />
