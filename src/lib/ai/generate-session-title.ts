@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { modelTypeById } from "@/lib/ai/models";
+import { type ModelType } from "@/lib/ai/models";
 import { nativeFetch } from "@/lib/native-fetch";
 
 export async function generateSessionTitle(
@@ -40,18 +40,18 @@ export async function generateSessionTitle(
     const gateway = createGateway({ apiKey, fetch: nativeFetch });
 
     const { output: genOutput } = await generateText({
-      model: gateway(modelTypeById("model-1")),
+      model: gateway("deepseek/deepseek-v4-flash" as ModelType),
       output: Output.object({
         schema: z.object({
           title: z
             .string()
-            .describe("Concise title, max 5 words, Title Case, no quotes"),
+            .describe("Concise title, max 4-5 words, Title Case, no quotes"),
         }),
       }),
       messages: [
         {
           role: "user",
-          content: `Generate a title for this conversation:\n\n${conversationText}`,
+          content: `Generate a JSON object with a "title" field for this conversation: \n\n${conversationText}`,
         },
       ],
     });

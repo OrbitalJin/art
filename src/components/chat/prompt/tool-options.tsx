@@ -113,9 +113,9 @@ export const ToolOptions = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={isSending}>
         <div className="relative inline-block">
-          <Tooltip delayDuration={400}>
+          <Tooltip>
             <TooltipTrigger asChild disabled={isSending}>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="h-9 w-9">
                 <Hammer
                   className={cn("h-4 w-4 transition-all text-muted-foreground")}
                 />

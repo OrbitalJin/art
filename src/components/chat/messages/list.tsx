@@ -47,18 +47,17 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
   }
 
   return (
-    <div className="relative flex flex-1 flex-col overflow-x-hidden select-none">
+    <div className="relative flex flex-1 flex-col min-w-0 overflow-x-hidden select-none">
       <SessionScrollSync />
       <MessageScroller className="flex-1">
         <MessageScrollerViewport>
           <MessageScrollerContent
             aria-busy={isSending}
-            className="mx-auto max-w-3xl select-text my-8"
+            className="mx-auto w-full min-w-0 max-w-3xl overflow-x-hidden select-text my-8"
           >
             <BranchOriginMarker />
             {messages.map((msg) => (
               <MessageScrollerItem
-                className="max-w-3xl"
                 key={msg.id}
                 messageId={msg.id}
                 scrollAnchor={msg.role === "user"}

@@ -3,7 +3,7 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useState } from "react";
 import { toast } from "sonner";
 import { generateText, Output } from "ai";
-import { modelTypeById } from "@/lib/ai/models";
+import { type ModelType } from "@/lib/ai/models";
 import { z } from "zod";
 import { useGateway } from "./use-gateway";
 
@@ -27,7 +27,7 @@ export const useGeneratePageTitle = () => {
       if (!contentPreview) return;
 
       const { output: genOutput } = await generateText({
-        model: gateway(modelTypeById("model-1")),
+        model: gateway("deepseek/deepseek-v4-flash" as ModelType),
         output: Output.object({
           schema: z.object({
             title: z
@@ -38,7 +38,7 @@ export const useGeneratePageTitle = () => {
         messages: [
           {
             role: "user",
-            content: `Generate a title for this note:\n\n${contentPreview}`,
+            content: `Generate a JSON object with a "title" field for this note:\n\n${contentPreview}`,
           },
         ],
       });

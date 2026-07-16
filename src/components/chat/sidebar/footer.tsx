@@ -36,7 +36,7 @@ export const SidebarFooter = () => {
   }, [activeSession]);
 
   const model = activeSession ? modelById(activeSession.modelId) : null;
-  const limit = model?.limit ?? 1_000_000;
+  const limit = model?.context ?? 1_000_000;
   const pct = Math.min((usage.total / limit) * 100, 100);
   const fmt = (n: number) => n.toLocaleString();
 

@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,19 +7,8 @@ import { useChatStream } from "@/contexts/chat-context";
 import { MODELS } from "@/lib/ai/models";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, Eye, Hammer } from "lucide-react";
 import { useState } from "react";
-
-const getTierLabel = (tier?: number) => {
-  switch (tier) {
-    case 1:
-      return "Fastest";
-    case 2:
-      return "Balanced";
-    case 3:
-      return "Smartest";
-  }
-};
 
 export const ModelSelect = () => {
   const activeId = useSessionStore((state) => state.activeId);
@@ -76,7 +64,6 @@ export const ModelSelect = () => {
         <div className="flex flex-col p-2 gap-1">
           {MODELS.map((m) => {
             const isSelected = model?.id === m.id;
-            const label = getTierLabel(m.tier);
 
             return (
               <div
@@ -98,18 +85,25 @@ export const ModelSelect = () => {
                   >
                     {m.displayName}
                   </p>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] py-0 h-5 font-normal opacity-60 group-hover:opacity-100 transition-opacity",
-                      isSelected &&
-                        "opacity-100 border-primary/30 text-primary",
+                  <div className="flex flex-row gap-2">
+                    {model?.capabilities.vision && (
+                      <Eye
+                        size={12}
+                        className={cn(
+                          "opacity-40 group-hover:opacity-80 transition-opacity",
+                        )}
+                      />
                     )}
-                  >
-                    {label}
-                  </Badge>
+                    {model?.capabilities.tools && (
+                      <Hammer
+                        size={12}
+                        className={cn(
+                          "opacity-40 group-hover:opacity-80 transition-opacity",
+                        )}
+                      />
+                    )}
+                  </div>
                 </div>
-
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] text-muted-foreground/70 leading-snug pr-4">
                     {m.description}

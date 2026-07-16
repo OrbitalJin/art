@@ -18,13 +18,25 @@ export interface ToolCallBlock {
   output?: unknown;
 }
 
+export interface MessageAttachment {
+  base64: string;
+  mediaType: string;
+  name?: string;
+  size?: number;
+  file?: File;
+}
+
 export interface TextBlock {
   type: "text";
   text: string;
 }
 
-export type ContentBlock = TextBlock | ToolCallBlock;
+export interface TokenUsage {
+  input: number;
+  output: number;
+}
 
+export type ContentBlock = TextBlock | ToolCallBlock;
 export type MessageRole = "user" | "assistant";
 
 export interface Message {
@@ -33,8 +45,9 @@ export interface Message {
   content: string | ContentBlock[];
   status?: MessageStatus;
   modelId?: ModelId;
-  tokenUsage: { input: number; output: number };
   reasoning?: string;
+  attachments?: MessageAttachment[];
+  tokenUsage: TokenUsage;
 }
 
 export interface Session {

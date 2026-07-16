@@ -1,11 +1,16 @@
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { open as openFile } from "@tauri-apps/plugin-fs";
 import { toast } from "sonner";
+import {
+  MAX_IMAGE_SIZE,
+  arrayBufferToBase64,
+} from "@/lib/utils/images";
+import type { MessageAttachment } from "@/lib/store/session/types";
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+export interface ImportedImage extends MessageAttachment {}
 
 export const useImportImage = () => {
-  const importImage = async (): Promise<string | null> => {
+  const importImage = async (): Promise<ImportedImage | null> => {
     try {
       const path = await openDialog({
         multiple: false,
@@ -39,11 +44,11 @@ export const useImportImage = () => {
       await file.close();
 
       const base64 = arrayBufferToBase64(buffer);
-      const mimeType = getMimeTypeFromPath(path);
-      const dataUrl = `data:${mimeType};base64,${base64}`;
+      const mediaType = getMimeTypeFromPath(path);
+      const name = path.split(/[/\\]/).pop() || "image";
 
       toast.success("Image imported successfully");
-      return dataUrl;
+      return { base64, mediaType, name, size: stat.size };
     } catch (error) {
       toast.error("Failed to import image");
       console.error("Image import error:", error);
@@ -55,16 +60,6 @@ export const useImportImage = () => {
     importImage,
   };
 };
-
-function arrayBufferToBase64(buffer: Uint8Array): string {
-  let binary = "";
-  const bytes = new Uint8Array(buffer);
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
-}
 
 function getMimeTypeFromPath(path: string): string {
   const ext = path.split(".").pop()?.toLowerCase();
