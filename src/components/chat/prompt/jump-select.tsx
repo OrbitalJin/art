@@ -25,19 +25,9 @@ import type { Message } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 
 const previewOf = (msg: Message): string => {
-  if (typeof msg.content === "string") return msg.content;
-
-  const text = msg.content
-    .filter((b) => b.type === "text")
-    .map((b) => b.text)
-    .join("")
-    .trim();
-
+  const text = msg.content.trim();
   if (text) return text;
-
-  const hasToolCall = msg.content.some((b) => b.type === "tool-call");
-
-  if (hasToolCall) return "Tool call";
+  if (msg.toolCalls?.length) return "Tool call";
   return "(empty message)";
 };
 
@@ -61,11 +51,9 @@ const ContentTypeIcon = ({ msg }: { msg: Message }) => {
     return <Paperclip className="h-3 w-3 text-muted-foreground/60" />;
   }
 
-  if (typeof msg.content === "string") return null;
-  const hasText = msg.content.some((b) => b.type === "text" && b.text?.trim());
-  if (hasText) return null;
+  if (msg.content.trim()) return null;
 
-  if (msg.content.some((b) => b.type === "tool-call")) {
+  if (msg.toolCalls?.length) {
     return <Wrench className="h-3 w-3 text-muted-foreground/60" />;
   }
   return null;

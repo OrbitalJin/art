@@ -66,32 +66,22 @@ function attachmentToImagePart(attachment: MessageAttachment) {
   };
 }
 
-function messageText(m: Message): string {
-  if (Array.isArray(m.content)) {
-    return m.content
-      .map((block) => (block.type === "text" ? block.text : ""))
-      .join("");
-  }
-  return m.content;
-}
-
 function toSDKMessages(messages: Message[], stripImages = false) {
   return messages
     .filter((m) => m.role === "user" || m.role === "assistant")
     .map((m) => {
-      const text = messageText(m);
       if (m.role === "user" && !stripImages && m.attachments?.length) {
         return {
           role: "user" as const,
           content: [
-            { type: "text" as const, text },
+            { type: "text" as const, text: m.content },
             ...m.attachments.map(attachmentToImagePart),
           ],
         };
       }
       return {
         role: m.role as "user" | "assistant",
-        content: text,
+        content: m.content,
       };
     });
 }
@@ -239,7 +229,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         addMessage(activeId, {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: acc.blocks,
+          content: acc.content,
+          toolCalls: acc.toolCalls.length ? acc.toolCalls : undefined,
           status: status !== "streaming" ? status : "complete",
           modelId: session.modelId,
           tokenUsage: {
@@ -346,7 +337,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         id: STREAMING_MESSAGE_ID,
         role: "assistant" as const,
         modelId: activeSession?.modelId,
-        content: state.snapshot.blocks,
+        content: state.snapshot.content,
+        toolCalls: state.snapshot.toolCalls,
         status: state.snapshot.status,
         tokenUsage: { input: 0, output: 0 },
         reasoning: state.snapshot.reasoningText || undefined,

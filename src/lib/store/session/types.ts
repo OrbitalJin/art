@@ -10,7 +10,6 @@ export type MessageStatus =
   | "error";
 
 export interface ToolCallBlock {
-  type: "tool-call";
   id: string;
   toolName: string;
   input: unknown;
@@ -26,23 +25,18 @@ export interface MessageAttachment {
   file?: File;
 }
 
-export interface TextBlock {
-  type: "text";
-  text: string;
-}
-
 export interface TokenUsage {
   input: number;
   output: number;
 }
 
-export type ContentBlock = TextBlock | ToolCallBlock;
 export type MessageRole = "user" | "assistant";
 
 export interface Message {
   id: string;
   role: MessageRole;
-  content: string | ContentBlock[];
+  content: string;
+  toolCalls?: ToolCallBlock[];
   status?: MessageStatus;
   modelId?: ModelId;
   reasoning?: string;

@@ -2,7 +2,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
 import { MODELS, type ModelId } from "@/lib/ai/models";
-import type { ContentBlock, Message, Session } from "@/lib/store/session/types";
+import type { Message, Session, ToolCallBlock } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
 import type { TraitId } from "../ai/prompts/traits";
@@ -54,11 +54,6 @@ export interface SessionState {
     keepMessage: boolean,
   ) => boolean;
   addMessage: (sessionId: string, message: Message) => void;
-  updateMessageBlocks: (
-    sessionId: string,
-    messageId: string,
-    updater: (blocks: ContentBlock[]) => ContentBlock[],
-  ) => boolean;
   revertMessage: (sessionId: string, messageId: string) => boolean;
   updateTitle: (sessionId: string, newTitle: string) => boolean;
   setTitleGenerated: (sessionId: string, value: boolean) => void;
@@ -331,39 +326,24 @@ export const useSessionStore = create<SessionState>()(
           }),
         }));
       },
-
-      updateMessageBlocks: (id, messageId, updater) => {
-        let success = false;
-        set((state) => ({
-          sessions: state.sessions.map((session) => {
-            if (session.id !== id) return session;
-            return {
-              ...session,
-              messages: session.messages.map((msg) => {
-                if (msg.id !== messageId) return msg;
-                if (!Array.isArray(msg.content)) return msg;
-                success = true;
-                return {
-                  ...msg,
-                  content: updater(msg.content),
-                };
-              }),
-              updatedAt: Date.now(),
-            };
-          }),
-        }));
-        return success;
-      },
     }),
     {
       name: "session-storage",
-      version: 6,
+      version: 7,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
+        const state = persistedState as {
+          sessions?: Array<{
+            messages?: Array<
+              Message & {
+                role: string;
+                content: string | Array<{ type: string } & Record<string, unknown>>;
+              }
+            >;
+          }>;
+        };
+
         if (version < 6) {
-          const state = persistedState as {
-            sessions?: Array<{ messages?: Array<Message & { role: string }> }>;
-          };
           if (state && Array.isArray(state.sessions)) {
             state.sessions = state.sessions.map((session) => ({
               ...session,
@@ -380,7 +360,44 @@ export const useSessionStore = create<SessionState>()(
             }));
           }
         }
-        return persistedState as SessionState;
+
+        if (version < 7) {
+          if (state && Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => ({
+              ...session,
+              messages: (session.messages ?? []).map((msg) => {
+                if (!Array.isArray(msg.content)) return msg;
+                const text = msg.content
+                  .filter((b) => (b as { type?: string }).type === "text")
+                  .map((b) => (b as { text?: string }).text ?? "")
+                  .join("");
+                const toolCalls = msg.content
+                  .filter(
+                    (b) => (b as { type?: string }).type === "tool-call",
+                  )
+                  .map((b) => {
+                    const { type, ...rest } = b as {
+                      type: string;
+                    } & Record<string, unknown>;
+                    void type;
+                    return rest as unknown as ToolCallBlock;
+                  });
+                const rest = msg as Omit<Message, "content"> & {
+                  content: unknown;
+                };
+                const { content: _content, ...withoutContent } = rest;
+                void _content;
+                return {
+                  ...withoutContent,
+                  content: text,
+                  toolCalls: toolCalls.length ? toolCalls : undefined,
+                } as Message;
+              }),
+            }));
+          }
+        }
+
+        return state as SessionState;
       },
       onRehydrateStorage: () => (state) => {
         if (!state) return;

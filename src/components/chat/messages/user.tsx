@@ -1,7 +1,6 @@
 import React, {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -80,12 +79,7 @@ function formatAttachment(attachment: {
 }
 
 export const UserMessage: React.FC<Message> = (message) => {
-  const content = useMemo(() => {
-    if (typeof message.content === "string") return message.content;
-    return message.content
-      .map((block) => (block.type === "text" ? block.text : ""))
-      .join("");
-  }, [message.content]);
+  const { content } = message;
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const { editMessage } = useChatMessages();

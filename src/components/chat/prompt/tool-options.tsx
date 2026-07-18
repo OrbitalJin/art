@@ -15,7 +15,6 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { Hammer } from "lucide-react";
 import { useChatStream } from "@/contexts/chat-context";
 import { useMemo } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
 
 const CATEGORY_TOOLS: Record<string, string[]> = {
   journal: [
@@ -86,12 +85,9 @@ export const ToolOptions = () => {
     if (!activeSession) return counts;
 
     for (const msg of activeSession.messages) {
-      if (!Array.isArray(msg.content)) continue;
-      for (const block of msg.content) {
-        if (block.type !== "tool-call") continue;
-        const tc = block as ToolCallBlock;
+      for (const block of msg.toolCalls ?? []) {
         for (const [cat, names] of Object.entries(CATEGORY_TOOLS)) {
-          if (toolNamesIn(names).has(tc.toolName)) {
+          if (toolNamesIn(names).has(block.toolName)) {
             counts[cat] = (counts[cat] ?? 0) + 1;
           }
         }

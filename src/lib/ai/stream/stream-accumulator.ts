@@ -1,20 +1,20 @@
 import type { TextStreamPart, ToolSet } from "ai";
 import type {
-  ContentBlock,
   MessageStatus,
-  TextBlock,
   ToolCallBlock,
 } from "@/lib/store/session/types";
 
 export interface StreamAccumulator {
-  blocks: ContentBlock[];
+  content: string;
+  toolCalls: ToolCallBlock[];
   reasoningText: string;
   reasoningStatus: "hidden" | "streaming" | "done";
   status: Extract<MessageStatus, "streaming" | "aborted" | "error">;
 }
 
 export const initialAccumulator: StreamAccumulator = {
-  blocks: [],
+  content: "",
+  toolCalls: [],
   reasoningText: "",
   reasoningStatus: "hidden",
   status: "streaming",
@@ -28,34 +28,24 @@ export function applyStreamEvent(
 ): StreamAccumulator {
   switch (event.type) {
     case "text-delta": {
-      const lastBlock = acc.blocks[acc.blocks.length - 1];
-      const blocks: ContentBlock[] =
-        lastBlock && lastBlock.type === "text"
-          ? [
-              ...acc.blocks.slice(0, -1),
-              { ...lastBlock, text: lastBlock.text + event.text },
-            ]
-          : [...acc.blocks, { type: "text", text: event.text } satisfies TextBlock];
-
-      return { ...acc, blocks };
+      return { ...acc, content: acc.content + event.text };
     }
 
     case "tool-call": {
       const block: ToolCallBlock = {
-        type: "tool-call",
         id: event.toolCallId,
         toolName: event.toolName,
         input: event.input,
         state: "executing",
       };
-      return { ...acc, blocks: [...acc.blocks, block] };
+      return { ...acc, toolCalls: [...acc.toolCalls, block] };
     }
 
     case "tool-result": {
       return {
         ...acc,
-        blocks: acc.blocks.map((block) =>
-          block.type === "tool-call" && block.id === event.toolCallId
+        toolCalls: acc.toolCalls.map((block) =>
+          block.id === event.toolCallId
             ? { ...block, state: "result" as const, output: event.output }
             : block,
         ),

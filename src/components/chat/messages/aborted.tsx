@@ -1,6 +1,6 @@
 import { Copy, Check, Sparkle, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import React, { useMemo } from "react";
+import React from "react";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/lib/store/session/types";
 import { Renderer } from "@/components/chat/messages/renderer";
@@ -14,15 +14,8 @@ import {
 import { MODELS } from "@/lib/ai/models";
 
 export const AbortedMessage: React.FC<Message> = ({ content, modelId }) => {
-  const textRepresentation = useMemo(() => {
-    if (typeof content === "string") return content;
-    return content
-      .map((block) => (block.type === "text" ? block.text : ""))
-      .join("");
-  }, [content]);
-
-  const { copied, copy } = useCopy(textRepresentation);
-  const hasContent = textRepresentation.length > 0;
+  const { copied, copy } = useCopy(content);
+  const hasContent = content.length > 0;
   const model = MODELS.find((m) => m.id === modelId);
 
   if (!hasContent) {
@@ -69,7 +62,7 @@ export const AbortedMessage: React.FC<Message> = ({ content, modelId }) => {
 
           <AccordionContent className="border border-t-0 border-destructive/20 p-0 rounded-b-md">
             <div className="p-2">
-              <Renderer content={textRepresentation} />
+              <Renderer content={content} />
             </div>
 
             <div

@@ -1,9 +1,9 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Sparkle, Cpu, GitBranch } from "lucide-react";
 import { Renderer } from "./renderer";
-import type { Message, ToolCallBlock } from "@/lib/store/session/types";
+import type { Message } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 import { MODELS } from "@/lib/ai/models";
 import {
@@ -17,7 +17,8 @@ import { ThinkingSection } from "./thinking-section";
 import { useChatStream } from "@/contexts/chat-context";
 
 export const AssistantMessage: React.FC<Message> = ({
-  content: _content,
+  content,
+  toolCalls,
   modelId,
   id: messageId,
   tokenUsage: { output },
@@ -27,29 +28,12 @@ export const AssistantMessage: React.FC<Message> = ({
   const branchFrom = useSessionStore((state) => state.branchFrom);
   const { isSending, streamingMessageId } = useChatStream();
 
-  const content = useMemo(() => {
-    if (typeof _content === "string") return _content;
-    return _content
-      .map((block) => (block.type === "text" ? block.text : ""))
-      .join("");
-  }, [_content]);
-
-  const toolCalls = useMemo<ToolCallBlock[]>(() => {
-    if (typeof _content === "string") return [];
-    return _content.filter(
-      (block): block is ToolCallBlock => block.type === "tool-call",
-    );
-  }, [_content]);
-
   const { copied, copy } = useCopy(content);
 
   const model = MODELS.find((m) => m.id === modelId);
   const premium = model?.tier === 3;
 
-  const hasContent =
-    content.length > 0 ||
-    (Array.isArray(_content) && _content.length > 0) ||
-    !!reasoning;
+  const hasContent = content.length > 0 || !!reasoning;
 
   const isStreamingMessage = messageId === streamingMessageId;
   const shouldRenderFooter = hasContent && !isStreamingMessage;
@@ -74,7 +58,7 @@ export const AssistantMessage: React.FC<Message> = ({
       >
         <ThinkingSection
           reasoning={reasoning}
-          toolCalls={toolCalls}
+          toolCalls={toolCalls ?? []}
           status={isStreamingMessage ? "streaming" : "done"}
         />
 
