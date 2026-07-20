@@ -1,20 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Plus, Clipboard } from "lucide-react";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useCaptureStore } from "@/lib/store/use-capture-store";
-import {
-  extractImageFromClipboard,
-  extractImageFromTauriClipboard,
-} from "@/lib/utils/images";
-import { readText } from "@tauri-apps/plugin-clipboard-manager";
+import cn from "cnfast";
 
 const URL_PATTERN = /^https?:\/\/\S+$/;
 const detectKind = (content: string): "text" | "link" =>
@@ -50,44 +39,6 @@ export const CaptureComposer: React.FC<Props> = ({
     }
   };
 
-  const submitImage = (base64: string) => {
-    add({ kind: "image", content: base64, source });
-    toast.success("Image captured");
-  };
-
-  const fromClipboard = async () => {
-    const image = await extractImageFromTauriClipboard();
-    if (image) {
-      submitImage(image);
-      return;
-    }
-    const content = await readText();
-    if (content.trim()) {
-      setText(content);
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const types = e.clipboardData?.types ?? [];
-    const hasImage =
-      types.includes("Files") || types.some((t) => t.startsWith("image/"));
-
-    if (hasImage) {
-      e.preventDefault();
-      (async () => {
-        const fromEvent = await extractImageFromClipboard(e.clipboardData);
-        if (fromEvent) {
-          submitImage(fromEvent);
-          return;
-        }
-        const fromTauri = await extractImageFromTauriClipboard();
-        if (fromTauri) {
-          submitImage(fromTauri);
-        }
-      })();
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -117,9 +68,8 @@ export const CaptureComposer: React.FC<Props> = ({
         ref={textareaRef}
         value={text}
         onChange={handleChange}
-        onPaste={(e) => void handlePaste(e)}
         onKeyDown={handleKeyDown}
-        placeholder="Paste, drop, or type — screenshots, links, notes…"
+        placeholder="Paste, or type links, notes…"
         className={cn(
           "min-h-[52px] max-h-[250px] resize-none border-0 shadow-none",
           "bg-transparent! px-3 pt-3 pb-0 text-base md:text-sm",
@@ -145,21 +95,6 @@ export const CaptureComposer: React.FC<Props> = ({
         </div>
 
         <div className="flex items-center gap-1.5">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-7 text-muted-foreground/50 hover:text-foreground"
-                onClick={fromClipboard}
-                tabIndex={-1}
-              >
-                <Clipboard className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">From clipboard</TooltipContent>
-          </Tooltip>
-
           <Button
             size="sm"
             onClick={submitText}

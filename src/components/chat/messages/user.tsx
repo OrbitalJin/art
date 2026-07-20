@@ -1,9 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import {
@@ -200,46 +195,56 @@ export const UserMessage: React.FC<Message> = (message) => {
           {message.attachments?.length === 0 ? null : message.attachments
               ?.length === 1 ? (
             <Dialog>
-              <DialogTrigger>
-                <Attachment className="rounded-md" orientation="vertical">
-                  <AttachmentMedia className="group" variant="image">
+              <DialogTrigger asChild>
+                <Attachment
+                  className="cursor-pointer rounded-md text-left transition-colors hover:bg-muted/60"
+                  orientation="horizontal"
+                  size="sm"
+                >
+                  <AttachmentMedia variant="image">
                     <img
-                      className="scale-110 group-hover:scale-100 transition-all"
+                      className="scale-110 transition-transform duration-300 group-hover:scale-100"
                       src={previewUrl(message.attachments[0])}
+                      alt={message.attachments[0].name ?? "Attachment preview"}
                     />
                   </AttachmentMedia>
-                  <AttachmentContent>
-                    <AttachmentTitle>
+
+                  <AttachmentContent className="min-w-0 text-left">
+                    <AttachmentTitle className="truncate text-left">
                       {message.attachments[0].name ?? "image"}
                     </AttachmentTitle>
-                    <AttachmentDescription>
+
+                    <AttachmentDescription className="text-left">
                       {formatAttachment(message.attachments[0])}
                     </AttachmentDescription>
                   </AttachmentContent>
                 </Attachment>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
+
+              <DialogContent className="max-w-4xl overflow-hidden p-0 sm:rounded-xl">
+                <DialogHeader className="border-b px-6 py-4 pr-12 text-left">
+                  <DialogTitle className="truncate text-left">
                     {message.attachments[0].name ?? "image"}
                   </DialogTitle>
-                  <DialogDescription>
+
+                  <DialogDescription className="text-left">
                     {formatAttachment(message.attachments[0])}
                   </DialogDescription>
                 </DialogHeader>
-                <img
-                  className="self-center mx-auto"
-                  src={previewUrl(message.attachments[0])}
-                />
+
+                <div className="flex max-h-[75vh] min-h-48 items-center justify-center p-4">
+                  <img
+                    className="max-h-[70vh] max-w-full rounded-md object-contain shadow-sm"
+                    src={previewUrl(message.attachments[0])}
+                    alt={message.attachments[0].name ?? "Attachment preview"}
+                  />
+                </div>
               </DialogContent>
             </Dialog>
           ) : (
             <AttachmentGroup>
               {message.attachments?.map((attachment) => (
-                <Attachment
-                  className="self-end rounded-md"
-                  orientation="horizontal"
-                >
+                <Attachment className="rounded-md" orientation="horizontal">
                   <AttachmentMedia className="group" variant="image">
                     <img
                       className="blur-[1px] group-hover:blur-none scale-110 group-hover:scale-100 transition-all"
@@ -315,7 +320,7 @@ const MessageFooter: React.FC<FooterProps> = ({
   return (
     <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
       <AlertDialog>
-        <HoverCard openDelay={300} closeDelay={150}>
+        <HoverCard>
           <HoverCardTrigger asChild>
             <AlertDialogTrigger asChild>
               <Button
@@ -369,7 +374,7 @@ const MessageFooter: React.FC<FooterProps> = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      <HoverCard openDelay={300} closeDelay={150}>
+      <HoverCard>
         <HoverCardTrigger asChild>
           <Button
             size="icon"
@@ -397,7 +402,7 @@ const MessageFooter: React.FC<FooterProps> = ({
         </HoverCardContent>
       </HoverCard>
 
-      <HoverCard openDelay={300} closeDelay={150}>
+      <HoverCard>
         <HoverCardTrigger asChild>
           <Button
             size="icon"
@@ -428,7 +433,7 @@ const MessageFooter: React.FC<FooterProps> = ({
         </HoverCardContent>
       </HoverCard>
 
-      <HoverCard openDelay={300} closeDelay={150}>
+      <HoverCard>
         <HoverCardTrigger asChild>
           <Button
             size="icon"

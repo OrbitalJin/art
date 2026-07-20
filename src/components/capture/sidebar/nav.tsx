@@ -1,11 +1,10 @@
 import { useMemo } from "react";
 import {
-  Image as ImageIcon,
   Inbox,
   Link2,
   Star,
   StarOff,
-  Type,
+  Text,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,9 +27,8 @@ const STATUS_ITEMS: NavItem[] = [
 ];
 
 const KIND_ITEMS: NavItem[] = [
-  { value: "text", label: "Text", icon: Type },
+  { value: "text", label: "Text", icon: Text },
   { value: "link", label: "Links", icon: Link2 },
-  { value: "image", label: "Images", icon: ImageIcon },
 ];
 
 export const SidebarNav: React.FC = () => {
@@ -46,7 +44,6 @@ export const SidebarNav: React.FC = () => {
       unstarred: captures.length - starred,
       text: captures.filter((capture) => capture.kind === "text").length,
       link: captures.filter((capture) => capture.kind === "link").length,
-      image: captures.filter((capture) => capture.kind === "image").length,
     };
   }, [captures]);
 

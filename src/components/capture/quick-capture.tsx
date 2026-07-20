@@ -4,20 +4,12 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { useCaptureStore } from "@/lib/store/use-capture-store";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
-import {
-  extractImageFromClipboard,
-  extractImageFromTauriClipboard,
-} from "@/lib/utils/images";
 import { cn } from "@/lib/utils";
 
 const URL_PATTERN = /^https?:\/\/\S+$/;
@@ -27,8 +19,8 @@ export const QuickCapture = () => {
   const setCaptureState = useUIStateStore((state) => state.setCaptureState);
   const add = useCaptureStore((state) => state.add);
 
-  const [text, setText] = useState("");
   const location = useLocation();
+  const [text, setText] = useState("");
   const sourceRef = useRef<string>("/");
 
   const setOpen = (open: boolean) => {
@@ -52,32 +44,6 @@ export const QuickCapture = () => {
     add({ kind, content, source: sourceRef.current });
     toast.success("Captured");
     setOpen(false);
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const types = e.clipboardData?.types ?? [];
-    const hasImage =
-      types.includes("Files") ||
-      types.some((t) => t.startsWith("image/"));
-
-    if (hasImage) {
-      e.preventDefault();
-      (async () => {
-        const fromEvent = await extractImageFromClipboard(e.clipboardData);
-        if (fromEvent) {
-          add({ kind: "image", content: fromEvent, source: sourceRef.current });
-          toast.success("Image captured");
-          setOpen(false);
-          return;
-        }
-        const fromTauri = await extractImageFromTauriClipboard();
-        if (fromTauri) {
-          add({ kind: "image", content: fromTauri, source: sourceRef.current });
-          toast.success("Image captured");
-          setOpen(false);
-        }
-      })();
-    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -113,7 +79,6 @@ export const QuickCapture = () => {
               autoFocus
               value={text}
               onChange={(e) => setText(e.target.value)}
-              onPaste={(e) => void handlePaste(e)}
               onKeyDown={handleKeyDown}
               placeholder="Drop a thought, link, or note…"
               className={cn(

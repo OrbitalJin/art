@@ -6,6 +6,7 @@ import { TableKit } from "@tiptap/extension-table";
 import { TagHighlighter } from "@/lib/editor/extensions/tag-highlighter";
 import { Typography } from "@tiptap/extension-typography";
 import { Youtube } from "@tiptap/extension-youtube";
+import { Link } from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 export const editorExtensions = [
   StarterKit,
   TableKit,
+  Link,
   Highlight,
   TagHighlighter,
   Typography,

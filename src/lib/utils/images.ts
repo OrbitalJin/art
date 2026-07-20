@@ -76,6 +76,17 @@ export const arrayBufferToBase64 = (
   return btoa(binary);
 };
 
+export const base64DataUrlToBytes = (dataUrl: string): Uint8Array => {
+  const comma = dataUrl.indexOf(",");
+  const payload = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
+  const binary = atob(payload);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+};
+
 export const fileToAttachment = async (
   file: File,
 ): Promise<MessageAttachment> => {
@@ -140,42 +151,4 @@ export const extractImageFromClipboard = async (
   }
 
   return null;
-};
-
-export const extractImageFromDrop = async (
-  dataTransfer: DataTransfer | null,
-): Promise<string | null> => {
-  if (!dataTransfer) return null;
-
-  const files = Array.from(dataTransfer.files);
-
-  for (const file of files) {
-    if (file.type.startsWith("image/")) {
-      return await processImageFile(file);
-    }
-  }
-
-  return null;
-};
-
-export const extractImageFromTauriClipboard = async (): Promise<
-  string | null
-> => {
-  try {
-    const img = await readImage();
-    const { width, height } = await img.size();
-    const rgba = await img.rgba();
-
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return null;
-
-    const imageData = new ImageData(new Uint8ClampedArray(rgba), width, height);
-    ctx.putImageData(imageData, 0, 0);
-    return canvas.toDataURL("image/png");
-  } catch {
-    return null;
-  }
 };

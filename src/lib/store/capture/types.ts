@@ -1,11 +1,5 @@
 export type CaptureKind = "text" | "link" | "image";
-export type CaptureFilter =
-  | "all"
-  | "starred"
-  | "unstarred"
-  | "text"
-  | "link"
-  | "image";
+export type CaptureFilter = "all" | "starred" | "unstarred" | "text" | "link";
 
 export interface Capture {
   id: string;

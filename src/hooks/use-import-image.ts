@@ -68,6 +68,7 @@ export const useImportImage = () => {
         });
 
         if (!path) {
+          toast.error("No file provided", { id });
           return null;
         }
 

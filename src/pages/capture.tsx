@@ -17,7 +17,6 @@ const FILTER_LABELS: Record<string, string> = {
   unstarred: "Unstarred",
   text: "Text",
   link: "Links",
-  image: "Images",
 };
 
 const EMPTY_FILTER_LABEL: Record<string, string> = {
@@ -25,7 +24,6 @@ const EMPTY_FILTER_LABEL: Record<string, string> = {
   unstarred: "No unstarred captures",
   text: "No text captures",
   link: "No links captured",
-  image: "No images captured",
 };
 
 export const Capture = () => {
@@ -48,10 +46,7 @@ export const Capture = () => {
     return captures.filter((capture) => {
       if (filter === "starred" && !capture.starred) return false;
       if (filter === "unstarred" && capture.starred) return false;
-      if (
-        (filter === "text" || filter === "link" || filter === "image") &&
-        capture.kind !== filter
-      )
+      if ((filter === "text" || filter === "link") && capture.kind !== filter)
         return false;
       if (!query) return true;
       return (

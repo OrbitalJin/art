@@ -6,16 +6,8 @@ import { captureStorage } from "./capture/adapter";
 
 const TITLE_MAX = 60;
 
-const deriveTitle = (input: AddCaptureInput, createdAt: number): string => {
+const deriveTitle = (input: AddCaptureInput): string => {
   if (input.title) return input.title;
-
-  if (input.kind === "image") {
-    const time = new Date(createdAt).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    return `Image · ${time}`;
-  }
 
   const firstLine =
     input.content
@@ -33,6 +25,7 @@ export interface CaptureState {
 
   add: (input: AddCaptureInput) => string;
   remove: (id: string) => void;
+  update: (id: string, capture: Partial<Capture>) => void;
   toggleStar: (id: string) => void;
   updateContent: (id: string, content: string) => void;
   setTitle: (id: string, title: string) => void;
@@ -45,16 +38,23 @@ export const useCaptureStore = create<CaptureState>()(
     (set, get) => ({
       captures: [],
 
+      update(id: string, capture: Partial<Capture>) {
+        set((state) => ({
+          captures: state.captures.map((c) =>
+            c.id === id ? { ...c, ...capture } : c,
+          ),
+        }));
+      },
+
       add(input: AddCaptureInput): string {
-        const createdAt = Date.now();
         const capture: Capture = {
           id: crypto.randomUUID(),
           kind: input.kind,
-          title: deriveTitle(input, createdAt),
+          title: deriveTitle(input),
           content: input.content,
           source: input.source,
           starred: false,
-          createdAt,
+          createdAt: Date.now(),
         };
 
         set((state) => ({ captures: [capture, ...state.captures] }));

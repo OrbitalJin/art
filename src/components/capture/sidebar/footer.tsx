@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Image as ImageIcon, Inbox, Star, Trash2 } from "lucide-react";
+import { Inbox, Star, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,9 @@ export const SidebarFooter: React.FC = () => {
   const clear = useCaptureStore((state) => state.clear);
   const [clearOpen, setClearOpen] = useState(false);
 
-  const { starred, images } = useMemo(() => {
+  const { starred } = useMemo(() => {
     return {
       starred: captures.filter((capture) => capture.starred).length,
-      images: captures.filter((capture) => capture.kind === "image").length,
     };
   }, [captures]);
 
@@ -32,7 +31,6 @@ export const SidebarFooter: React.FC = () => {
       <div className="flex items-center justify-around px-4 py-3 text-xs">
         <StatItem icon={Inbox} value={captures.length} label="total" />
         <StatItem icon={Star} value={starred} label="starred" />
-        <StatItem icon={ImageIcon} value={images} label="images" />
       </div>
 
       <div className="flex items-center gap-2 p-2 border-t">
