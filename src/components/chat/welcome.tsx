@@ -1,163 +1,178 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { HelpCircle, MessagesSquare, Type, Pi } from "lucide-react";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
+import { modelById } from "@/lib/ai/models";
 import { useChatInput } from "@/contexts/chat-context";
-
-interface Suggestion {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  prompt: string;
-}
-
-const suggestions: Suggestion[] = [
-  {
-    id: "explain",
-    title: "Explain a concept",
-    description: "Break down complex topics simply.",
-    icon: <HelpCircle className="w-5 h-5" />,
-    prompt: "Explain how ",
-  },
-  {
-    id: "converse",
-    title: "Have a conversation",
-    description: "Discuss, brainstorm, or chat.",
-    icon: <MessagesSquare className="w-5 h-5" />,
-    prompt: "Let's have a conversation about ",
-  },
-  {
-    id: "write",
-    title: "Write & edit",
-    description: "Draft or translate content.",
-    icon: <Type className="w-5 h-5" />,
-    prompt: "Help me write ",
-  },
-  {
-    id: "sciences",
-    title: "Science & math",
-    description: "Solve equations, explain concepts.",
-    icon: <Pi className="w-5 h-5" />,
-    prompt: "Help me understand ",
-  },
-];
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
 }
 
+const STARTERS: { id: string; label: string; prompt: string }[] = [
+  {
+    id: "summarize",
+    label: "Summarize my notes about…",
+    prompt: "Summarize my notes about ",
+  },
+  {
+    id: "draft",
+    label: "Draft an email about…",
+    prompt: "Draft an email about ",
+  },
+  {
+    id: "explain",
+    label: "Explain this like I'm new to it…",
+    prompt: "Explain this like I'm new to it: ",
+  },
+];
+
+const greetingFor = (now: Date): string => {
+  const h = now.getHours();
+  if (h < 5) return "Still up";
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+};
+
+const relativeTime = (ts: number): string => {
+  const diff = Date.now() - ts;
+  const min = Math.round(diff / 60000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.round(hr / 24);
+  if (day === 1) return "yesterday";
+  if (day < 7) return `${day}d ago`;
+  const wk = Math.round(day / 7);
+  if (wk < 5) return `${wk}w ago`;
+  const mo = Math.round(day / 30);
+  return `${mo}mo ago`;
+};
+
+const Kbd: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <kbd className="px-1 py-px text-[10px] font-mono text-muted-foreground/70 border-b border-border">
+    {children}
+  </kbd>
+);
+
 const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const { setPrompt } = useChatInput();
-  const enterKeySends = useSettingsStore((state) => state.enterKeySends);
+  const navigate = useNavigate();
+  const userProfile = useSettingsStore((s) => s.userProfile);
+  const enterKeySends = useSettingsStore((s) => s.enterKeySends);
+  const sessions = useSessionStore((s) => s.sessions);
+  const activeId = useSessionStore((s) => s.activeId);
 
-  const handleSuggestionClick = (suggestion: Suggestion) => {
-    setPrompt(suggestion.prompt);
-    if (textAreaRef.current) {
-      textAreaRef.current.focus();
-    }
+  const greeting = useMemo(() => greetingFor(new Date()), []);
+
+  const modelName = useMemo(
+    () =>
+      modelById(sessions.find((s) => s.id === activeId)?.modelId).displayName,
+    [sessions, activeId],
+  );
+
+  const recents = useMemo(() => {
+    return sessions
+      .filter(
+        (s) =>
+          !s.archived &&
+          s.id !== activeId &&
+          s.messages.length > 0 &&
+          !s.readOnly,
+      )
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .slice(0, 3);
+  }, [sessions, activeId]);
+
+  const firstName = userProfile.name?.trim().split(" ")[0] || "there";
+
+  const starterClick = (prompt: string) => {
+    setPrompt(prompt);
+    textAreaRef.current?.focus();
   };
 
   return (
-    <div
-      className={cn(
-        "flex flex-1 flex-col items-center justify-center gap-8 px-4",
-        "text-center select-none",
-        "animate-in fade-in slide-in-from-bottom-4 duration-1000",
-        "fill-mode-backwards",
-      )}
-    >
-      <div
-        className={cn(
-          "max-w-md space-y-4",
-          "animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-200",
-          "fill-mode-backwards",
-        )}
-      >
-        <h2 className="text-2xl lg:text-3xl text-foreground">
-          How can I help you{" "}
-          <span className="text-primary relative inline-block">today?</span>
-        </h2>
-        <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
-          Ask me anything. What's on your mind?
+    <div className="flex flex-1 flex-col justify-center px-4 max-w-xl mx-auto w-full select-none animate-in fade-in duration-300 fill-mode-backwards">
+      {/* Header */}
+      <div className="mb-12">
+        <h1 className="text-3xl font-medium tracking-tight text-foreground">
+          {greeting}, {firstName}.
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground/60">
+          Using {modelName}
         </p>
       </div>
 
-      <div className="w-full max-w-2xl hidden md:grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-        {suggestions.map((suggestion) => (
-          <button
-            key={suggestion.id}
-            onClick={() => handleSuggestionClick(suggestion)}
-            className={cn(
-              "group relative flex items-start gap-4 p-4 rounded-xl",
-              "bg-card hover:bg-accent/20",
-              "border border-border hover:border-primary/50",
-              "hover:shadow-lg hover:shadow-primary/5",
-              "transition-all duration-300 ease-out",
-              "hover:-translate-y-0.5 active:translate-y-0",
-              "text-left",
-              "animate-in fade-in slide-in-from-bottom-4",
-              "fill-mode-backwards",
-            )}
-          >
-            <div className="shrink-0 w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-              {suggestion.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">
-                {suggestion.title}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                {suggestion.description}
-              </p>
-            </div>
-          </button>
-        ))}
+      {/* Starters */}
+      <div className="mb-12">
+        <p className="mb-4 text-xs text-muted-foreground/50">Try asking</p>
+        <ul className="space-y-1">
+          {STARTERS.map((starter) => (
+            <li key={starter.id}>
+              <button
+                onClick={() => starterClick(starter.prompt)}
+                className={cn(
+                  "w-full text-left text-[15px] text-foreground/70",
+                  "hover:text-foreground transition-colors duration-100",
+                  "py-1 focus-visible:outline-none focus-visible:text-foreground",
+                )}
+              >
+                {starter.label}
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      <div
-        className={cn(
-          "text-xs text-muted-foreground/60 mt-4 flex items-center gap-4",
-          "animate-in fade-in duration-1000 delay-500",
-          "fill-mode-backwards",
-        )}
-      >
-        <span className="flex items-center gap-1.5">
-          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
-            Ctrl
-          </kbd>
-          <span className="text-muted-foreground/60 text-[10px]">+</span>
-          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
-            /
-          </kbd>
+      {/* Recents */}
+      {recents.length > 0 && (
+        <div className="mb-12">
+          <p className="mb-4 text-xs text-muted-foreground/50">Recent</p>
+          <ul className="space-y-1">
+            {recents.map((s) => (
+              <li key={s.id}>
+                <button
+                  onClick={() => navigate(`/chat/${s.id}`)}
+                  className={cn(
+                    "group w-full flex items-baseline gap-4 text-left py-1",
+                    "focus-visible:outline-none",
+                  )}
+                >
+                  <span className="flex-1 min-w-0 truncate text-sm text-foreground/70 group-hover:text-foreground group-focus-visible:text-foreground transition-colors duration-100">
+                    {s.title}
+                  </span>
+                  <span className="shrink-0 text-[11px] text-muted-foreground/50 tabular-nums">
+                    {relativeTime(s.updatedAt)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Shortcuts — pinned to bottom, barely visible */}
+      <div className="flex items-center gap-4 text-[10px] text-muted-foreground/40">
+        <span className="flex items-baseline gap-1.5">
+          <Kbd>Ctrl</Kbd>
+          <Kbd>/</Kbd>
           focus
         </span>
-        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-        <span className="flex items-center gap-1.5">
-          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
-            Ctrl
-          </kbd>
-          <span className="text-muted-foreground/60 text-[10px]">+</span>
-          <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
-            K
-          </kbd>
+        <span className="flex items-baseline gap-1.5">
+          <Kbd>Ctrl</Kbd>
+          <Kbd>K</Kbd>
           commands
         </span>
-        <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-baseline gap-1.5">
           {enterKeySends ? (
-            <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
-              Enter
-            </kbd>
+            <Kbd>Enter</Kbd>
           ) : (
             <>
-              <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
-                Shift
-              </kbd>
-              <span className="text-muted-foreground/60 text-[10px]">+</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px] border border-border">
-                Enter
-              </kbd>
+              <Kbd>Shift</Kbd>
+              <Kbd>Enter</Kbd>
             </>
           )}
           send
