@@ -19,7 +19,54 @@ export const isValidImageSize = (file: File): boolean => {
   return file.size <= MAX_IMAGE_SIZE;
 };
 
-export const arrayBufferToBase64 = (buffer: ArrayBuffer | Uint8Array): string => {
+export function getMimeTypeFromPath(path: string): string {
+  const ext = path.split(".").pop()?.toLowerCase();
+  const mimeTypes: Record<string, string> = {
+    jpeg: "image/jpeg",
+    jpg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    webp: "image/webp",
+    svg: "image/svg+xml",
+  };
+  return mimeTypes[ext || ""] || "image/png";
+}
+
+export async function rgbaToPng(
+  rgba: Uint8Array,
+  width: number,
+  height: number,
+): Promise<Uint8Array> {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Could not create canvas context");
+  }
+
+  const imageData = new ImageData(new Uint8ClampedArray(rgba), width, height);
+
+  context.putImageData(imageData, 0, 0);
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((result) => {
+      if (result) {
+        resolve(result);
+      } else {
+        reject(new Error("Could not encode clipboard image as PNG"));
+      }
+    }, "image/png");
+  });
+
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
+export const arrayBufferToBase64 = (
+  buffer: ArrayBuffer | Uint8Array,
+): string => {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   let binary = "";
   const len = bytes.byteLength;
