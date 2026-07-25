@@ -28,16 +28,7 @@ export const sessionTools = ({ session }: Opts): ToolSet => {
 
         const conversationText = session.messages
           .filter((m) => m.role === "user" || m.role === "assistant")
-          .map((m) => {
-            const content =
-              typeof m.content === "string"
-                ? m.content
-                : m.content
-                    .filter((b) => b.type === "text")
-                    .map((b) => b.text)
-                    .join("");
-            return `${m.role === "user" ? "User" : "Assistant"}: ${content}`;
-          })
+          .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
           .join("\n\n");
 
         if (!conversationText)

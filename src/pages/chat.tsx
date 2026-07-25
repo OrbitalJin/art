@@ -40,7 +40,7 @@ export const Chat = () => {
     <div className="relative flex-1 flex flex-row select-none">
       <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-      <div className="relative flex-1 flex flex-col selection:bg-primary/50 min-w-0 overflow-x-hidden">
+      <div className="relative flex-1 flex flex-col selection:bg-primary/50 min-w-0 overflow-x-hidden p-2 pt-0">
         <MessageScrollerProvider
           autoScroll
           defaultScrollPosition="last-anchor"

@@ -14,7 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { Scroll, User, Wrench, Asterisk } from "lucide-react";
+import { Scroll, User, Wrench, Asterisk, Paperclip } from "lucide-react";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import {
   useMessageScroller,
@@ -25,19 +25,9 @@ import type { Message } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 
 const previewOf = (msg: Message): string => {
-  if (typeof msg.content === "string") return msg.content;
-
-  const text = msg.content
-    .filter((b) => b.type === "text")
-    .map((b) => b.text)
-    .join("")
-    .trim();
-
+  const text = msg.content.trim();
   if (text) return text;
-
-  const hasToolCall = msg.content.some((b) => b.type === "tool-call");
-
-  if (hasToolCall) return "Tool call";
+  if (msg.toolCalls?.length) return "Tool call";
   return "(empty message)";
 };
 
@@ -57,11 +47,13 @@ const RoleIcon = ({ role }: { role: Message["role"] }) => {
 };
 
 const ContentTypeIcon = ({ msg }: { msg: Message }) => {
-  if (typeof msg.content === "string") return null;
-  const hasText = msg.content.some((b) => b.type === "text" && b.text?.trim());
-  if (hasText) return null;
+  if (msg.attachments?.length) {
+    return <Paperclip className="h-3 w-3 text-muted-foreground/60" />;
+  }
 
-  if (msg.content.some((b) => b.type === "tool-call")) {
+  if (msg.content.trim()) return null;
+
+  if (msg.toolCalls?.length) {
     return <Wrench className="h-3 w-3 text-muted-foreground/60" />;
   }
   return null;
@@ -78,11 +70,11 @@ const MessageResultItem = ({
   isActive: boolean;
   onSelect: () => void;
 }) => {
-  const preview = truncate(previewOf(message), 60);
+  const preview = truncate(previewOf(message), 60) || "";
 
   return (
     <CommandItem
-      value={preview}
+      value={message.id}
       onSelect={onSelect}
       className={cn(
         "flex items-center gap-3 border-transparent py-2.5 pl-3",
@@ -97,13 +89,15 @@ const MessageResultItem = ({
           !preview && "italic text-muted-foreground",
         )}
       >
-        {preview}
+        {preview || "Attachment"}
       </span>
+
       {isActive && (
         <span className="shrink-0 text-[10px] font-medium text-primary">
           current
         </span>
       )}
+
       <span className="ml-2 shrink-0 text-[10px] tabular-nums text-muted-foreground/50">
         {index + 1}
       </span>

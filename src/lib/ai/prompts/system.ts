@@ -28,7 +28,7 @@ interface Opts {
   agentProfile: AgentProfile;
 }
 
-export const systemPrompt = ({
+export const system = ({
   mode,
   traits,
   userProfile,

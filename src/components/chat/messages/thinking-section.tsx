@@ -26,7 +26,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
     return (
       <div className="flex items-center gap-2 text-muted-foreground">
         <Spinner className="animate-spin" />
-        <p className="shimmer text-sm">Thinking</p>
+        <p className="shimmer text-sm">Pondering</p>
       </div>
     );
   }
@@ -45,7 +45,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
       >
         {isStreaming && <Spinner className="animate-spin" />}
         <p className="shimmer text-sm">
-          {isStreaming ? "Thinking" : "Thoughts"}
+          {isStreaming ? "Pondering" : "Reasoning"}
         </p>
 
         <ChevronRight

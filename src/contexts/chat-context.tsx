@@ -9,11 +9,15 @@ import React, {
 import { toast } from "sonner";
 import { streamText, stepCountIs, smoothStream } from "ai";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import type { Message, MessageStatus } from "@/lib/store/session/types";
-import { systemPrompt } from "@/lib/ai/prompts/system";
+import type {
+  Message,
+  MessageAttachment,
+  MessageStatus,
+} from "@/lib/store/session/types";
+import { system } from "@/lib/ai/prompts/system";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toolsFor } from "@/lib/ai/tools/tools";
-import { modelTypeById } from "@/lib/ai/models";
+import { modelById, modelTypeById } from "@/lib/ai/models";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 import { useGateway } from "@/hooks/use-gateway";
 import {
@@ -35,7 +39,14 @@ interface ChatStreamValues {
 interface ChatInputValues {
   prompt: string;
   setPrompt: (value: string) => void;
-  sendMessage: (text: string) => Promise<void>;
+  attachments: MessageAttachment[];
+  addAttachment: (attachment: MessageAttachment) => void;
+  removeAttachment: (index: number) => void;
+  clearAttachments: () => void;
+  sendMessage: (
+    text: string,
+    attachments?: MessageAttachment[],
+  ) => Promise<void>;
 }
 
 interface ChatMessagesValues {
@@ -47,22 +58,30 @@ const ChatStreamContext = createContext<ChatStreamValues | null>(null);
 const ChatInputContext = createContext<ChatInputValues | null>(null);
 const ChatMessagesContext = createContext<ChatMessagesValues | null>(null);
 
-function toSDKMessages(messages: Message[]) {
+function attachmentToImagePart(attachment: MessageAttachment) {
+  return {
+    type: "image" as const,
+    image: attachment.base64,
+    mediaType: attachment.mediaType,
+  };
+}
+
+function toSDKMessages(messages: Message[], stripImages = false) {
   return messages
     .filter((m) => m.role === "user" || m.role === "assistant")
     .map((m) => {
-      let contentString = "";
-      if (Array.isArray(m.content)) {
-        contentString = m.content
-          .map((block) => (block.type === "text" ? block.text : ""))
-          .join("");
-      } else {
-        contentString = m.content;
+      if (m.role === "user" && !stripImages && m.attachments?.length) {
+        return {
+          role: "user" as const,
+          content: [
+            { type: "text" as const, text: m.content },
+            ...m.attachments.map(attachmentToImagePart),
+          ],
+        };
       }
-
       return {
         role: m.role as "user" | "assistant",
-        content: contentString,
+        content: m.content,
       };
     });
 }
@@ -93,12 +112,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   const gateway = useGateway();
 
   const [prompt, setPrompt] = useState("");
+  const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
   const [state, setState] = useState<State>(INITIAL_STATE);
 
   const abortRef = useRef<AbortController | null>(null);
 
   const send = useCallback(
-    async (text: string) => {
+    async (text: string, attachments?: MessageAttachment[]) => {
       if (!activeId || !apiKey) return;
 
       const session = useSessionStore
@@ -107,6 +127,15 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!session) return;
 
       const { userProfile, agentProfile } = useSettingsStore.getState();
+
+      const supportsVision = modelById(session.modelId).capabilities.vision;
+      const hasImages = !!attachments?.length;
+      const stripImages = hasImages && !supportsVision;
+      if (stripImages) {
+        toast.info(
+          `${modelById(session.modelId).displayName} can't view images — sending text only`,
+        );
+      }
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -122,11 +151,27 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       let stream: ReturnType<typeof streamText> | null = null;
 
       try {
+        const history =
+          useSessionStore.getState().sessions.find((s) => s.id === activeId)
+            ?.messages ?? [];
+        const trailing =
+          history.length > 0 && history[history.length - 1].role === "user"
+            ? history.slice(0, -1)
+            : history;
+
+        const currentUserContent =
+          attachments?.length && !stripImages
+            ? [
+                { type: "text" as const, text },
+                ...attachments.map(attachmentToImagePart),
+              ]
+            : text;
+
         stream = streamText({
           model: gateway(modelTypeById(session.modelId)),
           stopWhen: stepCountIs(10),
           abortSignal: controller.signal,
-          system: systemPrompt({
+          system: system({
             mode: session.mode,
             traits: session.traits,
             userProfile,
@@ -134,11 +179,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
           }),
           tools: toolsFor({ session }),
           messages: [
-            ...toSDKMessages(
-              useSessionStore.getState().sessions.find((s) => s.id === activeId)
-                ?.messages ?? [],
-            ),
-            { role: "user", content: text },
+            ...toSDKMessages(trailing, stripImages),
+            { role: "user" as const, content: currentUserContent },
           ],
           experimental_transform: smoothStream({
             delayInMs: 5,
@@ -187,7 +229,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         addMessage(activeId, {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: acc.blocks,
+          content: acc.content,
+          toolCalls: acc.toolCalls.length ? acc.toolCalls : undefined,
           status: status !== "streaming" ? status : "complete",
           modelId: session.modelId,
           tokenUsage: {
@@ -210,27 +253,43 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     [activeId, apiKey, addMessage, gateway],
   );
 
+  const addAttachment = useCallback((attachment: MessageAttachment) => {
+    setAttachments((prev) => [...prev, attachment]);
+  }, []);
+
+  const removeAttachment = useCallback((index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const clearAttachments = useCallback(() => {
+    setAttachments([]);
+  }, []);
+
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string, sendAttachments?: MessageAttachment[]) => {
       if (!activeId) return;
       if (state.isSending) {
         toast.info("Please wait for the current response to finish");
         return;
       }
-      if (!text.trim()) {
+      if (!text.trim() && !(sendAttachments && sendAttachments.length)) {
         toast.warning("Please enter a message");
         return;
       }
+      const messageAttachments =
+        sendAttachments && sendAttachments.length ? sendAttachments : undefined;
       addMessage(activeId, {
         id: crypto.randomUUID(),
         role: "user",
         content: text,
+        attachments: messageAttachments,
         tokenUsage: { input: 0, output: 0 },
       });
       setPrompt("");
-      await send(text);
+      clearAttachments();
+      await send(text, messageAttachments);
     },
-    [activeId, state.isSending, addMessage, send],
+    [activeId, state.isSending, addMessage, send, clearAttachments],
   );
 
   const abortStream = useCallback(() => {
@@ -246,16 +305,23 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
 
+      const existing = useSessionStore
+        .getState()
+        .sessions.find((s) => s.id === activeId)
+        ?.messages.find((m) => m.id === messageId);
+      const existingAttachments = existing?.attachments;
+
       revertMessage(activeId, messageId);
 
       addMessage(activeId, {
         id: crypto.randomUUID(),
         role: "user",
         content: text,
+        attachments: existingAttachments,
         tokenUsage: { input: 0, output: 0 },
       });
       setPrompt("");
-      await send(text);
+      await send(text, existingAttachments);
     },
     [addMessage, send, setPrompt, activeId, revertMessage],
   );
@@ -271,7 +337,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         id: STREAMING_MESSAGE_ID,
         role: "assistant" as const,
         modelId: activeSession?.modelId,
-        content: state.snapshot.blocks,
+        content: state.snapshot.content,
+        toolCalls: state.snapshot.toolCalls,
         status: state.snapshot.status,
         tokenUsage: { input: 0, output: 0 },
         reasoning: state.snapshot.reasoningText || undefined,
@@ -299,9 +366,21 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     () => ({
       prompt,
       setPrompt,
+      attachments,
+      addAttachment,
+      removeAttachment,
+      clearAttachments,
       sendMessage,
     }),
-    [prompt, setPrompt, sendMessage],
+    [
+      prompt,
+      setPrompt,
+      attachments,
+      addAttachment,
+      removeAttachment,
+      clearAttachments,
+      sendMessage,
+    ],
   );
 
   const messagesValue = useMemo(

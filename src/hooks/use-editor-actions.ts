@@ -2,19 +2,24 @@ import { useState } from "react";
 import { Editor } from "@tiptap/react";
 
 import { useImportImage } from "@/hooks/use-import-image";
+import { previewUrl } from "@/lib/utils/images";
 
 export const useEditorActions = (editor: Editor | null) => {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
 
-  const { importImage } = useImportImage();
+  const { importFSImage } = useImportImage();
 
   const handleImageClick = async () => {
     if (!editor) return;
 
-    const base64 = await importImage();
-    if (!base64) return;
+    const imported = await importFSImage();
+    if (!imported) return;
 
-    editor.chain().focus().setImage({ src: base64 }).run();
+    editor
+      .chain()
+      .focus()
+      .setImage({ src: previewUrl(imported) })
+      .run();
   };
 
   return {
