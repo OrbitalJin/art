@@ -74,7 +74,7 @@ const MessageResultItem = ({
 
   return (
     <CommandItem
-      value={message.id}
+      value={message.content}
       onSelect={onSelect}
       className={cn(
         "flex items-center gap-3 border-transparent py-2.5 pl-3",
