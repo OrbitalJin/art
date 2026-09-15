@@ -229,7 +229,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         addMessage(activeId, {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: acc.content,
+          content: acc.content || " ",
           toolCalls: acc.toolCalls.length ? acc.toolCalls : undefined,
           status: status !== "streaming" ? status : "complete",
           modelId: session.modelId,

@@ -15,7 +15,7 @@ import { MODELS } from "@/lib/ai/models";
 
 export const AbortedMessage: React.FC<Message> = ({ content, modelId }) => {
   const { copied, copy } = useCopy(content);
-  const hasContent = content.length > 0;
+  const hasContent = content.length > 0 && content !== " ";
   const model = MODELS.find((m) => m.id === modelId);
 
   if (!hasContent) {
