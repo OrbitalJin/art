@@ -194,7 +194,7 @@
     }
 
     th {
-      @apply bg-muted font-semibold;
+      @apply bg-muted/40 font-normal;
     }
   }
 }
