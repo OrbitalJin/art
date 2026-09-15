@@ -16,7 +16,7 @@ export const BranchOriginMarker: React.FC = () => {
   if (!branchOf) return null;
 
   return (
-    <MessageScrollerItem messageId={BRANCH_ORIGIN_MARKER_ID} scrollAnchor>
+    <MessageScrollerItem messageId={BRANCH_ORIGIN_MARKER_ID}>
       <div className="py-4 mx-auto max-w-3xl">
         <Marker variant="separator">
           <MarkerIcon>

@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { writeText, writeImage } from "@tauri-apps/plugin-clipboard-manager";
-import { base64DataUrlToBytes } from "@/lib/utils/images";
+import {
+  base64DataUrlToBytes,
+  saveTempClipboardImage,
+  removeTempClipboardImage,
+} from "@/lib/utils/images";
 
 type CopyInput =
   | string
@@ -22,7 +26,13 @@ export const useCopy = (input: CopyInput) => {
   const copy = async () => {
     try {
       if (isImageInput(input)) {
-        await writeImage(base64DataUrlToBytes(input.data));
+        const bytes = base64DataUrlToBytes(input.data);
+        const path = await saveTempClipboardImage(bytes);
+        try {
+          await writeImage(path);
+        } finally {
+          void removeTempClipboardImage(path);
+        }
       } else {
         await writeText(getText(input));
       }

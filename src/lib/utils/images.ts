@@ -1,4 +1,6 @@
 import type { MessageAttachment } from "@/lib/store/session/types";
+import { appCacheDir, join } from "@tauri-apps/api/path";
+import { writeFile, remove, BaseDirectory } from "@tauri-apps/plugin-fs";
 
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
@@ -62,6 +64,18 @@ export async function rgbaToPng(
   });
 
   return new Uint8Array(await blob.arrayBuffer());
+}
+
+export async function saveTempClipboardImage(
+  bytes: Uint8Array,
+): Promise<string> {
+  const fileName = `clipboard-${crypto.randomUUID()}.png`;
+  await writeFile(fileName, bytes, { baseDir: BaseDirectory.AppCache });
+  return join(await appCacheDir(), fileName);
+}
+
+export async function removeTempClipboardImage(path: string): Promise<void> {
+  await remove(path);
 }
 
 export const arrayBufferToBase64 = (

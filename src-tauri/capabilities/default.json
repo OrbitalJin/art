@@ -24,6 +24,7 @@
     "fs:allow-app-read-recursive",
     "fs:allow-appcache-read",
     "fs:allow-appcache-read-recursive",
+    "fs:allow-appcache-write",
     "fs:allow-appconfig-read",
     "opener:default",
     {

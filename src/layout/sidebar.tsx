@@ -9,7 +9,7 @@ export const Sidebar = () => (
       className={cn(
         "flex flex-col items-center w-[60px] h-full",
         "bg-card/50 backdrop-blur-sm pt-3 pb-2",
-        "transition-all duration-300",
+        "transition-all duration-300 border-l",
       )}
     >
       <WindowControls />

@@ -230,7 +230,7 @@ const DeleteCaptureDialog: React.FC<{
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogTitle>Delete this capture?</AlertDialogTitle>
           <AlertDialogDescription>

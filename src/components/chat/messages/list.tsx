@@ -57,11 +57,7 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
           >
             <BranchOriginMarker />
             {messages.map((msg) => (
-              <MessageScrollerItem
-                key={msg.id}
-                messageId={msg.id}
-                scrollAnchor={msg.role === "user"}
-              >
+              <MessageScrollerItem key={msg.id} messageId={msg.id}>
                 <MessageBroker {...msg} />
               </MessageScrollerItem>
             ))}

@@ -116,11 +116,13 @@ Bento-style task board with drag-and-drop organization.
 ## Capture
 
 A quick inbox for anything — text, links, and screenshots — with a global hotkey and a dedicated page.
+Super + B to capture globally
 
 - [x] Basic capture page
 - [ ] Add image support
+- [ ] Add groups
+- [ ] Add tools
 - [ ] Add voice notes
-- [ ] Add canvas view
 
 ### Shipped
 
@@ -147,6 +149,7 @@ A quick inbox for anything — text, links, and screenshots — with a global ho
 
 ### Planned
 
+- [ ] Captures - Bookmarks
 - [ ] Macroscope - Food tracker
 
 ---

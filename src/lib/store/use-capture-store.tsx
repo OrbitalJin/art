@@ -47,6 +47,7 @@ export const useCaptureStore = create<CaptureState>()(
       },
 
       add(input: AddCaptureInput): string {
+        const createdAt = Date.now();
         const capture: Capture = {
           id: crypto.randomUUID(),
           kind: input.kind,
@@ -54,7 +55,7 @@ export const useCaptureStore = create<CaptureState>()(
           content: input.content,
           source: input.source,
           starred: false,
-          createdAt: Date.now(),
+          createdAt,
         };
 
         set((state) => ({ captures: [capture, ...state.captures] }));
