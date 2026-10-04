@@ -23,6 +23,7 @@ import {
   AttachmentTitle,
 } from "@/components/ui/attachment";
 import { Attach } from "./attach";
+import { KnowledgeSelector } from "./knowledge-selector";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -120,6 +121,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               <TraitSelect />
               <JumpSelect />
               <Attach />
+              <KnowledgeSelector />
             </div>
             <Button
               variant="default"

@@ -45,7 +45,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
       >
         {isStreaming && <Spinner className="animate-spin" />}
         <p className="shimmer text-sm">
-          {isStreaming ? "Pondering" : "Reasoning"}
+          {isStreaming ? "Pondering" : "Introspection"}
         </p>
 
         <ChevronRight

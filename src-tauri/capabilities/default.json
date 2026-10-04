@@ -20,6 +20,8 @@
     "clipboard-manager:allow-read-text",
     "dialog:default",
     "fs:default",
+    "fs:allow-read-file",
+    "fs:allow-read-dir",
     "fs:allow-app-read",
     "fs:allow-app-read-recursive",
     "fs:allow-appcache-read",
