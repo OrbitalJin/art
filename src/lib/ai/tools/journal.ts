@@ -2,6 +2,7 @@ import { useJournalStore } from "@/lib/store/use-journal-store";
 import { WORKSPACES } from "@/lib/store/journal/types";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
+import { withApprovalTool } from "./approval";
 
 const pageSchema = z.object({
   id: z.string(),
@@ -84,7 +85,7 @@ export const journalTools = (): ToolSet => {
       },
     }),
 
-    delete_journal: tool({
+    delete_journal: withApprovalTool({
       title: "Delete Journal Entry",
       description: "Delete a journal entry by ID",
       inputSchema: z.object({

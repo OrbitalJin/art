@@ -10,43 +10,31 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-interface ToolApproval {
-  name: string;
-  description: string;
-  state: "pending" | "approved" | "rejected";
-  approvalId: string;
-  input: unknown;
-  toolName: string;
-  output: unknown;
-}
+import { useApprovalStore } from "@/lib/store/use-approval-store";
+import type { ApprovalStatus } from "@/lib/store/use-approval-store";
 
 export const ToolApprovalCard: React.FC<{
-  block: ToolApproval;
-  messageId: string;
-}> = ({ block, messageId }) => {
-  const { resolveToolApproval, isResolving } = {
-    resolveToolApproval: (
-      id: string,
-      approvalId: string,
-      approved: boolean,
-    ) => {
-      console.log(id, approvalId, approved);
-    },
-    isResolving: false,
-  };
+  toolCallId: string;
+  toolName: string;
+  input: unknown;
+  status: ApprovalStatus;
+}> = ({ toolCallId, toolName, input, status }) => {
+  const resolve = useApprovalStore((state) => state.resolve);
 
-  const isPending = block.state === "pending";
-  const isApproved = block.state === "approved";
+  const isPending = status === "pending";
+  const isApproved = status === "approved";
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(isPending ? true : false);
 
   const handleApprove = () => {
-    resolveToolApproval(messageId, block.approvalId, true);
+    setIsSubmitting(true);
+    resolve(toolCallId, true);
     setIsOpen(false);
   };
   const handleReject = () => {
-    resolveToolApproval(messageId, block.approvalId, false);
+    setIsSubmitting(true);
+    resolve(toolCallId, false);
     setIsOpen(false);
   };
 
@@ -62,7 +50,6 @@ export const ToolApprovalCard: React.FC<{
             : "border-red-500/30 bg-red-500/5",
       )}
     >
-      {/* Header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
@@ -102,7 +89,7 @@ export const ToolApprovalCard: React.FC<{
         </div>
 
         <div className="flex items-center gap-2">
-          {isResolving && isPending && (
+          {isSubmitting && isPending && (
             <Loader2
               size={13}
               className="animate-spin text-muted-foreground/60"
@@ -125,11 +112,11 @@ export const ToolApprovalCard: React.FC<{
               Requested Tool
             </span>
             <span className="font-mono text-xs font-semibold text-foreground/80">
-              {block.toolName}
+              {toolName}
             </span>
           </div>
 
-          {block.input !== undefined && (
+          {input !== undefined && (
             <div className="flex flex-col gap-1.5">
               <span className="text-xs text-muted-foreground/50">
                 Parameters
@@ -140,7 +127,7 @@ export const ToolApprovalCard: React.FC<{
                   "bg-black/30 p-3 text-xs font-mono text-foreground/75 leading-relaxed",
                 )}
               >
-                {JSON.stringify(block.input, null, 2)}
+                {JSON.stringify(input, null, 2)}
               </pre>
             </div>
           )}
@@ -150,7 +137,7 @@ export const ToolApprovalCard: React.FC<{
               <Button
                 size="sm"
                 variant="outline"
-                disabled={isResolving}
+                disabled={isSubmitting}
                 onClick={handleApprove}
                 className={cn(
                   "h-7 gap-1.5",
@@ -164,7 +151,7 @@ export const ToolApprovalCard: React.FC<{
               <Button
                 size="sm"
                 variant="outline"
-                disabled={isResolving}
+                disabled={isSubmitting}
                 onClick={handleReject}
                 className={cn(
                   "h-7 gap-1.5",

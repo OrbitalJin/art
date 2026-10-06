@@ -1,8 +1,10 @@
 import type React from "react";
-import type { MessagePart } from "@/lib/store/session/types";
+import type { MessagePart, ToolCallPart } from "@/lib/store/session/types";
 import { Renderer } from "./renderer";
 import { ToolCallCard } from "./tool-call-card";
+import { ToolApprovalCard } from "./tool-approval-card";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
+import { useApprovalStore } from "@/lib/store/use-approval-store";
 
 const summaryOf = (input: unknown): string | null => {
   if (input && typeof input === "object" && "summary" in input) {
@@ -18,6 +20,26 @@ const DoneSummary: React.FC<{ input: unknown }> = ({ input }) => {
   return (
     <div className="opacity-90">
       <Renderer content={summary} />
+    </div>
+  );
+};
+
+const ToolCallPartView: React.FC<{ part: ToolCallPart }> = ({ part }) => {
+  const approval = useApprovalStore((state) => state.pending[part.id]);
+  const hasOutcome = part.state === "result" || part.state === "error";
+
+  return (
+    <div className="space-y-2">
+      {approval && (
+        <ToolApprovalCard
+          toolCallId={part.id}
+          toolName={part.toolName}
+          input={part.input}
+          status={approval}
+        />
+      )}
+      {(!approval || hasOutcome) && <ToolCallCard block={part} />}
+      {part.toolName === DONE_TOOL_NAME && <DoneSummary input={part.input} />}
     </div>
   );
 };
@@ -41,14 +63,7 @@ export const MessageParts: React.FC<Props> = ({ parts }) => {
           );
         }
 
-        return (
-          <div key={part.id} className="space-y-2">
-            <ToolCallCard block={part} />
-            {part.toolName === DONE_TOOL_NAME && (
-              <DoneSummary input={part.input} />
-            )}
-          </div>
-        );
+        return <ToolCallPartView key={part.id} part={part} />;
       })}
     </div>
   );

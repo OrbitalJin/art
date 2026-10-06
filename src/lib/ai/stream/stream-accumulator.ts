@@ -37,6 +37,9 @@ const appendText = (parts: MessagePart[], text: string): MessagePart[] => {
   return next;
 };
 
+const errorText = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
 const withParts = (
   acc: StreamAccumulator,
   parts: MessagePart[],
@@ -72,6 +75,24 @@ export function applyStreamEvent(
       const parts = acc.parts.map((part) =>
         part.type === "tool-call" && part.id === event.toolCallId
           ? { ...part, state: "result" as const, output: event.output }
+          : part,
+      );
+      return withParts(acc, parts);
+    }
+
+    case "tool-error": {
+      const parts = acc.parts.map((part) =>
+        part.type === "tool-call" && part.id === event.toolCallId
+          ? { ...part, state: "error" as const, output: errorText(event.error) }
+          : part,
+      );
+      return withParts(acc, parts);
+    }
+
+    case "tool-output-denied": {
+      const parts = acc.parts.map((part) =>
+        part.type === "tool-call" && part.id === event.toolCallId
+          ? { ...part, state: "error" as const, output: "Tool call denied" }
           : part,
       );
       return withParts(acc, parts);

@@ -27,6 +27,7 @@ import {
   type StreamAccumulator,
 } from "@/lib/ai/stream/stream-accumulator";
 import { presetFor } from "@/lib/ai/stream/presets";
+import { useApprovalStore } from "@/lib/store/use-approval-store";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 
@@ -206,6 +207,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } finally {
         abortRef.current = null;
+        useApprovalStore.getState().clear();
 
         setState({
           sessionId: activeId,

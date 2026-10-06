@@ -1,4 +1,3 @@
-import { CircleCheck, LoaderPinwheel } from "lucide-react";
 import { useChatStream } from "@/contexts/chat-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import type { ToolCallBlock } from "@/lib/store/session/types";
@@ -74,19 +73,12 @@ const ActivityLine: React.FC<{
   const single = toolCalls.length === 1 ? toolCalls[0] : null;
 
   if (single) {
-    const isDone = single.toolName === DONE_TOOL_NAME;
-    const isExecuting = single.state === "executing" && !isDone;
     return (
       <span className="flex min-w-0 flex-1 items-center gap-2">
-        {isExecuting ? (
-          <LoaderPinwheel
-            size={13}
-            className="shrink-0 animate-spin text-amber-600"
-          />
-        ) : (
-          <CircleCheck size={13} className="shrink-0 text-emerald-500" />
-        )}
-        <span className="shrink-0 font-mono text-xs font-medium">
+        <span
+          className="shrinko-0 text-[10px] font-medium tracking-[0.14em] text-muted-foreground"
+          style={{ fontFamily: "monospace" }}
+        >
           {single.toolName}
         </span>
         <CompactSummary block={single} />
@@ -96,14 +88,7 @@ const ActivityLine: React.FC<{
 
   return (
     <span className="flex min-w-0 flex-1 items-center gap-2">
-      <LoaderPinwheel
-        size={13}
-        className={cn(
-          "shrink-0",
-          running > 0 && "animate-spin text-amber-600",
-        )}
-      />
-      <span className="truncate font-mono text-xs text-muted-foreground">
+      <span className="truncate text-[10px] font-medium tracking-[0.14em] text-muted-foreground/85">
         {toolCalls.length} tools {running > 0 ? "running" : "used"}…
       </span>
     </span>
