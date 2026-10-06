@@ -25,8 +25,10 @@ export const Chat = () => {
   const setChatState = useUIStateStore((state) => state.setChatState);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const didSyncRef = useRef<string | null>(null);
+  const hydrated = useSessionStore((s) => s.hydrated);
 
   useEffect(() => {
+    if (!hydrated) return;
     const store = useSessionStore.getState();
     const routeType = isSessionType(type) ? type : "chat";
     const syncKey = `${type ?? "chat"}:${sessionId ?? ""}`;
@@ -70,7 +72,7 @@ export const Chat = () => {
 
     const id = store.create(routeType);
     store.setActive(id);
-  }, [type, sessionId, navigate]);
+  }, [type, sessionId, navigate, hydrated]);
 
   const isOpen = chatState.sidebarOpen;
   const setIsOpen = (open: boolean) => {

@@ -57,7 +57,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
     const filtered = sessions.filter(
       (session) =>
         session.title.toLowerCase().includes(query.toLowerCase()) &&
-        session.type === typeFilter,
+        (session.type ?? "chat") === typeFilter,
     );
 
     return {

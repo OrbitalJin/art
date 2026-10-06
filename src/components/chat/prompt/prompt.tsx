@@ -7,7 +7,7 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatInput, useChatStream } from "@/contexts/chat-context";
 import { ModeSelect } from "./mode-select";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
-import { ToolOptions } from "./tool-options";
+import { Capabilities } from "./capabilities";
 import { JumpSelect } from "./jump-select";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { previewUrl } from "@/lib/utils/images";
@@ -22,7 +22,6 @@ import {
   AttachmentTitle,
 } from "@/components/ui/attachment";
 import { Attach } from "./attach";
-import { KnowledgeSelector } from "./knowledge-selector";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -118,10 +117,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
             <div className="flex flex-row gap-2">
               <ModelSelect />
               {session?.type === "agent" ? (
-                <>
-                  <ToolOptions />
-                  <KnowledgeSelector />
-                </>
+                <Capabilities />
               ) : (
                 <ModeSelect />
               )}

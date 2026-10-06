@@ -80,7 +80,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
     return sessions
       .filter(
         (s) =>
-          s.type === routeType &&
+          (s.type ?? "chat") === routeType &&
           !s.archived &&
           s.id !== activeId &&
           s.messages.length > 0 &&

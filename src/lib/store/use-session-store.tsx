@@ -6,7 +6,7 @@ import type {
   Message,
   SessionType,
   Session,
-  ToolCallBlock,
+  SessionCapabilities,
 } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
@@ -28,6 +28,7 @@ const createNewSession = ({
     id: crypto.randomUUID(),
     type: type ?? "chat",
     title: title ?? "New Session",
+    capabilities: { journal: false, tasks: false },
     messages: [],
     mode: DEFAULT_MODE,
     modelId:
@@ -40,9 +41,17 @@ const createNewSession = ({
   };
 };
 
+const normalizeSession = (session: Session): Session => ({
+  ...session,
+  type: session.type ?? "chat",
+  mode: session.mode ?? DEFAULT_MODE,
+  capabilities: session.capabilities ?? { journal: false, tasks: false },
+});
+
 export interface SessionState {
   sessions: Session[];
   activeId: string | null;
+  hydrated: boolean;
   titleGeneratingIds: string[];
 
   setMode: (id: string, mode: ModeId) => void;
@@ -51,6 +60,12 @@ export interface SessionState {
   togglePinned: (id: string) => boolean;
 
   setKnowledgeBase: (id: string, root?: string) => void;
+  setCapability: (
+    id: string,
+    key: keyof SessionCapabilities,
+    value: boolean,
+  ) => void;
+  disableAllCapabilities: (id: string) => void;
   setActive: (id: string) => void;
   importFn: (s: Session) => boolean;
   deleteFn: (id: string) => void;
@@ -76,12 +91,46 @@ export const useSessionStore = create<SessionState>()(
     (set, get) => ({
       sessions: [],
       activeId: null,
+      hydrated: false,
       titleGeneratingIds: [],
 
       setKnowledgeBase: (id: string, root?: string) => {
         set((state) => ({
           sessions: state.sessions.map((session) =>
             session.id === id ? { ...session, knowledgeBase: root } : session,
+          ),
+        }));
+      },
+
+      setCapability: (
+        id: string,
+        key: keyof SessionCapabilities,
+        value: boolean,
+      ) => {
+        set((state) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? {
+                  ...session,
+                  capabilities: {
+                    ...session.capabilities,
+                    [key]: value,
+                  },
+                }
+              : session,
+          ),
+        }));
+      },
+
+      disableAllCapabilities: (id: string) => {
+        set((state) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? {
+                  ...session,
+                  capabilities: { journal: false, tasks: false },
+                }
+              : session,
           ),
         }));
       },
@@ -208,7 +257,7 @@ export const useSessionStore = create<SessionState>()(
           orphan.id = crypto.randomUUID();
         }
         set({
-          sessions: [...state.sessions, orphan],
+          sessions: [...state.sessions, normalizeSession(orphan)],
         });
         return !!duplicate;
       },
@@ -242,6 +291,7 @@ export const useSessionStore = create<SessionState>()(
 
           if (newSessions.length === 0) {
             const defaultSession = createNewSession({
+              title: deleted?.type === "chat" ? "New Chat" : "New Agent",
               type: deleted?.type ?? "chat",
             });
             return { sessions: [defaultSession], activeId: defaultSession.id };
@@ -320,11 +370,12 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 10,
+      version: 21,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as {
           sessions?: Array<{
+            capabilities?: SessionCapabilities;
             messages?: Array<
               Message & {
                 role: string;
@@ -335,72 +386,42 @@ export const useSessionStore = create<SessionState>()(
           }>;
         };
 
-        if (version < 6) {
-          if (state && Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => ({
-              ...session,
-              readOnly: true,
-              messages: (session.messages ?? []).map((msg) => ({
-                ...msg,
-                role:
-                  // @ts-expect-error migration schema mismatch
-                  msg.role === "model" || msg.role === "error"
-                    ? "assistant"
-                    : msg.role,
-                tokenUsage: msg.tokenUsage ?? { input: 0, output: 0 },
-              })),
-            }));
+        if (version < 20) {
+          if (Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => {
+              const legacy = session as {
+                type?: SessionType;
+                mode?: ModeId;
+              };
+              return {
+                ...session,
+                type: legacy.type ?? "chat",
+                mode: legacy.mode ?? DEFAULT_MODE,
+              };
+            });
           }
         }
 
-        if (version < 7) {
-          if (state && Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => ({
-              ...session,
-              messages: (session.messages ?? []).map((msg) => {
-                if (!Array.isArray(msg.content)) return msg;
-                const text = msg.content
-                  .filter((b) => (b as { type?: string }).type === "text")
-                  .map((b) => (b as { text?: string }).text ?? "")
-                  .join("");
-                const toolCalls = msg.content
-                  .filter((b) => (b as { type?: string }).type === "tool-call")
-                  .map((b) => {
-                    const { type, ...rest } = b as {
-                      type: string;
-                    } & Record<string, unknown>;
-                    void type;
-                    return rest as unknown as ToolCallBlock;
-                  });
-                const rest = msg as Omit<Message, "content"> & {
-                  content: unknown;
-                };
-                const { content: _content, ...withoutContent } = rest;
-                void _content;
-                return {
-                  ...withoutContent,
-                  content: text,
-                  toolCalls: toolCalls.length ? toolCalls : undefined,
-                } as Message;
-              }),
-            }));
-          }
-        }
-        if (version < 10) {
+        if (version < 21) {
           if (Array.isArray(state.sessions)) {
             state.sessions = state.sessions.map((session) => ({
               ...session,
-
-              // @ts-expect-error migration schema mismatch
-              type: session.type ?? "chat",
+              capabilities:
+                session.capabilities ?? { journal: false, tasks: false },
             }));
           }
         }
 
         return state as SessionState;
       },
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error("Failed to rehydrate session storage", error);
+          useSessionStore.setState({ hydrated: true });
+          return;
+        }
         if (!state) return;
+        state.sessions = (state.sessions ?? []).map(normalizeSession);
         if (state.sessions.length === 0) {
           const newSession = createNewSession({});
           state.sessions = [newSession];
@@ -411,6 +432,7 @@ export const useSessionStore = create<SessionState>()(
         ) {
           state.activeId = state.sessions[0].id;
         }
+        state.hydrated = true;
       },
     },
   ),

@@ -2,7 +2,27 @@ import { join } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile, readDir, type DirEntry } from "@tauri-apps/plugin-fs";
 
-const validExtensions = ["txt", "md"];
+const validExtensions = [
+  "txt",
+  "md",
+  "csv",
+  "json",
+  "yaml",
+  "yml",
+  "xml",
+  "html",
+  "css",
+  "js",
+  "ts",
+  "jsx",
+  "tsx",
+  "py",
+  "rb",
+  "go",
+  "rs",
+  "java",
+  "php",
+];
 
 export const selectDirectory = async (): Promise<string | null> => {
   return await open({

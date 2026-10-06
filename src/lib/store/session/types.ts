@@ -3,6 +3,11 @@ import type { ModeId } from "@/lib/ai/prompts/modes";
 
 export type SessionType = "chat" | "agent";
 
+export interface SessionCapabilities {
+  journal: boolean;
+  tasks: boolean;
+}
+
 export type MessageStatus =
   "thinking" | "streaming" | "complete" | "aborted" | "error";
 
@@ -46,6 +51,7 @@ export interface Session {
   type: SessionType;
   title: string;
   knowledgeBase?: string;
+  capabilities: SessionCapabilities;
   messages: Message[];
   modelId: ModelId;
   mode: ModeId;
