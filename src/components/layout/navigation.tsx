@@ -27,11 +27,12 @@ export const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isSelected = (path: string): boolean => location.pathname === path;
+  const isSelected = (path: string): boolean =>
+    location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   const items: NavigationItem[] = [
     {
-      href: "/chat",
+      href: "/session/chat",
       label: "Chat",
       icon: MessageCircleDashed,
       activeIcon: MessageCircle,

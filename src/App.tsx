@@ -36,9 +36,9 @@ export default function App() {
           }
         >
           <Routes>
-            <Route path="/" element={<Navigate to="/chat" replace />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/chat/:sessionId" element={<Chat />} />
+            <Route path="/" element={<Navigate to="/session/chat" replace />} />
+            <Route path="/session/:type" element={<Chat />} />
+            <Route path="/session/:type/:sessionId" element={<Chat />} />
             <Route
               path="/journal"
               element={

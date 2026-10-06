@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
@@ -61,6 +61,8 @@ const Kbd: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const { setPrompt } = useChatInput();
   const navigate = useNavigate();
+  const { type } = useParams<{ type: string }>();
+  const routeType = type === "agent" ? "agent" : "chat";
   const userProfile = useSettingsStore((s) => s.userProfile);
   const enterKeySends = useSettingsStore((s) => s.enterKeySends);
   const sessions = useSessionStore((s) => s.sessions);
@@ -78,6 +80,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
     return sessions
       .filter(
         (s) =>
+          s.type === routeType &&
           !s.archived &&
           s.id !== activeId &&
           s.messages.length > 0 &&
@@ -85,7 +88,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
       )
       .sort((a, b) => b.updatedAt - a.updatedAt)
       .slice(0, 3);
-  }, [sessions, activeId]);
+  }, [sessions, activeId, routeType]);
 
   const firstName = userProfile.name?.trim().split(" ")[0] || "there";
 
@@ -135,7 +138,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
             {recents.map((s) => (
               <li key={s.id}>
                 <button
-                  onClick={() => navigate(`/chat/${s.id}`)}
+                  onClick={() => navigate(`/session/${s.type}/${s.id}`)}
                   className={cn(
                     "group w-full flex items-baseline gap-4 text-left py-1",
                     "focus-visible:outline-none",

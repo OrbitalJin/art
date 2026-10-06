@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatInput, useChatStream } from "@/contexts/chat-context";
-import { TraitSelect } from "./trait-select";
 import { ModeSelect } from "./mode-select";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
 import { ToolOptions } from "./tool-options";
@@ -34,8 +33,10 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
     useChatInput();
   const { abortStream, isSending, streamingSessionId } = useChatStream();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
-  const activeSession = useSessionStore((state) => state.activeId);
-  const disabled = activeSession !== streamingSessionId && isSending;
+  const session = useSessionStore((state) =>
+    state.sessions.find((s) => s.id === state.activeId),
+  );
+  const disabled = session?.id !== streamingSessionId && isSending;
 
   useEffect(() => {
     const textarea = textAreaRef.current;
@@ -116,31 +117,38 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
           <div className="flex justify-between items-center p-2 bg-background/50 rounded-b-md">
             <div className="flex flex-row gap-2">
               <ModelSelect />
-              <ToolOptions />
-              <ModeSelect />
-              <TraitSelect />
-              <JumpSelect />
-              <Attach />
-              <KnowledgeSelector />
-            </div>
-            <Button
-              variant="default"
-              size="icon"
-              className={cn(
-                "transition-all duration-300",
-                isSending || prompt.trim() || hasAttachments
-                  ? "opacity-100 scale-105"
-                  : "opacity-0 scale-100 pointer-events-none",
-              )}
-              onClick={isSending ? abortStream : handleSend}
-              disabled={!isSending && !prompt.trim() && !hasAttachments}
-            >
-              {isSending && !disabled ? (
-                <Square className="animate-pulse" />
+              {session?.type === "agent" ? (
+                <>
+                  <ToolOptions />
+                  <KnowledgeSelector />
+                </>
               ) : (
-                <ArrowUp />
+                <ModeSelect />
               )}
-            </Button>
+              <Attach />
+            </div>
+            <div className="flex flex-row gap-2">
+              <JumpSelect />
+              <Button
+                variant="default"
+                size="icon"
+                className={cn(
+                  "h-9 w-9 ",
+                  "transition-all duration-300",
+                  isSending || prompt.trim() || hasAttachments
+                    ? "opacity-100 scale-105"
+                    : "opacity-0 scale-100 pointer-events-none",
+                )}
+                onClick={isSending ? abortStream : handleSend}
+                disabled={!isSending && !prompt.trim() && !hasAttachments}
+              >
+                {isSending && !disabled ? (
+                  <Square className="animate-pulse" />
+                ) : (
+                  <ArrowUp />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

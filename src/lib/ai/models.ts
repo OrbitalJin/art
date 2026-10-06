@@ -3,7 +3,9 @@ export type ModelId = "model-1" | "model-2" | "model-3";
 
 export type ModelType =
   | "deepseek/deepseek-v4-flash"
+  | "deepseek/deepseek-v4.1-flash"
   | "deepseek/deepseek-v4-pro"
+  | "zai/glm-5.3-flash"
   | "anthropic/claude-haiku-4.5"
   | "alibaba/qwen3.5-flash"
   | "alibaba/qwen3.7-plus";
@@ -25,7 +27,7 @@ export const MODELS: readonly Model[] = [
   {
     tier: 1,
     id: "model-1",
-    type: "alibaba/qwen3.5-flash",
+    type: "deepseek/deepseek-v4.1-flash",
     displayName: "Monet",
     description:
       "Fast, lightweight, and responsive. Best for quick questions, drafting, and everyday chat.",
@@ -38,7 +40,7 @@ export const MODELS: readonly Model[] = [
   {
     tier: 2,
     id: "model-2",
-    type: "alibaba/qwen3.7-plus",
+    type: "zai/glm-5.3-flash",
     displayName: "Voltaire",
     description:
       "Sharper and more composed. Better at structured writing, synthesis, and connecting ideas clearly.",

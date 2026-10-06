@@ -1,13 +1,10 @@
 import type { ModelId } from "@/lib/ai/models";
 import type { ModeId } from "@/lib/ai/prompts/modes";
-import type { TraitId } from "@/lib/ai/prompts/traits";
+
+export type SessionType = "chat" | "agent";
 
 export type MessageStatus =
-  | "thinking"
-  | "streaming"
-  | "complete"
-  | "aborted"
-  | "error";
+  "thinking" | "streaming" | "complete" | "aborted" | "error";
 
 export interface ToolCallBlock {
   id: string;
@@ -46,10 +43,11 @@ export interface Message {
 
 export interface Session {
   id: string;
+  type: SessionType;
   title: string;
+  knowledgeBase?: string;
   messages: Message[];
   modelId: ModelId;
-  traits: TraitId[];
   mode: ModeId;
   branchOf?: string;
   archived?: boolean;

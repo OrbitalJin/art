@@ -13,7 +13,6 @@ export interface ToolOptions {
   // Custom
   journal: boolean;
   tasks: boolean;
-  audio: boolean;
 }
 
 export interface UserProfile {
@@ -79,7 +78,6 @@ const DEFAULT_TOOL_OPTIONS: ToolOptions = {
   fetch_url: true,
   journal: false,
   tasks: false,
-  audio: false,
 };
 
 const initialState = {

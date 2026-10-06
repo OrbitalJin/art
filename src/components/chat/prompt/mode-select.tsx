@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { Eclipse } from "lucide-react";
+import { VenetianMask } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useChatStream } from "@/contexts/chat-context";
@@ -45,12 +45,7 @@ export const ModeSelect = () => {
                   "hover:bg-accent/20 group",
                 )}
               >
-                <Eclipse
-                  className={cn(
-                    "h-4 w-4 text-muted-foreground transition-transform group-hover:rotate-90",
-                    open && "-rotate-90",
-                  )}
-                />
+                <VenetianMask className={cn("h-4 w-4 text-muted-foreground")} />
                 <span className="sr-only">{currentMode?.label}</span>
               </Button>
             </TooltipTrigger>

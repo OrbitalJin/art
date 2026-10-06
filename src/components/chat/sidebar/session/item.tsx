@@ -107,7 +107,7 @@ export const SessionListItem: React.FC<Props> = ({
       )}
       onClick={() => {
         if (!editing && !isTitleGenerating) {
-          navigate(`/chat/${id}`);
+          navigate(`/session/${item.type}/${id}`);
           onSwitch?.();
         }
       }}
@@ -119,7 +119,7 @@ export const SessionListItem: React.FC<Props> = ({
             onClick={(e) => {
               e.stopPropagation();
               if (parentSession) {
-                navigate(`/chat/${parentSession.id}`);
+                navigate(`/session/${parentSession.type}/${parentSession.id}`);
               }
             }}
           >
@@ -242,7 +242,7 @@ const Menu: React.FC<MenuProps> = ({
   const handleDelete = () => {
     setAlertOpen(false);
     if (item.id === useSessionStore.getState().activeId) {
-      navigate("/chat", { replace: true });
+      navigate(`/session/${item.type}`, { replace: true });
     }
     deleteFn(item.id);
     toast.success("Session deleted successfully.");

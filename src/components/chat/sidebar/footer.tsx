@@ -14,7 +14,6 @@ import {
 export const SidebarFooter = () => {
   const sessions = useSessionStore((state) => state.sessions);
   const activeId = useSessionStore((state) => state.activeId);
-  const createSession = useSessionStore((state) => state.create);
   const activeSession = useMemo(
     () => sessions.find((s) => s.id === activeId),
     [sessions, activeId],
@@ -51,12 +50,7 @@ export const SidebarFooter = () => {
     if (pct >= 70) {
       if (!warnedSessionIds.current.has(activeSession.id)) {
         warnedSessionIds.current.add(activeSession.id);
-        toast.warning("Approaching context limit", {
-          action: {
-            label: "New session",
-            onClick: () => createSession(),
-          },
-        });
+        toast.warning("Approaching context limit");
       }
     } else {
       warnedSessionIds.current.delete(activeSession.id);
@@ -111,14 +105,6 @@ export const SidebarFooter = () => {
                     cost more per message. Consider starting a new session to
                     keep things running smoothly.
                   </p>
-                )}
-                {(isNearLimit || isAtLimit) && (
-                  <button
-                    onClick={() => createSession()}
-                    className="w-full rounded-md bg-primary px-2 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                  >
-                    Start new session
-                  </button>
                 )}
               </div>
             </HoverCardContent>

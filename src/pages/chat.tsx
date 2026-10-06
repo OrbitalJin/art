@@ -9,25 +9,68 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 import { useChatMessages } from "@/contexts/chat-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
+import type { SessionType } from "@/lib/store/session/types";
+
+const isSessionType = (value: string | undefined): value is SessionType =>
+  value === "chat" || value === "agent";
 
 export const Chat = () => {
-  const { sessionId } = useParams<{ sessionId: string }>();
+  const { type, sessionId } = useParams<{
+    type: string;
+    sessionId: string;
+  }>();
   const navigate = useNavigate();
   const { messages } = useChatMessages();
   const chatState = useUIStateStore((state) => state.chatState);
   const setChatState = useUIStateStore((state) => state.setChatState);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const didSyncRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!sessionId) return;
     const store = useSessionStore.getState();
-    const session = store.getFn(sessionId);
-    if (session) {
-      store.setActive(sessionId);
-    } else {
-      navigate("/chat", { replace: true });
+    const routeType = isSessionType(type) ? type : "chat";
+    const syncKey = `${type ?? "chat"}:${sessionId ?? ""}`;
+    if (didSyncRef.current === syncKey) return;
+    didSyncRef.current = syncKey;
+
+    if (!isSessionType(type)) {
+      navigate(`/session/${routeType}`, { replace: true });
+      return;
     }
-  }, [sessionId, navigate]);
+
+    if (sessionId) {
+      const session = store.getFn(sessionId);
+      if (!session) {
+        navigate(`/session/${routeType}`, { replace: true });
+        return;
+      }
+      if (session.type !== routeType) {
+        navigate(`/session/${session.type}/${session.id}`, { replace: true });
+        return;
+      }
+      store.setActive(sessionId);
+      return;
+    }
+
+    const active = store.activeId
+      ? store.getFn(store.activeId)
+      : undefined;
+    if (active && active.type === routeType) {
+      store.setActive(active.id);
+      return;
+    }
+
+    const latest = store.sessions
+      .filter((s) => s.type === routeType && !s.archived && !s.readOnly)
+      .sort((a, b) => b.updatedAt - a.updatedAt)[0];
+    if (latest) {
+      store.setActive(latest.id);
+      return;
+    }
+
+    const id = store.create(routeType);
+    store.setActive(id);
+  }, [type, sessionId, navigate]);
 
   const isOpen = chatState.sidebarOpen;
   const setIsOpen = (open: boolean) => {

@@ -42,20 +42,6 @@ const CATEGORY_TOOLS: Record<string, string[]> = {
     "delete_project",
     "create_project_with_tasks",
   ],
-  audio: [
-    "toggle_playing_state",
-    "set_playing",
-    "set_volume",
-    "toggle_muted",
-    "set_muted",
-    "set_loop",
-    "add_to_playlist",
-    "remove_from_playlist",
-    "clear_playlist",
-    "play_next",
-    "play_previous",
-    "play_at",
-  ],
 };
 
 const CATEGORY_DOLLARS: Record<string, string> = {
@@ -63,7 +49,6 @@ const CATEGORY_DOLLARS: Record<string, string> = {
   fetch_url: "$",
   journal: "$$$",
   tasks: "$$$",
-  audio: "$$",
 };
 
 const toolNamesIn = (names: string[]) => new Set(names);
@@ -73,14 +58,13 @@ export const ToolOptions = () => {
   const fetch_url = useSettingsStore((state) => state.toolOptions.fetch_url);
   const journal = useSettingsStore((state) => state.toolOptions.journal);
   const tasks = useSettingsStore((state) => state.toolOptions.tasks);
-  const audio = useSettingsStore((state) => state.toolOptions.audio);
   const setToolOptions = useSettingsStore((state) => state.setToolOptions);
   const { isSending } = useChatStream();
   const sessions = useSessionStore((state) => state.sessions);
   const activeId = useSessionStore((state) => state.activeId);
 
   const toolCounts = useMemo(() => {
-    const counts: Record<string, number> = { journal: 0, tasks: 0, audio: 0 };
+    const counts: Record<string, number> = { journal: 0, tasks: 0 };
     const activeSession = sessions.find((s) => s.id === activeId);
     if (!activeSession) return counts;
 
@@ -102,7 +86,6 @@ export const ToolOptions = () => {
       fetch_url: false,
       journal: false,
       tasks: false,
-      audio: false,
     });
 
   return (
@@ -176,15 +159,6 @@ export const ToolOptions = () => {
             calls={toolCounts.tasks}
             subtitle="Create and manage tasks"
             onClick={() => setToolOptions({ tasks: !tasks })}
-          />
-
-          <ToolOptionRow
-            label="Player"
-            isOn={audio}
-            dollars={CATEGORY_DOLLARS.audio}
-            calls={toolCounts.audio}
-            subtitle="Control the music player"
-            onClick={() => setToolOptions({ audio: !audio })}
           />
         </div>
 

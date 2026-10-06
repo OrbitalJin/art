@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { SessionListItem } from "./item";
 import { SessionSection } from "./section";
@@ -30,6 +31,8 @@ interface Props {
 export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
   const activeId = useSessionStore((s) => s.activeId);
   const sessions = useSessionStore((s) => s.sessions);
+  const { type } = useParams<{ type: string }>();
+  const typeFilter = type === "agent" ? "agent" : "chat";
   const chatState = useUIStateStore((s) => s.chatState);
   const setChatState = useUIStateStore((s) => s.setChatState);
 
@@ -51,8 +54,10 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
   const setIsOlderOpen = (open: boolean) => setChatState({ olderOpen: open });
 
   const { pinned, regular, archived } = useMemo(() => {
-    const filtered = sessions.filter((session) =>
-      session.title.toLowerCase().includes(query.toLowerCase()),
+    const filtered = sessions.filter(
+      (session) =>
+        session.title.toLowerCase().includes(query.toLowerCase()) &&
+        session.type === typeFilter,
     );
 
     return {
@@ -66,7 +71,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
         .filter((session) => session.archived)
         .sort((a, b) => b.updatedAt - a.updatedAt),
     };
-  }, [sessions, query]);
+  }, [sessions, query, typeFilter]);
 
   const today = useMemo(
     () => regular.filter((s) => getTimeGroup(s.updatedAt) === "today"),

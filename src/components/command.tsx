@@ -4,6 +4,7 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import {
   BookPlus,
   CheckSquare,
+  Drama,
   Inbox,
   MessageCirclePlus,
   Settings2,
@@ -37,9 +38,14 @@ export const Command: React.FC<Props> = ({ items }) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleQuickSession = () => {
-    createSession("Quick Session");
-    handleNavigate("/chat");
+  const handleQuickChat = () => {
+    const id = createSession("chat", "Quick Chat");
+    handleNavigate(`/session/chat/${id}`);
+  };
+
+  const handleQuickAgent = () => {
+    const id = createSession("agent", "Quick Agent");
+    handleNavigate(`/session/agent/${id}`);
   };
 
   const handleQuickThought = () => {
@@ -113,7 +119,8 @@ export const Command: React.FC<Props> = ({ items }) => {
     { ignoreInputs: false },
   );
 
-  useHotkey("Mod+Alt+S", handleQuickSession);
+  useHotkey("Mod+Alt+C", handleQuickChat);
+  useHotkey("Mod+Alt+A", handleQuickAgent);
   useHotkey("Mod+Alt+N", handleQuickThought);
   useHotkey("Mod+Alt+T", handleQuickTask);
   useHotkey("Mod+,", handleOpenSettings);
@@ -125,11 +132,19 @@ export const Command: React.FC<Props> = ({ items }) => {
         <CommandEmpty>No results found.</CommandEmpty>
 
         <CommandGroup heading="Quick Actions">
-          <CommandItem value="quick session" onSelect={handleQuickSession}>
+          <CommandItem value="quick chat" onSelect={handleQuickChat}>
             <MessageCirclePlus className="mr-2 h-4 w-4" />
-            Quick Session
+            New Chat
             <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
-              <Kbd>Ctrl</Kbd>+<Kbd>Alt</Kbd>+<Kbd>S</Kbd>
+              <Kbd>Ctrl</Kbd>+<Kbd>Alt</Kbd>+<Kbd>C</Kbd>
+            </CommandShortcut>
+          </CommandItem>
+
+          <CommandItem value="quick agent" onSelect={handleQuickAgent}>
+            <Drama className="mr-2 h-4 w-4" />
+            New Agent
+            <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
+              <Kbd>Ctrl</Kbd>+<Kbd>Alt</Kbd>+<Kbd>A</Kbd>
             </CommandShortcut>
           </CommandItem>
 
@@ -143,7 +158,7 @@ export const Command: React.FC<Props> = ({ items }) => {
 
           <CommandItem value="quick task" onSelect={handleQuickTask}>
             <CheckSquare className="mr-2 h-3 w-3" />
-            Quick Task
+            New Task
             <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
               <Kbd>Ctrl</Kbd>+<Kbd>Alt</Kbd>+<Kbd>T</Kbd>
             </CommandShortcut>
@@ -151,7 +166,7 @@ export const Command: React.FC<Props> = ({ items }) => {
 
           <CommandItem value="quick capture" onSelect={handleQuickCapture}>
             <Inbox className="mr-2 h-4 w-4" />
-            Quick Capture
+            New Capture
             <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
               <Kbd>Ctrl</Kbd>+<Kbd>Shift</Kbd>+<Kbd>C</Kbd>
             </CommandShortcut>

@@ -2,21 +2,32 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { create } from "zustand";
 
 import { MODELS, type ModelId } from "@/lib/ai/models";
-import type { Message, Session, ToolCallBlock } from "@/lib/store/session/types";
+import type {
+  Message,
+  SessionType,
+  Session,
+  ToolCallBlock,
+} from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
-import type { TraitId } from "../ai/prompts/traits";
 import { useSettingsStore } from "./use-settings-store";
 
-const createNewSession = (
-  title?: string,
-  defaultModelId?: ModelId,
-): Session => {
+interface CreateSessionOpts {
+  title?: string;
+  defaultModelId?: ModelId;
+  type?: SessionType;
+}
+
+const createNewSession = ({
+  title,
+  defaultModelId,
+  type,
+}: CreateSessionOpts): Session => {
   const date = Date.now();
   return {
     id: crypto.randomUUID(),
+    type: type ?? "chat",
     title: title ?? "New Session",
-    traits: [],
     messages: [],
     mode: DEFAULT_MODE,
     modelId:
@@ -39,14 +50,11 @@ export interface SessionState {
   toggleArchived: (id: string) => void;
   togglePinned: (id: string) => boolean;
 
-  addTrait: (id: string, trait: TraitId) => void;
-  removeTrait: (id: string, trait: TraitId) => void;
-  clearTraits: (id: string) => void;
-
+  setKnowledgeBase: (id: string, root?: string) => void;
   setActive: (id: string) => void;
   importFn: (s: Session) => boolean;
   deleteFn: (id: string) => void;
-  create: (title?: string) => void;
+  create: (type: SessionType, title?: string) => string;
   getFn: (id: string) => Session | undefined;
   branchFrom: (
     sessionId: string,
@@ -69,6 +77,14 @@ export const useSessionStore = create<SessionState>()(
       sessions: [],
       activeId: null,
       titleGeneratingIds: [],
+
+      setKnowledgeBase: (id: string, root?: string) => {
+        set((state) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id ? { ...session, knowledgeBase: root } : session,
+          ),
+        }));
+      },
 
       revertMessage: (sessionId: string, messageId: string): boolean => {
         let success = false;
@@ -94,7 +110,8 @@ export const useSessionStore = create<SessionState>()(
       },
 
       purge: () => {
-        const newSession = createNewSession();
+        const active = get().sessions.find((s) => s.id === get().activeId);
+        const newSession = createNewSession({ type: active?.type ?? "chat" });
         set({
           sessions: [newSession],
           activeId: newSession.id,
@@ -175,37 +192,6 @@ export const useSessionStore = create<SessionState>()(
         return true;
       },
 
-      addTrait: (id: string, trait: TraitId) => {
-        set((state: SessionState) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id
-              ? { ...session, traits: [...session.traits, trait] }
-              : session,
-          ),
-        }));
-      },
-
-      removeTrait: (id: string, trait: TraitId) => {
-        set((state: SessionState) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id
-              ? {
-                  ...session,
-                  traits: session.traits.filter((t) => t != trait),
-                }
-              : session,
-          ),
-        }));
-      },
-
-      clearTraits: (id: string) => {
-        set((state: SessionState) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id ? { ...session, traits: [] } : session,
-          ),
-        }));
-      },
-
       togglePinned: (id: string): boolean => {
         const state = get();
         const session = state.sessions.find((s) => s.id === id);
@@ -238,21 +224,26 @@ export const useSessionStore = create<SessionState>()(
           ),
         })),
 
-      create: (title?: string) => {
-        const newSession = createNewSession(title);
+      create: (type: SessionType, title?: string) => {
+        const newSession = createNewSession({ title, type });
 
         set((state) => ({
           sessions: [newSession, ...state.sessions],
           activeId: newSession.id,
         }));
+
+        return newSession.id;
       },
 
       deleteFn: (id: string) => {
         set((state: SessionState) => {
+          const deleted = state.sessions.find((s) => s.id === id);
           const newSessions = state.sessions.filter((s) => s.id !== id);
 
           if (newSessions.length === 0) {
-            const defaultSession = createNewSession();
+            const defaultSession = createNewSession({
+              type: deleted?.type ?? "chat",
+            });
             return { sessions: [defaultSession], activeId: defaultSession.id };
           }
 
@@ -329,7 +320,7 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 7,
+      version: 10,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as {
@@ -337,7 +328,8 @@ export const useSessionStore = create<SessionState>()(
             messages?: Array<
               Message & {
                 role: string;
-                content: string | Array<{ type: string } & Record<string, unknown>>;
+                content:
+                  string | Array<{ type: string } & Record<string, unknown>>;
               }
             >;
           }>;
@@ -372,9 +364,7 @@ export const useSessionStore = create<SessionState>()(
                   .map((b) => (b as { text?: string }).text ?? "")
                   .join("");
                 const toolCalls = msg.content
-                  .filter(
-                    (b) => (b as { type?: string }).type === "tool-call",
-                  )
+                  .filter((b) => (b as { type?: string }).type === "tool-call")
                   .map((b) => {
                     const { type, ...rest } = b as {
                       type: string;
@@ -396,13 +386,23 @@ export const useSessionStore = create<SessionState>()(
             }));
           }
         }
+        if (version < 10) {
+          if (Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => ({
+              ...session,
+
+              // @ts-expect-error migration schema mismatch
+              type: session.type ?? "chat",
+            }));
+          }
+        }
 
         return state as SessionState;
       },
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         if (state.sessions.length === 0) {
-          const newSession = createNewSession();
+          const newSession = createNewSession({});
           state.sessions = [newSession];
           state.activeId = newSession.id;
         } else if (

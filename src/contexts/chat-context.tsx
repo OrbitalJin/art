@@ -7,16 +7,14 @@ import React, {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { streamText, stepCountIs, smoothStream } from "ai";
+import { streamText, smoothStream } from "ai";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import type {
   Message,
   MessageAttachment,
   MessageStatus,
 } from "@/lib/store/session/types";
-import { system } from "@/lib/ai/prompts/system";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { toolsFor } from "@/lib/ai/tools/tools";
 import { modelById, modelTypeById } from "@/lib/ai/models";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 import { useGateway } from "@/hooks/use-gateway";
@@ -26,6 +24,7 @@ import {
   isTerminal,
   type StreamAccumulator,
 } from "@/lib/ai/stream/stream-accumulator";
+import { presetFor } from "@/lib/ai/stream/presets";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 
@@ -39,8 +38,6 @@ interface ChatStreamValues {
 interface ChatInputValues {
   prompt: string;
   setPrompt: (value: string) => void;
-  knowledgeRoot: string | undefined;
-  setKnowledgeRoot: (root: string | undefined) => void;
   attachments: MessageAttachment[];
   addAttachment: (attachment: MessageAttachment) => void;
   removeAttachment: (index: number) => void;
@@ -103,6 +100,11 @@ const INITIAL_STATE: State = {
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const [prompt, setPrompt] = useState("");
+  const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
+  const [state, setState] = useState<State>(INITIAL_STATE);
+
+  const abortRef = useRef<AbortController | null>(null);
   const apiKey = useSettingsStore((state) => state.apiKey);
   const activeId = useSessionStore((state) => state.activeId);
   const addMessage = useSessionStore((state) => state.addMessage);
@@ -112,13 +114,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const gateway = useGateway();
-
-  const [prompt, setPrompt] = useState("");
-  const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
-  const [knowledgeRoot, setKnowledgeRoot] = useState<string | undefined>();
-  const [state, setState] = useState<State>(INITIAL_STATE);
-
-  const abortRef = useRef<AbortController | null>(null);
 
   const send = useCallback(
     async (text: string, attachments?: MessageAttachment[]) => {
@@ -130,6 +125,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!session) return;
 
       const { userProfile, agentProfile } = useSettingsStore.getState();
+      const profiles = { user: userProfile, agent: agentProfile };
 
       const supportsVision = modelById(session.modelId).capabilities.vision;
       const hasImages = !!attachments?.length;
@@ -172,15 +168,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
 
         stream = streamText({
           model: gateway(modelTypeById(session.modelId)),
-          stopWhen: stepCountIs(10),
           abortSignal: controller.signal,
-          system: system({
-            mode: session.mode,
-            traits: session.traits,
-            userProfile,
-            agentProfile,
-          }),
-          tools: toolsFor({ session, knowledgeRoot }),
           messages: [
             ...toSDKMessages(trailing, stripImages),
             { role: "user" as const, content: currentUserContent },
@@ -188,6 +176,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
           experimental_transform: smoothStream({
             delayInMs: 5,
             chunking: "word",
+          }),
+          ...presetFor({
+            session,
+            profiles,
           }),
         });
 
@@ -253,7 +245,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
     },
-    [activeId, apiKey, addMessage, gateway, knowledgeRoot],
+    [activeId, apiKey, addMessage, gateway],
   );
 
   const addAttachment = useCallback((attachment: MessageAttachment) => {
@@ -370,8 +362,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       prompt,
       setPrompt,
       attachments,
-      knowledgeRoot,
-      setKnowledgeRoot,
       addAttachment,
       removeAttachment,
       clearAttachments,
@@ -380,8 +370,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     [
       prompt,
       setPrompt,
-      knowledgeRoot,
-      setKnowledgeRoot,
       attachments,
       addAttachment,
       removeAttachment,
