@@ -5,6 +5,7 @@ import { tasksTools } from "./tasks";
 import { sessionTools } from "./session";
 import { searchTools } from "./search";
 import { knowledgeTools } from "./knowledge";
+import { doneTools } from "./done";
 
 export interface Opts {
   session?: Session;
@@ -25,5 +26,6 @@ export const toolsFor = ({ session }: Opts): ToolSet => {
     ...(journal && journalTools()),
     ...(tasks && tasksTools()),
     ...ambientTools(),
+    ...doneTools(),
   };
 };

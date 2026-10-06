@@ -22,10 +22,11 @@ import {
 } from "@/components/ui/message-scroller";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import type { Message } from "@/lib/store/session/types";
+import { messageText } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 
 const previewOf = (msg: Message): string => {
-  const text = msg.content.trim();
+  const text = messageText(msg).trim();
   if (text) return text;
   if (msg.toolCalls?.length) return "Tool call";
   return "(empty message)";
@@ -51,7 +52,7 @@ const ContentTypeIcon = ({ msg }: { msg: Message }) => {
     return <Paperclip className="h-3 w-3 text-muted-foreground/60" />;
   }
 
-  if (msg.content.trim()) return null;
+  if (messageText(msg).trim()) return null;
 
   if (msg.toolCalls?.length) {
     return <Wrench className="h-3 w-3 text-muted-foreground/60" />;
@@ -74,7 +75,7 @@ const MessageResultItem = ({
 
   return (
     <CommandItem
-      value={message.content}
+      value={messageText(message)}
       onSelect={onSelect}
       className={cn(
         "flex items-center gap-3 border-transparent py-2.5 pl-3",

@@ -13,6 +13,7 @@ const themeShikiMap: Record<ThemeColor, string> = {
   "sunny sprout": "everforest-dark",
   "dark matter": "kanagawa-dragon",
   "claude plus": "gruvbox-dark-hard",
+  "mocha mousse": "gruvbox-dark-hard",
   terminal: "kanagawa-dragon",
   "t3 chat": "dracula-soft",
   vercel: "dark-plus",

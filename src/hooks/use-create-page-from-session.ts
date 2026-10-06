@@ -1,4 +1,5 @@
 import { useSessionStore } from "@/lib/store/use-session-store";
+import { messageText } from "@/lib/store/session/types";
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useState } from "react";
@@ -33,7 +34,10 @@ export const useCreatePageFromSession = () => {
 
       const conversationText = session.messages
         .filter((m) => m.role === "user" || m.role === "assistant")
-        .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+        .map(
+          (m) =>
+            `${m.role === "user" ? "User" : "Assistant"}: ${messageText(m)}`,
+        )
         .join("\n\n");
 
       if (!conversationText) {

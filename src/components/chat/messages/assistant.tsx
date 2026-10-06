@@ -2,8 +2,9 @@ import React from "react";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Sparkle, Cpu, GitBranch } from "lucide-react";
-import { Renderer } from "./renderer";
 import type { Message } from "@/lib/store/session/types";
+import { messageText } from "@/lib/store/session/types";
+import { MessageParts } from "./parts";
 import { cn } from "@/lib/utils";
 import { MODELS } from "@/lib/ai/models";
 import {
@@ -16,24 +17,21 @@ import { toast } from "sonner";
 import { ThinkingSection } from "./thinking-section";
 import { useChatStream } from "@/contexts/chat-context";
 
-export const AssistantMessage: React.FC<Message> = ({
-  content,
-  toolCalls,
-  modelId,
-  id: messageId,
-  tokenUsage: { output },
-  reasoning,
-}) => {
+export const AssistantMessage: React.FC<Message> = (message) => {
+  const { parts, modelId, id: messageId, tokenUsage, reasoning } = message;
+  const { output } = tokenUsage;
+
   const activeId = useSessionStore((state) => state.activeId);
   const branchFrom = useSessionStore((state) => state.branchFrom);
   const { isSending, streamingMessageId } = useChatStream();
 
+  const content = messageText(message);
   const { copied, copy } = useCopy(content);
 
   const model = MODELS.find((m) => m.id === modelId);
   const premium = model?.tier === 3;
 
-  const hasContent = content.length > 0 || !!reasoning;
+  const hasContent = parts.length > 0 || !!reasoning;
 
   const isStreamingMessage = messageId === streamingMessageId;
   const shouldRenderFooter = hasContent && !isStreamingMessage;
@@ -58,15 +56,10 @@ export const AssistantMessage: React.FC<Message> = ({
       >
         <ThinkingSection
           reasoning={reasoning}
-          toolCalls={toolCalls ?? []}
           status={isStreamingMessage ? "streaming" : "done"}
         />
 
-        {content.length > 0 && (
-          <div className="space-y-1 opacity-90">
-            <Renderer content={content} />
-          </div>
-        )}
+        <MessageParts parts={parts} />
 
         {shouldRenderFooter && (
           <div className="flex items-center justify-between mt-2 opacity-0 group-hover:opacity-100">

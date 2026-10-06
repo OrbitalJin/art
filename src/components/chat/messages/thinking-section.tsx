@@ -1,28 +1,23 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { ToolCallCard } from "./tool-call-card";
-import type { ToolCallBlock } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 
 interface ThinkingSectionProps {
   reasoning?: string | null;
-  toolCalls: ToolCallBlock[];
   status: "streaming" | "done";
 }
 
 export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
   reasoning,
-  toolCalls,
   status,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const isStreaming = status === "streaming";
 
   const hasReasoning = !!reasoning;
-  const hasToolCalls = toolCalls.length > 0;
 
-  if (isStreaming && !hasReasoning && !hasToolCalls) {
+  if (isStreaming && !hasReasoning) {
     return (
       <div className="flex items-center gap-2 text-muted-foreground">
         <Spinner className="animate-spin" />
@@ -31,7 +26,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
     );
   }
 
-  if (!hasReasoning && !hasToolCalls) return null;
+  if (!hasReasoning) return null;
 
   return (
     <div className="mb-2 select-none">
@@ -59,23 +54,12 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
 
       {isOpen && (
         <div className="flex flex-col gap-2">
-          {hasReasoning && (
-            <p className="text-sm leading-relaxed text-muted-foreground/60 italic whitespace-pre-wrap">
-              {reasoning}
-              {isStreaming && (
-                <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-amber-600/60 align-middle" />
-              )}
-            </p>
-          )}
-
-          {hasToolCalls &&
-            toolCalls.map((block) => (
-              <ToolCallCard
-                className="opacity-80"
-                key={block.id}
-                block={block}
-              />
-            ))}
+          <p className="text-sm leading-relaxed text-muted-foreground/60 italic whitespace-pre-wrap">
+            {reasoning}
+            {isStreaming && (
+              <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-amber-600/60 align-middle" />
+            )}
+          </p>
         </div>
       )}
     </div>

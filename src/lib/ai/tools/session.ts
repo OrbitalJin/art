@@ -6,6 +6,7 @@ import { generateText } from "ai";
 import { modelTypeById } from "@/lib/ai/models";
 import { gen } from "@/lib/ai/prompts/gen";
 import type { Session } from "@/lib/store/session/types";
+import { messageText } from "@/lib/store/session/types";
 import { nativeFetch } from "@/lib/native-fetch";
 
 interface Opts {
@@ -28,7 +29,10 @@ export const sessionTools = ({ session }: Opts): ToolSet => {
 
         const conversationText = session.messages
           .filter((m) => m.role === "user" || m.role === "assistant")
-          .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+          .map(
+            (m) =>
+              `${m.role === "user" ? "User" : "Assistant"}: ${messageText(m)}`,
+          )
           .join("\n\n");
 
         if (!conversationText)

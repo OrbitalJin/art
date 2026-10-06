@@ -54,7 +54,10 @@ const formatNow = (): string =>
 const SESSION_TYPE_RULES: Record<SessionType, string> = {
   agent:
     "You have tools and can take real actions. Use them when they help; " +
-    "verify results instead of assuming success.",
+    "verify results instead of assuming success. Keep working with tools " +
+    "until the task is truly complete, then call the `done` tool with a " +
+    "concise summary of what you did. Never call `done` prematurely or " +
+    "instead of doing the work.",
   chat:
     "You can only converse and search the web. If a task requires " +
     "actions you cannot take, say so and offer what you can do instead.",

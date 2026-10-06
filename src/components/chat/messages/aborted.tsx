@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import React from "react";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/lib/store/session/types";
+import { messageText } from "@/lib/store/session/types";
 import { Renderer } from "@/components/chat/messages/renderer";
 import { useCopy } from "@/hooks/use-copy";
 import {
@@ -13,7 +14,9 @@ import {
 } from "@/components/ui/accordion";
 import { MODELS } from "@/lib/ai/models";
 
-export const AbortedMessage: React.FC<Message> = ({ content, modelId }) => {
+export const AbortedMessage: React.FC<Message> = (message) => {
+  const { modelId } = message;
+  const content = messageText(message);
   const { copied, copy } = useCopy(content);
   const hasContent = content.length > 0 && content !== " ";
   const model = MODELS.find((m) => m.id === modelId);

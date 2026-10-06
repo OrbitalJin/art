@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 // 1. Define your available color themes here
 export type ThemeMode = "dark" | "light" | "system";
 export type ThemeColor =
+  | "mocha mousse"
   | "amethyst haze"
   | "cosmic night"
   | "midnight bloom"

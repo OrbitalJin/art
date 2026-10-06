@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Renderer } from "./renderer";
 import type { Message } from "@/lib/store/session/types";
+import { messageText } from "@/lib/store/session/types";
 import { previewUrl } from "@/lib/utils/images";
 import {
   AlertDialog,
@@ -74,7 +75,7 @@ function formatAttachment(attachment: {
 }
 
 export const UserMessage: React.FC<Message> = (message) => {
-  const { content } = message;
+  const content = messageText(message);
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const { editMessage } = useChatMessages();

@@ -33,6 +33,7 @@ const THEME_COLORS: Array<{ value: ThemeColor; label: string }> = [
   { value: "flutter shy", label: "Flutter Shy" },
   { value: "claude plus", label: "Claude Plus" },
   { value: "dark matter", label: "Dark Matter" },
+  { value: "mocha mousse", label: "Mocha Mousse" },
   { value: "terminal", label: "Terminal" },
   { value: "vercel", label: "Vercel" },
   { value: "claude", label: "Claude" },

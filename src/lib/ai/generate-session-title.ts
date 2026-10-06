@@ -2,6 +2,7 @@ import { createGateway, generateText, Output } from "ai";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useSessionStore } from "@/lib/store/use-session-store";
+import { messageText } from "@/lib/store/session/types";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { type ModelType } from "@/lib/ai/models";
 import { nativeFetch } from "@/lib/native-fetch";
@@ -23,7 +24,10 @@ export async function generateSessionTitle(
     const conversationText = session.messages
       .filter((m) => m.role === "user" || m.role === "assistant")
       .slice(0, 4)
-      .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+      .map(
+        (m) =>
+          `${m.role === "user" ? "User" : "Assistant"}: ${messageText(m)}`,
+      )
       .join("\n\n");
 
     if (!conversationText) return;

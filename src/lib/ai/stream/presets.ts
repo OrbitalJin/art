@@ -1,7 +1,9 @@
 import type { Session } from "@/lib/store/session/types";
 import { system, type Profiles } from "../prompts/system";
 import { ambientTools, toolsFor } from "../tools/tools";
-import { stepCountIs } from "ai";
+import { stepCountIs, hasToolCall } from "ai";
+import { DONE_TOOL_NAME } from "../tools/done";
+import { adaptiveStopCondition, BACKSTOP_STEPS } from "./stop-conditions";
 
 export interface RequestContext {
   session: Session;
@@ -15,7 +17,11 @@ export const presetFor = (ctx: RequestContext) => {
     return {
       system: system({ ...ctx, type: session.type }),
       tools: toolsFor({ session }),
-      stopWhen: stepCountIs(10),
+      stopWhen: [
+        hasToolCall(DONE_TOOL_NAME),
+        adaptiveStopCondition(),
+        stepCountIs(BACKSTOP_STEPS),
+      ],
     };
   }
 

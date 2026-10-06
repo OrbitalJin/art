@@ -13,7 +13,9 @@ import type {
   Message,
   MessageAttachment,
   MessageStatus,
+  ToolCallBlock,
 } from "@/lib/store/session/types";
+import { messageText } from "@/lib/store/session/types";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { modelById, modelTypeById } from "@/lib/ai/models";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
@@ -32,6 +34,7 @@ interface ChatStreamValues {
   streamingSessionId: string | null;
   streamingMessageId: string | null;
   isSending: boolean;
+  toolCalls: ToolCallBlock[];
   abortStream: () => void;
 }
 
@@ -69,18 +72,19 @@ function toSDKMessages(messages: Message[], stripImages = false) {
   return messages
     .filter((m) => m.role === "user" || m.role === "assistant")
     .map((m) => {
+      const text = messageText(m);
       if (m.role === "user" && !stripImages && m.attachments?.length) {
         return {
           role: "user" as const,
           content: [
-            { type: "text" as const, text: m.content },
+            { type: "text" as const, text },
             ...m.attachments.map(attachmentToImagePart),
           ],
         };
       }
       return {
         role: m.role as "user" | "assistant",
-        content: m.content,
+        content: text,
       };
     });
 }
@@ -224,7 +228,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         addMessage(activeId, {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: acc.content || " ",
+          parts: acc.parts.length
+            ? acc.parts
+            : [{ type: "text" as const, text: " " }],
           toolCalls: acc.toolCalls.length ? acc.toolCalls : undefined,
           status: status !== "streaming" ? status : "complete",
           modelId: session.modelId,
@@ -276,7 +282,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       addMessage(activeId, {
         id: crypto.randomUUID(),
         role: "user",
-        content: text,
+        parts: [{ type: "text", text }],
         attachments: messageAttachments,
         tokenUsage: { input: 0, output: 0 },
       });
@@ -311,7 +317,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       addMessage(activeId, {
         id: crypto.randomUUID(),
         role: "user",
-        content: text,
+        parts: [{ type: "text", text }],
         attachments: existingAttachments,
         tokenUsage: { input: 0, output: 0 },
       });
@@ -332,7 +338,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         id: STREAMING_MESSAGE_ID,
         role: "assistant" as const,
         modelId: activeSession?.modelId,
-        content: state.snapshot.content,
+        parts: state.snapshot.parts,
         toolCalls: state.snapshot.toolCalls,
         status: state.snapshot.status,
         tokenUsage: { input: 0, output: 0 },
@@ -352,9 +358,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       streamingSessionId: state.isSending ? state.sessionId : null,
       streamingMessageId: state.isSending ? STREAMING_MESSAGE_ID : null,
       isSending: state.isSending,
+      toolCalls: state.isSending ? state.snapshot.toolCalls : [],
       abortStream,
     }),
-    [state.isSending, state.sessionId, abortStream],
+    [state.isSending, state.sessionId, state.snapshot.toolCalls, abortStream],
   );
 
   const inputValue = useMemo(

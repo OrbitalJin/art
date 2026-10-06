@@ -4,9 +4,11 @@ import { create } from "zustand";
 import { MODELS, type ModelId } from "@/lib/ai/models";
 import type {
   Message,
+  MessagePart,
   SessionType,
   Session,
   SessionCapabilities,
+  ToolCallBlock,
 } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
@@ -41,11 +43,36 @@ const createNewSession = ({
   };
 };
 
+type LegacyMessage = Message & {
+  content?: string;
+  parts?: MessagePart[];
+  toolCalls?: ToolCallBlock[];
+};
+
+const normalizeMessage = (message: LegacyMessage): Message => {
+  if (Array.isArray(message.parts)) return message;
+
+  const parts: MessagePart[] = [];
+  if (typeof message.content === "string" && message.content) {
+    parts.push({ type: "text", text: message.content });
+  }
+  for (const call of message.toolCalls ?? []) {
+    parts.push({ type: "tool-call", ...call });
+  }
+
+  const { content: _content, ...rest } = message;
+  void _content;
+  return { ...rest, parts };
+};
+
 const normalizeSession = (session: Session): Session => ({
   ...session,
   type: session.type ?? "chat",
   mode: session.mode ?? DEFAULT_MODE,
   capabilities: session.capabilities ?? { journal: false, tasks: false },
+  messages: (session.messages ?? []).map((message) =>
+    normalizeMessage(message as LegacyMessage),
+  ),
 });
 
 export interface SessionState {
@@ -370,7 +397,7 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 21,
+      version: 22,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as {
@@ -379,8 +406,10 @@ export const useSessionStore = create<SessionState>()(
             messages?: Array<
               Message & {
                 role: string;
-                content:
+                content?:
                   string | Array<{ type: string } & Record<string, unknown>>;
+                parts?: MessagePart[];
+                toolCalls?: ToolCallBlock[];
               }
             >;
           }>;
@@ -408,6 +437,17 @@ export const useSessionStore = create<SessionState>()(
               ...session,
               capabilities:
                 session.capabilities ?? { journal: false, tasks: false },
+            }));
+          }
+        }
+
+        if (version < 22) {
+          if (Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => ({
+              ...session,
+              messages: (session.messages ?? []).map((message) =>
+                normalizeMessage(message as LegacyMessage),
+              ),
             }));
           }
         }

@@ -1,11 +1,15 @@
 import type { TextStreamPart, ToolSet } from "ai";
 import type {
+  MessagePart,
   MessageStatus,
   ToolCallBlock,
+  ToolCallPart,
 } from "@/lib/store/session/types";
+import { toolCallsOf } from "@/lib/store/session/types";
+import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
 
 export interface StreamAccumulator {
-  content: string;
+  parts: MessagePart[];
   toolCalls: ToolCallBlock[];
   reasoningText: string;
   reasoningStatus: "hidden" | "streaming" | "done";
@@ -13,7 +17,7 @@ export interface StreamAccumulator {
 }
 
 export const initialAccumulator: StreamAccumulator = {
-  content: "",
+  parts: [],
   toolCalls: [],
   reasoningText: "",
   reasoningStatus: "hidden",
@@ -22,34 +26,55 @@ export const initialAccumulator: StreamAccumulator = {
 
 export type StreamEvent = TextStreamPart<ToolSet>;
 
+const appendText = (parts: MessagePart[], text: string): MessagePart[] => {
+  const next = parts.slice();
+  const last = next[next.length - 1];
+  if (last && last.type === "text") {
+    next[next.length - 1] = { ...last, text: last.text + text };
+  } else {
+    next.push({ type: "text", text });
+  }
+  return next;
+};
+
+const withParts = (
+  acc: StreamAccumulator,
+  parts: MessagePart[],
+): StreamAccumulator => ({
+  ...acc,
+  parts,
+  toolCalls: toolCallsOf(parts),
+});
+
 export function applyStreamEvent(
   acc: StreamAccumulator,
   event: StreamEvent,
 ): StreamAccumulator {
   switch (event.type) {
     case "text-delta": {
-      return { ...acc, content: acc.content + event.text };
+      if (!event.text) return acc;
+      return withParts(acc, appendText(acc.parts, event.text));
     }
 
     case "tool-call": {
-      const block: ToolCallBlock = {
+      const isDone = event.toolName === DONE_TOOL_NAME;
+      const block: ToolCallPart = {
+        type: "tool-call",
         id: event.toolCallId,
         toolName: event.toolName,
         input: event.input,
-        state: "executing",
+        state: isDone ? "result" : "executing",
       };
-      return { ...acc, toolCalls: [...acc.toolCalls, block] };
+      return withParts(acc, [...acc.parts, block]);
     }
 
     case "tool-result": {
-      return {
-        ...acc,
-        toolCalls: acc.toolCalls.map((block) =>
-          block.id === event.toolCallId
-            ? { ...block, state: "result" as const, output: event.output }
-            : block,
-        ),
-      };
+      const parts = acc.parts.map((part) =>
+        part.type === "tool-call" && part.id === event.toolCallId
+          ? { ...part, state: "result" as const, output: event.output }
+          : part,
+      );
+      return withParts(acc, parts);
     }
 
     case "reasoning-start":

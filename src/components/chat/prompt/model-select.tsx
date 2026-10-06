@@ -35,11 +35,11 @@ export const ModelSelect = () => {
         disabled={disabled}
         className="
         w-[120px] text-xs border cursor-pointer
-        bg-accent/20 hover:text-primary hover:bg-background
-        shadow-none focus:ring-0 transition-colors text-foreground/70
+        shadow-none focus:ring-0 transition-colors
+        hover:bg-accent/30 hover:text-primary
         inline-flex items-center justify-between rounded-md px-3 py-2 disabled:pointer-events-none disabled:opacity-50"
       >
-        <span className="truncate font-medium shimmer">
+        <span className="truncate font-medium">
           {model?.displayName || "Model"}
         </span>
         <ChevronUp
