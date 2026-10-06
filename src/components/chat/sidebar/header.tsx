@@ -35,7 +35,10 @@ export const SidebarHeader: React.FC<Props> = ({
   const routeType = isSessionType(type) ? type : "chat";
 
   const handleCreate = useCallback(() => {
-    const id = create(routeType, `New ${routeType === "chat" ? "Chat" : "Agent"}`);
+    const id = create(
+      routeType,
+      `New ${routeType === "chat" ? "Chat" : "Agent"}`,
+    );
     navigate(`/session/${routeType}/${id}`);
   }, [create, navigate, routeType]);
 
@@ -79,13 +82,13 @@ export const SidebarHeader: React.FC<Props> = ({
           )}
         </div>
       </div>
-      <div className="flex p-2 border-b">
+      <div className="flex p-2 border-b bg-card/50">
         <Tabs
           className="flex-1"
           value={routeType}
           onValueChange={(v) => navigate(`/session/${v}`)}
         >
-          <TabsList className="flex-1 w-full">
+          <TabsList className="flex-1 w-full bg-transparent! p-0">
             <TabsTrigger value="chat">
               <MessageCircle />
             </TabsTrigger>

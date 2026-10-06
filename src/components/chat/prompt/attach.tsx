@@ -6,7 +6,7 @@ import {
 import { useChatInput, useChatStream } from "@/contexts/chat-context";
 import { useImportImage } from "@/hooks/use-import-image";
 import { Button } from "@/components/ui/button";
-import { Paperclip } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 import { useHotkey } from "@tanstack/react-hotkeys";
 
 export const Attach = () => {
@@ -37,7 +37,7 @@ export const Attach = () => {
           disabled={disabled}
           className="h-9 w-9 text-muted-foreground hover:text-foreground"
         >
-          <Paperclip className="h-4 w-4" />
+          <ImageIcon className="h-4 w-4" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>Attach image (Ctrl+Shift+V)</TooltipContent>

@@ -120,7 +120,7 @@ export const SidebarHeader: React.FC<Props> = ({
       </div>
       <div
         className={cn(
-          "flex-1 flex flex-row p-2 items-center border-b justify-center",
+          "flex-1 flex flex-row p-2 items-center border-b bg-card/50 justify-center",
         )}
       >
         <Tabs
@@ -130,7 +130,7 @@ export const SidebarHeader: React.FC<Props> = ({
             setCurrentTab(v as Workspace);
           }}
         >
-          <TabsList className="flex-1 w-full">
+          <TabsList className="flex-1 w-full bg-transparent! p-0">
             {WORKSPACES.map((workspace) => (
               <TabsTrigger key={workspace} value={workspace} className="flex-1">
                 {workspace === "work" ? (

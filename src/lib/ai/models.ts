@@ -11,8 +11,8 @@ export type ModelType =
   | "alibaba/qwen3.7-plus";
 
 export type Model = {
-  tier: ModelTier;
   id: ModelId;
+  tier: ModelTier;
   type: ModelType;
   displayName: string;
   description: string;

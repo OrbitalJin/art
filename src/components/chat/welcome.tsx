@@ -10,7 +10,7 @@ interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
 }
 
-const STARTERS: { id: string; label: string; prompt: string }[] = [
+const CHAT_STARTERS: { id: string; label: string; prompt: string }[] = [
   {
     id: "summarize",
     label: "Summarize my notes about…",
@@ -25,6 +25,24 @@ const STARTERS: { id: string; label: string; prompt: string }[] = [
     id: "explain",
     label: "Explain this like I'm new to it…",
     prompt: "Explain this like I'm new to it: ",
+  },
+];
+
+const AGENT_STARTERS: { id: string; label: string; prompt: string }[] = [
+  {
+    id: "plan",
+    label: "Plan out my week…",
+    prompt: "Plan out my week: ",
+  },
+  {
+    id: "task",
+    label: "Add a task to…",
+    prompt: "Add a task to ",
+  },
+  {
+    id: "journal",
+    label: "Summarize my recent journal…",
+    prompt: "Summarize my recent journal entries about ",
   },
 ];
 
@@ -63,6 +81,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const navigate = useNavigate();
   const { type } = useParams<{ type: string }>();
   const routeType = type === "agent" ? "agent" : "chat";
+  const isAgent = routeType === "agent";
   const userProfile = useSettingsStore((s) => s.userProfile);
   const enterKeySends = useSettingsStore((s) => s.enterKeySends);
   const sessions = useSessionStore((s) => s.sessions);
@@ -70,11 +89,26 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
 
   const greeting = useMemo(() => greetingFor(new Date()), []);
 
-  const modelName = useMemo(
-    () =>
-      modelById(sessions.find((s) => s.id === activeId)?.modelId).displayName,
+  const activeSession = useMemo(
+    () => sessions.find((s) => s.id === activeId),
     [sessions, activeId],
   );
+
+  const modelName = useMemo(
+    () => modelById(activeSession?.modelId).displayName,
+    [activeSession],
+  );
+
+  const starters = isAgent ? AGENT_STARTERS : CHAT_STARTERS;
+
+  const tools = useMemo(() => {
+    if (!isAgent || !activeSession) return [];
+    const enabled: string[] = [];
+    if (activeSession.capabilities.journal) enabled.push("Journal");
+    if (activeSession.capabilities.tasks) enabled.push("Tasks");
+    if (activeSession.knowledgeBase) enabled.push("Knowledge Base");
+    return enabled;
+  }, [isAgent, activeSession]);
 
   const recents = useMemo(() => {
     return sessions
@@ -107,13 +141,31 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
         <p className="mt-2 text-sm text-muted-foreground/60">
           Using {modelName}
         </p>
+        {isAgent && (
+          <div className="mt-3 flex items-center gap-1.5 text-[10px] text-muted-foreground/50">
+            {tools.length > 0 ? (
+              tools.map((tool) => (
+                <span
+                  key={tool}
+                  className="px-1.5 py-0.5 border border-border rounded"
+                >
+                  {tool}
+                </span>
+              ))
+            ) : (
+              <span className="text-muted-foreground/40">
+                No tools enabled yet
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Starters */}
       <div className="mb-12">
         <p className="mb-4 text-xs text-muted-foreground/50">Try asking</p>
         <ul className="space-y-1">
-          {STARTERS.map((starter) => (
+          {starters.map((starter) => (
             <li key={starter.id}>
               <button
                 onClick={() => starterClick(starter.prompt)}

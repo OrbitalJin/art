@@ -115,16 +115,12 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
 
           <div className="flex justify-between items-center p-2 bg-background/50 rounded-b-md">
             <div className="flex flex-row gap-2">
+              <JumpSelect />
               <ModelSelect />
-              {session?.type === "agent" ? (
-                <Capabilities />
-              ) : (
-                <ModeSelect />
-              )}
+              {session?.type === "agent" ? <Capabilities /> : <ModeSelect />}
               <Attach />
             </div>
             <div className="flex flex-row gap-2">
-              <JumpSelect />
               <Button
                 variant="default"
                 size="icon"
