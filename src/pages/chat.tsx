@@ -54,9 +54,7 @@ export const Chat = () => {
       return;
     }
 
-    const active = store.activeId
-      ? store.getFn(store.activeId)
-      : undefined;
+    const active = store.activeId ? store.getFn(store.activeId) : undefined;
     if (active && active.type === routeType) {
       store.setActive(active.id);
       return;
@@ -80,6 +78,9 @@ export const Chat = () => {
   };
 
   useHotkey("Mod+/", () => textAreaRef.current?.focus());
+  useHotkey("Tab", () =>
+    navigate(type === "chat" ? "/session/agent" : "/session/chat"),
+  );
 
   return (
     <div className="relative flex-1 flex flex-row select-none">
