@@ -202,7 +202,7 @@ Super + B to capture globally
 - [x] Performance optimization, memoization, isolate state more
 - [x] id based routing for chat & journal
 - [x] Tool call grouping for contiguous calls
-- [ ] Chat vs Agent modes
-- [ ] Local knowledge Base
-- [ ] Implement tool permissions
+- [x] Implement tool approval
+- [x] Local knowledge Base
+- [x] Chat vs Agent modes
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

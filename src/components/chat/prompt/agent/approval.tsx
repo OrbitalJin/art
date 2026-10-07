@@ -1,4 +1,3 @@
-// approval.tsx
 import { Lock, LockOpen, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/lib/store/use-session-store";
