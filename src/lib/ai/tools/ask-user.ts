@@ -37,7 +37,7 @@ const questionSchema = z.object({
     .describe("Allow selecting more than one option. Defaults to false."),
 });
 
-export const askUserTools = (): ToolSet => ({
+export const askUserTools = (sessionId: string): ToolSet => ({
   [ASK_USER_TOOL_NAME]: tool({
     title: "Ask User",
     description:
@@ -51,6 +51,7 @@ export const askUserTools = (): ToolSet => ({
       const answers = await useQuestionStore.getState().requestAnswers({
         toolCallId,
         questions,
+        sessionId,
         abortSignal,
       });
 

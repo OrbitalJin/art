@@ -207,8 +207,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } finally {
         abortRef.current = null;
-        useApprovalStore.getState().clear();
-        useQuestionStore.getState().clear();
+        useApprovalStore.getState().clear(activeId);
+        useQuestionStore.getState().clear(activeId);
 
         setState({
           sessionId: activeId,

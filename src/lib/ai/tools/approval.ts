@@ -12,6 +12,7 @@ interface RequireApprovalArgs {
   toolCallId: string;
   toolName: string;
   input: unknown;
+  sessionId: string;
   abortSignal?: AbortSignal;
 }
 
@@ -19,12 +20,14 @@ export const requireApproval = async ({
   toolCallId,
   toolName,
   input,
+  sessionId,
   abortSignal,
 }: RequireApprovalArgs): Promise<void> => {
   const approved = await useApprovalStore.getState().requestApproval({
     toolCallId,
     toolName,
     input,
+    sessionId,
     abortSignal,
   });
 
@@ -33,6 +36,7 @@ export const requireApproval = async ({
 
 export interface ApprovalOptions<INPUT> {
   name: string;
+  sessionId: string;
   needsApproval?: boolean | ((input: INPUT) => boolean);
 }
 
@@ -43,7 +47,7 @@ export const withApprovalTool = <INPUT, OUTPUT>(
   const execute = config.execute;
   if (!execute) return tool(config);
 
-  const { name, needsApproval = true } = options;
+  const { name, sessionId, needsApproval = true } = options;
 
   return tool({
     ...config,
@@ -58,6 +62,7 @@ export const withApprovalTool = <INPUT, OUTPUT>(
           toolCallId: execOptions.toolCallId,
           toolName: name,
           input,
+          sessionId,
           abortSignal: execOptions.abortSignal,
         });
       }

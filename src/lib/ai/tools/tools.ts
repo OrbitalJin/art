@@ -27,10 +27,14 @@ export const toolsFor = ({ session }: Opts): ToolSet => {
       fileTools({ roots: session.folders })),
     ...(journal && journalTools()),
     ...(tasks && tasksTools()),
-    ...(askUser && askUserTools()),
+    ...(askUser && session && askUserTools(session.id)),
     ...ambientTools(),
     ...doneTools(),
   };
 
-  return applyAccessPolicy(tools, session?.accessMode ?? "confirm");
+  return applyAccessPolicy(
+    tools,
+    session?.accessMode ?? "confirm",
+    session?.id ?? "",
+  );
 };

@@ -6,6 +6,7 @@ export interface PendingApproval {
   status: ApprovalStatus;
   toolName: string;
   input: unknown;
+  sessionId: string;
   requestedAt: number;
 }
 
@@ -13,6 +14,7 @@ interface RequestApprovalArgs {
   toolCallId: string;
   toolName: string;
   input: unknown;
+  sessionId: string;
   abortSignal?: AbortSignal;
 }
 
@@ -20,17 +22,17 @@ interface ApprovalState {
   pending: Record<string, PendingApproval>;
   requestApproval: (args: RequestApprovalArgs) => Promise<boolean>;
   resolve: (toolCallId: string, approved: boolean) => void;
-  clear: () => void;
+  clear: (sessionId?: string) => void;
 }
 
 const resolvers = new Map<string, (approved: boolean) => void>();
 const detachAbort = new Map<string, () => void>();
 let requestSeq = 0;
 
-export const useApprovalStore = create<ApprovalState>()((set) => ({
+export const useApprovalStore = create<ApprovalState>()((set, get) => ({
   pending: {},
 
-  requestApproval: ({ toolCallId, toolName, input, abortSignal }) => {
+  requestApproval: ({ toolCallId, toolName, input, sessionId, abortSignal }) => {
     if (abortSignal?.aborted) return Promise.resolve(false);
 
     set((state) => ({
@@ -40,6 +42,7 @@ export const useApprovalStore = create<ApprovalState>()((set) => ({
           status: "pending",
           toolName,
           input,
+          sessionId,
           requestedAt: ++requestSeq,
         },
       },
@@ -94,13 +97,24 @@ export const useApprovalStore = create<ApprovalState>()((set) => ({
     resolvers.get(toolCallId)?.(approved);
   },
 
-  clear: () => {
-    for (const [toolCallId, resolver] of [...resolvers]) {
+  clear: (sessionId) => {
+    const pending = get().pending;
+    for (const [toolCallId, entry] of Object.entries(pending)) {
+      if (sessionId && entry.sessionId !== sessionId) continue;
+      const resolver = resolvers.get(toolCallId);
       detachAbort.get(toolCallId)?.();
       detachAbort.delete(toolCallId);
       resolvers.delete(toolCallId);
-      resolver(false);
+      resolver?.(false);
     }
-    set({ pending: {} });
+    set((state) => ({
+      pending: sessionId
+        ? Object.fromEntries(
+            Object.entries(state.pending).filter(
+              ([, entry]) => entry.sessionId !== sessionId,
+            ),
+          )
+        : {},
+    }));
   },
 }));

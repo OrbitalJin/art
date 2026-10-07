@@ -5,6 +5,7 @@ import { withApprovalTool } from "./approval";
 export const applyAccessPolicy = (
   tools: ToolSet,
   mode: AccessMode,
+  sessionId: string,
 ): ToolSet => {
   if (mode === "autonomous") return tools;
 
@@ -18,7 +19,7 @@ export const applyAccessPolicy = (
 
     if (mode === "readonly") continue;
 
-    result[name] = withApprovalTool(entry, { name });
+    result[name] = withApprovalTool(entry, { name, sessionId });
   }
 
   return result;

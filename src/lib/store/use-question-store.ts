@@ -23,11 +23,13 @@ export type QuestionStatus = "pending" | "answered" | "skipped";
 export interface PendingQuestion {
   status: QuestionStatus;
   questions: AskUserQuestion[];
+  sessionId: string;
 }
 
 interface RequestAnswersArgs {
   toolCallId: string;
   questions: AskUserQuestion[];
+  sessionId: string;
   abortSignal?: AbortSignal;
 }
 
@@ -38,22 +40,22 @@ interface QuestionState {
   ) => Promise<AskUserAnswer[] | null>;
   answer: (toolCallId: string, answers: AskUserAnswer[]) => void;
   skip: (toolCallId: string) => void;
-  clear: () => void;
+  clear: (sessionId?: string) => void;
 }
 
 const resolvers = new Map<string, (answers: AskUserAnswer[] | null) => void>();
 const detachAbort = new Map<string, () => void>();
 
-export const useQuestionStore = create<QuestionState>()((set) => ({
+export const useQuestionStore = create<QuestionState>()((set, get) => ({
   pending: {},
 
-  requestAnswers: ({ toolCallId, questions, abortSignal }) => {
+  requestAnswers: ({ toolCallId, questions, sessionId, abortSignal }) => {
     if (abortSignal?.aborted) return Promise.resolve(null);
 
     set((state) => ({
       pending: {
         ...state.pending,
-        [toolCallId]: { status: "pending", questions },
+        [toolCallId]: { status: "pending", questions, sessionId },
       },
     }));
 
@@ -123,13 +125,24 @@ export const useQuestionStore = create<QuestionState>()((set) => ({
     resolvers.get(toolCallId)?.(null);
   },
 
-  clear: () => {
-    for (const [toolCallId, resolver] of [...resolvers]) {
+  clear: (sessionId) => {
+    const pending = get().pending;
+    for (const [toolCallId, entry] of Object.entries(pending)) {
+      if (sessionId && entry.sessionId !== sessionId) continue;
+      const resolver = resolvers.get(toolCallId);
       detachAbort.get(toolCallId)?.();
       detachAbort.delete(toolCallId);
       resolvers.delete(toolCallId);
-      resolver(null);
+      resolver?.(null);
     }
-    set({ pending: {} });
+    set((state) => ({
+      pending: sessionId
+        ? Object.fromEntries(
+            Object.entries(state.pending).filter(
+              ([, entry]) => entry.sessionId !== sessionId,
+            ),
+          )
+        : {},
+    }));
   },
 }));

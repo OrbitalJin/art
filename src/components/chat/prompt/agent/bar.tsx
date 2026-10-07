@@ -47,29 +47,31 @@ const ProgressLine: React.FC = () => (
   />
 );
 
-const PendingPrompt: React.FC = () => {
+const PendingPrompt: React.FC<{ sessionId: string }> = ({ sessionId }) => {
   const approvals = useApprovalStore((state) => state.pending);
   const questions = useQuestionStore((state) => state.pending);
 
   const activeApproval = useMemo(() => {
     const entries = Object.entries(approvals).filter(
-      ([, approval]) => approval.status === "pending",
+      ([, approval]) =>
+        approval.status === "pending" && approval.sessionId === sessionId,
     );
     if (entries.length === 0) return null;
     const [toolCallId, approval] = entries.reduce((newest, entry) =>
       entry[1].requestedAt > newest[1].requestedAt ? entry : newest,
     );
     return { toolCallId, approval };
-  }, [approvals]);
+  }, [approvals, sessionId]);
 
   const activeQuestion = useMemo(() => {
     const entries = Object.entries(questions).filter(
-      ([, question]) => question.status === "pending",
+      ([, question]) =>
+        question.status === "pending" && question.sessionId === sessionId,
     );
     if (entries.length === 0) return null;
     const [toolCallId, question] = entries[entries.length - 1];
     return { toolCallId, question };
-  }, [questions]);
+  }, [questions, sessionId]);
 
   if (activeApproval) {
     return (
@@ -105,13 +107,18 @@ export const AgentBar = () => {
   const approvals = useApprovalStore((state) => state.pending);
   const questions = useQuestionStore((state) => state.pending);
 
+  const sessionId = session?.id;
   const ownsStream = !!session && streamingSessionId === session.id;
   const hasPending = useMemo(
     () =>
-      ownsStream &&
-      (Object.values(approvals).some((a) => a.status === "pending") ||
-        Object.values(questions).some((q) => q.status === "pending")),
-    [ownsStream, approvals, questions],
+      !!sessionId &&
+      (Object.values(approvals).some(
+        (a) => a.status === "pending" && a.sessionId === sessionId,
+      ) ||
+        Object.values(questions).some(
+          (q) => q.status === "pending" && q.sessionId === sessionId,
+        )),
+    [sessionId, approvals, questions],
   );
 
   if (!session || session.type !== "agent") return null;
@@ -130,7 +137,7 @@ export const AgentBar = () => {
     <div className={barClasses}>
       {hasPending ? (
         <div className="w-full animate-in fade-in slide-in-from-top-1 duration-200 motion-reduce:animate-none">
-          <PendingPrompt />
+          <PendingPrompt sessionId={session.id} />
         </div>
       ) : (
         <>
