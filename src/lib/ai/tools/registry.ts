@@ -5,7 +5,7 @@ export type ToolCategory = "workspace" | "computer" | "interaction";
 export type ToolKind = "read" | "write";
 
 export interface ToolFamily {
-  key: "journal" | "tasks" | "knowledge" | "askUser";
+  key: "journal" | "tasks" | "files" | "askUser";
   label: string;
   description: string;
   category: ToolCategory;
@@ -66,12 +66,23 @@ export const TOOL_FAMILIES: ToolFamily[] = [
     ],
   },
   {
-    key: "knowledge",
-    label: "Knowledge Base",
-    description: "Read files from a local folder",
+    key: "files",
+    label: "Files",
+    description: "Read & write local folders",
     category: "computer",
     usage: "free",
-    tools: ["inspect_knowledge", "read_knowledge"],
+    tools: [
+      "list_folders",
+      "list_folder",
+      "read_file",
+      "stat",
+      "write_file",
+      "edit_file",
+      "make_dir",
+      "remove_path",
+      "move_path",
+      "copy_path",
+    ],
   },
   {
     key: "askUser",
@@ -100,6 +111,12 @@ export const MUTATING_TOOLS: ReadonlySet<string> = new Set([
   "delete_project",
   "create_project_with_tasks",
   "create_page_from_session",
+  "write_file",
+  "edit_file",
+  "make_dir",
+  "remove_path",
+  "move_path",
+  "copy_path",
 ]);
 
 export const isMutatingTool = (name: string): boolean =>

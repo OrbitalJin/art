@@ -4,7 +4,7 @@ import { journalTools } from "./journal";
 import { tasksTools } from "./tasks";
 import { sessionTools } from "./session";
 import { searchTools } from "./search";
-import { knowledgeTools } from "./knowledge";
+import { fileTools } from "./files";
 import { askUserTools } from "./ask-user";
 import { doneTools } from "./done";
 import { applyAccessPolicy } from "./policy";
@@ -23,8 +23,8 @@ export const toolsFor = ({ session }: Opts): ToolSet => {
   const { journal, tasks, askUser } = session?.capabilities ?? {};
   const tools: ToolSet = {
     ...sessionTools({ session }),
-    ...(session?.knowledgeBase &&
-      knowledgeTools({ root: session.knowledgeBase })),
+    ...(session?.folders?.length &&
+      fileTools({ roots: session.folders })),
     ...(journal && journalTools()),
     ...(tasks && tasksTools()),
     ...(askUser && askUserTools()),

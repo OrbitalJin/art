@@ -27,7 +27,7 @@ const questionSchema = z.object({
   options: z
     .array(optionSchema)
     .min(2)
-    .max(6)
+    .max(3)
     .describe(
       "Multiple-choice options. Users can always type their own answer.",
     ),
@@ -45,7 +45,7 @@ export const askUserTools = (): ToolSet => ({
       "are ambiguous or a decision is needed. Prefer this over guessing. " +
       "The user may also type a custom answer. Returns their selections.",
     inputSchema: z.object({
-      questions: z.array(questionSchema).min(1).max(4),
+      questions: z.array(questionSchema).min(1).max(5),
     }),
     execute: async ({ questions }, { toolCallId, abortSignal }) => {
       const answers = await useQuestionStore.getState().requestAnswers({

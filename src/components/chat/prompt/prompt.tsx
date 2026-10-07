@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/attachment";
 import { Attach } from "./attach";
 import { AgentBar } from "./agent/bar";
+import { AgentAttention } from "./agent/attention";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -157,8 +158,10 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   return (
     <footer className="z-20">
       <div className="mx-auto flex max-w-3xl flex-col">
+        <AgentAttention />
+
         <div className={containerClasses}>
-          <AgentBar />
+          {isAgent && <AgentBar />}
 
           {hasAttachments && (
             <PromptAttachments

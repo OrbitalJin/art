@@ -105,8 +105,8 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const tools = useMemo(() => {
     if (!isAgent || !activeSession) return [];
     return TOOL_FAMILIES.flatMap((family) => {
-      if (family.key === "knowledge") {
-        return activeSession.knowledgeBase ? [family.label] : [];
+      if (family.key === "files") {
+        return activeSession.folders?.length ? [family.label] : [];
       }
       return activeSession.capabilities[family.key] ? [family.label] : [];
     });

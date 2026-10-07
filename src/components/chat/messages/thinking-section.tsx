@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Spinner } from "@/components/ui/spinner";
 
 interface ThinkingSectionProps {
   reasoning?: string | null;
@@ -21,14 +20,7 @@ const ThinkingLabel: React.FC<{ title: string; isStreaming: boolean }> = ({
 }) => {
   const titleClasses = cn("text-[13px]", isStreaming && "shimmer");
 
-  return (
-    <>
-      {isStreaming && (
-        <Spinner className="size-3.5 shrink-0 animate-spin text-amber-500" />
-      )}
-      <span className={titleClasses}>{title}</span>
-    </>
-  );
+  return <span className={titleClasses}>{title}</span>;
 };
 
 const ReasoningText: React.FC<{
@@ -55,14 +47,14 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
   if (isStreaming && !hasReasoning) {
     return (
       <div className="mb-2 flex items-center gap-1.5 text-muted-foreground">
-        <ThinkingLabel title="Thinking…" isStreaming />
+        <ThinkingLabel title="Thinking" isStreaming />
       </div>
     );
   }
 
   if (!hasReasoning) return null;
 
-  const title = isStreaming ? "Thinking…" : "Thought process";
+  const title = isStreaming ? "Thinking" : "Thought process";
 
   const headerClasses = cn(
     "inline-flex cursor-pointer items-center gap-1.5 rounded-sm",

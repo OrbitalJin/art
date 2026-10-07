@@ -1,6 +1,7 @@
 import type { ModelId } from "@/lib/ai/models";
 import type { ModeId } from "@/lib/ai/prompts/modes";
 import type { AccessMode } from "@/lib/ai/tools/registry";
+import type { FsRoot } from "@/lib/fs";
 
 export type SessionType = "chat" | "agent";
 
@@ -85,7 +86,7 @@ export interface Session {
   type: SessionType;
   title: string;
   accessMode: AccessMode;
-  knowledgeBase?: string;
+  folders?: FsRoot[];
   capabilities: SessionCapabilities;
   messages: Message[];
   modelId: ModelId;

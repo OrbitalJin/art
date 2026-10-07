@@ -11,6 +11,7 @@ import type {
   ToolCallBlock,
 } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
+import type { FsRoot } from "@/lib/fs";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
 import type { AccessMode } from "@/lib/ai/tools/registry";
 import { useSettingsStore } from "./use-settings-store";
@@ -27,12 +28,17 @@ const createNewSession = ({
   type,
 }: CreateSessionOpts): Session => {
   const date = Date.now();
+  const sessionType = type ?? "chat";
   return {
     id: crypto.randomUUID(),
-    type: type ?? "chat",
+    type: sessionType,
     title: title ?? "New Session",
     accessMode: "confirm",
-    capabilities: { journal: false, tasks: false, askUser: false },
+    capabilities: {
+      journal: false,
+      tasks: false,
+      askUser: sessionType === "agent",
+    },
     messages: [],
     mode: DEFAULT_MODE,
     modelId:
@@ -72,15 +78,21 @@ const normalizeSession = (session: Session): Session => ({
   type: session.type ?? "chat",
   mode: session.mode ?? DEFAULT_MODE,
   accessMode: session.accessMode ?? "confirm",
+  folders: session.folders ?? [],
   capabilities: session.capabilities ?? {
     journal: false,
     tasks: false,
-    askUser: false,
+    askUser: (session.type ?? "chat") === "agent",
   },
   messages: (session.messages ?? []).map((message) =>
     normalizeMessage(message as LegacyMessage),
   ),
 });
+
+const legacyFolderName = (path: string): string => {
+  const parts = path.split(/[\\/]/).filter(Boolean);
+  return parts[parts.length - 1] ?? path;
+};
 
 export interface SessionState {
   sessions: Session[];
@@ -94,7 +106,8 @@ export interface SessionState {
   togglePinned: (id: string) => boolean;
 
   setAccessMode: (id: string, mode: AccessMode) => void;
-  setKnowledgeBase: (id: string, root?: string) => void;
+  addFolder: (id: string, root: FsRoot) => void;
+  removeFolder: (id: string, folderId: string) => void;
   setCapability: (
     id: string,
     key: keyof SessionCapabilities,
@@ -137,10 +150,27 @@ export const useSessionStore = create<SessionState>()(
         }));
       },
 
-      setKnowledgeBase: (id: string, root?: string) => {
+      addFolder: (id: string, root: FsRoot) => {
         set((state) => ({
           sessions: state.sessions.map((session) =>
-            session.id === id ? { ...session, knowledgeBase: root } : session,
+            session.id === id
+              ? { ...session, folders: [...(session.folders ?? []), root] }
+              : session,
+          ),
+        }));
+      },
+
+      removeFolder: (id: string, folderId: string) => {
+        set((state) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? {
+                  ...session,
+                  folders: (session.folders ?? []).filter(
+                    (root) => root.id !== folderId,
+                  ),
+                }
+              : session,
           ),
         }));
       },
@@ -417,13 +447,15 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 24,
+      version: 25,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as {
           sessions?: Array<{
             accessMode?: AccessMode;
             disableApproval?: boolean;
+            knowledgeBase?: string;
+            folders?: FsRoot[];
             capabilities?: SessionCapabilities;
             messages?: Array<
               Message & {
@@ -498,6 +530,26 @@ export const useSessionStore = create<SessionState>()(
               return {
                 ...rest,
                 accessMode: disableApproval ? "autonomous" : "confirm",
+              };
+            });
+          }
+        }
+
+        if (version < 25) {
+          if (Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => {
+              const { knowledgeBase, ...rest } = session;
+              return {
+                ...rest,
+                folders: knowledgeBase
+                  ? [
+                      {
+                        id: crypto.randomUUID(),
+                        name: legacyFolderName(knowledgeBase),
+                        path: knowledgeBase,
+                      },
+                    ]
+                  : [],
               };
             });
           }

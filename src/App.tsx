@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/layout/layout";
 import { useAppearanceEffects } from "./hooks/use-appearance-effects";
+import { useRestoreFolderScope } from "./hooks/use-restore-folder-scope";
 import { Spinner } from "@/components/ui/spinner";
 
 import { JournalEditorProvider } from "@/contexts/note-editor-context.tsx";
@@ -25,6 +26,7 @@ const Capture = lazy(() =>
 
 export default function App() {
   useAppearanceEffects();
+  useRestoreFolderScope();
   return (
     <BrowserRouter>
       <Layout>

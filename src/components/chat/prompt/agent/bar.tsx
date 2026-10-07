@@ -101,27 +101,28 @@ export const AgentBar = () => {
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
-  const { isSending, toolCalls } = useChatStream();
+  const { isSending, toolCalls, streamingSessionId } = useChatStream();
   const approvals = useApprovalStore((state) => state.pending);
   const questions = useQuestionStore((state) => state.pending);
 
+  const ownsStream = !!session && streamingSessionId === session.id;
   const hasPending = useMemo(
     () =>
-      Object.values(approvals).some((a) => a.status === "pending") ||
-      Object.values(questions).some((q) => q.status === "pending"),
-    [approvals, questions],
+      ownsStream &&
+      (Object.values(approvals).some((a) => a.status === "pending") ||
+        Object.values(questions).some((q) => q.status === "pending")),
+    [ownsStream, approvals, questions],
   );
 
-  if (!session) return null;
+  if (!session || session.type !== "agent") return null;
 
-  const isAgent = session.type === "agent";
-  const active = isSending && toolCalls.length > 0;
-  if (!isAgent && !active && !hasPending) return null;
+  const streaming = ownsStream && isSending;
+  const active = streaming && toolCalls.length > 0;
 
   const barClasses = cn(
     "relative flex items-center gap-2.5 border-b border-border/40",
     "bg-linear-to-r to-transparent transition-colors duration-300",
-    isSending ? "from-amber-500/3" : "from-emerald-500/2",
+    streaming ? "from-amber-500/3" : "from-emerald-500/2",
     hasPending ? "items-stretch px-0" : "h-10 px-3",
   );
 
@@ -133,15 +134,15 @@ export const AgentBar = () => {
         </div>
       ) : (
         <>
-          <StateDot active={isSending} />
-          <StatusLabel active={isSending} />
+          <StateDot active={streaming} />
+          <StatusLabel active={streaming} />
           <Divider />
           <ToolUse active={active} />
-          <Approval disabled={isSending} />
+          <Approval disabled={streaming} />
         </>
       )}
 
-      {isSending && <ProgressLine />}
+      {streaming && <ProgressLine />}
     </div>
   );
 };
