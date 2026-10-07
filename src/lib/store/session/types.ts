@@ -82,6 +82,7 @@ export interface Session {
   id: string;
   type: SessionType;
   title: string;
+  disableApproval?: boolean;
   knowledgeBase?: string;
   capabilities: SessionCapabilities;
   messages: Message[];

@@ -86,6 +86,7 @@ export interface SessionState {
   toggleArchived: (id: string) => void;
   togglePinned: (id: string) => boolean;
 
+  requireApproval: (id: string, approval: boolean) => void;
   setKnowledgeBase: (id: string, root?: string) => void;
   setCapability: (
     id: string,
@@ -120,6 +121,16 @@ export const useSessionStore = create<SessionState>()(
       activeId: null,
       hydrated: false,
       titleGeneratingIds: [],
+
+      requireApproval: (id: string, approval: boolean) => {
+        set((state) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? { ...session, disableApproval: !approval }
+              : session,
+          ),
+        }));
+      },
 
       setKnowledgeBase: (id: string, root?: string) => {
         set((state) => ({
@@ -435,8 +446,10 @@ export const useSessionStore = create<SessionState>()(
           if (Array.isArray(state.sessions)) {
             state.sessions = state.sessions.map((session) => ({
               ...session,
-              capabilities:
-                session.capabilities ?? { journal: false, tasks: false },
+              capabilities: session.capabilities ?? {
+                journal: false,
+                tasks: false,
+              },
             }));
           }
         }

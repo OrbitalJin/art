@@ -22,7 +22,7 @@ import {
   AttachmentTitle,
 } from "@/components/ui/attachment";
 import { Attach } from "./attach";
-import { AgentBar } from "./agent-bar";
+import { AgentBar } from "./agent/bar";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -95,9 +95,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
                       </AttachmentDescription>
                     </AttachmentContent>
                     <AttachmentActions>
-                      <AttachmentAction
-                        onClick={() => removeAttachment(index)}
-                      >
+                      <AttachmentAction onClick={() => removeAttachment(index)}>
                         <X className="size-3" />
                       </AttachmentAction>
                     </AttachmentActions>

@@ -1,5 +1,6 @@
 import { tool, type Tool } from "ai";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
+import { useSessionStore } from "@/lib/store/use-session-store";
 
 export class ToolApprovalDeniedError extends Error {
   constructor() {
@@ -17,6 +18,10 @@ export const requireApproval = async ({
   toolCallId,
   abortSignal,
 }: RequireApprovalArgs): Promise<void> => {
+  const { sessions, activeId } = useSessionStore.getState();
+  const session = sessions.find((s) => s.id === activeId);
+  if (session?.disableApproval) return;
+
   const approved = await useApprovalStore.getState().requestApproval({
     toolCallId,
     abortSignal,

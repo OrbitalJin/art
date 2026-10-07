@@ -212,7 +212,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
       <div className="flex items-center gap-4 text-[10px] text-muted-foreground/40">
         <span className="flex items-baseline gap-1.5">
           <Kbd>Tab</Kbd>
-          chat/agens
+          chat/agent
         </span>
         <span className="flex items-baseline gap-1.5">
           <Kbd>Ctrl</Kbd>

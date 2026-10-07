@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSessionStore } from "@/lib/store/use-session-store";
 import { Command } from "../command";
 
 export interface NavigationItem {
@@ -26,13 +27,19 @@ export interface NavigationItem {
 export const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const activeType = useSessionStore((state) => {
+    const active = state.sessions.find((s) => s.id === state.activeId);
+    return active?.type ?? "chat";
+  });
 
   const isSelected = (path: string): boolean =>
-    location.pathname === path || location.pathname.startsWith(`${path}/`);
+    path === "/session/chat"
+      ? location.pathname.startsWith("/session")
+      : location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   const items: NavigationItem[] = [
     {
-      href: "/session/chat",
+      href: `/session/${activeType}`,
       label: "Chat",
       icon: MessageCircleDashed,
       activeIcon: MessageCircle,
