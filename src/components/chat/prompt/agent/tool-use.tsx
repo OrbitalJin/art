@@ -4,8 +4,18 @@ import { X } from "lucide-react";
 import { toast } from "sonner";
 import { useChatStream } from "@/contexts/chat-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import type { ToolCallBlock } from "@/lib/store/session/types";
+import type {
+  Session,
+  SessionCapabilities,
+  ToolCallBlock,
+} from "@/lib/store/session/types";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
+import {
+  CATEGORY_LABELS,
+  CATEGORY_ORDER,
+  TOOL_FAMILIES,
+  type ToolFamily,
+} from "@/lib/ai/tools/registry";
 import { selectDirectory } from "@/lib/fs";
 import {
   CompactSummary,
@@ -19,35 +29,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const JOURNAL_TOOLS = new Set([
-  "get_journals",
-  "get_journal",
-  "create_journal",
-  "update_journal",
-  "delete_journal",
-  "update_tags",
-  "get_all_tags",
-  "toggle_pinned",
-  "toggle_archived",
-]);
-
-const TASKS_TOOLS = new Set([
-  "get_tasks",
-  "get_task",
-  "create_task",
-  "update_task",
-  "move_task",
-  "move_task_to_position",
-  "delete_task",
-  "get_projects",
-  "create_project",
-  "update_project",
-  "delete_project",
-  "create_project_with_tasks",
-]);
-
-const JOURNAL_COST = "$$$";
-const TASKS_COST = "$$$";
+const FAMILY_BY_TOOL = new Map<string, ToolFamily>();
+for (const family of TOOL_FAMILIES) {
+  for (const tool of family.tools) {
+    FAMILY_BY_TOOL.set(tool, family);
+  }
+}
 
 const basename = (path: string): string => {
   const parts = path.split(/[\\/]/).filter(Boolean);
@@ -72,15 +59,22 @@ const ToolTag: React.FC<{ label: string; value?: string }> = ({
   </span>
 );
 
-const EnabledTools: React.FC<{
-  knowledgeBase?: string;
-  journal: boolean;
-  tasks: boolean;
-}> = ({ knowledgeBase, journal, tasks }) => {
-  const hasAnyTool = Boolean(knowledgeBase) || journal || tasks;
-  const folderName = knowledgeBase ? basename(knowledgeBase) : undefined;
+const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
+  const tags: { label: string; value?: string }[] = [];
+  for (const family of TOOL_FAMILIES) {
+    if (family.key === "knowledge") {
+      if (session.knowledgeBase) {
+        tags.push({
+          label: "Knowledge",
+          value: basename(session.knowledgeBase),
+        });
+      }
+    } else if (session.capabilities[family.key]) {
+      tags.push({ label: family.label });
+    }
+  }
 
-  if (!hasAnyTool) {
+  if (tags.length === 0) {
     return (
       <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground/40">
         No tools enabled
@@ -89,10 +83,10 @@ const EnabledTools: React.FC<{
   }
 
   return (
-    <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
-      {knowledgeBase ? <ToolTag label="Knowledge" value={folderName} /> : null}
-      {journal ? <ToolTag label="Journal" /> : null}
-      {tasks ? <ToolTag label="Tasks" /> : null}
+    <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scroll-fade-x">
+      {tags.map((tag) => (
+        <ToolTag key={tag.label} label={tag.label} value={tag.value} />
+      ))}
     </span>
   );
 };
@@ -249,32 +243,24 @@ const ToolRow: React.FC<{
 
 const ConfigureMenu: React.FC<{
   disabled: boolean;
-  knowledgeBase?: string;
-  journal: boolean;
-  tasks: boolean;
-  journalCalls: number;
-  tasksCalls: number;
+  session: Session;
+  toolCounts: Record<string, number>;
   onConnect: () => void;
   onDisconnect: () => void;
-  onToggleJournal: () => void;
-  onToggleTasks: () => void;
+  onToggle: (key: keyof SessionCapabilities, value: boolean) => void;
   onRevokeAll: () => void;
 }> = ({
   disabled,
-  knowledgeBase,
-  journal,
-  tasks,
-  journalCalls,
-  tasksCalls,
+  session,
+  toolCounts,
   onConnect,
   onDisconnect,
-  onToggleJournal,
-  onToggleTasks,
+  onToggle,
   onRevokeAll,
 }) => {
-  const journalUsage = formatUsage(JOURNAL_COST, journalCalls);
-  const tasksUsage = formatUsage(TASKS_COST, tasksCalls);
-  const nothingToRevoke = !journal && !tasks;
+  const { capabilities } = session;
+  const nothingToRevoke =
+    !capabilities.journal && !capabilities.tasks && !capabilities.askUser;
 
   const triggerClasses = cn(
     "flex shrink-0 cursor-pointer items-center rounded-full px-2.5 py-0.5",
@@ -304,32 +290,48 @@ const ConfigureMenu: React.FC<{
           </p>
         </div>
 
-        <div className="flex flex-col gap-1 p-2">
-          <MenuSectionLabel>Local</MenuSectionLabel>
-          <KnowledgeRow
-            knowledgeBase={knowledgeBase}
-            onConnect={onConnect}
-            onDisconnect={onDisconnect}
-          />
-        </div>
+        {CATEGORY_ORDER.map((category, index) => {
+          const families = TOOL_FAMILIES.filter(
+            (family) => family.category === category,
+          );
+          if (families.length === 0) return null;
 
-        <div className="flex flex-col gap-1 border-t p-2">
-          <MenuSectionLabel>Custom Tools</MenuSectionLabel>
-          <ToolRow
-            label="Journal"
-            subtitle="Read & write journal entries"
-            usage={journalUsage}
-            enabled={journal}
-            onToggle={onToggleJournal}
-          />
-          <ToolRow
-            label="Tasks"
-            subtitle="Create and manage tasks"
-            usage={tasksUsage}
-            enabled={tasks}
-            onToggle={onToggleTasks}
-          />
-        </div>
+          return (
+            <div
+              key={category}
+              className={cn("flex flex-col gap-1 p-2", index > 0 && "border-t")}
+            >
+              <MenuSectionLabel>{CATEGORY_LABELS[category]}</MenuSectionLabel>
+
+              {families.map((family) => {
+                if (family.key === "knowledge") {
+                  return (
+                    <KnowledgeRow
+                      key={family.key}
+                      knowledgeBase={session.knowledgeBase}
+                      onConnect={onConnect}
+                      onDisconnect={onDisconnect}
+                    />
+                  );
+                }
+
+                const capKey = family.key;
+                const enabled = capabilities[capKey];
+
+                return (
+                  <ToolRow
+                    key={family.key}
+                    label={family.label}
+                    subtitle={family.description}
+                    usage={formatUsage(family.usage, toolCounts[capKey] ?? 0)}
+                    enabled={enabled}
+                    onToggle={() => onToggle(capKey, !enabled)}
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
 
         <div className="flex items-center justify-between border-t bg-muted/10 p-2">
           <Button
@@ -364,19 +366,18 @@ export const ToolUse: React.FC<ToolUseProps> = ({ active }) => {
   const { isSending, toolCalls } = useChatStream();
 
   const toolCounts = useMemo(() => {
-    let journal = 0;
-    let tasks = 0;
-
-    if (!session) return { journal, tasks };
+    const counts: Record<string, number> = {};
+    for (const family of TOOL_FAMILIES) counts[family.key] = 0;
+    if (!session) return counts;
 
     for (const message of session.messages) {
       for (const block of message.toolCalls ?? []) {
-        if (JOURNAL_TOOLS.has(block.toolName)) journal += 1;
-        if (TASKS_TOOLS.has(block.toolName)) tasks += 1;
+        const family = FAMILY_BY_TOOL.get(block.toolName);
+        if (family) counts[family.key] += 1;
       }
     }
 
-    return { journal, tasks };
+    return counts;
   }, [session]);
 
   const handleConnect = useCallback(async () => {
@@ -399,18 +400,13 @@ export const ToolUse: React.FC<ToolUseProps> = ({ active }) => {
     toast.info("Knowledge Base folder disconnected");
   }, [activeId, setKnowledgeBase]);
 
-  const journalOn = !!session?.capabilities.journal;
-  const tasksOn = !!session?.capabilities.tasks;
-
-  const handleToggleJournal = useCallback(() => {
-    if (!activeId) return;
-    setCapability(activeId, "journal", !journalOn);
-  }, [activeId, journalOn, setCapability]);
-
-  const handleToggleTasks = useCallback(() => {
-    if (!activeId) return;
-    setCapability(activeId, "tasks", !tasksOn);
-  }, [activeId, tasksOn, setCapability]);
+  const handleToggle = useCallback(
+    (key: keyof SessionCapabilities, value: boolean) => {
+      if (!activeId) return;
+      setCapability(activeId, key, value);
+    },
+    [activeId, setCapability],
+  );
 
   const handleRevokeAll = useCallback(() => {
     if (!activeId) return;
@@ -428,24 +424,16 @@ export const ToolUse: React.FC<ToolUseProps> = ({ active }) => {
       {active ? (
         <ActivityLine toolCalls={toolCalls} running={running} />
       ) : (
-        <EnabledTools
-          knowledgeBase={session.knowledgeBase}
-          journal={journalOn}
-          tasks={tasksOn}
-        />
+        <EnabledTools session={session} />
       )}
 
       <ConfigureMenu
         disabled={isSending}
-        knowledgeBase={session.knowledgeBase}
-        journal={journalOn}
-        tasks={tasksOn}
-        journalCalls={toolCounts.journal}
-        tasksCalls={toolCounts.tasks}
+        session={session}
+        toolCounts={toolCounts}
         onConnect={handleConnect}
         onDisconnect={handleDisconnect}
-        onToggleJournal={handleToggleJournal}
-        onToggleTasks={handleToggleTasks}
+        onToggle={handleToggle}
         onRevokeAll={handleRevokeAll}
       />
     </div>

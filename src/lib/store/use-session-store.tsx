@@ -12,6 +12,7 @@ import type {
 } from "@/lib/store/session/types";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
+import type { AccessMode } from "@/lib/ai/tools/registry";
 import { useSettingsStore } from "./use-settings-store";
 
 interface CreateSessionOpts {
@@ -30,7 +31,8 @@ const createNewSession = ({
     id: crypto.randomUUID(),
     type: type ?? "chat",
     title: title ?? "New Session",
-    capabilities: { journal: false, tasks: false },
+    accessMode: "confirm",
+    capabilities: { journal: false, tasks: false, askUser: false },
     messages: [],
     mode: DEFAULT_MODE,
     modelId:
@@ -69,7 +71,12 @@ const normalizeSession = (session: Session): Session => ({
   ...session,
   type: session.type ?? "chat",
   mode: session.mode ?? DEFAULT_MODE,
-  capabilities: session.capabilities ?? { journal: false, tasks: false },
+  accessMode: session.accessMode ?? "confirm",
+  capabilities: session.capabilities ?? {
+    journal: false,
+    tasks: false,
+    askUser: false,
+  },
   messages: (session.messages ?? []).map((message) =>
     normalizeMessage(message as LegacyMessage),
   ),
@@ -86,7 +93,7 @@ export interface SessionState {
   toggleArchived: (id: string) => void;
   togglePinned: (id: string) => boolean;
 
-  requireApproval: (id: string, approval: boolean) => void;
+  setAccessMode: (id: string, mode: AccessMode) => void;
   setKnowledgeBase: (id: string, root?: string) => void;
   setCapability: (
     id: string,
@@ -122,12 +129,10 @@ export const useSessionStore = create<SessionState>()(
       hydrated: false,
       titleGeneratingIds: [],
 
-      requireApproval: (id: string, approval: boolean) => {
+      setAccessMode: (id: string, mode: AccessMode) => {
         set((state) => ({
           sessions: state.sessions.map((session) =>
-            session.id === id
-              ? { ...session, disableApproval: !approval }
-              : session,
+            session.id === id ? { ...session, accessMode: mode } : session,
           ),
         }));
       },
@@ -166,7 +171,11 @@ export const useSessionStore = create<SessionState>()(
             session.id === id
               ? {
                   ...session,
-                  capabilities: { journal: false, tasks: false },
+                  capabilities: {
+                    journal: false,
+                    tasks: false,
+                    askUser: false,
+                  },
                 }
               : session,
           ),
@@ -408,11 +417,13 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 22,
+      version: 24,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as {
           sessions?: Array<{
+            accessMode?: AccessMode;
+            disableApproval?: boolean;
             capabilities?: SessionCapabilities;
             messages?: Array<
               Message & {
@@ -449,6 +460,7 @@ export const useSessionStore = create<SessionState>()(
               capabilities: session.capabilities ?? {
                 journal: false,
                 tasks: false,
+                askUser: false,
               },
             }));
           }
@@ -462,6 +474,32 @@ export const useSessionStore = create<SessionState>()(
                 normalizeMessage(message as LegacyMessage),
               ),
             }));
+          }
+        }
+
+        if (version < 23) {
+          if (Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => ({
+              ...session,
+              capabilities: {
+                journal: false,
+                tasks: false,
+                ...(session.capabilities ?? {}),
+                askUser: false,
+              },
+            }));
+          }
+        }
+
+        if (version < 24) {
+          if (Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => {
+              const { disableApproval, ...rest } = session;
+              return {
+                ...rest,
+                accessMode: disableApproval ? "autonomous" : "confirm",
+              };
+            });
           }
         }
 

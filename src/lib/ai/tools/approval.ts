@@ -1,6 +1,5 @@
 import { tool, type Tool } from "ai";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
-import { useSessionStore } from "@/lib/store/use-session-store";
 
 export class ToolApprovalDeniedError extends Error {
   constructor() {
@@ -11,19 +10,21 @@ export class ToolApprovalDeniedError extends Error {
 
 interface RequireApprovalArgs {
   toolCallId: string;
+  toolName: string;
+  input: unknown;
   abortSignal?: AbortSignal;
 }
 
 export const requireApproval = async ({
   toolCallId,
+  toolName,
+  input,
   abortSignal,
 }: RequireApprovalArgs): Promise<void> => {
-  const { sessions, activeId } = useSessionStore.getState();
-  const session = sessions.find((s) => s.id === activeId);
-  if (session?.disableApproval) return;
-
   const approved = await useApprovalStore.getState().requestApproval({
     toolCallId,
+    toolName,
+    input,
     abortSignal,
   });
 
@@ -31,17 +32,18 @@ export const requireApproval = async ({
 };
 
 export interface ApprovalOptions<INPUT> {
+  name: string;
   needsApproval?: boolean | ((input: INPUT) => boolean);
 }
 
 export const withApprovalTool = <INPUT, OUTPUT>(
   config: Tool<INPUT, OUTPUT>,
-  options: ApprovalOptions<INPUT> = {},
+  options: ApprovalOptions<INPUT>,
 ): Tool<INPUT, OUTPUT> => {
   const execute = config.execute;
   if (!execute) return tool(config);
 
-  const { needsApproval = true } = options;
+  const { name, needsApproval = true } = options;
 
   return tool({
     ...config,
@@ -54,6 +56,8 @@ export const withApprovalTool = <INPUT, OUTPUT>(
       if (required) {
         await requireApproval({
           toolCallId: execOptions.toolCallId,
+          toolName: name,
+          input,
           abortSignal: execOptions.abortSignal,
         });
       }

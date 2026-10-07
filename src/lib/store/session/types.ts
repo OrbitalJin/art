@@ -1,11 +1,13 @@
 import type { ModelId } from "@/lib/ai/models";
 import type { ModeId } from "@/lib/ai/prompts/modes";
+import type { AccessMode } from "@/lib/ai/tools/registry";
 
 export type SessionType = "chat" | "agent";
 
 export interface SessionCapabilities {
   journal: boolean;
   tasks: boolean;
+  askUser: boolean;
 }
 
 export type MessageStatus =
@@ -82,7 +84,7 @@ export interface Session {
   id: string;
   type: SessionType;
   title: string;
-  disableApproval?: boolean;
+  accessMode: AccessMode;
   knowledgeBase?: string;
   capabilities: SessionCapabilities;
   messages: Message[];

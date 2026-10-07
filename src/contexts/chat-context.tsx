@@ -28,6 +28,7 @@ import {
 } from "@/lib/ai/stream/stream-accumulator";
 import { presetFor } from "@/lib/ai/stream/presets";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
+import { useQuestionStore } from "@/lib/store/use-question-store";
 
 const STREAMING_MESSAGE_ID = "streaming-response";
 
@@ -132,9 +133,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       const { userProfile, agentProfile } = useSettingsStore.getState();
       const profiles = { user: userProfile, agent: agentProfile };
 
-      const supportsVision = modelById(session.modelId).capabilities.vision;
       const hasImages = !!attachments?.length;
-      const stripImages = hasImages && !supportsVision;
+      const stripImages = hasImages;
       if (stripImages) {
         toast.info(
           `${modelById(session.modelId).displayName} can't view images — sending text only`,
@@ -208,6 +208,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       } finally {
         abortRef.current = null;
         useApprovalStore.getState().clear();
+        useQuestionStore.getState().clear();
 
         setState({
           sessionId: activeId,

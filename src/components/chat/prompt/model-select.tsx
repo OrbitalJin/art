@@ -7,7 +7,7 @@ import { useChatStream } from "@/contexts/chat-context";
 import { MODELS } from "@/lib/ai/models";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
-import { ChevronUp, Eye, Hammer } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 import { useState } from "react";
 
 export const ModelSelect = () => {
@@ -34,7 +34,7 @@ export const ModelSelect = () => {
       <DropdownMenuTrigger
         disabled={disabled}
         className="
-        w-[120px] text-xs border cursor-pointer
+        w-[120px] text-xs border cursor-pointer h-9
         shadow-none focus:ring-0 transition-colors
         hover:bg-accent/30 hover:text-primary
         inline-flex items-center justify-between rounded-md px-3 py-2 disabled:pointer-events-none disabled:opacity-50"
@@ -85,24 +85,6 @@ export const ModelSelect = () => {
                   >
                     {m.displayName}
                   </p>
-                  <div className="flex flex-row gap-2">
-                    {model?.capabilities.vision && (
-                      <Eye
-                        size={12}
-                        className={cn(
-                          "opacity-40 group-hover:opacity-80 transition-opacity",
-                        )}
-                      />
-                    )}
-                    {model?.capabilities.tools && (
-                      <Hammer
-                        size={12}
-                        className={cn(
-                          "opacity-40 group-hover:opacity-80 transition-opacity",
-                        )}
-                      />
-                    )}
-                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] text-muted-foreground/70 leading-snug pr-4">

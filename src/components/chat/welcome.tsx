@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { modelById } from "@/lib/ai/models";
+import { TOOL_FAMILIES } from "@/lib/ai/tools/registry";
 import { useChatInput } from "@/contexts/chat-context";
 
 interface Props {
@@ -103,11 +104,12 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
 
   const tools = useMemo(() => {
     if (!isAgent || !activeSession) return [];
-    const enabled: string[] = [];
-    if (activeSession.capabilities.journal) enabled.push("Journal");
-    if (activeSession.capabilities.tasks) enabled.push("Tasks");
-    if (activeSession.knowledgeBase) enabled.push("Knowledge Base");
-    return enabled;
+    return TOOL_FAMILIES.flatMap((family) => {
+      if (family.key === "knowledge") {
+        return activeSession.knowledgeBase ? [family.label] : [];
+      }
+      return activeSession.capabilities[family.key] ? [family.label] : [];
+    });
   }, [isAgent, activeSession]);
 
   const recents = useMemo(() => {

@@ -1,7 +1,12 @@
+import { useMemo } from "react";
 import { useChatStream } from "@/contexts/chat-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
+import { useApprovalStore } from "@/lib/store/use-approval-store";
+import { useQuestionStore } from "@/lib/store/use-question-store";
 import { ToolUse } from "./tool-use";
 import { Approval } from "./approval";
+import { ToolApprovalCard } from "./tool-approval-card";
+import { AskUserCard } from "./ask-user-card";
 import { cn } from "@/lib/utils";
 
 const StateDot: React.FC<{ active: boolean }> = ({ active }) => (
@@ -24,7 +29,7 @@ const StatusLabel: React.FC<{ active: boolean }> = ({ active }) => (
   <span
     className={cn(
       "shrink-0 text-xs font-medium",
-      active ? "shimmer text-amber-500" : "text-foreground/80",
+      active ? "shimmer text-amber-500/40" : "text-foreground/80",
     )}
   >
     {active ? "Working" : "Agent"}
@@ -38,37 +43,103 @@ const Divider: React.FC = () => (
 const ProgressLine: React.FC = () => (
   <span
     aria-hidden
-    className="pointer-events-none absolute inset-x-0 -bottom-px h-px animate-pulse bg-linear-to-r from-transparent via-amber-500/40 to-transparent motion-reduce:animate-none"
+    className="pointer-events-none absolute inset-x-0 -bottom-px h-px animate-pulse bg-linear-to-r from-transparent via-amber-500/20 to-transparent motion-reduce:animate-none"
   />
 );
+
+const PendingPrompt: React.FC = () => {
+  const approvals = useApprovalStore((state) => state.pending);
+  const questions = useQuestionStore((state) => state.pending);
+
+  const activeApproval = useMemo(() => {
+    const entries = Object.entries(approvals).filter(
+      ([, approval]) => approval.status === "pending",
+    );
+    if (entries.length === 0) return null;
+    const [toolCallId, approval] = entries.reduce((newest, entry) =>
+      entry[1].requestedAt > newest[1].requestedAt ? entry : newest,
+    );
+    return { toolCallId, approval };
+  }, [approvals]);
+
+  const activeQuestion = useMemo(() => {
+    const entries = Object.entries(questions).filter(
+      ([, question]) => question.status === "pending",
+    );
+    if (entries.length === 0) return null;
+    const [toolCallId, question] = entries[entries.length - 1];
+    return { toolCallId, question };
+  }, [questions]);
+
+  if (activeApproval) {
+    return (
+      <ToolApprovalCard
+        variant="embedded"
+        toolCallId={activeApproval.toolCallId}
+        toolName={activeApproval.approval.toolName}
+        input={activeApproval.approval.input}
+        status={activeApproval.approval.status}
+      />
+    );
+  }
+
+  if (activeQuestion) {
+    return (
+      <AskUserCard
+        variant="embedded"
+        toolCallId={activeQuestion.toolCallId}
+        questions={activeQuestion.question.questions}
+        status={activeQuestion.question.status}
+      />
+    );
+  }
+
+  return null;
+};
 
 export const AgentBar = () => {
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
   const { isSending, toolCalls } = useChatStream();
+  const approvals = useApprovalStore((state) => state.pending);
+  const questions = useQuestionStore((state) => state.pending);
+
+  const hasPending = useMemo(
+    () =>
+      Object.values(approvals).some((a) => a.status === "pending") ||
+      Object.values(questions).some((q) => q.status === "pending"),
+    [approvals, questions],
+  );
 
   if (!session) return null;
 
   const isAgent = session.type === "agent";
   const active = isSending && toolCalls.length > 0;
-  if (!isAgent && !active) return null;
+  if (!isAgent && !active && !hasPending) return null;
 
   const barClasses = cn(
-    "relative flex h-10 items-center gap-2.5 border-b border-border/40 px-3",
+    "relative flex items-center gap-2.5 border-b border-border/40",
     "bg-linear-to-r to-transparent transition-colors duration-300",
     isSending ? "from-amber-500/3" : "from-emerald-500/2",
+    hasPending ? "items-stretch px-0" : "h-10 px-3",
   );
 
   return (
     <div className={barClasses}>
-      <StateDot active={isSending} />
-      <StatusLabel active={isSending} />
-      <Divider />
-
-      <ToolUse active={active} />
-
-      <Approval />
+      {hasPending ? (
+        <div className="w-full animate-in fade-in slide-in-from-top-1 duration-200 motion-reduce:animate-none">
+          <PendingPrompt />
+        </div>
+      ) : (
+        <>
+          <StateDot active={isSending} />
+          <StatusLabel active={isSending} />
+          <Divider />
+          <ToolUse active={active} />
+          <Approval disabled={isSending} />
+        </>
+      )}
 
       {isSending && <ProgressLine />}
     </div>

@@ -17,10 +17,6 @@ export type Model = {
   displayName: string;
   description: string;
   context: number;
-  capabilities: {
-    vision: boolean;
-    tools: boolean;
-  };
 };
 
 export const MODELS: readonly Model[] = [
@@ -32,10 +28,6 @@ export const MODELS: readonly Model[] = [
     description:
       "Fast, lightweight, and responsive. Best for quick questions, drafting, and everyday chat.",
     context: 1_000_000,
-    capabilities: {
-      vision: true,
-      tools: true,
-    },
   },
   {
     tier: 2,
@@ -45,11 +37,6 @@ export const MODELS: readonly Model[] = [
     description:
       "Sharper and more composed. Better at structured writing, synthesis, and connecting ideas clearly.",
     context: 1_000_000,
-
-    capabilities: {
-      vision: true,
-      tools: true,
-    },
   },
   {
     tier: 3,
@@ -59,11 +46,6 @@ export const MODELS: readonly Model[] = [
     description:
       "Most capable and deliberate. Best for nuanced reasoning, polished writing, and more demanding tasks.",
     context: 1_000_000,
-
-    capabilities: {
-      vision: true,
-      tools: true,
-    },
   },
 ];
 

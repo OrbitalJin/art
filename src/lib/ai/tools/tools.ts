@@ -5,7 +5,9 @@ import { tasksTools } from "./tasks";
 import { sessionTools } from "./session";
 import { searchTools } from "./search";
 import { knowledgeTools } from "./knowledge";
+import { askUserTools } from "./ask-user";
 import { doneTools } from "./done";
+import { applyAccessPolicy } from "./policy";
 
 export interface Opts {
   session?: Session;
@@ -18,14 +20,17 @@ export const ambientTools = (): ToolSet => {
 };
 
 export const toolsFor = ({ session }: Opts): ToolSet => {
-  const { journal, tasks } = session?.capabilities ?? {};
-  return {
+  const { journal, tasks, askUser } = session?.capabilities ?? {};
+  const tools: ToolSet = {
     ...sessionTools({ session }),
     ...(session?.knowledgeBase &&
       knowledgeTools({ root: session.knowledgeBase })),
     ...(journal && journalTools()),
     ...(tasks && tasksTools()),
+    ...(askUser && askUserTools()),
     ...ambientTools(),
     ...doneTools(),
   };
+
+  return applyAccessPolicy(tools, session?.accessMode ?? "confirm");
 };

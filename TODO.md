@@ -205,4 +205,6 @@ Super + B to capture globally
 - [x] Implement tool approval
 - [x] Local knowledge Base
 - [x] Chat vs Agent modes
+- [ ] Ask user tool
+- [ ] More local primitives
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

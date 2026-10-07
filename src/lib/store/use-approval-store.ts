@@ -2,13 +2,22 @@ import { create } from "zustand";
 
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 
+export interface PendingApproval {
+  status: ApprovalStatus;
+  toolName: string;
+  input: unknown;
+  requestedAt: number;
+}
+
 interface RequestApprovalArgs {
   toolCallId: string;
+  toolName: string;
+  input: unknown;
   abortSignal?: AbortSignal;
 }
 
 interface ApprovalState {
-  pending: Record<string, ApprovalStatus>;
+  pending: Record<string, PendingApproval>;
   requestApproval: (args: RequestApprovalArgs) => Promise<boolean>;
   resolve: (toolCallId: string, approved: boolean) => void;
   clear: () => void;
@@ -16,15 +25,24 @@ interface ApprovalState {
 
 const resolvers = new Map<string, (approved: boolean) => void>();
 const detachAbort = new Map<string, () => void>();
+let requestSeq = 0;
 
 export const useApprovalStore = create<ApprovalState>()((set) => ({
   pending: {},
 
-  requestApproval: ({ toolCallId, abortSignal }) => {
+  requestApproval: ({ toolCallId, toolName, input, abortSignal }) => {
     if (abortSignal?.aborted) return Promise.resolve(false);
 
     set((state) => ({
-      pending: { ...state.pending, [toolCallId]: "pending" },
+      pending: {
+        ...state.pending,
+        [toolCallId]: {
+          status: "pending",
+          toolName,
+          input,
+          requestedAt: ++requestSeq,
+        },
+      },
     }));
 
     return new Promise<boolean>((resolvePromise) => {
@@ -40,9 +58,13 @@ export const useApprovalStore = create<ApprovalState>()((set) => ({
       if (abortSignal) {
         const onAbort = () => {
           set((state) => {
-            if (!(toolCallId in state.pending)) return state;
+            const current = state.pending[toolCallId];
+            if (!current) return state;
             return {
-              pending: { ...state.pending, [toolCallId]: "rejected" },
+              pending: {
+                ...state.pending,
+                [toolCallId]: { ...current, status: "rejected" },
+              },
             };
           });
           settle(false);
@@ -57,11 +79,15 @@ export const useApprovalStore = create<ApprovalState>()((set) => ({
 
   resolve: (toolCallId, approved) => {
     set((state) => {
-      if (!(toolCallId in state.pending)) return state;
+      const current = state.pending[toolCallId];
+      if (!current) return state;
       return {
         pending: {
           ...state.pending,
-          [toolCallId]: approved ? "approved" : "rejected",
+          [toolCallId]: {
+            ...current,
+            status: approved ? "approved" : "rejected",
+          },
         },
       };
     });

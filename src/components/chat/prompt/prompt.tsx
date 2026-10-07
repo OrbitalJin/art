@@ -7,7 +7,6 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatInput, useChatStream } from "@/contexts/chat-context";
 import { ModeSelect } from "./mode-select";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
-import { Capabilities } from "./capabilities";
 import { JumpSelect } from "./jump-select";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { previewUrl } from "@/lib/utils/images";
@@ -28,6 +27,79 @@ interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
 }
 
+type PromptAttachment = ReturnType<typeof useChatInput>["attachments"][number];
+
+const PromptAttachmentItem: React.FC<{
+  attachment: PromptAttachment;
+  onRemove: () => void;
+}> = ({ attachment, onRemove }) => {
+  const name = attachment.name ?? "image";
+  const type = attachment.mediaType?.split("/")[1]?.toUpperCase() ?? "IMAGE";
+
+  return (
+    <Attachment className="rounded-md" orientation="horizontal" size="xs">
+      <AttachmentMedia variant="image">
+        <img src={previewUrl(attachment)} alt={name} />
+      </AttachmentMedia>
+      <AttachmentContent>
+        <AttachmentTitle>{name}</AttachmentTitle>
+        <AttachmentDescription>{type}</AttachmentDescription>
+      </AttachmentContent>
+      <AttachmentActions>
+        <AttachmentAction onClick={onRemove}>
+          <X className="size-3" />
+        </AttachmentAction>
+      </AttachmentActions>
+    </Attachment>
+  );
+};
+
+const PromptAttachments: React.FC<{
+  attachments: PromptAttachment[];
+  onRemove: (index: number) => void;
+}> = ({ attachments, onRemove }) => (
+  <AttachmentGroup className="gap-1 px-3 pt-3">
+    {attachments.map((attachment, index) => (
+      <PromptAttachmentItem
+        key={index}
+        attachment={attachment}
+        onRemove={() => onRemove(index)}
+      />
+    ))}
+  </AttachmentGroup>
+);
+
+const SendButton: React.FC<{
+  visible: boolean;
+  stopping: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}> = ({ visible, stopping, disabled, onClick }) => {
+  const buttonClasses = cn(
+    "size-8 rounded-full transition-all duration-200",
+    visible
+      ? "scale-100 opacity-100"
+      : "pointer-events-none scale-90 opacity-0",
+  );
+
+  return (
+    <Button
+      type="button"
+      size="icon"
+      aria-label={stopping ? "Stop generating" : "Send message"}
+      className={buttonClasses}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {stopping ? (
+        <Square className="size-3.5 animate-pulse fill-current motion-reduce:animate-none" />
+      ) : (
+        <ArrowUp className="size-4" />
+      )}
+    </Button>
+  );
+};
+
 export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   const { prompt, setPrompt, attachments, removeAttachment, sendMessage } =
     useChatInput();
@@ -36,7 +108,15 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
+
+  const isAgent = session?.type === "agent";
   const disabled = session?.id !== streamingSessionId && isSending;
+  const hasAttachments = attachments.length > 0;
+  const canSend = Boolean(prompt.trim()) || hasAttachments;
+  const stopping = isSending && !disabled;
+  const showSendButton = isSending || canSend;
+
+  const placeholder = isAgent ? "Give your agent a task…" : "Ask anything…";
 
   useEffect(() => {
     const textarea = textAreaRef.current;
@@ -51,102 +131,66 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.nativeEvent.isComposing) return;
+
     if (e.key === "Enter" && (enterKeySends ? !e.shiftKey : e.shiftKey)) {
       e.preventDefault();
       handleSend();
     }
   };
 
-  const hasAttachments = attachments.length > 0;
+  const containerClasses = cn(
+    "relative flex flex-col overflow-hidden rounded-xl border border-border/60",
+    "bg-card/50 shadow-sm transition-colors duration-200",
+    "hover:border-border",
+    "focus-within:border-ring/40 focus-within:ring-4 focus-within:ring-ring/10",
+    disabled && "pointer-events-none opacity-50",
+  );
+
+  const textareaClasses = cn(
+    "resize-none border-0 bg-transparent! shadow-none focus-visible:ring-0",
+    "min-h-[100px] max-h-[250px] lg:max-h-[400px]",
+    "px-3.5 pt-3.5 pb-1 text-[15px] text-foreground/90",
+    "placeholder:text-muted-foreground/50",
+  );
 
   return (
     <footer className="z-20">
-      <div className="mx-auto max-w-3xl flex flex-col">
-        <div
-          className={cn(
-            "relative flex flex-col overflow-hidden transition-all",
-            "rounded-md border hover:border-primary/30 bg-card/50 shadow-md",
-            "focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10",
-            disabled && "pointer-events-none opacity-50",
-          )}
-        >
+      <div className="mx-auto flex max-w-3xl flex-col">
+        <div className={containerClasses}>
           <AgentBar />
 
-          <div className="flex flex-col gap-2">
-            {hasAttachments && (
-              <AttachmentGroup className="gap-1 p-2">
-                {attachments.map((attachment, index) => (
-                  <Attachment
-                    key={index}
-                    className="rounded-md"
-                    orientation="horizontal"
-                    size="xs"
-                  >
-                    <AttachmentMedia variant="image">
-                      <img src={previewUrl(attachment)} />
-                    </AttachmentMedia>
-                    <AttachmentContent>
-                      <AttachmentTitle>
-                        {attachment.name ?? "image"}
-                      </AttachmentTitle>
-                      <AttachmentDescription>
-                        {attachment.mediaType?.split("/")[1]?.toUpperCase() ??
-                          "IMAGE"}
-                      </AttachmentDescription>
-                    </AttachmentContent>
-                    <AttachmentActions>
-                      <AttachmentAction onClick={() => removeAttachment(index)}>
-                        <X className="size-3" />
-                      </AttachmentAction>
-                    </AttachmentActions>
-                  </Attachment>
-                ))}
-              </AttachmentGroup>
-            )}
-
-            <Textarea
-              autoFocus
-              ref={textAreaRef}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Ask..."
-              className={cn(
-                "bg-transparent! border-0 shadow-none resize-none",
-                "min-h-[80px] max-h-[250px] lg:max-h-[400px]",
-                "text-foreground/80 placeholder:text-muted-foreground/50 focus-visible:ring-0",
-              )}
-              onKeyDown={handleKeyDown}
+          {hasAttachments && (
+            <PromptAttachments
+              attachments={attachments}
+              onRemove={removeAttachment}
             />
+          )}
 
-            <div className="flex justify-between items-center p-2 bg-background/50 rounded-b-md">
-              <div className="flex flex-row gap-2">
-                <JumpSelect />
-                <ModelSelect />
-                {session?.type === "agent" ? <Capabilities /> : <ModeSelect />}
-                <Attach />
-              </div>
-              <div className="flex flex-row gap-2">
-                <Button
-                  variant="default"
-                  size="icon"
-                  className={cn(
-                    "h-9 w-9 ",
-                    "transition-all duration-300",
-                    isSending || prompt.trim() || hasAttachments
-                      ? "opacity-100 scale-105"
-                      : "opacity-0 scale-100 pointer-events-none",
-                  )}
-                  onClick={isSending ? abortStream : handleSend}
-                  disabled={!isSending && !prompt.trim() && !hasAttachments}
-                >
-                  {isSending && !disabled ? (
-                    <Square className="animate-pulse" />
-                  ) : (
-                    <ArrowUp />
-                  )}
-                </Button>
-              </div>
+          <Textarea
+            autoFocus
+            ref={textAreaRef}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder={placeholder}
+            className={textareaClasses}
+            onKeyDown={handleKeyDown}
+          />
+
+          <div className="flex items-center justify-between px-2 pb-2">
+            <div className="flex flex-row items-center gap-1.5">
+              <JumpSelect />
+              <ModelSelect />
+              {!isAgent && <ModeSelect />}
+              <Attach />
             </div>
+
+            <SendButton
+              visible={showSendButton}
+              stopping={stopping}
+              disabled={!isSending && !canSend}
+              onClick={isSending ? abortStream : handleSend}
+            />
           </div>
         </div>
       </div>

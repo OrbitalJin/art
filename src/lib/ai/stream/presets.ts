@@ -15,7 +15,11 @@ export const presetFor = (ctx: RequestContext) => {
 
   if (session.type === "agent") {
     return {
-      system: system({ ...ctx, type: session.type }),
+      system: system({
+        ...ctx,
+        type: session.type,
+        accessMode: session.accessMode,
+      }),
       tools: toolsFor({ session }),
       stopWhen: [
         hasToolCall(DONE_TOOL_NAME),
