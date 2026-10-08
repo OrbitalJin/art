@@ -1,3 +1,4 @@
+// chat-settings-tab.tsx
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,29 +15,48 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
-  SelectGroup,
-  SelectLabel,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { Switch } from "@/components/ui/switch";
 import { useTradeSession } from "@/hooks/use-trade-session";
 import { MODELS, type ModelId } from "@/lib/ai/models";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import {
-  Check,
-  Download,
-  Eye,
-  EyeOff,
-  Save,
-  Shredder,
-  Upload,
-} from "lucide-react";
+import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Switch } from "@/components/ui/switch";
+
+const Section: React.FC<{
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}> = ({ title, description, children }) => (
+  <section className="flex flex-col gap-4 py-6 first:pt-0">
+    <div className="flex flex-col gap-0.5">
+      <h3 className="text-sm font-medium text-foreground">{title}</h3>
+      {description && (
+        <p className="text-xs text-muted-foreground">{description}</p>
+      )}
+    </div>
+    {children}
+  </section>
+);
+
+const SettingRow: React.FC<{
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}> = ({ title, description, children }) => (
+  <section className="flex items-center justify-between gap-6 py-6">
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <h3 className="text-sm font-medium text-foreground">{title}</h3>
+      <p className="text-xs text-muted-foreground">{description}</p>
+    </div>
+    <div className="shrink-0">{children}</div>
+  </section>
+);
 
 interface SecretKeyFieldProps {
   label: string;
@@ -61,53 +81,64 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
     setShowKey(false);
   }, [value]);
 
+  const dirty = draft !== value;
+
   const handleSave = () => {
+    if (!dirty) return;
     onSave(draft);
     toast.success("Settings saved");
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing) return;
+    if (event.key === "Enter") handleSave();
+  };
+
+  const toggleClasses = cn(
+    "absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer rounded-sm",
+    "text-[11px] text-muted-foreground/70 outline-none transition-colors duration-150",
+    "hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50",
+  );
+
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-medium">{label}</p>
-      <p className="text-xs text-muted-foreground">{description}</p>
-      <div className="flex flex-col sm:flex-row gap-3 pt-2">
-        <div className="relative flex-1">
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-0.5">
+        <p className="text-[13px] font-medium text-foreground/90">{label}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <div className="relative min-w-0 flex-1">
           <Input
             type={showKey ? "text" : "password"}
             placeholder={placeholder}
-            className="pr-10 font-mono text-sm"
+            aria-label={label}
+            autoComplete="off"
+            spellCheck={false}
+            className="pr-14 font-mono text-sm"
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={handleKeyDown}
           />
           <button
             type="button"
-            onClick={() => setShowKey(!showKey)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors outline-none"
+            onClick={() => setShowKey((show) => !show)}
+            aria-pressed={showKey}
+            className={toggleClasses}
           >
-            {showKey ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
+            {showKey ? "Hide" : "Show"}
           </button>
         </div>
 
         <Button
+          type="button"
+          size="sm"
+          variant={dirty ? "default" : "ghost"}
+          disabled={!dirty}
           onClick={handleSave}
-          disabled={draft === value}
-          className="min-w-[100px] w-full sm:w-auto"
+          className="w-16"
         >
-          {draft === value ? (
-            <>
-              <Check className="mr-2 h-4 w-4" />
-              Saved
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Save
-            </>
-          )}
+          {dirty ? "Save" : "Saved"}
         </Button>
       </div>
     </div>
@@ -133,20 +164,17 @@ export const ChatSettingsTab: React.FC = () => {
   };
 
   return (
-    <>
-      <div className="max-w-3xl">
-        <h3 className="text-lg font-medium">Chat</h3>
+    <div className="flex max-w-3xl flex-col">
+      <header className="mb-6 flex flex-col gap-0.5">
+        <h2 className="text-lg font-medium tracking-tight">Chat</h2>
         <p className="text-sm text-muted-foreground">
           Configure your chat experience.
         </p>
-      </div>
+      </header>
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="space-y-1 mb-3">
-          <p className="text-base font-medium">Secrets</p>
-        </div>
-        <div className="space-y-6">
-          <div>
+      <div className="flex flex-col divide-y divide-border/50">
+        <Section title="Keys" description="Stored on this device.">
+          <div className="flex flex-col gap-5">
             <SecretKeyField
               label="Gateway"
               description="Vercel AI gateway key."
@@ -154,133 +182,109 @@ export const ChatSettingsTab: React.FC = () => {
               value={apiKey}
               onSave={setApiKey}
             />
-          </div>
-          <div>
             <SecretKeyField
-              label="Web Discovery"
+              label="Web discovery"
               description="Exa web discovery key."
               placeholder="secret key"
               value={searchApiKey}
               onSave={setSearchApiKey}
             />
           </div>
-        </div>
-      </div>
+        </Section>
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-base font-medium">Default Model</p>
-            <p className="text-sm text-muted-foreground">
-              Model used for new sessions.
-            </p>
-          </div>
-          <div className="pt-2">
-            <Select
-              value={defaultModel}
-              onValueChange={(val: ModelId) => setDefaultModel(val)}
-            >
-              <SelectTrigger className="w-full max-w-md">
-                <SelectValue placeholder="Select default model" />
-              </SelectTrigger>
-              <SelectContent position="item-aligned">
-                <SelectGroup>
-                  <SelectLabel>Models</SelectLabel>
-                  {MODELS.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      <span>{m.displayName}</span>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
+        <SettingRow
+          title="Default model"
+          description="Model used for new sessions."
+        >
+          <Select
+            value={defaultModel}
+            onValueChange={(value: ModelId) => setDefaultModel(value)}
+          >
+            <SelectTrigger className="w-52" aria-label="Default model">
+              <SelectValue placeholder="Select a model" />
+            </SelectTrigger>
+            <SelectContent position="item-aligned">
+              {MODELS.map((model) => (
+                <SelectItem key={model.id} value={model.id}>
+                  {model.displayName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingRow>
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <p className="text-base font-medium">Enter to Send</p>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Press Enter to send, Shift+Enter for newlines.
-            </p>
-          </div>
-          <Switch checked={enterKeySends} onCheckedChange={setEnterKeySends} />
-        </div>
-      </div>
+        <SettingRow
+          title="Enter to send"
+          description="Press Enter to send, Shift+Enter for a new line."
+        >
+          <Switch
+            checked={enterKeySends}
+            onCheckedChange={setEnterKeySends}
+            aria-label="Enter to send"
+          />
+        </SettingRow>
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-base font-medium">Trade</p>
-            <p className="text-sm text-muted-foreground">
-              Export sessions or import from a file.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <SettingRow
+          title="Sessions"
+          description="Export all sessions, or import them from a file."
+        >
+          <div className="flex items-center gap-2">
             <Button
+              type="button"
+              size="sm"
               variant="outline"
-              className="flex-1"
               onClick={exportAllSessions}
               disabled={sortedSessions.length === 0}
             >
-              <Upload className="h-4 w-4 mr-2" />
-              Export All
+              Export all
             </Button>
             <Button
+              type="button"
+              size="sm"
               variant="outline"
-              className="flex-1"
               onClick={importSessions}
             >
-              <Download className="h-4 w-4 mr-2" />
               Import
             </Button>
           </div>
-        </div>
-      </div>
+        </SettingRow>
 
-      <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-6 shadow-sm max-w-3xl">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-base font-medium">Purge Chat History</p>
-            <p className="text-sm text-muted-foreground">
-              Delete all conversations.
-            </p>
-          </div>
+        <SettingRow
+          title="Delete chat history"
+          description="Permanently delete all conversations."
+        >
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
+                type="button"
+                size="sm"
                 variant="outline"
-                size="icon"
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
-                <Shredder />
+                Delete all
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent size="sm">
               <AlertDialogHeader>
-                <AlertDialogTitle>Clear Chat History</AlertDialogTitle>
+                <AlertDialogTitle>Delete all chat history?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete all your sessions. This action
-                  cannot be undone.
+                  Every session will be permanently deleted. This can't be
+                  undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={handleClearHistory}
                   variant="destructive"
+                  onClick={handleClearHistory}
                 >
-                  Delete All
+                  Delete all
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </div>
+        </SettingRow>
       </div>
-    </>
+    </div>
   );
 };

@@ -1,57 +1,54 @@
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Switch } from "@/components/ui/switch";
-import {
-  useTheme,
-  type ThemeColor,
-  type ThemeMode,
-} from "@/contexts/theme-context";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { useTheme, type ThemeColor } from "@/contexts/theme-context";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { cn } from "@/lib/utils";
-import {
-  useSettingsStore,
-  type CornerRadius,
-  type FontSize,
-} from "@/lib/store/use-settings-store";
+import { SettingRow, SettingsPage } from "./settings-layout";
 
-const THEME_COLORS: Array<{ value: ThemeColor; label: string }> = [
-  { value: "midnight bloom", label: "Midnight Bloom" },
-  { value: "pastel dreams", label: "Pastel Dreams" },
-  { value: "amethyst haze", label: "Amethyst Haze" },
-  { value: "violet bloom", label: "Violet Bloom" },
-  { value: "cosmic night", label: "Cosmic Night" },
-  { value: "sunny sprout", label: "Sunny Sprout" },
-  { value: "quantum rose", label: "Quantum Rose" },
-  { value: "flutter shy", label: "Flutter Shy" },
-  { value: "claude plus", label: "Claude Plus" },
-  { value: "dark matter", label: "Dark Matter" },
-  { value: "mocha mousse", label: "Mocha Mousse" },
-  { value: "terminal", label: "Terminal" },
-  { value: "vercel", label: "Vercel" },
-  { value: "claude", label: "Claude" },
-  { value: "pony", label: "Pony" },
-  { value: "aero", label: "Aero" },
-  { value: "zen", label: "Zen" },
-  { value: "t3 chat", label: "T3" },
-] as const;
-
-const FONT_SIZE_OPTIONS: Array<{
-  value: FontSize;
+const Segmented: React.FC<{
   label: string;
-  size: string;
-}> = [
-  { value: "small", label: "Small", size: "14px" },
-  { value: "medium", label: "Medium", size: "16px" },
-  { value: "large", label: "Large", size: "18px" },
-] as const;
+  children: React.ReactNode;
+}> = ({ label, children }) => (
+  <div
+    role="radiogroup"
+    aria-label={label}
+    className="flex items-center rounded-full bg-foreground/5 p-0.5 ring-1 ring-border/50"
+  >
+    {children}
+  </div>
+);
+
+const SegmentedItem: React.FC<{
+  label: string;
+  selected: boolean;
+  onSelect: () => void;
+}> = ({ label, selected, onSelect }) => {
+  const itemClasses = cn(
+    "cursor-pointer rounded-full px-3 py-1 text-xs whitespace-nowrap outline-none",
+    "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
+    selected
+      ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
+      : "text-muted-foreground hover:text-foreground",
+  );
+
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      className={itemClasses}
+    >
+      {label}
+    </button>
+  );
+};
 
 export const AppearanceSettingTab = () => {
   const { mode, setMode, color, setColor } = useTheme();
@@ -63,162 +60,125 @@ export const AppearanceSettingTab = () => {
   const setReducedMotion = useSettingsStore((state) => state.setReducedMotion);
 
   return (
-    <>
-      <div className="max-w-3xl">
-        <h3 className="text-lg font-medium">Appearance</h3>
-        <p className="text-sm text-muted-foreground">
-          Customize the look and feel of the app.
-        </p>
-      </div>
+    <SettingsPage
+      title="Appearance"
+      description="Customize the look and feel of the app."
+    >
+      <SettingRow title="Theme" description="Choose a light or dark mode.">
+        <Segmented label="Theme">
+          <SegmentedItem
+            label="Light"
+            selected={mode === "light"}
+            onSelect={() => setMode("light")}
+          />
+          <SegmentedItem
+            label="Dark"
+            selected={mode === "dark"}
+            onSelect={() => setMode("dark")}
+          />
+          <SegmentedItem
+            label="System"
+            selected={mode === "system"}
+            onSelect={() => setMode("system")}
+          />
+        </Segmented>
+      </SettingRow>
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-base font-medium">Interface Theme</p>
-            <p className="text-sm text-muted-foreground">
-              Select your preferred background mode.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-            {[
-              { id: "light" as ThemeMode, icon: Sun, label: "Light" },
-              { id: "dark" as ThemeMode, icon: Moon, label: "Dark" },
-              {
-                id: "system" as ThemeMode,
-                icon: Monitor,
-                label: "System",
-              },
-            ].map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setMode(t.id)}
-                className={cn(
-                  "flex items-center gap-3 sm:flex-col sm:justify-between rounded-md border-2 p-4 transition-all",
-                  mode === t.id
-                    ? "border-primary bg-primary/5 text-primary"
-                    : "border-muted bg-popover hover:bg-accent text-muted-foreground",
-                )}
-              >
-                <t.icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="text-sm font-medium">{t.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <SettingRow
+        title="Accent color"
+        description="The color palette used across the app."
+      >
+        <Select
+          value={color}
+          onValueChange={(value: ThemeColor) => setColor(value)}
+        >
+          <SelectTrigger className="w-52" aria-label="Accent color">
+            <SelectValue placeholder="Select a theme" />
+          </SelectTrigger>
+          <SelectContent position="item-aligned">
+            <SelectItem value="midnight bloom">Midnight Bloom</SelectItem>
+            <SelectItem value="pastel dreams">Pastel Dreams</SelectItem>
+            <SelectItem value="amethyst haze">Amethyst Haze</SelectItem>
+            <SelectItem value="violet bloom">Violet Bloom</SelectItem>
+            <SelectItem value="cosmic night">Cosmic Night</SelectItem>
+            <SelectItem value="sunny sprout">Sunny Sprout</SelectItem>
+            <SelectItem value="quantum rose">Quantum Rose</SelectItem>
+            <SelectItem value="flutter shy">Flutter Shy</SelectItem>
+            <SelectItem value="claude plus">Claude Plus</SelectItem>
+            <SelectItem value="dark matter">Dark Matter</SelectItem>
+            <SelectItem value="mocha mousse">Mocha Mousse</SelectItem>
+            <SelectItem value="terminal">Terminal</SelectItem>
+            <SelectItem value="vercel">Vercel</SelectItem>
+            <SelectItem value="claude">Claude</SelectItem>
+            <SelectItem value="pony">Pony</SelectItem>
+            <SelectItem value="aero">Aero</SelectItem>
+            <SelectItem value="zen">Zen</SelectItem>
+            <SelectItem value="t3 chat">T3</SelectItem>
+          </SelectContent>
+        </Select>
+      </SettingRow>
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-base font-medium">Accent Color</p>
-            <p className="text-sm text-muted-foreground">
-              Select the color palette for the app.
-            </p>
-          </div>
-          <div className="pt-2">
-            <Select
-              value={color}
-              onValueChange={(val: ThemeColor) => setColor(val)}
-            >
-              <SelectTrigger className="w-full max-w-md">
-                <SelectValue placeholder="Select a theme" />
-              </SelectTrigger>
-              <SelectContent position="item-aligned">
-                <SelectGroup>
-                  <SelectLabel>Accent Color</SelectLabel>
-                  {THEME_COLORS.map((theme) => (
-                    <SelectItem key={theme.value} value={theme.value}>
-                      <span>{theme.label}</span>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
+      <SettingRow
+        title="Font size"
+        description="Adjust the text size across the app."
+      >
+        <Segmented label="Font size">
+          <SegmentedItem
+            label="Small"
+            selected={fontSize === "small"}
+            onSelect={() => setFontSize("small")}
+          />
+          <SegmentedItem
+            label="Medium"
+            selected={fontSize === "medium"}
+            onSelect={() => setFontSize("medium")}
+          />
+          <SegmentedItem
+            label="Large"
+            selected={fontSize === "large"}
+            onSelect={() => setFontSize("large")}
+          />
+        </Segmented>
+      </SettingRow>
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-base font-medium">Font Size</p>
-            <p className="text-sm text-muted-foreground">
-              Adjust the text size across the app.
-            </p>
-          </div>
-          <div className="pt-2">
-            <Select
-              value={fontSize}
-              onValueChange={(val: FontSize) => setFontSize(val)}
-            >
-              <SelectTrigger className="w-full max-w-md">
-                <SelectValue placeholder="Select font size" />
-              </SelectTrigger>
-              <SelectContent position="item-aligned">
-                <SelectGroup>
-                  <SelectLabel>Font Size</SelectLabel>
-                  {FONT_SIZE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <span>{option.label}</span>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
+      <SettingRow
+        title="Corner radius"
+        description="How round corners are across the app."
+      >
+        <Segmented label="Corner radius">
+          <SegmentedItem
+            label="None"
+            selected={cornerRadius === "none"}
+            onSelect={() => setCornerRadius("none")}
+          />
+          <SegmentedItem
+            label="Small"
+            selected={cornerRadius === "small"}
+            onSelect={() => setCornerRadius("small")}
+          />
+          <SegmentedItem
+            label="Medium"
+            selected={cornerRadius === "medium"}
+            onSelect={() => setCornerRadius("medium")}
+          />
+          <SegmentedItem
+            label="Large"
+            selected={cornerRadius === "large"}
+            onSelect={() => setCornerRadius("large")}
+          />
+        </Segmented>
+      </SettingRow>
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <p className="text-base font-medium">Corner Radius</p>
-            <p className="text-sm text-muted-foreground">
-              Control the roundness of corners across the app.
-            </p>
-          </div>
-          <div className="pt-2">
-            <Select
-              value={cornerRadius}
-              onValueChange={(val: CornerRadius) => setCornerRadius(val)}
-            >
-              <SelectTrigger className="w-full max-w-md">
-                <SelectValue placeholder="Select corner radius" />
-              </SelectTrigger>
-              <SelectContent position="item-aligned">
-                <SelectGroup>
-                  <SelectLabel>Corner Radius</SelectLabel>
-                  <SelectItem value="none">
-                    <span>None</span>
-                  </SelectItem>
-                  <SelectItem value="small">
-                    <span>Small</span>
-                  </SelectItem>
-                  <SelectItem value="medium">
-                    <span>Medium</span>
-                  </SelectItem>
-                  <SelectItem value="large">
-                    <span>Large</span>
-                  </SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-lg border bg-card p-6 shadow-sm max-w-3xl">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-base font-medium">Reduced Motion</p>
-            <p className="text-sm text-muted-foreground">
-              Minimize animations throughout the app.
-            </p>
-          </div>
-          <Switch checked={reducedMotion} onCheckedChange={setReducedMotion} />
-        </div>
-      </div>
-    </>
+      <SettingRow
+        title="Reduced motion"
+        description="Minimize animations throughout the app."
+      >
+        <Switch
+          checked={reducedMotion}
+          onCheckedChange={setReducedMotion}
+          aria-label="Reduced motion"
+        />
+      </SettingRow>
+    </SettingsPage>
   );
 };

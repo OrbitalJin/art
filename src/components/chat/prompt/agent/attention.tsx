@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import { useQuestionStore } from "@/lib/store/use-question-store";
@@ -21,11 +20,68 @@ interface AttentionRow {
   summary: string;
 }
 
-const triggerClasses = cn(
-  "mb-2 flex w-full items-center gap-2 rounded-lg border border-amber-500/30",
-  "bg-amber-500/10 px-3 py-2 text-left text-xs text-amber-600",
-  "transition-colors hover:bg-amber-500/15 dark:text-amber-400",
+const bannerClasses = cn(
+  "group mb-2 flex w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-lg",
+  "border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-left text-xs",
+  "outline-none transition-colors duration-150 hover:bg-amber-500/10",
+  "focus-visible:ring-2 focus-visible:ring-ring/50",
 );
+
+const AttentionDot: React.FC = () => (
+  <span aria-hidden className="relative flex size-1.5 shrink-0">
+    <span className="relative inline-flex size-1.5 rounded-full bg-amber-500" />
+    <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-500/60 motion-reduce:animate-none" />
+  </span>
+);
+
+const BannerContent: React.FC<{
+  label: string;
+  detail?: string;
+  action: string;
+}> = ({ label, detail, action }) => (
+  <>
+    <AttentionDot />
+    <span className="shrink-0 font-medium text-foreground/80">{label}</span>
+    {detail && (
+      <span className="min-w-0 truncate text-muted-foreground/70">
+        {detail}
+      </span>
+    )}
+    <span
+      className={cn(
+        "ml-auto shrink-0 text-[11px] font-medium text-amber-600 dark:text-amber-400",
+        "transition-opacity duration-150 group-hover:opacity-80",
+      )}
+    >
+      {action}
+    </span>
+  </>
+);
+
+const AttentionRowButton: React.FC<{
+  row: AttentionRow;
+  onSelect: (row: AttentionRow) => void;
+}> = ({ row, onSelect }) => {
+  const rowClasses = cn(
+    "flex w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2",
+    "text-left outline-none transition-colors duration-150 hover:bg-accent/30",
+    "focus-visible:ring-2 focus-visible:ring-ring/50",
+  );
+
+  return (
+    <button type="button" onClick={() => onSelect(row)} className={rowClasses}>
+      <AttentionDot />
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="truncate text-[13px] text-foreground/90">
+          {row.title || "Untitled session"}
+        </span>
+        <span className="truncate text-[11px] text-muted-foreground/70">
+          {row.summary}
+        </span>
+      </span>
+    </button>
+  );
+};
 
 export const AgentAttention: React.FC = () => {
   const activeId = useSessionStore((state) => state.activeId);
@@ -42,16 +98,22 @@ export const AgentAttention: React.FC = () => {
         const session = sessions.find((s) => s.id === sessionId);
         const candidates = [
           ...Object.values(approvals)
-            .filter((e) => e.status === "pending" && e.sessionId === sessionId)
-            .map((e) => ({
-              requestedAt: e.requestedAt,
-              summary: `Approve ${formatToolName(e.toolName)}`,
+            .filter(
+              (entry) =>
+                entry.status === "pending" && entry.sessionId === sessionId,
+            )
+            .map((entry) => ({
+              requestedAt: entry.requestedAt,
+              summary: `Approve ${formatToolName(entry.toolName)}`,
             })),
           ...Object.values(questions)
-            .filter((e) => e.status === "pending" && e.sessionId === sessionId)
-            .map((e) => ({
-              requestedAt: e.requestedAt,
-              summary: e.questions[0]?.header ?? "Question",
+            .filter(
+              (entry) =>
+                entry.status === "pending" && entry.sessionId === sessionId,
+            )
+            .map((entry) => ({
+              requestedAt: entry.requestedAt,
+              summary: entry.questions[0]?.header ?? "Question",
             })),
         ].sort((a, b) => b.requestedAt - a.requestedAt);
 
@@ -74,19 +136,14 @@ export const AgentAttention: React.FC = () => {
 
   if (rows.length === 1) {
     const row = rows[0];
+
     return (
-      <button
-        type="button"
-        onClick={() => jump(row)}
-        className={triggerClasses}
-      >
-        <span className="truncate font-medium">
-          Agent needs your attention{row.title ? ` in “${row.title}”` : ""}
-        </span>
-        <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-[11px] font-medium">
-          Jump
-          <ArrowRight className="size-3" />
-        </span>
+      <button type="button" onClick={() => jump(row)} className={bannerClasses}>
+        <BannerContent
+          label="Needs your attention"
+          detail={row.title || row.summary}
+          action="Jump"
+        />
       </button>
     );
   }
@@ -94,48 +151,26 @@ export const AgentAttention: React.FC = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" className={triggerClasses}>
-          <span className="truncate font-medium">
-            {rows.length} sessions need your attention
-          </span>
-          <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-[11px] font-medium">
-            Review
-            <ArrowRight className="size-3" />
-          </span>
+        <button type="button" className={bannerClasses}>
+          <BannerContent
+            label={`${rows.length} sessions need your attention`}
+            action="Review"
+          />
         </button>
       </PopoverTrigger>
 
       <PopoverContent
         align="start"
         side="top"
-        className="w-80 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
+        className="w-80 overflow-hidden border-muted-foreground/20 p-1 shadow-xl"
       >
-        <div className="border-b bg-muted/30 px-3 py-2">
-          <p className="text-sm font-medium">Needs your attention</p>
-        </div>
+        <p className="px-2.5 pt-2 pb-1 text-[11px] font-medium text-muted-foreground/60">
+          Waiting on you
+        </p>
 
-        <div className="flex flex-col gap-0.5 p-1">
+        <div className="flex flex-col gap-0.5">
           {rows.map((row) => (
-            <button
-              key={row.sessionId}
-              type="button"
-              onClick={() => jump(row)}
-              className={cn(
-                "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left",
-                "outline-none transition-colors hover:bg-accent/20",
-                "focus-visible:ring-2 focus-visible:ring-ring/50",
-              )}
-            >
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-sm font-medium text-foreground/90">
-                  {row.title || "Untitled session"}
-                </span>
-                <span className="truncate text-[11px] text-muted-foreground">
-                  {row.summary}
-                </span>
-              </span>
-              <ArrowRight className="size-3.5 shrink-0 text-muted-foreground/60" />
-            </button>
+            <AttentionRowButton key={row.sessionId} row={row} onSelect={jump} />
           ))}
         </div>
       </PopoverContent>

@@ -8,8 +8,6 @@ This file tracks shipped work, in-progress items, and planned improvements.
 
 ## Chat
 
-Multi-session LLM conversations with research and tutor modes. Bring your own API key.
-
 ### Shipped
 
 - [x] Multi-session support with a dedicated sidebar
@@ -40,6 +38,20 @@ Multi-session LLM conversations with research and tutor modes. Bring your own AP
 - [x] Add modes: chat, research, tutor
 - [x] Add archived state
 - [x] Search grounding
+- [x] Image attachments and paste support
+- [x] Model reasoning support
+- [x] LaTeX support for chat
+- [x] Migrate to a generic AI gateway
+- [x] Session token usage
+- [x] Concurrent streaming sessions with per-session drafts
+- [x] Separate Chat and Agent workspaces with `Ctrl+Tab` switching
+- [x] Agent tool calling for journal, tasks, and local files
+- [x] Tool access policy: read-only, confirm, or autonomous
+- [x] Destructive-tool approval gating
+- [x] Per-session approval and question queues
+- [x] Inline tool calls and agent activity bar
+- [x] Ask-user tool with clarifying choices
+- [x] Per-session folder scoping for local context
 
 ### In progress
 
@@ -81,6 +93,7 @@ Rich text editor with auto-save, image support, and custom mentions.
 - [x] Insert headings menu
 - [x] Battle-test LLM features and simplify dialog logic
 - [x] Popout support
+- [x] YouTube embeds
 
 ---
 
@@ -98,12 +111,14 @@ Bento-style task board with drag-and-drop organization.
 - [x] Merge task dialogs
 - [x] Merge project dialogs
 - [x] Task dependencies
+- [x] Custom task order
+- [x] Calendar view
 
 ---
 
 ## Interval work
 
-### Planned
+### Shipped
 
 - [x] Implement a basic audio player with controls and playlist support
 - [x] Create store & Persist playlist data
@@ -115,14 +130,7 @@ Bento-style task board with drag-and-drop organization.
 
 ## Capture
 
-A quick inbox for anything — text, links, and screenshots — with a global hotkey and a dedicated page.
-Super + B to capture globally
-
-- [x] Basic capture page
-- [ ] Add image support
-- [ ] Add groups
-- [ ] Add tools
-- [ ] Add voice notes
+A quick inbox for anything — text, links, and images — with a global hotkey and a dedicated page.
 
 ### Shipped
 
@@ -134,6 +142,12 @@ Super + B to capture globally
 - [x] Search and all/starred/unstarred filters
 - [x] Clear-all with confirmation dialog
 - [x] Tauri persistence (`captures.json`)
+
+### Planned
+
+- [ ] Add groups
+- [ ] Add tools
+- [ ] Add voice notes
 
 ---
 
@@ -182,15 +196,12 @@ Super + B to capture globally
 - [x] Generate title after LLM response
 - [x] Branch out below message
 - [x] Solve the no-session state when deleting
-- [x] Custom task order
 - [x] Persist sidebar list grouping state
 - [x] Edit message with prune and resend
 - [x] Changelogs
 - [x] Tauri hot updates and signing for remote updates
 - [x] Customizable user & agent identities
-
-### Planned
-
+- [x] Named model tiers (Monet, Voltaire, Chopin)
 - [x] Ignore asset files such as demo screenshots from being packaged
 - [x] Adapt syntax highlighting to current selected theme
 - [x] Migrate to ai sdk
@@ -203,9 +214,12 @@ Super + B to capture globally
 - [x] id based routing for chat & journal
 - [x] Tool call grouping for contiguous calls
 - [x] Implement tool approval
-- [x] Local knowledge Base
+- [x] Local knowledge base
 - [x] Chat vs Agent modes
 - [x] Ask user tool
+
+### Planned
+
 - [ ] More local primitives
 - [ ] remember & recall tools, that lets the agent store and retrieve relevant context from past conversations
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

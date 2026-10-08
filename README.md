@@ -1,8 +1,8 @@
 # Art
 
-A personalized, local-first desktop workspace for chat, journaling, and task management.
+A personalized, local-first desktop workspace for chat & AI agents, journaling, tasks, focus, and capture.
 
-Bring your own AI key, keep your workflow close to home, and organize thinking, writing, and execution in one place.
+Bring your own AI gateway key, keep your workflow close to home, and organize thinking, writing, and execution in one place.
 
 [![Version](https://img.shields.io/github/v/release/orbitaljin/art?style=flat-square)](https://github.com/orbitaljin/art/releases)
 
@@ -15,28 +15,40 @@ Bring your own AI key, keep your workflow close to home, and organize thinking, 
 Art is built for people who want one personal workspace instead of juggling disconnected tools.
 
 - Local-first desktop experience
-- AI chat with bring-your-own-key support
+- Chat and Agent modes with real tool calling
+- Bring-your-own-key AI gateway
 - Journals and notes that can become reusable context
-- Task management in the same workspace
-- Shared workflows across chat, writing, and planning
-- Customizable interface, settings, and navigation
+- Task management and calendar in the same workspace
+- Focus intervals with an integrated audio player
+- A quick-capture inbox reachable from anywhere
+- Customizable interface, identities, and navigation
 
-![Art overview](assets/screenshots/settings.png)
+![Art settings](assets/screenshots/settings.png)
 
 ## Features
 
-### Chat
+### Chat & Agent
 
-Multi-session AI conversations with dedicated workflow modes.
+Multi-session conversations with dedicated workflow modes and an autonomous agent that can act on your workspace.
 
+![Art agent](assets/screenshots/agent.png)
 ![Art chat](assets/screenshots/chat.png)
 
 - Chat, research, and tutor modes
+- Separate Chat and Agent workspaces (`Ctrl+Tab` to switch)
+- Agent tools for journal, tasks, and local files
+- Tool access policy: read-only, confirm, or autonomous
+- Approval gating for destructive actions
+- Concurrent streaming sessions with per-session drafts
+- Image attachments and paste support
+- Search grounding and model reasoning
+- LaTeX math and syntax highlighting
 - Rename, pin, archive, fork, import, and export sessions
-- Search grounding
-- Session persistence
-- Bring your own API key
+- Session token usage
 - Notes can be attached as context
+- Folder-scoped local context from your knowledge base
+- Three model tiers: Monet, Voltaire, Chopin
+- Bring your own AI gateway key
 
 ### Journal
 
@@ -47,7 +59,9 @@ A rich writing space for notes, reflection, and reusable context.
 - Rich text editor with auto-save
 - Custom mentions and categories
 - Image support with resizing
+- YouTube embeds and tables
 - Reading and editing modes
+- Popout window support
 - AI-assisted workflows
 - Markdown-oriented storage for efficient context use
 
@@ -64,7 +78,7 @@ A flexible bento-style board for planning and execution.
 - Custom ordering
 - Calendar view
 
-![Art Calendar](assets/screenshots/calendar.png)
+![Art calendar](assets/screenshots/calendar.png)
 
 ### Intervals
 
@@ -79,15 +93,28 @@ A customizable timer with an integrated audio player, playlist, and memo for foc
 - Session persistence across navigation
 - Simple memo for quick notes during sessions
 
-### Productivity Tools
+### Capture
+
+A quick inbox for anything — text, links, and images — with a global hotkey and a dedicated page.
+
+![Art captures](assets/screenshots/captures.png)
+
+- Vertical feed, newest first
+- Text, link, and image capture kinds
+- Global quick-capture dialog (`Mod+Shift+C`)
+- Paste or drop images into the composer
+- Search and all / starred / unstarred filters
+- Per-capture star, copy, and delete actions
+
+### Productivity & Customization
 
 Extra utilities that support the rest of your workflow.
 
-- Text utilities for summarizing, rewriting, and translating
 - Shared context between parts of the app
-- Command palette navigation
-- Theme, text size, and UI customization
-- In-app updates
+- Command palette navigation (`Mod+K`)
+- Theme colors, text size, and radius customization
+- Customizable user and agent identities
+- In-app updates with a built-in changelog
 
 ## Download
 

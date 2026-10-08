@@ -9,16 +9,13 @@ interface Props {
   description?: string;
   badge?: string;
   tone?: Tone;
-  /**
-   * Docked mode squares the bottom edge and drops the outer border so the card
-   * can merge with the surface directly below it (e.g. the prompt input).
-   */
+  busy?: boolean;
   docked?: boolean;
   children?: React.ReactNode;
 }
 
-const TONE_RAIL: Record<Tone, string> = {
-  default: "bg-border",
+const TONE_DOT: Record<Tone, string> = {
+  default: "bg-muted-foreground/40",
   success: "bg-emerald-500",
   error: "bg-destructive",
   info: "bg-amber-500",
@@ -31,34 +28,53 @@ const TONE_ICON: Record<Tone, string> = {
   info: "text-amber-500",
 };
 
+const TONE_SURFACE: Record<Tone, string> = {
+  default: "border-border/50 bg-muted/10",
+  success: "border-border/50 bg-muted/10",
+  error: "border-destructive/20 bg-destructive/5",
+  info: "border-border/50 bg-muted/10",
+};
+
+const Lead: React.FC<{
+  icon?: React.ReactNode;
+  tone: Tone;
+  busy: boolean;
+  className?: string;
+}> = ({ icon, tone, busy, className }) => {
+  if (icon) {
+    return (
+      <span className={cn("shrink-0", TONE_ICON[tone], className)}>{icon}</span>
+    );
+  }
+
+  const dotClasses = cn(
+    "size-1.5 shrink-0 rounded-full",
+    TONE_DOT[tone],
+    busy && "animate-pulse motion-reduce:animate-none",
+    className,
+  );
+
+  return <span aria-hidden className={dotClasses} />;
+};
+
 export const StatusCard: React.FC<Props> = ({
   icon,
   title,
   description,
   badge,
   tone = "default",
+  busy = false,
   docked = false,
   children,
 }) => {
-  const rail = (
-    <span
-      aria-hidden
-      className={cn("absolute inset-y-0 left-0 w-0.5", TONE_RAIL[tone])}
-    />
-  );
-
   if (docked) {
     return (
-      <div className="relative flex items-center gap-3 overflow-hidden border-b border-border/60 bg-muted/10 py-2 pr-3 pl-3">
-        {rail}
-
-        {icon ? (
-          <span className={cn("shrink-0", TONE_ICON[tone])}>{icon}</span>
-        ) : null}
+      <div className="flex items-center gap-2.5 border-b border-border/50 bg-muted/10 px-3 py-2">
+        <Lead icon={icon} tone={tone} busy={busy} />
 
         <div className="flex min-w-0 flex-1 items-center gap-3">
           {title ? (
-            <p className="shrink-0 text-xs font-semibold tracking-tight">
+            <p className="shrink-0 text-xs font-medium text-foreground/90">
               {title}
             </p>
           ) : null}
@@ -68,30 +84,38 @@ export const StatusCard: React.FC<Props> = ({
     );
   }
 
-  return (
-    <div className="relative overflow-hidden rounded-md border border-border/60 bg-card/50 py-3 pr-4 pl-4">
-      {rail}
+  const cardClasses = cn(
+    "flex items-start gap-3 rounded-lg border px-4 py-3",
+    TONE_SURFACE[tone],
+  );
 
-      <div className="flex items-start gap-3">
-        {icon ? (
-          <div className={cn("mt-0.5 shrink-0", TONE_ICON[tone])}>{icon}</div>
+  return (
+    <div className={cardClasses}>
+      <Lead
+        icon={icon}
+        tone={tone}
+        busy={busy}
+        className={icon ? "mt-0.5" : "mt-[7px]"}
+      />
+
+      <div className="min-w-0 flex-1">
+        {title || badge ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {title ? (
+              <p className="text-[13px] font-medium text-foreground/90">
+                {title}
+              </p>
+            ) : null}
+            {badge ? <Badge variant="secondary">{badge}</Badge> : null}
+          </div>
         ) : null}
 
-        <div className="min-w-0 flex-1">
-          {title || badge ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {title ? <p className="text-sm font-medium">{title}</p> : null}
-              {badge ? <Badge variant="secondary">{badge}</Badge> : null}
-            </div>
-          ) : null}
-
-          {children ??
-            (description ? (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {description}
-              </p>
-            ) : null)}
-        </div>
+        {children ??
+          (description ? (
+            <p className="mt-0.5 text-xs leading-snug break-words text-muted-foreground">
+              {description}
+            </p>
+          ) : null)}
       </div>
     </div>
   );

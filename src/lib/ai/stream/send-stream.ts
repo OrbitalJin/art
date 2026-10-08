@@ -8,7 +8,7 @@ import type {
 import { messageText } from "@/lib/store/session/types";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { modelById, modelTypeById } from "@/lib/ai/models";
+import { modelTypeById } from "@/lib/ai/models";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 import { nativeFetch } from "@/lib/native-fetch";
 import {
@@ -29,12 +29,12 @@ function attachmentToImagePart(attachment: MessageAttachment) {
   };
 }
 
-function toSDKMessages(messages: Message[], stripImages = false) {
+function toSDKMessages(messages: Message[]) {
   return messages
     .filter((m) => m.role === "user" || m.role === "assistant")
     .map((m) => {
       const text = messageText(m);
-      if (m.role === "user" && !stripImages && m.attachments?.length) {
+      if (m.role === "user" && m.attachments?.length) {
         return {
           role: "user" as const,
           content: [
@@ -66,14 +66,6 @@ export async function sendToSession(
   const { userProfile, agentProfile } = useSettingsStore.getState();
   const profiles = { user: userProfile, agent: agentProfile };
 
-  const hasImages = !!attachments?.length;
-  const stripImages = hasImages;
-  if (stripImages) {
-    toast.info(
-      `${modelById(session.modelId).displayName} can't view images — sending text only`,
-    );
-  }
-
   const controller = useStreamStore.getState().begin(sessionId);
 
   let acc = initialAccumulator;
@@ -89,13 +81,12 @@ export async function sendToSession(
         ? history.slice(0, -1)
         : history;
 
-    const currentUserContent =
-      attachments?.length && !stripImages
-        ? [
-            { type: "text" as const, text },
-            ...attachments.map(attachmentToImagePart),
-          ]
-        : text;
+    const currentUserContent = attachments?.length
+      ? [
+          { type: "text" as const, text },
+          ...attachments.map(attachmentToImagePart),
+        ]
+      : text;
 
     stream = streamText({
       model: createGateway({ apiKey, fetch: nativeFetch })(
@@ -103,7 +94,7 @@ export async function sendToSession(
       ),
       abortSignal: controller.signal,
       messages: [
-        ...toSDKMessages(trailing, stripImages),
+        ...toSDKMessages(trailing),
         { role: "user" as const, content: currentUserContent },
       ],
       experimental_transform: smoothStream({

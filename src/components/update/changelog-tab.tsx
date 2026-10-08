@@ -1,7 +1,12 @@
 import { useChangelog, type ChangelogEntry } from "@/hooks/use-changelog";
 import { ScrollArea } from "../ui/scroll-area";
-import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
+
+type VersionGroup = ReturnType<typeof useChangelog>["versionGroups"][number];
+
+interface GroupedByType {
+  [type: string]: ChangelogEntry[];
+}
 
 const TYPE_ORDER = [
   "feat",
@@ -17,11 +22,7 @@ const TYPE_ORDER = [
   "chore",
 ];
 
-interface GroupedByType {
-  [type: string]: ChangelogEntry[];
-}
-
-function groupByType(entries: ChangelogEntry[]): GroupedByType {
+const groupByType = (entries: ChangelogEntry[]): GroupedByType => {
   const grouped: GroupedByType = {};
 
   for (const entry of entries) {
@@ -33,36 +34,45 @@ function groupByType(entries: ChangelogEntry[]): GroupedByType {
   }
 
   return grouped;
-}
+};
 
-function getSectionAccent(type: string) {
+const sortTypes = (grouped: GroupedByType): [string, ChangelogEntry[]][] => {
+  const rank = (type: string): number => {
+    const index = TYPE_ORDER.indexOf(type);
+    return index === -1 ? Number.POSITIVE_INFINITY : index;
+  };
+
+  return Object.entries(grouped).sort(([a], [b]) => rank(a) - rank(b));
+};
+
+const getTypeDot = (type: string): string => {
   switch (type) {
     case "feat":
     case "added":
-      return "text-emerald-500";
+      return "bg-emerald-500/70";
     case "fix":
     case "fixed":
-      return "text-rose-500";
+      return "bg-rose-500/70";
     case "updated":
-      return "text-sky-500";
+      return "bg-sky-500/70";
     case "refactor":
-      return "text-amber-500";
+      return "bg-amber-500/70";
     case "tweaks":
-      return "text-violet-500";
+      return "bg-violet-500/70";
     case "semantics":
-      return "text-pink-500";
+      return "bg-pink-500/70";
     case "patch":
-      return "text-orange-500";
+      return "bg-orange-500/70";
     case "ci/cd":
-      return "text-cyan-500";
+      return "bg-cyan-500/70";
     case "chore":
-      return "text-zinc-500";
+      return "bg-zinc-500/70";
     default:
-      return "text-foreground";
+      return "bg-muted-foreground/50";
   }
-}
+};
 
-function getTypeLabel(type: string) {
+const getTypeLabel = (type: string): string => {
   switch (type) {
     case "feat":
       return "Features";
@@ -88,159 +98,126 @@ function getTypeLabel(type: string) {
     default:
       return type;
   }
-}
+};
+
+const getVersionLabel = (version: string): string => {
+  if (version === "Unreleased") return "Unreleased";
+  if (version === "Pre-release") return "Pre-release";
+  return `v${version}`;
+};
+
+const getVersionNote = (version: string): string | null => {
+  if (version === "Unreleased") return "In progress";
+  if (version === "Pre-release") return "Preview";
+  return null;
+};
+
+const StateMessage: React.FC<{
+  children: React.ReactNode;
+  tone?: "default" | "error";
+}> = ({ children, tone = "default" }) => (
+  <div className="flex items-center justify-center py-20">
+    <p
+      className={cn(
+        "text-sm",
+        tone === "error" ? "text-destructive" : "text-muted-foreground",
+      )}
+    >
+      {children}
+    </p>
+  </div>
+);
+
+const EntryRow: React.FC<{ entry: ChangelogEntry }> = ({ entry }) => (
+  <li className="text-[13px] leading-6 break-words text-foreground/80">
+    {entry.message}
+    <span className="ml-2 font-mono text-[10px] text-muted-foreground/40">
+      {entry.hash}
+    </span>
+  </li>
+);
+
+const TypeSection: React.FC<{
+  type: string;
+  entries: ChangelogEntry[];
+}> = ({ type, entries }) => (
+  <div className="flex flex-col gap-1.5">
+    <div className="flex items-center gap-2">
+      <span
+        aria-hidden
+        className={cn("size-1.5 rounded-full", getTypeDot(type))}
+      />
+      <h3 className="text-xs font-medium text-muted-foreground">
+        {getTypeLabel(type)}
+      </h3>
+    </div>
+
+    <ul className="flex flex-col gap-0.5 pl-3.5">
+      {entries.map((entry, index) => (
+        <EntryRow key={`${entry.hash}-${index}`} entry={entry} />
+      ))}
+    </ul>
+  </div>
+);
+
+const VersionBlock: React.FC<{ group: VersionGroup }> = ({ group }) => {
+  const sections = sortTypes(groupByType(group.entries));
+  const note = getVersionNote(group.version);
+
+  return (
+    <section className="flex flex-col gap-4 py-5 first:pt-0 last:pb-0">
+      <header className="flex items-baseline justify-between gap-3">
+        <div className="flex items-baseline gap-2">
+          <h2 className="text-sm font-medium text-foreground">
+            {getVersionLabel(group.version)}
+          </h2>
+          {note && (
+            <span className="text-[11px] text-muted-foreground/60">{note}</span>
+          )}
+        </div>
+        <p className="shrink-0 text-[11px] text-muted-foreground/60">
+          {group.date}
+        </p>
+      </header>
+
+      {sections.length === 0 ? (
+        <p className="text-[13px] text-muted-foreground">
+          No user-facing changes in this release.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {sections.map(([type, entries]) => (
+            <TypeSection key={type} type={type} entries={entries} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
 
 export const ChangelogTab: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   const { versionGroups, loading, error } = useChangelog(enabled);
 
   return (
-    <div className="min-h-0 h-full flex-1 bg-background">
-      <ScrollArea className="h-full scroll-fade-y">
-        <div className="mx-auto max-w-3xl px-5 py-6">
-          <div className="mb-6 space-y-1.5">
-            <p className="text-[11px] font-medium text-muted-foreground">
-              Release notes
-            </p>
-            <h1 className="text-2xl font-medium tracking-tight text-foreground">
-              What’s new
-            </h1>
-            <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-              Improvements, fixes, and updates across recent releases.
-            </p>
+    <ScrollArea className="scroll-fade-y min-h-0 flex-1 [&>[data-radix-scroll-area-viewport]>div]:block!">
+      <div className="min-w-0 px-5 py-5">
+        {loading ? (
+          <StateMessage>Loading changelog…</StateMessage>
+        ) : error ? (
+          <StateMessage tone="error">{error}</StateMessage>
+        ) : versionGroups.length === 0 ? (
+          <StateMessage>No changelog entries found.</StateMessage>
+        ) : (
+          <div className="flex flex-col divide-y divide-border/40">
+            {versionGroups.map((group) => (
+              <VersionBlock
+                key={`${group.version}-${group.date}`}
+                group={group}
+              />
+            ))}
           </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center rounded-2xl border border-border/60 bg-card/60 py-14">
-              <p className="text-sm text-muted-foreground">
-                Loading changelog...
-              </p>
-            </div>
-          ) : error ? (
-            <div className="flex items-center justify-center rounded-2xl border border-border/60 bg-card/60 py-14">
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
-          ) : versionGroups.length === 0 ? (
-            <div className="flex items-center justify-center rounded-2xl border border-border/60 bg-card/60 py-14">
-              <p className="text-sm text-muted-foreground">
-                No changelog entries found.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {versionGroups.map((group) => {
-                const groupedEntries = groupByType(group.entries);
-
-                const sortedTypes = Object.entries(groupedEntries).sort(
-                  ([a], [b]) => {
-                    const aIndex = TYPE_ORDER.indexOf(a);
-                    const bIndex = TYPE_ORDER.indexOf(b);
-
-                    const safeA =
-                      aIndex === -1 ? Number.POSITIVE_INFINITY : aIndex;
-                    const safeB =
-                      bIndex === -1 ? Number.POSITIVE_INFINITY : bIndex;
-
-                    return safeA - safeB;
-                  },
-                );
-
-                const isUnreleased = group.version === "Unreleased";
-                const isPreRelease = group.version === "Pre-release";
-
-                return (
-                  <section
-                    key={`${group.version}-${group.date}`}
-                    className="rounded-2xl border border-border/60 bg-card/50"
-                  >
-                    <div className="flex flex-col gap-2 border-b border-border/50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <h2 className="text-base font-medium tracking-tight text-foreground">
-                          {isUnreleased
-                            ? "Unreleased"
-                            : isPreRelease
-                              ? "Pre-release"
-                              : `v${group.version}`}
-                        </h2>
-
-                        {isUnreleased ? (
-                          <Badge
-                            variant="outline"
-                            className="h-5 rounded-full border-primary/15 bg-primary/5 px-2 text-[10px] font-medium text-primary"
-                          >
-                            In progress
-                          </Badge>
-                        ) : isPreRelease ? (
-                          <Badge
-                            variant="outline"
-                            className="h-5 rounded-full border-border/60 bg-muted/40 px-2 text-[10px] font-medium text-muted-foreground"
-                          >
-                            Preview
-                          </Badge>
-                        ) : null}
-                      </div>
-
-                      <p className="text-xs text-muted-foreground">
-                        {group.date}
-                      </p>
-                    </div>
-
-                    <div className="px-5 py-4">
-                      {group.entries.length === 0 ? (
-                        <p className="text-sm leading-6 text-muted-foreground">
-                          No user-facing changelog entries for this release.
-                        </p>
-                      ) : (
-                        <div className="space-y-5">
-                          {sortedTypes.map(([type, entries]) => (
-                            <div key={type} className="space-y-2.5">
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={cn(
-                                    "h-1.5 w-1.5 rounded-full bg-current",
-                                    getSectionAccent(type),
-                                  )}
-                                />
-                                <h3
-                                  className={cn(
-                                    "font-medium",
-                                    getSectionAccent(type),
-                                  )}
-                                >
-                                  {getTypeLabel(type)}
-                                </h3>
-                              </div>
-
-                              <ul className="space-y-2 pl-3.5">
-                                {entries.map((entry, index) => (
-                                  <li
-                                    key={`${entry.hash}-${entry.message}-${index}`}
-                                    className="text-sm leading-6 text-foreground/90"
-                                  >
-                                    <div className="flex items-start gap-2.5">
-                                      <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-muted-foreground/40" />
-                                      <div className="min-w-0">
-                                        <span>{entry.message}</span>
-
-                                        <span className="ml-2 font-mono text-[10px] text-muted-foreground/55">
-                                          {entry.hash}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </ScrollArea>
-    </div>
+        )}
+      </div>
+    </ScrollArea>
   );
 };
