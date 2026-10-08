@@ -207,4 +207,5 @@ Super + B to capture globally
 - [x] Chat vs Agent modes
 - [x] Ask user tool
 - [ ] More local primitives
+- [ ] remember & recall tools, that lets the agent store and retrieve relevant context from past conversations
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

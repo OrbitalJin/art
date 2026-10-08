@@ -1,99 +1,123 @@
-import { Copy, Check, Sparkle, StopCircle } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronRight, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import React from "react";
+import { Marker, MarkerContent, MarkerIcon } from "@/components/ui/marker";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
 import { Renderer } from "@/components/chat/messages/renderer";
 import { useCopy } from "@/hooks/use-copy";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { MODELS } from "@/lib/ai/models";
+
+const countWords = (text: string): number =>
+  text.trim().split(/\s+/).filter(Boolean).length;
+
+const StoppedDot: React.FC = () => (
+  <span
+    aria-hidden
+    className="size-1.5 rounded-full bg-destructive/70 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+  />
+);
+
+const pillClasses = cn(
+  "flex items-center gap-2 rounded-full px-3 py-1",
+  "bg-destructive/5 text-xs text-destructive/80 ring-1 ring-destructive/20",
+);
 
 export const AbortedMessage: React.FC<Message> = (message) => {
   const { modelId } = message;
   const content = messageText(message);
   const { copied, copy } = useCopy(content);
-  const hasContent = content.length > 0 && content !== " ";
+  const [isOpen, setIsOpen] = useState(false);
+
+  const hasContent = content.trim().length > 0;
   const model = MODELS.find((m) => m.id === modelId);
 
   if (!hasContent) {
     return (
-      <div className="flex w-full animate-in fade-in duration-100 select-auto">
-        <div
-          className={cn(
-            "flex w-full items-center gap-2 rounded-md",
-            "border border-destructive/20 bg-destructive/10",
-            "p-4 text-sm text-destructive",
-          )}
-        >
-          <StopCircle className="h-4 w-4" />
-          <span>Stopped by user</span>
-        </div>
+      <div className="w-full animate-in fade-in duration-100 select-auto">
+        <Marker role="status" variant="separator">
+          <MarkerContent className={pillClasses}>
+            <StoppedDot />
+            Stopped by you
+          </MarkerContent>
+        </Marker>
       </div>
     );
   }
 
+  const words = countWords(content);
+  const wordsLabel = `${words} word${words === 1 ? "" : "s"} kept`;
+
+  const toggleClasses = cn(
+    pillClasses,
+    "cursor-pointer outline-none select-none",
+    "transition-colors duration-150 hover:bg-destructive/10",
+    "focus-visible:ring-2 focus-visible:ring-ring/50",
+    isOpen && "bg-destructive/10",
+  );
+
+  const chevronClasses = cn(
+    "shrink-0 text-destructive/50 transition-transform duration-200",
+    "motion-reduce:transition-none",
+    isOpen && "rotate-90",
+  );
+
+  const bodyClasses = cn(
+    "mt-3 ml-3 flex flex-col gap-2 border-l border-destructive/25 pl-4",
+    "animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none",
+  );
+
   return (
-    <div className="flex w-full animate-in fade-in duration-100">
-      <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="aborted" className="border-none">
-          <AccordionTrigger
-            className={cn(
-              "flex w-full items-center justify-between gap-2 p-4",
-              "border border-destructive/20",
-              "text-sm text-destructive",
-              "bg-destructive/10",
-              "hover:bg-destructive/15",
-              "no-underline!",
-              "data-[state=open]:rounded-none",
-              "data-[state=open]:rounded-t-md",
-              "data-[state=open]:bg-destructive/5",
-              "data-[state=open]:bg-destructive/5",
-              "data-[state=open]:hover:bg-destructive/10",
-            )}
-          >
-            <div className="flex items-center gap-2">
-              <StopCircle className="h-4 w-4" />
-              <span>Stopped by user</span>
-            </div>
-          </AccordionTrigger>
+    <div className="w-full min-w-0 animate-in fade-in duration-100 select-auto">
+      <Marker asChild>
+        <button
+          type="button"
+          onClick={() => setIsOpen((open) => !open)}
+          aria-expanded={isOpen}
+          className={toggleClasses}
+        >
+          <MarkerIcon>
+            <StoppedDot />
+          </MarkerIcon>
+          <MarkerContent>
+            Stopped by you
+            <span className="ml-1.5 text-destructive/50">· {wordsLabel}</span>
+          </MarkerContent>
+          <ChevronRight size={12} aria-hidden className={chevronClasses} />
+        </button>
+      </Marker>
 
-          <AccordionContent className="border border-t-0 border-destructive/20 p-0 rounded-b-md">
-            <div className="p-2">
-              <Renderer content={content} />
-            </div>
+      {isOpen && (
+        <div className={bodyClasses}>
+          <div className="text-foreground/80">
+            <Renderer content={content} />
+          </div>
 
-            <div
-              className="
-                flex items-center justify-between gap-2
-                transition-opacity bg-card/50 p-2
-              border-t border-destructive/20 rounded-b-md
-              "
+          <div className="flex items-center justify-between">
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              aria-label="Copy partial response"
+              onClick={copy}
+              className="size-7 text-muted-foreground/70 hover:text-foreground"
             >
-              <Button
-                size="icon"
-                variant="outline"
-                onClick={copy}
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              >
-                {copied ? <Check className="text-green-400" /> : <Copy />}
-              </Button>
+              {copied ? (
+                <Check className="size-3.5 text-emerald-500" />
+              ) : (
+                <Copy className="size-3.5" />
+              )}
+            </Button>
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Sparkle size={12} />
-                  <p className="shimmer">{model?.displayName}</p>
-                </span>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+            {model && (
+              <span className="text-xs text-muted-foreground/60">
+                Partial · {model.displayName}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

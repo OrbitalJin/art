@@ -94,9 +94,9 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
     archived.length === 0 && regular.length === 0 && pinned.length === 0;
 
   return (
-    <div className="flex-1 overflow-hidden">
-      <ScrollArea className="h-full px-2 scroll-fade-y">
-        <div className="space-y-2 pb-4">
+    <div className="min-w-0 flex-1 overflow-hidden">
+      <ScrollArea className="h-full px-2 scroll-fade-y [&>[data-radix-scroll-area-viewport]>div]:block!">
+        <div className="min-w-0 space-y-2 pb-4">
           {pinned.length > 0 && (
             <SessionSection
               title="Pinned"

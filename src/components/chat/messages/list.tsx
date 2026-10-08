@@ -12,7 +12,8 @@ import { MessageBroker } from "./broker";
 import { BranchOriginMarker } from "./markers/branch-origin";
 import type { Message } from "@/lib/store/session/types";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { useChatInput, useChatStream } from "@/contexts/chat-context";
+import { useChatInput } from "@/contexts/chat-context";
+import { useChatStream } from "@/hooks/use-chat-stream";
 
 interface Props {
   messages: readonly Message[];

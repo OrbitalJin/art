@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useChatStream } from "@/contexts/chat-context";
+import { useChatStream } from "@/hooks/use-chat-stream";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import { useQuestionStore } from "@/lib/store/use-question-store";

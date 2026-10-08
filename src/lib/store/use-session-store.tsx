@@ -15,6 +15,8 @@ import type { FsRoot } from "@/lib/fs";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
 import type { AccessMode } from "@/lib/ai/tools/registry";
 import { useSettingsStore } from "./use-settings-store";
+import { useStreamStore } from "./use-stream-store";
+import { useDraftStore } from "./use-draft-store";
 
 interface CreateSessionOpts {
   title?: string;
@@ -236,6 +238,8 @@ export const useSessionStore = create<SessionState>()(
       },
 
       purge: () => {
+        useStreamStore.getState().clearAll();
+        useDraftStore.getState().clearAll();
         const active = get().sessions.find((s) => s.id === get().activeId);
         const newSession = createNewSession({ type: active?.type ?? "chat" });
         set({
@@ -362,6 +366,8 @@ export const useSessionStore = create<SessionState>()(
       },
 
       deleteFn: (id: string) => {
+        useStreamStore.getState().abort(id);
+        useDraftStore.getState().clear(id);
         set((state: SessionState) => {
           const deleted = state.sessions.find((s) => s.id === id);
           const newSessions = state.sessions.filter((s) => s.id !== id);

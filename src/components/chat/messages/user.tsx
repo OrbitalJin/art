@@ -1,3 +1,4 @@
+// user-message.tsx
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,6 @@ import {
   Undo2,
   GitBranch,
   Pencil,
-  ArrowUp,
   RefreshCcw,
 } from "lucide-react";
 import { Renderer } from "./renderer";
@@ -26,16 +26,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
-import { useChatMessages, useChatStream } from "@/contexts/chat-context";
+import { useChatMessages } from "@/contexts/chat-context";
+import { useChatStream } from "@/hooks/use-chat-stream";
 import {
   Attachment,
   AttachmentContent,
@@ -53,29 +54,215 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-function formatBytes(bytes?: number): string {
-  if (!bytes && bytes !== 0) return "";
+type MessageAttachment = NonNullable<Message["attachments"]>[number];
+
+const formatBytes = (bytes?: number): string => {
+  if (bytes === undefined) return "";
   if (bytes === 0) return "0 B";
+
   const units = ["B", "KB", "MB", "GB"];
-  const i = Math.min(
+  const index = Math.min(
     units.length - 1,
     Math.floor(Math.log(bytes) / Math.log(1024)),
   );
-  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
-}
+  const value = bytes / Math.pow(1024, index);
 
-function formatAttachment(attachment: {
-  name?: string;
-  size?: number;
-  mediaType?: string;
-}): string {
-  const mime = attachment.mediaType?.split("/")[1]?.toUpperCase() ?? "";
+  return `${value.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+};
+
+const formatAttachment = (attachment: MessageAttachment): string => {
+  const type = attachment.mediaType?.split("/")[1]?.toUpperCase() ?? "";
   const size = formatBytes(attachment.size);
-  return [mime, size].filter(Boolean).join(" · ");
-}
+  return [type, size].filter(Boolean).join(" · ");
+};
+
+const Hint: React.FC<{ keys: string; label: string }> = ({ keys, label }) => (
+  <span className="flex items-center gap-1.5">
+    <kbd className="rounded border border-border/60 bg-muted/30 px-1 py-px font-mono text-[10px] text-muted-foreground/70">
+      {keys}
+    </kbd>
+    <span>{label}</span>
+  </span>
+);
+
+const SingleAttachment: React.FC<{ attachment: MessageAttachment }> = ({
+  attachment,
+}) => {
+  const name = attachment.name ?? "image";
+  const details = formatAttachment(attachment);
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Attachment
+          className="cursor-pointer rounded-lg text-left transition-colors hover:bg-muted/60"
+          orientation="horizontal"
+          size="sm"
+        >
+          <AttachmentMedia variant="image">
+            <img
+              className="scale-110 transition-transform duration-300 group-hover:scale-100"
+              src={previewUrl(attachment)}
+              alt={name}
+            />
+          </AttachmentMedia>
+          <AttachmentContent className="min-w-0 text-left">
+            <AttachmentTitle className="truncate text-left">
+              {name}
+            </AttachmentTitle>
+            <AttachmentDescription className="text-left">
+              {details}
+            </AttachmentDescription>
+          </AttachmentContent>
+        </Attachment>
+      </DialogTrigger>
+
+      <DialogContent className="max-w-4xl overflow-hidden p-0 sm:rounded-xl">
+        <DialogHeader className="border-b px-6 py-4 pr-12 text-left">
+          <DialogTitle className="truncate text-left">{name}</DialogTitle>
+          <DialogDescription className="text-left">{details}</DialogDescription>
+        </DialogHeader>
+
+        <div className="flex max-h-[75vh] min-h-48 items-center justify-center p-4">
+          <img
+            className="max-h-[70vh] max-w-full rounded-md object-contain"
+            src={previewUrl(attachment)}
+            alt={name}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const AttachmentChip: React.FC<{ attachment: MessageAttachment }> = ({
+  attachment,
+}) => {
+  const name = attachment.name ?? "image";
+
+  return (
+    <Attachment className="rounded-lg" orientation="horizontal">
+      <AttachmentMedia className="group" variant="image">
+        <img
+          className="scale-110 blur-[1px] transition-all group-hover:scale-100 group-hover:blur-none"
+          src={previewUrl(attachment)}
+          alt={name}
+        />
+      </AttachmentMedia>
+      <AttachmentContent>
+        <AttachmentTitle>{name}</AttachmentTitle>
+        <AttachmentDescription>
+          {formatAttachment(attachment)}
+        </AttachmentDescription>
+      </AttachmentContent>
+    </Attachment>
+  );
+};
+
+const MessageAttachments: React.FC<{ attachments: MessageAttachment[] }> = ({
+  attachments,
+}) => {
+  if (attachments.length === 0) return null;
+
+  if (attachments.length === 1) {
+    return <SingleAttachment attachment={attachments[0]} />;
+  }
+
+  return (
+    <AttachmentGroup>
+      {attachments.map((attachment, index) => (
+        <AttachmentChip key={index} attachment={attachment} />
+      ))}
+    </AttachmentGroup>
+  );
+};
+
+const EditBox: React.FC<{
+  draft: string;
+  enterKeySends: boolean;
+  textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
+  onChange: (value: string) => void;
+  onKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onCancel: () => void;
+  onSave: () => void;
+}> = ({
+  draft,
+  enterKeySends,
+  textAreaRef,
+  onChange,
+  onKeyDown,
+  onCancel,
+  onSave,
+}) => {
+  const containerClasses = cn(
+    "flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card/50",
+    "shadow-sm transition-colors duration-200 hover:border-border",
+    "focus-within:border-ring/40 focus-within:ring-4 focus-within:ring-ring/10",
+  );
+
+  const textareaClasses = cn(
+    "max-h-[250px] min-h-[80px] resize-none border-0 bg-transparent! shadow-none lg:max-h-[400px]",
+    "px-3.5 pt-3.5 pb-1 text-[15px] text-foreground/90",
+    "placeholder:text-muted-foreground/50 focus-visible:ring-0",
+  );
+
+  const handleFocus = (event: React.FocusEvent<HTMLTextAreaElement>) => {
+    const end = event.currentTarget.value.length;
+    event.currentTarget.setSelectionRange(end, end);
+  };
+
+  return (
+    <div className="w-full max-w-2xl">
+      <div className={containerClasses}>
+        <Textarea
+          autoFocus
+          ref={textAreaRef}
+          value={draft}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="Edit message…"
+          className={textareaClasses}
+          onKeyDown={onKeyDown}
+          onFocus={handleFocus}
+        />
+
+        <div className="flex items-center justify-between gap-3 px-3 pb-2.5">
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground/60">
+            <Hint keys="Esc" label="cancel" />
+            <Hint
+              keys={enterKeySends ? "Enter" : "Shift + Enter"}
+              label="save"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={onCancel}
+              className="h-7 text-xs text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={onSave}
+              disabled={!draft.trim()}
+              className="h-7 text-xs"
+            >
+              Save
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const UserMessage: React.FC<Message> = (message) => {
   const content = messageText(message);
+  const attachments = message.attachments ?? [];
 
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const { editMessage } = useChatMessages();
@@ -83,7 +270,6 @@ export const UserMessage: React.FC<Message> = (message) => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<string>(content);
-
   const [prevText, setPrevText] = useState<string>(content);
 
   if (content !== prevText) {
@@ -110,14 +296,19 @@ export const UserMessage: React.FC<Message> = (message) => {
     setIsEditing(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && (enterKeySends ? !e.shiftKey : e.shiftKey)) {
-      e.preventDefault();
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.nativeEvent.isComposing) return;
+
+    if (
+      event.key === "Enter" &&
+      (enterKeySends ? !event.shiftKey : event.shiftKey)
+    ) {
+      event.preventDefault();
       handleSaveEdit();
     }
 
-    if (e.key === "Escape") {
-      e.preventDefault();
+    if (event.key === "Escape") {
+      event.preventDefault();
       handleCancelEdit();
     }
   };
@@ -131,139 +322,26 @@ export const UserMessage: React.FC<Message> = (message) => {
   }, [draft, isEditing]);
 
   return (
-    <div className="group flex w-full flex-col items-end gap-1 animate-in fade-in duration-100 select-auto">
+    <div className="group flex w-full flex-col items-end gap-1.5 animate-in fade-in duration-100 select-auto">
       {isEditing ? (
-        <div className="w-full max-w-2xl">
-          <div
-            className={cn(
-              "relative flex flex-col gap-2 p-2 transition-all",
-              "rounded-md border bg-card/50 shadow-md hover:border-primary/30",
-              "focus-within:border-ring/30 focus-within:ring-4 focus-within:ring-ring/10",
-            )}
-          >
-            <Textarea
-              autoFocus
-              ref={textAreaRef}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="Edit message..."
-              className={cn(
-                "bg-transparent! min-h-[80px] max-h-[250px] resize-none border-0 p-2 shadow-none",
-                "text-foreground/80 placeholder:text-muted-foreground focus-visible:ring-0",
-                "lg:max-h-[400px]",
-              )}
-              onKeyDown={handleKeyDown}
-              onFocus={(e) => {
-                const val = e.target.value;
-                e.target.value = "";
-                e.target.value = val;
-              }}
-            />
-
-            <div className="flex items-center justify-between px-1">
-              <div className="text-xs text-muted-foreground">
-                <a>Esc </a>to cancel ·{" "}
-                <a>{enterKeySends ? "Enter" : "Shift + Enter"}</a> to save
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="default"
-                  size="icon"
-                  onClick={handleSaveEdit}
-                  disabled={!draft.trim()}
-                  className={cn(
-                    "transition-all duration-300",
-                    draft.trim()
-                      ? "scale-105 opacity-100"
-                      : "pointer-events-none scale-100 opacity-0",
-                  )}
-                >
-                  <ArrowUp className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EditBox
+          draft={draft}
+          enterKeySends={enterKeySends}
+          textAreaRef={textAreaRef}
+          onChange={setDraft}
+          onKeyDown={handleKeyDown}
+          onCancel={handleCancelEdit}
+          onSave={handleSaveEdit}
+        />
       ) : (
         <>
           {content && (
-            <div className="relative rounded-md rounded-tr-none border bg-muted/40 p-3 text-foreground/80 shadow-sm">
+            <div className="max-w-[85%] min-w-0 rounded-2xl rounded-tr-sm bg-muted/50 px-3.5 py-2.5 text-foreground/90">
               <Renderer content={content} />
             </div>
           )}
 
-          {message.attachments?.length === 0 ? null : message.attachments
-              ?.length === 1 ? (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Attachment
-                  className="cursor-pointer rounded-md text-left transition-colors hover:bg-muted/60"
-                  orientation="horizontal"
-                  size="sm"
-                >
-                  <AttachmentMedia variant="image">
-                    <img
-                      className="scale-110 transition-transform duration-300 group-hover:scale-100"
-                      src={previewUrl(message.attachments[0])}
-                      alt={message.attachments[0].name ?? "Attachment preview"}
-                    />
-                  </AttachmentMedia>
-
-                  <AttachmentContent className="min-w-0 text-left">
-                    <AttachmentTitle className="truncate text-left">
-                      {message.attachments[0].name ?? "image"}
-                    </AttachmentTitle>
-
-                    <AttachmentDescription className="text-left">
-                      {formatAttachment(message.attachments[0])}
-                    </AttachmentDescription>
-                  </AttachmentContent>
-                </Attachment>
-              </DialogTrigger>
-
-              <DialogContent className="max-w-4xl overflow-hidden p-0 sm:rounded-xl">
-                <DialogHeader className="border-b px-6 py-4 pr-12 text-left">
-                  <DialogTitle className="truncate text-left">
-                    {message.attachments[0].name ?? "image"}
-                  </DialogTitle>
-
-                  <DialogDescription className="text-left">
-                    {formatAttachment(message.attachments[0])}
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="flex max-h-[75vh] min-h-48 items-center justify-center p-4">
-                  <img
-                    className="max-h-[70vh] max-w-full rounded-md object-contain shadow-sm"
-                    src={previewUrl(message.attachments[0])}
-                    alt={message.attachments[0].name ?? "Attachment preview"}
-                  />
-                </div>
-              </DialogContent>
-            </Dialog>
-          ) : (
-            <AttachmentGroup>
-              {message.attachments?.map((attachment) => (
-                <Attachment className="rounded-md" orientation="horizontal">
-                  <AttachmentMedia className="group" variant="image">
-                    <img
-                      className="blur-[1px] group-hover:blur-none scale-110 group-hover:scale-100 transition-all"
-                      src={previewUrl(attachment)}
-                    />
-                  </AttachmentMedia>
-                  <AttachmentContent>
-                    <AttachmentTitle>
-                      {attachment.name ?? "image"}
-                    </AttachmentTitle>
-                    <AttachmentDescription>
-                      {formatAttachment(attachment)}
-                    </AttachmentDescription>
-                  </AttachmentContent>
-                </Attachment>
-              ))}
-            </AttachmentGroup>
-          )}
+          <MessageAttachments attachments={attachments} />
         </>
       )}
 
@@ -276,6 +354,73 @@ export const UserMessage: React.FC<Message> = (message) => {
     </div>
   );
 };
+
+const FooterAction: React.FC<{
+  label: string;
+  disabled?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}> = ({ label, disabled, onClick, children }) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        aria-label={label}
+        disabled={disabled}
+        onClick={onClick}
+        className="size-7 text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground"
+      >
+        {children}
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent side="bottom">{label}</TooltipContent>
+  </Tooltip>
+);
+
+const RevertAction: React.FC<{
+  disabled: boolean;
+  onConfirm: () => void;
+}> = ({ disabled, onConfirm }) => (
+  <AlertDialog>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <AlertDialogTrigger asChild>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            aria-label="Revert to here"
+            disabled={disabled}
+            className="size-7 text-muted-foreground/70 hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Undo2 className="size-3.5" />
+          </Button>
+        </AlertDialogTrigger>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        Revert: remove this and everything after it
+      </TooltipContent>
+    </Tooltip>
+
+    <AlertDialogContent size="sm">
+      <AlertDialogHeader>
+        <AlertDialogTitle>Revert to here?</AlertDialogTitle>
+        <AlertDialogDescription>
+          This message and everything after it will be removed. This can't be
+          undone.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction variant="destructive" onClick={onConfirm}>
+          Revert
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+);
 
 interface FooterProps {
   messageId: string;
@@ -298,14 +443,23 @@ const MessageFooter: React.FC<FooterProps> = ({
   const { editMessage } = useChatMessages();
   const { copied, copy } = useCopy(content);
 
+  const handleRevert = () => {
+    if (!activeId) return;
+
+    const success = revertMessage(activeId, messageId);
+    if (success) {
+      toast.success("Message reverted successfully");
+    }
+  };
+
   const handleBranch = () => {
-    if (activeId && !disabled) {
-      const success = branchFrom(activeId, messageId, false);
-      if (success) {
-        toast.info("Session branched successfully");
-      } else {
-        toast.error("Failed to branch: Session not found");
-      }
+    if (!activeId || disabled) return;
+
+    const success = branchFrom(activeId, messageId, false);
+    if (success) {
+      toast.info("Session branched successfully");
+    } else {
+      toast.error("Failed to branch: Session not found");
     }
   };
 
@@ -318,162 +472,39 @@ const MessageFooter: React.FC<FooterProps> = ({
   const handleRetry = useCallback(() => {
     editMessage(messageId, content);
   }, [content, editMessage, messageId]);
+
   return (
-    <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-      <AlertDialog>
-        <HoverCard>
-          <HoverCardTrigger asChild>
-            <AlertDialogTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                disabled={disabled}
-              >
-                <Undo2 className="h-3.5 w-3.5" />
-              </Button>
-            </AlertDialogTrigger>
-          </HoverCardTrigger>
-          <HoverCardContent
-            align="center"
-            side="bottom"
-            className="w-64 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
-          >
-            <div className="flex items-center justify-between border-b bg-muted/30 p-2 px-3">
-              <p className="text-sm font-medium">Revert</p>
-            </div>
-            <div className="p-3">
-              <p className="text-[11px] text-muted-foreground/80">
-                Remove this and all subsequent messages to restore a previous
-                state.
-              </p>
-            </div>
-          </HoverCardContent>
-        </HoverCard>
+    <div
+      className={cn(
+        "flex items-center gap-0.5 opacity-0 transition-opacity duration-150",
+        "group-hover:opacity-100 focus-within:opacity-100",
+      )}
+    >
+      <RevertAction disabled={disabled} onConfirm={handleRevert} />
 
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={() => {
-                const success = revertMessage(activeId!, messageId);
-                if (success) {
-                  toast.success("Message reverted successfully");
-                }
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <FooterAction label="Retry" disabled={disabled} onClick={handleRetry}>
+        <RefreshCcw className="size-3.5" />
+      </FooterAction>
 
-      <HoverCard>
-        <HoverCardTrigger asChild>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 text-muted-foreground hover:bg-muted"
-            onClick={handleRetry}
-            disabled={disabled}
-          >
-            <RefreshCcw className="h-3.5 w-3.5" />
-          </Button>
-        </HoverCardTrigger>
-        <HoverCardContent
-          align="center"
-          side="bottom"
-          className="w-60 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
-        >
-          <div className="border-b bg-muted/30 p-2 px-3">
-            <p className="text-sm font-medium">Retry</p>
-          </div>
-          <div className="p-3">
-            <p className="text-[11px] text-muted-foreground/80">
-              Revert to this point and resend.
-            </p>
-          </div>
-        </HoverCardContent>
-      </HoverCard>
-
-      <HoverCard>
-        <HoverCardTrigger asChild>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 text-muted-foreground hover:bg-muted"
-            onClick={handleBranch}
-            disabled={disabled}
-          >
-            <GitBranch className="h-3.5 w-3.5" />
-          </Button>
-        </HoverCardTrigger>
-        <HoverCardContent
-          align="center"
-          side="bottom"
-          className="w-72 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
-        >
-          <div className="flex items-center justify-between border-b bg-muted/30 p-3">
-            <p className="text-sm font-medium">Branch Off</p>
-            <span className="rounded border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
-              New Branch
-            </span>
-          </div>
-          <div className="p-3">
-            <p className="text-[11px] leading-relaxed text-muted-foreground/80">
-              Create a duplicate of this conversation from the current point.
-            </p>
-          </div>
-        </HoverCardContent>
-      </HoverCard>
-
-      <HoverCard>
-        <HoverCardTrigger asChild>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 text-muted-foreground hover:bg-muted"
-            onClick={handleStartEdit}
-            disabled={disabled}
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-        </HoverCardTrigger>
-        <HoverCardContent
-          align="center"
-          side="bottom"
-          className="w-56 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
-        >
-          <div className="border-b bg-muted/30 p-2 px-3">
-            <p className="text-sm font-medium">Edit message</p>
-          </div>
-          <div className="p-3">
-            <p className="text-[11px] text-muted-foreground/80">
-              Update this message inline.
-            </p>
-          </div>
-        </HoverCardContent>
-      </HoverCard>
-
-      <Button
-        size="icon"
-        variant="ghost"
-        onClick={copy}
-        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+      <FooterAction
+        label="Branch off"
+        disabled={disabled}
+        onClick={handleBranch}
       >
+        <GitBranch className="size-3.5" />
+      </FooterAction>
+
+      <FooterAction label="Edit" disabled={disabled} onClick={handleStartEdit}>
+        <Pencil className="size-3.5" />
+      </FooterAction>
+
+      <FooterAction label={copied ? "Copied" : "Copy"} onClick={copy}>
         {copied ? (
-          <Check className="h-3.5 w-3.5 text-green-400" />
+          <Check className="size-3.5 text-emerald-500" />
         ) : (
-          <Copy className="h-3.5 w-3.5" />
+          <Copy className="size-3.5" />
         )}
-      </Button>
+      </FooterAction>
     </div>
   );
 };

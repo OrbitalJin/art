@@ -3,7 +3,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useChatStream } from "@/contexts/chat-context";
+import { useChatStream } from "@/hooks/use-chat-stream";
 import { MODELS } from "@/lib/ai/models";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";

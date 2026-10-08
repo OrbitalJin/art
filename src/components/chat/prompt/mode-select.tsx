@@ -14,7 +14,7 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { VenetianMask } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { useChatStream } from "@/contexts/chat-context";
+import { useChatStream } from "@/hooks/use-chat-stream";
 
 export const ModeSelect = () => {
   const { isSending: disabled } = useChatStream();

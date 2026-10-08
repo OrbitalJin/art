@@ -56,7 +56,7 @@ export function applyStreamEvent(
   switch (event.type) {
     case "text-delta": {
       if (!event.text) return acc;
-      return withParts(acc, appendText(acc.parts, event.text));
+      return { ...acc, parts: appendText(acc.parts, event.text) };
     }
 
     case "tool-call": {

@@ -1,21 +1,63 @@
 import React from "react";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
-import { Check, Copy, Sparkle, Cpu, GitBranch } from "lucide-react";
+import { Check, Copy, GitBranch } from "lucide-react";
 import type { Message } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
 import { MessageParts } from "./parts";
 import { cn } from "@/lib/utils";
 import { MODELS } from "@/lib/ai/models";
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
 import { ThinkingSection } from "./thinking-section";
-import { useChatStream } from "@/contexts/chat-context";
+import { useChatStream } from "@/hooks/use-chat-stream";
+
+const FooterAction: React.FC<{
+  label: string;
+  disabled?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}> = ({ label, disabled, onClick, children }) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        aria-label={label}
+        disabled={disabled}
+        onClick={onClick}
+        className="size-7 text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground"
+      >
+        {children}
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent side="bottom">{label}</TooltipContent>
+  </Tooltip>
+);
+
+const MessageMeta: React.FC<{
+  tokens: number;
+  modelName?: string;
+  premium: boolean;
+}> = ({ tokens, modelName, premium }) => {
+  const modelClasses = cn(premium && "text-amber-500/70");
+
+  return (
+    <div className="flex cursor-default items-center gap-1.5 text-xs text-muted-foreground/60 select-none">
+      {tokens > 0 && (
+        <span className="tabular-nums">{tokens.toLocaleString()} tokens</span>
+      )}
+      {tokens > 0 && modelName && <span aria-hidden>·</span>}
+      {modelName && <span className={modelClasses}>{modelName}</span>}
+    </div>
+  );
+};
 
 export const AssistantMessage: React.FC<Message> = (message) => {
   const { parts, modelId, id: messageId, tokenUsage, reasoning } = message;
@@ -32,28 +74,29 @@ export const AssistantMessage: React.FC<Message> = (message) => {
   const premium = model?.tier === 3;
 
   const hasContent = parts.length > 0 || !!reasoning;
-
   const isStreamingMessage = messageId === streamingMessageId;
   const shouldRenderFooter = hasContent && !isStreamingMessage;
 
   const handleBranch = () => {
-    if (activeId && !isSending) {
-      const success = branchFrom(activeId, messageId, true);
-      if (success) {
-        toast.info("Session branched successfully");
-      } else {
-        toast.error("Failed to branch: Session not found");
-      }
+    if (!activeId || isSending) return;
+
+    const success = branchFrom(activeId, messageId, true);
+    if (success) {
+      toast.info("Session branched successfully");
+    } else {
+      toast.error("Failed to branch: Session not found");
     }
   };
 
+  const footerClasses = cn(
+    "mt-2 flex items-center justify-between gap-3",
+    "opacity-0 transition-opacity duration-150",
+    "group-hover:opacity-100 focus-within:opacity-100",
+  );
+
   return (
-    <div className="group flex w-full gap-3 animate-in fade-in duration-100 select-auto">
-      <div
-        className={cn(
-          "relative flex-1 leading-7 min-w-0 transition-all text-foreground",
-        )}
-      >
+    <div className="group relative w-full min-w-0 animate-in fade-in duration-100 select-auto">
+      <div className="min-w-0 leading-7 text-foreground">
         <ThinkingSection
           reasoning={reasoning}
           status={isStreamingMessage ? "streaming" : "done"}
@@ -62,65 +105,30 @@ export const AssistantMessage: React.FC<Message> = (message) => {
         <MessageParts parts={parts} />
 
         {shouldRenderFooter && (
-          <div className="flex items-center justify-between mt-2 opacity-0 group-hover:opacity-100">
-            <div className="flex flex-row gap-2">
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={copy}
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              >
-                {copied ? <Check className="text-green-400" /> : <Copy />}
-              </Button>
-
-              <HoverCard openDelay={300} closeDelay={150}>
-                <HoverCardTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-muted-foreground hover:bg-muted"
-                    onClick={handleBranch}
-                  >
-                    <GitBranch className="h-3.5 w-3.5" />
-                  </Button>
-                </HoverCardTrigger>
-                <HoverCardContent
-                  align="center"
-                  side="bottom"
-                  className="w-72 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
-                >
-                  <div className="flex items-center justify-between border-b bg-muted/30 p-3">
-                    <p className="text-sm font-medium">Branch Off</p>
-                    <span className="rounded border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                      New Branch
-                    </span>
-                  </div>
-                  <div className="p-3">
-                    <p className="text-[11px] leading-relaxed text-muted-foreground/80">
-                      Create a duplicate of this conversation from the current
-                      Point.
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-muted-foreground cursor-default">
-              <span className="flex items-center gap-1">
-                <Cpu size={12} /> {output} tokens
-              </span>
-              <span
-                className={cn(
-                  "flex items-center gap-1",
-                  premium && "text-amber-300/60",
+          <div className={footerClasses}>
+            <div className="flex items-center gap-0.5">
+              <FooterAction label={copied ? "Copied" : "Copy"} onClick={copy}>
+                {copied ? (
+                  <Check className="size-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="size-3.5" />
                 )}
+              </FooterAction>
+
+              <FooterAction
+                label="Branch off"
+                disabled={isSending}
+                onClick={handleBranch}
               >
-                <Sparkle size={12} />
-                <p className={cn("shimmer", premium && "text-amber-300/60")}>
-                  {model?.displayName}
-                </p>
-              </span>
+                <GitBranch className="size-3.5" />
+              </FooterAction>
             </div>
+
+            <MessageMeta
+              tokens={output}
+              modelName={model?.displayName}
+              premium={premium}
+            />
           </div>
         )}
       </div>

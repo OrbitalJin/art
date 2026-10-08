@@ -78,7 +78,7 @@ export const Chat = () => {
   };
 
   useHotkey("Mod+/", () => textAreaRef.current?.focus());
-  useHotkey("Tab", () =>
+  useHotkey("Control+Tab", () =>
     navigate(type === "chat" ? "/session/agent" : "/session/chat"),
   );
 

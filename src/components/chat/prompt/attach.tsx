@@ -3,7 +3,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useChatInput, useChatStream } from "@/contexts/chat-context";
+import { useChatInput } from "@/contexts/chat-context";
+import { useChatStream } from "@/hooks/use-chat-stream";
 import { useImportImage } from "@/hooks/use-import-image";
 import { Button } from "@/components/ui/button";
 import { ImageIcon } from "lucide-react";

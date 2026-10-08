@@ -4,7 +4,8 @@ import { ArrowUp, Square, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { useChatInput, useChatStream } from "@/contexts/chat-context";
+import { useChatInput } from "@/contexts/chat-context";
+import { useChatStream } from "@/hooks/use-chat-stream";
 import { ModeSelect } from "./mode-select";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
 import { JumpSelect } from "./jump-select";
@@ -104,17 +105,16 @@ const SendButton: React.FC<{
 export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   const { prompt, setPrompt, attachments, removeAttachment, sendMessage } =
     useChatInput();
-  const { abortStream, isSending, streamingSessionId } = useChatStream();
+  const { abortStream, isSending } = useChatStream();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
 
   const isAgent = session?.type === "agent";
-  const disabled = session?.id !== streamingSessionId && isSending;
   const hasAttachments = attachments.length > 0;
   const canSend = Boolean(prompt.trim()) || hasAttachments;
-  const stopping = isSending && !disabled;
+  const stopping = isSending;
   const showSendButton = isSending || canSend;
 
   const placeholder = isAgent ? "Give your agent a task…" : "Ask anything…";
@@ -145,7 +145,6 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
     "bg-card/50 shadow-sm transition-colors duration-200",
     "hover:border-border",
     "focus-within:border-ring/40 focus-within:ring-4 focus-within:ring-ring/10",
-    disabled && "pointer-events-none opacity-50",
   );
 
   const textareaClasses = cn(
@@ -192,7 +191,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               visible={showSendButton}
               stopping={stopping}
               disabled={!isSending && !canSend}
-              onClick={isSending ? abortStream : handleSend}
+              onClick={isSending ? () => abortStream() : handleSend}
             />
           </div>
         </div>

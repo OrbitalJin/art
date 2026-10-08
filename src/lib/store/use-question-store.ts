@@ -24,6 +24,7 @@ export interface PendingQuestion {
   status: QuestionStatus;
   questions: AskUserQuestion[];
   sessionId: string;
+  requestedAt: number;
 }
 
 interface RequestAnswersArgs {
@@ -45,6 +46,7 @@ interface QuestionState {
 
 const resolvers = new Map<string, (answers: AskUserAnswer[] | null) => void>();
 const detachAbort = new Map<string, () => void>();
+let requestSeq = 0;
 
 export const useQuestionStore = create<QuestionState>()((set, get) => ({
   pending: {},
@@ -55,7 +57,12 @@ export const useQuestionStore = create<QuestionState>()((set, get) => ({
     set((state) => ({
       pending: {
         ...state.pending,
-        [toolCallId]: { status: "pending", questions, sessionId },
+        [toolCallId]: {
+          status: "pending",
+          questions,
+          sessionId,
+          requestedAt: ++requestSeq,
+        },
       },
     }));
 

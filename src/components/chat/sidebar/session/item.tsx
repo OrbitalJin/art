@@ -1,40 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { GitBranch, MoreHorizontal } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  Trash2,
-  MoreVertical,
-  Loader2,
-  Pin,
-  PinOff,
-  GitBranch,
-  PencilSparkles,
-  BookDashed,
-  TextCursor,
-  Archive,
-  ArchiveRestore,
-  Download,
-} from "lucide-react";
-
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
   DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { generateSessionTitle } from "@/lib/ai/generate-session-title";
-import { useSessionStore } from "@/lib/store/use-session-store";
-import { toast } from "sonner";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import { useCreatePageFromSession } from "@/hooks/use-create-page-from-session";
-import type { Session } from "@/lib/store/session/types";
-import { MODELS } from "@/lib/ai/models";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,9 +22,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useChatStream } from "@/contexts/chat-context";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { generateSessionTitle } from "@/lib/ai/generate-session-title";
+import { useSessionStore } from "@/lib/store/use-session-store";
+import { useIsStreaming } from "@/lib/store/use-stream-store";
+import { useSessionAttention } from "@/hooks/use-session-attention";
+import { useCreatePageFromSession } from "@/hooks/use-create-page-from-session";
 import { useTradeSession } from "@/hooks/use-trade-session";
-import { useNavigate } from "react-router-dom";
+import type { Session } from "@/lib/store/session/types";
 
 interface Props {
   item: Session;
@@ -55,224 +41,132 @@ interface Props {
   onSwitch?: () => void;
 }
 
-export const SessionListItem: React.FC<Props> = ({
-  item,
-  active,
-  onSwitch,
-}) => {
-  const { title, id, branchOf } = item;
+const stopPropagation = (event: React.SyntheticEvent) => {
+  event.stopPropagation();
+};
 
-  const isTitleGenerating = useSessionStore((s) =>
-    s.titleGeneratingIds.includes(id),
-  );
-  const updateTitle = useSessionStore((s) => s.updateTitle);
-  const navigate = useNavigate();
-  const getFn = useSessionStore((state) => state.getFn);
-  const parentSession = branchOf ? getFn(branchOf) : undefined;
+const StatusDot: React.FC<{ streaming: boolean }> = ({ streaming }) => (
+  <span className="relative flex size-1.5 shrink-0">
+    <span className="relative inline-flex size-1.5 rounded-full bg-amber-500" />
+    {streaming && (
+      <span
+        aria-hidden
+        className="absolute inline-flex size-full animate-ping rounded-full bg-amber-500/60 motion-reduce:animate-none"
+      />
+    )}
+    <span className="sr-only">{streaming ? "Working" : "Needs attention"}</span>
+  </span>
+);
 
-  const { streamingSessionId } = useChatStream();
-  const isStreaming = streamingSessionId === id;
-
-  const [editing, setEditing] = useState(false);
-  const [text, setText] = useState(title);
-
-  const cancel = () => {
-    setText(title);
-    setEditing(false);
-  };
-  const handleSubmit = () => {
-    if (!text.trim()) {
-      setText(title);
-      setEditing(false);
-      return;
-    }
-    updateTitle(id, text.trim());
-    setEditing(false);
-  };
-
-  useEffect(() => {
-    setText(title);
-  }, [title]);
+const BranchLink: React.FC<{
+  parentTitle?: string;
+  onOpen: () => void;
+}> = ({ parentTitle, onOpen }) => {
+  const label = parentTitle
+    ? `Branched from ${parentTitle}`
+    : "Original session no longer exists";
 
   return (
-    <div
-      tabIndex={0}
-      className={cn(
-        "group relative flex items-center w-full gap-2 rounded-md px-3 py-2",
-        "text-sm select-none transition-all outline-none",
-        "hover:bg-accent/30 hover:text-accent-foreground",
-        active &&
-          "bg-accent/20 font-medium text-accent-foreground ring-1 ring-inset ring-foreground/5",
-        isStreaming && "animate-pulse",
-      )}
-      onClick={() => {
-        if (!editing && !isTitleGenerating) {
-          navigate(`/session/${item.type ?? "chat"}/${id}`);
-          onSwitch?.();
-        }
-      }}
-    >
-      {branchOf && (
-        <HoverCard openDelay={300} closeDelay={150}>
-          <HoverCardTrigger
-            asChild
-            onClick={(e) => {
-              e.stopPropagation();
-              if (parentSession) {
-                navigate(
-                  `/session/${parentSession.type ?? "chat"}/${parentSession.id}`,
-                );
-              }
-            }}
-          >
-            <span className="shrink-0 cursor-pointer">
-              <GitBranch className="h-4 w-4 text-muted-foreground/60" />
-            </span>
-          </HoverCardTrigger>
-          <HoverCardContent
-            align="center"
-            side="right"
-            className="w-64 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
-          >
-            <div className="flex items-center justify-between border-b bg-muted/30 p-2 px-3">
-              <p className="text-sm font-medium">Branched From</p>
-            </div>
-            <div className="p-3">
-              {parentSession ? (
-                <>
-                  <p className="text-xs font-medium text-foreground/80 truncate">
-                    {parentSession.title}
-                  </p>
-                  <p className="mt-1 text-[11px] text-muted-foreground/80">
-                    Model:{" "}
-                    {MODELS.find((m) => m.id === parentSession.modelId)
-                      ?.displayName ?? parentSession.modelId}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground/80">
-                    Created:{" "}
-                    {new Date(parentSession.createdAt).toLocaleDateString()}
-                  </p>
-                </>
-              ) : (
-                <p className="text-[11px] text-muted-foreground/80">
-                  Original session no longer exists.
-                </p>
-              )}
-            </div>
-          </HoverCardContent>
-        </HoverCard>
-      )}
-      <div
-        className={cn(
-          "flex min-w-0 flex-1 items-center gap-2",
-          isStreaming && "blur-xs",
-        )}
-      >
-        {isTitleGenerating ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
-            <p className="shimmer truncate">Generating title...</p>
-          </>
-        ) : editing ? (
-          <input
-            type="text"
-            value={text}
-            autoFocus
-            onChange={(e) => setText(e.target.value)}
-            onBlur={cancel}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSubmit();
-              if (e.key === "Escape") cancel();
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className="w-full bg-transparent border-none outline-none focus:ring-0 p-0"
-          />
-        ) : isStreaming ? (
-          <p className="shimmer">{title}</p>
-        ) : (
-          <>
-            <span className="wrap-break-word text-left text-foreground/80">
-              {title}
-            </span>
-          </>
-        )}
-      </div>
-
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center">
-        {isStreaming ? (
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
-        ) : (
-          !editing &&
-          !isTitleGenerating && (
-            <Menu
-              item={item}
-              setText={setText}
-              setEditing={setEditing}
-              generateTitle={generateSessionTitle}
-            />
-          )
-        )}
-      </div>
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label={label}
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpen();
+          }}
+          className={cn(
+            "shrink-0 cursor-pointer rounded-sm text-muted-foreground/50 outline-none",
+            "transition-colors duration-150 hover:text-foreground",
+            "focus-visible:ring-2 focus-visible:ring-ring/50",
+          )}
+        >
+          <GitBranch className="size-3" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="right">{label}</TooltipContent>
+    </Tooltip>
   );
 };
 
-interface MenuProps {
-  item: Session;
-  setText: (text: string) => void;
-  setEditing: (value: boolean) => void;
-  generateTitle: typeof generateSessionTitle;
-}
+const TitleInput: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}> = ({ value, onChange, onSubmit, onCancel }) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing) return;
+    if (event.key === "Enter") onSubmit();
+    if (event.key === "Escape") onCancel();
+  };
 
-const Menu: React.FC<MenuProps> = ({
+  return (
+    <input
+      type="text"
+      value={value}
+      autoFocus
+      aria-label="Session title"
+      onChange={(event) => onChange(event.target.value)}
+      onBlur={onCancel}
+      onKeyDown={handleKeyDown}
+      className="-mx-1.5 h-6 min-w-0 flex-1 rounded bg-background/60 px-1.5 text-[13px] text-foreground ring-1 ring-ring/40 outline-none"
+    />
+  );
+};
+
+const DeleteDialog: React.FC<{
+  open: boolean;
+  title: string;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+}> = ({ open, title, onOpenChange, onConfirm }) => (
+  <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialogContent size="sm">
+      <AlertDialogHeader>
+        <AlertDialogTitle>Delete this session?</AlertDialogTitle>
+        <AlertDialogDescription className="break-words">
+          “{title}” will be permanently deleted. This can't be undone.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction variant="destructive" onClick={onConfirm}>
+          Delete
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+);
+
+const SessionMenu: React.FC<{ item: Session; onRename: () => void }> = ({
   item,
-  setText,
-  setEditing,
-  generateTitle,
+  onRename,
 }) => {
-  const togglePinned = useSessionStore((s) => s.togglePinned);
-  const deleteFn = useSessionStore((s) => s.deleteFn);
-  const toggleArchived = useSessionStore((s) => s.toggleArchived);
-  const branch = useSessionStore((s) => s.branch);
+  const togglePinned = useSessionStore((state) => state.togglePinned);
+  const toggleArchived = useSessionStore((state) => state.toggleArchived);
+  const deleteFn = useSessionStore((state) => state.deleteFn);
+  const branch = useSessionStore((state) => state.branch);
 
   const { creating, create } = useCreatePageFromSession();
   const { exportSession } = useTradeSession();
   const navigate = useNavigate();
+
   const [open, setOpen] = useState(false);
-  const [alertOpen, setAlertOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const handleDelete = () => {
-    setAlertOpen(false);
-    if (item.id === useSessionStore.getState().activeId) {
-      navigate(`/session/${item.type ?? "chat"}`, { replace: true });
-    }
-    deleteFn(item.id);
-    toast.success("Session deleted successfully.");
+  const handleRegenerateTitle = () => {
+    void generateSessionTitle(item.id);
   };
 
-  const handleDeleteSelect = () => {
-    setOpen(false);
-    requestAnimationFrame(() => setAlertOpen(true));
-  };
-
-  const handleGenerate = async (e: Event) => {
-    e.preventDefault();
-    setOpen(false);
-    const title = await generateTitle(item.id);
-    if (title) {
-      setText(title);
-    }
-  };
-
-  const handleCreate = async (e: Event) => {
-    e.preventDefault();
+  const handleGenerateNotes = async (event: Event) => {
+    event.preventDefault();
     await create(item.id);
     setOpen(false);
   };
 
-  const handleBranch = (e: Event) => {
-    e.preventDefault();
-    setOpen(false);
+  const handleBranch = () => {
     const success = branch(item.id);
     if (success) {
       toast.success("Session branched successfully");
@@ -281,72 +175,63 @@ const Menu: React.FC<MenuProps> = ({
     }
   };
 
+  const handleDeleteSelect = (event: Event) => {
+    event.preventDefault();
+    setOpen(false);
+    requestAnimationFrame(() => setConfirmOpen(true));
+  };
+
+  const handleDelete = () => {
+    setConfirmOpen(false);
+    if (item.id === useSessionStore.getState().activeId) {
+      navigate(`/session/${item.type ?? "chat"}`, { replace: true });
+    }
+    deleteFn(item.id);
+    toast.success("Session deleted successfully.");
+  };
+
+  const triggerClasses = cn(
+    "size-6 text-muted-foreground/70 opacity-0 transition-opacity duration-150",
+    "group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100",
+    "hover:bg-transparent hover:text-foreground",
+  );
+
   return (
-    <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+    <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="link"
+            type="button"
             size="icon"
-            className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
+            variant="ghost"
+            className={triggerClasses}
           >
-            <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="size-4" />
+            <span className="sr-only">Session options</span>
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent
-          align="end"
-          className="w-52"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Edit actions */}
+        <DropdownMenuContent align="end" className="w-44">
           {!item.archived && (
             <>
               <DropdownMenuGroup>
-                <DropdownMenuItem
-                  onSelect={() => togglePinned(item.id)}
-                  className="gap-2.5"
-                >
-                  {item.pinned ? (
-                    <PinOff className="h-3.5 w-3.5 text-muted-foreground" />
-                  ) : (
-                    <Pin className="h-3.5 w-3.5 text-muted-foreground" />
-                  )}
-                  <span>{item.pinned ? "Unpin" : "Pin"}</span>
+                <DropdownMenuItem onSelect={() => togglePinned(item.id)}>
+                  {item.pinned ? "Unpin" : "Pin"}
                 </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  onSelect={() => setEditing(true)}
-                  className="gap-2.5"
-                >
-                  <TextCursor className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span>Rename</span>
-                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={onRename}>Rename</DropdownMenuItem>
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />
 
-              {/* AI actions */}
               <DropdownMenuGroup>
-                <DropdownMenuItem onSelect={handleGenerate} className="gap-2.5">
-                  <PencilSparkles className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span>Regenerate Title</span>
+                <DropdownMenuItem onSelect={handleRegenerateTitle}>
+                  Regenerate title
                 </DropdownMenuItem>
-
                 <DropdownMenuItem
                   disabled={creating}
-                  onSelect={handleCreate}
-                  className="gap-2.5"
+                  onSelect={handleGenerateNotes}
                 >
-                  {creating ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                  ) : (
-                    <BookDashed className="h-3.5 w-3.5 text-muted-foreground" />
-                  )}
-                  <span>{creating ? "Generating..." : "Generate Notes"}</span>
+                  {creating ? "Creating notes…" : "Generate notes"}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
@@ -354,70 +239,154 @@ const Menu: React.FC<MenuProps> = ({
             </>
           )}
 
-          {/* Session-level actions */}
           <DropdownMenuGroup>
-            <DropdownMenuItem onSelect={handleBranch} className="gap-2.5">
-              <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Branch</span>
+            <DropdownMenuItem onSelect={handleBranch}>Branch</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => exportSession(item.id)}>
+              Export
             </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onSelect={() => exportSession(item.id)}
-              className="gap-2.5"
-            >
-              <Download className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Export</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onSelect={() => toggleArchived(item.id)}
-              className="gap-2.5"
-            >
-              {item.archived ? (
-                <ArchiveRestore className="h-3.5 w-3.5 text-muted-foreground" />
-              ) : (
-                <Archive className="h-3.5 w-3.5 text-muted-foreground" />
-              )}
-              <span>{item.archived ? "Unarchive" : "Archive"}</span>
+            <DropdownMenuItem onSelect={() => toggleArchived(item.id)}>
+              {item.archived ? "Unarchive" : "Archive"}
             </DropdownMenuItem>
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
 
           <DropdownMenuItem
-            className="gap-2.5 text-destructive focus:bg-destructive/10 focus:text-destructive"
-            onSelect={(e) => {
-              e.preventDefault();
-              handleDeleteSelect();
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
+            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+            onSelect={handleDeleteSelect}
           >
-            <Trash2 className="h-3.5 w-3.5" />
-            <span>Delete Session</span>
+            Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialogContent size="sm">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete();
-            }}
-          >
-            Delete
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      <DeleteDialog
+        open={confirmOpen}
+        title={item.title}
+        onOpenChange={setConfirmOpen}
+        onConfirm={handleDelete}
+      />
+    </>
+  );
+};
+
+export const SessionListItem: React.FC<Props> = ({
+  item,
+  active,
+  onSwitch,
+}) => {
+  const { title, id, branchOf } = item;
+
+  const isTitleGenerating = useSessionStore((state) =>
+    state.titleGeneratingIds.includes(id),
+  );
+  const updateTitle = useSessionStore((state) => state.updateTitle);
+  const getFn = useSessionStore((state) => state.getFn);
+  const navigate = useNavigate();
+
+  const isStreaming = useIsStreaming(id);
+  const needsAttention = useSessionAttention(id);
+
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(title);
+
+  const parentSession = branchOf ? getFn(branchOf) : undefined;
+  const canOpen = !editing && !isTitleGenerating;
+  const showStatus = isStreaming || needsAttention;
+  const showMenu = !editing && !isTitleGenerating && !isStreaming;
+
+  const handleStartEditing = () => {
+    setText(title);
+    setEditing(true);
+  };
+
+  const handleCancel = () => {
+    setText(title);
+    setEditing(false);
+  };
+
+  const handleSubmit = () => {
+    const trimmed = text.trim();
+    if (trimmed && trimmed !== title) {
+      updateTitle(id, trimmed);
+    }
+    setEditing(false);
+  };
+
+  const handleOpen = () => {
+    if (!canOpen) return;
+    navigate(`/session/${item.type ?? "chat"}/${id}`);
+    onSwitch?.();
+  };
+
+  const handleOpenParent = () => {
+    if (!parentSession) return;
+    navigate(`/session/${parentSession.type ?? "chat"}/${parentSession.id}`);
+  };
+
+  const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpen();
+    }
+  };
+
+  const rowClasses = cn(
+    "group relative flex w-full max-w-full min-w-0 items-center gap-2 overflow-hidden",
+    "rounded-md px-2.5 py-1.5 text-[13px] select-none outline-none",
+    "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
+    canOpen ? "cursor-pointer" : "cursor-default",
+    active
+      ? "bg-accent/40 text-foreground"
+      : "text-foreground/70 hover:bg-accent/20 hover:text-foreground",
+  );
+
+  const titleClasses = cn(
+    "block min-w-0 flex-1 truncate",
+    isStreaming && "shimmer",
+    isTitleGenerating && "shimmer text-muted-foreground",
+  );
+
+  const titleLabel = isTitleGenerating ? "Generating title…" : title;
+
+  return (
+    <div
+      tabIndex={0}
+      aria-current={active ? "page" : undefined}
+      onClick={handleOpen}
+      onKeyDown={handleRowKeyDown}
+      className={rowClasses}
+    >
+      {showStatus && <StatusDot streaming={isStreaming} />}
+
+      {branchOf && (
+        <BranchLink
+          parentTitle={parentSession?.title}
+          onOpen={handleOpenParent}
+        />
+      )}
+
+      {editing ? (
+        <TitleInput
+          value={text}
+          onChange={setText}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      ) : (
+        <span title={titleLabel} className={titleClasses}>
+          {titleLabel}
+        </span>
+      )}
+
+      <div
+        className="flex size-6 shrink-0 items-center justify-center"
+        onClick={stopPropagation}
+        onKeyDown={stopPropagation}
+      >
+        {showMenu && <SessionMenu item={item} onRename={handleStartEditing} />}
+      </div>
+    </div>
   );
 };
