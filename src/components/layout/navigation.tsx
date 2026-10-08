@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Book,
-  Bookmark,
   BookOpen,
+  Bookmark,
   Clock,
   ClockFading,
   MessageCircle,
@@ -24,77 +24,92 @@ export interface NavigationItem {
   label: string;
 }
 
-export const Navigation = () => {
+interface NavItemProps {
+  item: NavigationItem;
+  selected: boolean;
+}
+
+const NavItem = ({ item, selected }: NavItemProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const Icon = selected ? item.activeIcon : item.icon;
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label={item.label}
+      aria-current={selected ? "page" : undefined}
+      onClick={() => navigate(item.href)}
+      className={cn(
+        "size-10 text-muted-foreground hover:text-foreground",
+        selected && "text-primary",
+      )}
+    >
+      <Icon size={20} />
+    </Button>
+  );
+};
+
+export const Navigation = () => {
+  const { pathname } = useLocation();
+
   const activeType = useSessionStore((state) => {
     const active = state.sessions.find((s) => s.id === state.activeId);
     return active?.type ?? "chat";
   });
 
-  const isSelected = (path: string): boolean =>
-    path === "/session/chat"
-      ? location.pathname.startsWith("/session")
-      : location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const isActive = (path: string) =>
+    pathname === path || pathname.startsWith(`${path}/`);
 
-  const items: NavigationItem[] = [
-    {
-      href: `/session/${activeType}`,
-      label: "Chat",
-      icon: MessageCircleDashed,
-      activeIcon: MessageCircle,
-      shortcut: "1",
-    },
-    {
-      icon: Book,
-      label: "Journal",
-      activeIcon: BookOpen,
-      href: "/journal",
-      shortcut: "2",
-    },
-    {
-      icon: SquareCheck,
-      label: "Tasks",
-      activeIcon: SquareCheckBig,
-      href: "/tasks",
-      shortcut: "3",
-    },
-    {
-      icon: ClockFading,
-      activeIcon: Clock,
-      label: "Intervals",
-      href: "/interval",
-      shortcut: "4",
-    },
-    {
-      icon: Bookmark,
-      activeIcon: Bookmark,
-      label: "Capture",
-      href: "/capture",
-      shortcut: "5",
-    },
-  ];
+  const chat: NavigationItem = {
+    href: `/session/${activeType}`,
+    label: "Chat",
+    icon: MessageCircleDashed,
+    activeIcon: MessageCircle,
+    shortcut: "1",
+  };
+
+  const journal: NavigationItem = {
+    href: "/journal",
+    label: "Journal",
+    icon: Book,
+    activeIcon: BookOpen,
+    shortcut: "2",
+  };
+
+  const tasks: NavigationItem = {
+    href: "/tasks",
+    label: "Tasks",
+    icon: SquareCheck,
+    activeIcon: SquareCheckBig,
+    shortcut: "3",
+  };
+
+  const intervals: NavigationItem = {
+    href: "/interval",
+    label: "Intervals",
+    icon: ClockFading,
+    activeIcon: Clock,
+    shortcut: "4",
+  };
+
+  const capture: NavigationItem = {
+    href: "/capture",
+    label: "Capture",
+    icon: Bookmark,
+    activeIcon: Bookmark,
+    shortcut: "5",
+  };
+
+  const items = [chat, journal, tasks, intervals, capture];
 
   return (
-    <nav className="flex flex-col gap-2 flex-1 w-full px-2 items-center">
-      {items.map((item) => (
-        <Button
-          key={item.href}
-          className={cn(
-            "text-muted-foreground hover:text-foreground h-10 w-10",
-            isSelected(item.href) && "text-primary",
-          )}
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(item.href)}
-        >
-          {isSelected(item.href) ? (
-            <item.activeIcon size={20} />
-          ) : (
-            <item.icon size={20} />
-          )}
-        </Button>
-      ))}
+    <nav className="flex w-full flex-1 flex-col items-center gap-2 px-2">
+      <NavItem item={chat} selected={pathname.startsWith("/session")} />
+      <NavItem item={journal} selected={isActive(journal.href)} />
+      <NavItem item={tasks} selected={isActive(tasks.href)} />
+      <NavItem item={intervals} selected={isActive(intervals.href)} />
+      <NavItem item={capture} selected={isActive(capture.href)} />
 
       <Command items={items} />
     </nav>

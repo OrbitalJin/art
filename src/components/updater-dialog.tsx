@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CloudDownload } from "lucide-react";
+import { CloudDownload, ScrollText } from "lucide-react";
 
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
@@ -54,9 +54,13 @@ export const UpdaterDialog = () => {
           className="flex h-full min-h-0 flex-col gap-0"
         >
           <div className="border-b p-2">
-            <TabsList className="flex flex-row w-full">
-              <TabsTrigger value="update">Update</TabsTrigger>
-              <TabsTrigger value="changelog">Changelog</TabsTrigger>
+            <TabsList className="flex flex-row w-full bg-transparent!">
+              <TabsTrigger value="update">
+                <CloudDownload /> Update
+              </TabsTrigger>
+              <TabsTrigger value="changelog">
+                <ScrollText /> Changelog
+              </TabsTrigger>
             </TabsList>
           </div>
 

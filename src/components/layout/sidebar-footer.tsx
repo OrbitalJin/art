@@ -1,40 +1,45 @@
-import { SettingsDialog } from "../settings/settings-dialog";
-import { UpdaterDialog } from "../updater-dialog";
-import { Button } from "@/components/ui/button";
 import { Music } from "lucide-react";
-import { Player } from "../interval/player";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
+import { Player } from "@/components/interval/player";
+import { SettingsDialog } from "@/components/settings/settings-dialog";
+import { UpdaterDialog } from "@/components/updater-dialog";
 import { useIntervalStore } from "@/lib/store/use-interval-store";
 import { cn } from "@/lib/utils";
 
-export const SidebarFooter = () => {
+const MusicMenu = () => {
   const playing = useIntervalStore((state) => state.playing);
 
   return (
-    <div className="flex flex-col gap-2 px-2 mt-auto">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <Music className={cn(playing && "text-primary animate-pulse")} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          side="left"
-          className="w-auto border-none p-0 shadow-none bg-card/10 backdrop-blur-xl"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Music player"
+          className="size-10 text-muted-foreground hover:text-foreground"
         >
-          <Player variant="floating" />
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <UpdaterDialog />
-      <SettingsDialog />
-    </div>
+          <Music className={cn(playing && "animate-pulse text-primary")} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="left"
+        className="w-auto border-none bg-card/10 p-0 shadow-none backdrop-blur-xl"
+      >
+        <Player variant="floating" />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
+
+export const SidebarFooter = () => (
+  <div className="mt-auto flex flex-col gap-2 px-2">
+    <MusicMenu />
+    <UpdaterDialog />
+    <SettingsDialog />
+  </div>
+);

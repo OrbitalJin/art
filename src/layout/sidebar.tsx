@@ -1,20 +1,11 @@
 import { WindowControls } from "@/components/layout/window-controls";
 import { Navigation } from "@/components/layout/navigation";
 import { SidebarFooter } from "@/components/layout/sidebar-footer";
-import { cn } from "@/lib/utils";
 
 export const Sidebar = () => (
-  <div className="flex flex-col h-full gap-2">
-    <aside
-      className={cn(
-        "flex flex-col items-center w-[60px] h-full",
-        "bg-card/50 backdrop-blur-sm pt-3 pb-2",
-        "transition-all duration-300 border-l",
-      )}
-    >
-      <WindowControls />
-      <Navigation />
-      <SidebarFooter />
-    </aside>
-  </div>
+  <aside className="flex h-full w-[60px] flex-col items-center border-l bg-card/50 pt-3 pb-2 backdrop-blur-sm">
+    <WindowControls />
+    <Navigation />
+    <SidebarFooter />
+  </aside>
 );

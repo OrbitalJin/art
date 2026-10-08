@@ -227,12 +227,14 @@ const SessionMenu: React.FC<{ item: Session; onRename: () => void }> = ({
                 <DropdownMenuItem onSelect={handleRegenerateTitle}>
                   Regenerate title
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  disabled={creating}
-                  onSelect={handleGenerateNotes}
-                >
-                  {creating ? "Creating notes…" : "Generate notes"}
-                </DropdownMenuItem>
+                {item.type === "chat" && (
+                  <DropdownMenuItem
+                    disabled={creating}
+                    onSelect={handleGenerateNotes}
+                  >
+                    {creating ? "Creating notes…" : "Generate notes"}
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />

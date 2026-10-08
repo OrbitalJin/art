@@ -59,18 +59,18 @@ export const SidebarHeader: React.FC<Props> = ({
           </Button>
         )}
       </div>
-      <div className="flex p-2 border-b">
+      <div className="flex p-2 px-3 border-b bg-card/30">
         <div
           className={cn(
-            "flex-1 flex flex-row p-2 gap-2 items-center",
-            "bg-card border text-foreground/70 text-sm rounded-md",
+            "flex-1 flex flex-row gap-2 items-center",
+            "text-foreground/70 text-sm rounded-md",
           )}
         >
           <Search size={16} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="outline-none flex-1"
+            className="outline-none flex-1 p-1 "
             placeholder="Search sessions..."
           />
           {query && (

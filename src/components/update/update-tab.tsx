@@ -72,7 +72,7 @@ const UpdateCard: React.FC<{
   );
 
   return (
-    <section className="flex flex-col gap-4 rounded-lg border border-border/50 bg-muted/10 px-4 py-3.5">
+    <section className="flex flex-col gap-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex items-center gap-2">

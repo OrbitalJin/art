@@ -1,78 +1,121 @@
-import { Edit3, Eye, FileText, Hash, Copy, Check } from "lucide-react";
+// sidebar-footer.tsx
+import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useJournalEditor } from "@/contexts/note-editor-context";
-import { useCopy } from "@/hooks/use-copy";
-import { useJournalStore } from "@/lib/store/use-journal-store";
-import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useJournalEditor } from "@/contexts/note-editor-context";
+import { useCopy } from "@/hooks/use-copy";
+import { useJournalStore } from "@/lib/store/use-journal-store";
+import { cn } from "@/lib/utils";
 
-export const SidebarFooter = () => {
-  const {
-    isEditable,
-    isDisabled,
-    wordCount,
-    charCount,
-    toggleEditable,
-  } = useJournalEditor();
-  const currentNote = useJournalStore((s) => s.getFn(s.activeId ?? ""));
-  const { copy, copied } = useCopy(currentNote?.content as string);
+const formatCount = (value: number, singular: string, plural: string) =>
+  `${value.toLocaleString()} ${value === 1 ? singular : plural}`;
+
+const ModeToggle: React.FC<{
+  editable: boolean;
+  disabled: boolean;
+  onChange: (editable: boolean) => void;
+}> = ({ editable, disabled, onChange }) => {
+  const optionClasses = (selected: boolean) =>
+    cn(
+      "h-full flex-1 cursor-pointer rounded-full text-xs outline-none",
+      "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
+      selected
+        ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
+        : "text-muted-foreground hover:text-foreground",
+    );
 
   return (
     <div
-      className={cn(
-        "border-t bg-muted/30",
-        isDisabled && "pointer-events-none opacity-80",
-      )}
+      role="radiogroup"
+      aria-label="Editor mode"
+      className="flex h-8 flex-1 items-center rounded-full bg-foreground/5 p-0.5 ring-1 ring-border/50"
     >
-      <div className="flex items-center justify-around px-4 py-3 text-xs">
-        <StatItem icon={FileText} value={wordCount} label="words" />
-        <StatItem icon={Hash} value={charCount} label="chars" />
-      </div>
-
-      <div className="flex items-center gap-2 p-2 border-t">
-        <Button
-          variant={"outline"}
-          onClick={toggleEditable}
-          className="flex-1 transition-all"
-        >
-          {isEditable ? (
-            <Edit3 className="h-3.5 w-3.5 mr-1.5" />
-          ) : (
-            <Eye className="h-3.5 w-3.5 mr-1.5" />
-          )}
-          {isEditable ? "Editing" : "Reading"}
-        </Button>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="icon" variant="outline" onClick={copy}>
-              {copied ? <Check /> : <Copy />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right">Copy content</TooltipContent>
-        </Tooltip>
-      </div>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={editable}
+        disabled={disabled}
+        onClick={() => onChange(true)}
+        className={optionClasses(editable)}
+      >
+        Edit
+      </button>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={!editable}
+        disabled={disabled}
+        onClick={() => onChange(false)}
+        className={optionClasses(!editable)}
+      >
+        Read
+      </button>
     </div>
   );
 };
 
-interface StatItemProps {
-  icon: React.ComponentType<{ className?: string }>;
-  value: number;
-  label: string;
-}
+export const SidebarFooter = () => {
+  const { isEditable, isDisabled, wordCount, charCount, toggleEditable } =
+    useJournalEditor();
+  const currentNote = useJournalStore((state) =>
+    state.getFn(state.activeId ?? ""),
+  );
+  const content = currentNote?.content ?? "";
+  const { copy, copied } = useCopy(content);
 
-const StatItem = ({ icon: Icon, value, label }: StatItemProps) => {
+  const handleModeChange = (editable: boolean) => {
+    if (editable !== isEditable) toggleEditable();
+  };
+
+  const containerClasses = cn(
+    "flex flex-col gap-3 border-t border-border/50 p-3",
+    isDisabled && "pointer-events-none opacity-60",
+  );
+
   return (
-    <div className="flex items-center gap-1.5 text-muted-foreground">
-      <Icon className="h-3.5 w-3.5" />
-      <span className="font-medium text-foreground">
-        {value.toLocaleString()}
-      </span>
-      <span>{label}</span>
-    </div>
+    <footer className={containerClasses}>
+      <p className="text-[11px] text-muted-foreground/70 tabular-nums">
+        {formatCount(wordCount, "word", "words")}
+        <span aria-hidden className="mx-1.5">
+          ·
+        </span>
+        {formatCount(charCount, "character", "characters")}
+      </p>
+
+      <div className="flex items-center gap-2">
+        <ModeToggle
+          editable={isEditable}
+          disabled={isDisabled}
+          onChange={handleModeChange}
+        />
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              aria-label="Copy note"
+              disabled={isDisabled || !content}
+              onClick={copy}
+              className="size-8 shrink-0 text-muted-foreground hover:text-foreground"
+            >
+              {copied ? (
+                <Check className="size-4 text-emerald-500" />
+              ) : (
+                <Copy className="size-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            {copied ? "Copied" : "Copy note"}
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </footer>
   );
 };

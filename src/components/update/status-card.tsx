@@ -29,10 +29,10 @@ const TONE_ICON: Record<Tone, string> = {
 };
 
 const TONE_SURFACE: Record<Tone, string> = {
-  default: "border-border/50 bg-muted/10",
-  success: "border-border/50 bg-muted/10",
+  default: "border-border/50",
+  success: "border-border/50",
   error: "border-destructive/20 bg-destructive/5",
-  info: "border-border/50 bg-muted/10",
+  info: "border-border/50",
 };
 
 const Lead: React.FC<{
@@ -64,30 +64,9 @@ export const StatusCard: React.FC<Props> = ({
   badge,
   tone = "default",
   busy = false,
-  docked = false,
   children,
 }) => {
-  if (docked) {
-    return (
-      <div className="flex items-center gap-2.5 border-b border-border/50 bg-muted/10 px-3 py-2">
-        <Lead icon={icon} tone={tone} busy={busy} />
-
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          {title ? (
-            <p className="shrink-0 text-xs font-medium text-foreground/90">
-              {title}
-            </p>
-          ) : null}
-          {children}
-        </div>
-      </div>
-    );
-  }
-
-  const cardClasses = cn(
-    "flex items-start gap-3 rounded-lg border px-4 py-3",
-    TONE_SURFACE[tone],
-  );
+  const cardClasses = cn("flex items-start gap-3", TONE_SURFACE[tone]);
 
   return (
     <div className={cardClasses}>
