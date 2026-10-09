@@ -14,6 +14,7 @@ interface Props {
   questions: AskUserQuestion[];
   status: QuestionStatus;
   variant?: "default" | "embedded";
+  trailing?: React.ReactNode;
 }
 
 const OptionRow: React.FC<{
@@ -198,7 +199,8 @@ const CardHeader: React.FC<{
   current: number;
   total: number;
   onBack?: () => void;
-}> = ({ isPending, current, total, onBack }) => {
+  trailing?: React.ReactNode;
+}> = ({ isPending, current, total, onBack, trailing }) => {
   const dotClasses = cn(
     "size-1.5 rounded-full",
     isPending
@@ -215,8 +217,19 @@ const CardHeader: React.FC<{
         {isPending ? "Asking you" : "Asked you"}
       </span>
 
+      {trailing ? (
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          {trailing}
+        </div>
+      ) : null}
+
       {hasMultiple && (
-        <div className="ml-auto flex items-center gap-1">
+        <div
+          className={cn(
+            "flex shrink-0 items-center gap-1",
+            !trailing && "ml-auto",
+          )}
+        >
           {onBack && (
             <Button
               size="icon"
@@ -245,13 +258,22 @@ export const AskUserCard: React.FC<Props> = ({
   questions,
   status,
   variant = "default",
+  trailing,
 }) => {
   const answer = useQuestionStore((state) => state.answer);
   const skip = useQuestionStore((state) => state.skip);
 
+  const [prevToolCallId, setPrevToolCallId] = useState(toolCallId);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<Record<number, string[]>>({});
   const [custom, setCustom] = useState<Record<number, string>>({});
+
+  if (prevToolCallId !== toolCallId) {
+    setPrevToolCallId(toolCallId);
+    setCurrentIndex(0);
+    setSelected({});
+    setCustom({});
+  }
 
   const isPending = status === "pending";
 
@@ -341,6 +363,7 @@ export const AskUserCard: React.FC<Props> = ({
         current={activeIndex + 1}
         total={total}
         onBack={isFirst ? undefined : handleBack}
+        trailing={trailing}
       />
 
       <div className="px-3 pt-1.5 pb-2.5">

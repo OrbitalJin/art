@@ -6,6 +6,7 @@ import { searchTools } from "./search";
 import { fileTools } from "./files";
 import { askUserTools } from "./ask-user";
 import { doneTools } from "./done";
+import { todoTools } from "./todo";
 import { applyAccessPolicy } from "./policy";
 
 export interface Opts {
@@ -25,6 +26,7 @@ export const toolsFor = ({ session }: Opts): ToolSet => {
     ...(journal && journalTools()),
     ...(tasks && tasksTools()),
     ...(askUser && session && askUserTools(session.id)),
+    ...(session?.type === "agent" && session && todoTools(session.id)),
     ...ambientTools(),
     ...doneTools(),
   };

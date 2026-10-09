@@ -6,12 +6,32 @@ import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import { useQuestionStore } from "@/lib/store/use-question-store";
 
+const summaryOf = (input: unknown): string | null => {
+  if (input && typeof input === "object" && "summary" in input) {
+    const summary = (input as { summary?: unknown }).summary;
+    if (typeof summary === "string" && summary.trim()) return summary;
+  }
+  return null;
+};
+
+const DoneSummary: React.FC<{ input: unknown }> = ({ input }) => {
+  const summary = summaryOf(input);
+  if (!summary) return null;
+  return (
+    <div className="opacity-90">
+      <Renderer content={summary} />
+    </div>
+  );
+};
+
 const ToolCallPartView: React.FC<{ part: ToolCallPart }> = ({ part }) => {
   const approval = useApprovalStore((state) => state.pending[part.id]);
   const question = useQuestionStore((state) => state.pending[part.id]);
   const hasOutcome = part.state === "result" || part.state === "error";
 
-  if (part.toolName === DONE_TOOL_NAME) return null;
+  if (part.toolName === DONE_TOOL_NAME) {
+    return <DoneSummary input={part.input} />;
+  }
 
   return (
     <div className="space-y-2">

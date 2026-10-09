@@ -23,7 +23,7 @@ export const MODELS: readonly Model[] = [
   {
     tier: 1,
     id: "model-1",
-    type: "deepseek/deepseek-v4.1-flash",
+    type: "zai/glm-5.3-flash",
     displayName: "Monet",
     description:
       "Fast, lightweight, and responsive. Best for quick questions, drafting, and everyday chat.",
@@ -32,7 +32,7 @@ export const MODELS: readonly Model[] = [
   {
     tier: 2,
     id: "model-2",
-    type: "zai/glm-5.3-flash",
+    type: "deepseek/deepseek-v4.1-flash",
     displayName: "Voltaire",
     description:
       "Sharper and more composed. Better at structured writing, synthesis, and connecting ideas clearly.",

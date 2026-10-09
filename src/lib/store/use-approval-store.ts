@@ -81,19 +81,17 @@ export const useApprovalStore = create<ApprovalState>()((set, get) => ({
   },
 
   resolve: (toolCallId, approved) => {
-    set((state) => {
-      const current = state.pending[toolCallId];
-      if (!current) return state;
-      return {
-        pending: {
-          ...state.pending,
-          [toolCallId]: {
-            ...current,
-            status: approved ? "approved" : "rejected",
-          },
+    const current = get().pending[toolCallId];
+    if (!current || current.status !== "pending") return;
+    set((state) => ({
+      pending: {
+        ...state.pending,
+        [toolCallId]: {
+          ...state.pending[toolCallId],
+          status: approved ? "approved" : "rejected",
         },
-      };
-    });
+      },
+    }));
     resolvers.get(toolCallId)?.(approved);
   },
 

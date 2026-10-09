@@ -69,7 +69,7 @@ export const AbortedMessage: React.FC<Message> = (message) => {
   );
 
   return (
-    <div className="w-full min-w-0 animate-in fade-in duration-100 select-auto">
+    <div className="w-full min-w-0 animate-in fade-in duration-100 select-auto scale-95">
       <Marker asChild>
         <button
           type="button"
@@ -82,7 +82,7 @@ export const AbortedMessage: React.FC<Message> = (message) => {
           </MarkerIcon>
           <MarkerContent>
             Stopped by you
-            <span className="ml-1.5 text-destructive/50">· {wordsLabel}</span>
+            <span className="text-destructive/50">· {wordsLabel}</span>
           </MarkerContent>
           <ChevronRight size={12} aria-hidden className={chevronClasses} />
         </button>

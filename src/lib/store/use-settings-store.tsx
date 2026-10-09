@@ -2,6 +2,8 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { settingsStorage } from "@/lib/store/settings/adapter";
 import { create } from "zustand";
 import type { ModelId } from "../ai/models";
+import type { AccessMode } from "../ai/tools/registry";
+import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
 
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
@@ -27,6 +29,9 @@ interface SettingsState {
   fontSize: FontSize;
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
+  defaultAgentModel: ModelId;
+  defaultMode: ModeId;
+  defaultAccessMode: AccessMode;
   enterKeySends: boolean;
   reducedMotion: boolean;
   userProfile: UserProfile;
@@ -37,6 +42,9 @@ interface SettingsState {
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
   setDefaultModel: (model: ModelId) => void;
+  setDefaultAgentModel: (model: ModelId) => void;
+  setDefaultMode: (mode: ModeId) => void;
+  setDefaultAccessMode: (mode: AccessMode) => void;
   setEnterKeySends: (value: boolean) => void;
   setReducedMotion: (value: boolean) => void;
   setUserProfile: (profile: Partial<UserProfile>) => void;
@@ -68,6 +76,9 @@ const initialState = {
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
+  defaultAgentModel: "model-1" as ModelId,
+  defaultMode: DEFAULT_MODE,
+  defaultAccessMode: "confirm" as AccessMode,
   enterKeySends: true,
   reducedMotion: false,
   userProfile: DEFAULT_USER_PROFILE,
@@ -83,6 +94,10 @@ export const useSettingsStore = create<SettingsState>()(
       setFontSize: (size: FontSize) => set({ fontSize: size }),
       setCornerRadius: (radius: CornerRadius) => set({ cornerRadius: radius }),
       setDefaultModel: (model: ModelId) => set({ defaultModel: model }),
+      setDefaultAgentModel: (model: ModelId) => set({ defaultAgentModel: model }),
+      setDefaultMode: (mode: ModeId) => set({ defaultMode: mode }),
+      setDefaultAccessMode: (mode: AccessMode) =>
+        set({ defaultAccessMode: mode }),
       setEnterKeySends: (value: boolean) => set({ enterKeySends: value }),
       setReducedMotion: (value: boolean) => set({ reducedMotion: value }),
       setUserProfile: (profile: Partial<UserProfile>) =>
@@ -97,7 +112,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => settingsStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -136,6 +151,20 @@ export const useSettingsStore = create<SettingsState>()(
         if (version < 4) {
           const state = persistedState as { toolOptions?: unknown };
           if (state) delete state.toolOptions;
+        }
+        if (version < 5) {
+          const state = persistedState as {
+            defaultMode?: ModeId;
+            defaultAccessMode?: AccessMode;
+            defaultAgentModel?: ModelId;
+          };
+          if (state) {
+            if (state.defaultMode === undefined) state.defaultMode = DEFAULT_MODE;
+            if (state.defaultAccessMode === undefined)
+              state.defaultAccessMode = "confirm";
+            if (state.defaultAgentModel === undefined)
+              state.defaultAgentModel = "model-1";
+          }
         }
         return persistedState as SettingsState;
       },

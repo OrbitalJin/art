@@ -22,11 +22,35 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useTradeSession } from "@/hooks/use-trade-session";
 import { MODELS, type ModelId } from "@/lib/ai/models";
+import { MODES, type ModeId } from "@/lib/ai/prompts/modes";
+import type { AccessMode } from "@/lib/ai/tools/registry";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+const ACCESS_MODES: ReadonlyArray<{
+  id: AccessMode;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "readonly",
+    label: "Read only",
+    description: "The agent can read, search, and ask questions, but cannot create, edit, or delete anything.",
+  },
+  {
+    id: "confirm",
+    label: "Ask to write",
+    description: "Reads run freely; every create, edit, or delete pauses for your approval first.",
+  },
+  {
+    id: "autonomous",
+    label: "Autonomous",
+    description: "The agent runs tools immediately, including writes, without waiting for you.",
+  },
+];
 
 const Section: React.FC<{
   title: string;
@@ -152,6 +176,20 @@ export const ChatSettingsTab: React.FC = () => {
   const setSearchApiKey = useSettingsStore((state) => state.setSearchApiKey);
   const defaultModel = useSettingsStore((state) => state.defaultModel);
   const setDefaultModel = useSettingsStore((state) => state.setDefaultModel);
+  const defaultAgentModel = useSettingsStore(
+    (state) => state.defaultAgentModel,
+  );
+  const setDefaultAgentModel = useSettingsStore(
+    (state) => state.setDefaultAgentModel,
+  );
+  const defaultMode = useSettingsStore((state) => state.defaultMode);
+  const setDefaultMode = useSettingsStore((state) => state.setDefaultMode);
+  const defaultAccessMode = useSettingsStore(
+    (state) => state.defaultAccessMode,
+  );
+  const setDefaultAccessMode = useSettingsStore(
+    (state) => state.setDefaultAccessMode,
+  );
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const setEnterKeySends = useSettingsStore((state) => state.setEnterKeySends);
   const purgeSessions = useSessionStore((state) => state.purge);
@@ -166,9 +204,9 @@ export const ChatSettingsTab: React.FC = () => {
   return (
     <div className="flex max-w-3xl flex-col">
       <header className="mb-6 flex flex-col gap-0.5">
-        <h2 className="text-lg font-medium tracking-tight">Chat</h2>
+        <h2 className="text-lg font-medium tracking-tight">Chat & Agent</h2>
         <p className="text-sm text-muted-foreground">
-          Configure your chat experience.
+          Configure your chat and agent experience.
         </p>
       </header>
 
@@ -193,20 +231,41 @@ export const ChatSettingsTab: React.FC = () => {
         </Section>
 
         <SettingRow
-          title="Default model"
-          description="Model used for new sessions."
+          title="Default chat model"
+          description="Model used for new chat sessions."
         >
           <Select
             value={defaultModel}
             onValueChange={(value: ModelId) => setDefaultModel(value)}
           >
-            <SelectTrigger className="w-52" aria-label="Default model">
+            <SelectTrigger className="w-52" aria-label="Default chat model">
               <SelectValue placeholder="Select a model" />
             </SelectTrigger>
             <SelectContent position="item-aligned">
               {MODELS.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
                   {model.displayName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingRow>
+
+        <SettingRow
+          title="Default chat mode"
+          description="Behavior mode used for new chat sessions."
+        >
+          <Select
+            value={defaultMode}
+            onValueChange={(value: ModeId) => setDefaultMode(value)}
+          >
+            <SelectTrigger className="w-52" aria-label="Default chat mode">
+              <SelectValue placeholder="Select a mode" />
+            </SelectTrigger>
+            <SelectContent position="item-aligned">
+              {Object.values(MODES).map((mode) => (
+                <SelectItem key={mode.id} value={mode.id}>
+                  {mode.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -223,6 +282,53 @@ export const ChatSettingsTab: React.FC = () => {
             aria-label="Enter to send"
           />
         </SettingRow>
+
+        <Section
+          title="Agent"
+          description="Defaults applied to new agent sessions."
+        >
+          <SettingRow
+            title="Default agent model"
+            description="Model used for new agent sessions."
+          >
+            <Select
+              value={defaultAgentModel}
+              onValueChange={(value: ModelId) => setDefaultAgentModel(value)}
+            >
+              <SelectTrigger className="w-52" aria-label="Default agent model">
+                <SelectValue placeholder="Select a model" />
+              </SelectTrigger>
+              <SelectContent position="item-aligned">
+                {MODELS.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.displayName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </SettingRow>
+
+          <SettingRow
+            title="Default access mode"
+            description="Tool access policy used for new agent sessions."
+          >
+            <Select
+              value={defaultAccessMode}
+              onValueChange={(value: AccessMode) => setDefaultAccessMode(value)}
+            >
+              <SelectTrigger className="w-52" aria-label="Default access mode">
+                <SelectValue placeholder="Select an access mode" />
+              </SelectTrigger>
+              <SelectContent position="item-aligned">
+                {ACCESS_MODES.map((mode) => (
+                  <SelectItem key={mode.id} value={mode.id}>
+                    {mode.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </SettingRow>
+        </Section>
 
         <SettingRow
           title="Sessions"

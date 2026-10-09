@@ -31,23 +31,31 @@ const createNewSession = ({
 }: CreateSessionOpts): Session => {
   const date = Date.now();
   const sessionType = type ?? "chat";
+  const settings = useSettingsStore.getState();
+  const modelId =
+    defaultModelId ??
+    MODELS.find(
+      (m) =>
+        m.id ===
+        (sessionType === "agent"
+          ? settings.defaultAgentModel
+          : settings.defaultModel),
+    )?.id ??
+    MODELS[0].id;
+
   return {
     id: crypto.randomUUID(),
     type: sessionType,
     title: title ?? "New Session",
-    accessMode: "confirm",
+    accessMode: settings.defaultAccessMode,
     capabilities: {
       journal: false,
       tasks: false,
       askUser: sessionType === "agent",
     },
     messages: [],
-    mode: DEFAULT_MODE,
-    modelId:
-      defaultModelId ??
-      MODELS.find((m) => m.id === useSettingsStore.getState().defaultModel)
-        ?.id ??
-      MODELS[0].id,
+    mode: settings.defaultMode,
+    modelId,
     createdAt: date,
     updatedAt: date,
   };

@@ -139,7 +139,7 @@ export const RowList: FC<{
 }> = ({ children, maxHeightClass }) => (
   <ul
     className={cn(
-      "flex flex-col divide-y divide-border/40 overflow-auto",
+      "flex flex-col divide-y divide-border/40 overflow-auto scroll-fade-y",
       maxHeightClass,
     )}
   >
@@ -148,7 +148,7 @@ export const RowList: FC<{
 );
 
 export const ListRow: FC<{ children: ReactNode }> = ({ children }) => (
-  <li className="flex min-w-0 flex-col gap-1 py-2 first:pt-0 last:pb-0">
+  <li className="flex min-w-0 flex-col gap-1 first:pt-0 last:pb-0">
     {children}
   </li>
 );

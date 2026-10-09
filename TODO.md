@@ -193,6 +193,7 @@ Bento-style task board with drag-and-drop organization.
 - [x] Local knowledge base
 - [x] Chat vs Agent modes
 - [x] Ask user tool
+- [x] Todo tool for agent planning
 
 ### Planned
 

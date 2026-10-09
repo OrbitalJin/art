@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatToolName } from "@/components/chat/messages/tool-call-card";
@@ -12,6 +11,7 @@ interface Props {
   input: unknown;
   status: ApprovalStatus;
   variant?: "default" | "embedded";
+  trailing?: React.ReactNode;
 }
 
 const formatInput = (input: unknown): string => {
@@ -77,14 +77,22 @@ export const ToolApprovalCard: React.FC<Props> = ({
   input,
   status,
   variant = "default",
+  trailing,
 }) => {
   const resolve = useApprovalStore((state) => state.resolve);
 
   const isPending = status === "pending";
   const isApproved = status === "approved";
 
+  const [prevToolCallId, setPrevToolCallId] = useState(toolCallId);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(isPending);
+
+  if (prevToolCallId !== toolCallId) {
+    setPrevToolCallId(toolCallId);
+    setIsSubmitting(false);
+    setIsOpen(status === "pending");
+  }
 
   const statusLabel = isPending
     ? "Needs your approval"
@@ -111,15 +119,10 @@ export const ToolApprovalCard: React.FC<Props> = ({
   );
 
   const headerClasses = cn(
-    "flex w-full cursor-pointer items-center gap-2 px-3.5 py-2.5 text-left",
-    "outline-none transition-colors duration-150 select-none hover:bg-muted/20",
+    "flex min-w-0 flex-1 cursor-pointer items-center gap-2 py-2 text-left",
+    "outline-none transition-colors duration-150 select-none",
     "focus-visible:ring-2 focus-visible:ring-ring/50",
-  );
-
-  const chevronClasses = cn(
-    "ml-auto shrink-0 text-muted-foreground/40 transition-transform duration-200",
-    "motion-reduce:transition-none",
-    isOpen && "rotate-90",
+    variant === "default" && "rounded-md",
   );
 
   const bodyClasses = cn(
@@ -129,21 +132,26 @@ export const ToolApprovalCard: React.FC<Props> = ({
 
   return (
     <div className={containerClasses}>
-      <button
-        type="button"
-        onClick={() => setIsOpen((open) => !open)}
-        aria-expanded={isOpen}
-        className={headerClasses}
-      >
-        <StatusDot status={status} />
-        <span className="shrink-0 text-xs font-medium text-foreground/80">
-          {statusLabel}
-        </span>
-        <span className="min-w-0 truncate text-xs text-muted-foreground/70">
-          {title}
-        </span>
-        <ChevronRight size={13} aria-hidden className={chevronClasses} />
-      </button>
+      <div className="flex w-full items-center gap-2 px-2 py-1">
+        <button
+          type="button"
+          onClick={() => setIsOpen((open) => !open)}
+          aria-expanded={isOpen}
+          className={headerClasses}
+        >
+          <StatusDot status={status} />
+          <span className="shrink-0 text-xs font-medium text-foreground/80">
+            {statusLabel}
+          </span>
+          <span className="min-w-0 truncate text-xs text-muted-foreground/70">
+            {title}
+          </span>
+        </button>
+
+        {trailing ? (
+          <div className="flex shrink-0 items-center gap-1">{trailing}</div>
+        ) : null}
+      </div>
 
       {isOpen && (
         <div className={bodyClasses}>

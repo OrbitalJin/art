@@ -4,6 +4,7 @@ import { searchRenderers } from "./renderers/search";
 import { taskRenderers } from "./renderers/tasks";
 import { journalRenderers } from "./renderers/journal";
 import { askUserRenderers } from "./renderers/ask-user";
+import { todoRenderers } from "./renderers/todo";
 import { genericRenderer } from "./renderers/generic";
 
 const TOOL_RENDERERS: Record<string, ToolRenderer> = {
@@ -12,6 +13,7 @@ const TOOL_RENDERERS: Record<string, ToolRenderer> = {
   ...taskRenderers,
   ...journalRenderers,
   ...askUserRenderers,
+  ...todoRenderers,
 };
 
 export const resolveRenderer = (toolName: string): ToolRenderer =>
