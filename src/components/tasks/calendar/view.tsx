@@ -1,19 +1,11 @@
 import React from "react";
 import { format } from "date-fns";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar as CalendarIcon,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCalendar } from "@/hooks/use-calendar";
 import { CalendarDay } from "./day";
 import { TaskItem } from "./task-item";
 import type { Task } from "@/lib/store/tasks/types";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 interface Props {
   tasks: Task[];
@@ -21,6 +13,12 @@ interface Props {
   onDeleteTask: (id: string) => void;
   onEditTask: (task: Task) => void;
 }
+
+const WeekdayLabel = ({ label }: { label: string }) => (
+  <div className="py-2 text-center text-[11px] font-medium uppercase tracking-wider text-muted-foreground md:text-xs">
+    {label}
+  </div>
+);
 
 export const CalendarView: React.FC<Props> = ({
   tasks,
@@ -37,47 +35,46 @@ export const CalendarView: React.FC<Props> = ({
   } = useCalendar(tasks);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-2 border-t">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1">
+    <div className="flex h-full flex-col gap-2">
+      <div className="flex items-center justify-between bg-card/50 px-2 py-1 rounded-md border border-border/50">
+        <div className="flex items-center">
+          <h2 className="">{format(currentMonth, "MMMM yyyy")}</h2>
+          <div className="flex items-center">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigateMonth("prev")}
-              className="h-8 w-8"
+              className="size-8 rounded-xl text-muted-foreground"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="size-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigateMonth("next")}
-              className="h-8 w-8"
+              className="size-8 rounded-full text-muted-foreground"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="size-4" />
             </Button>
           </div>
-          <h2>{format(currentMonth, "MMMM yyyy")}</h2>
         </div>
-        <Button variant="outline" size="sm" onClick={goToToday}>
-          <CalendarIcon className="h-4 w-4 mr-2" /> Today
+        <Button variant="ghost" onClick={goToToday}>
+          Today
         </Button>
       </div>
 
-      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden">
-        <div className="flex-1 flex flex-col p-2 md:p-4 overflow-y-auto border-r border-t">
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {WEEKDAYS.map((day) => (
-              <div
-                key={day}
-                className="text-center text-xs md:text-sm font-medium text-muted-foreground py-2"
-              >
-                {day}
-              </div>
-            ))}
+      <div className="flex flex-1 flex-col overflow-hidden lg:flex-row gap-2">
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          <div className="mb-1 grid grid-cols-7 gap-1.5 bg-card/50 rounded-md border border-border/50">
+            <WeekdayLabel label="Sun" />
+            <WeekdayLabel label="Mon" />
+            <WeekdayLabel label="Tue" />
+            <WeekdayLabel label="Wed" />
+            <WeekdayLabel label="Thu" />
+            <WeekdayLabel label="Fri" />
+            <WeekdayLabel label="Sat" />
           </div>
-          <div className="flex-1 grid grid-cols-7 gap-1 auto-rows-fr">
+          <div className="grid flex-1 auto-rows-fr grid-cols-7 gap-1.5">
             {days.map((day, idx) => (
               <CalendarDay
                 key={idx}
@@ -91,19 +88,14 @@ export const CalendarView: React.FC<Props> = ({
           </div>
         </div>
 
-        <div
-          className={cn(
-            "w-full lg:w-72 border-t",
-            "flex flex-col overflow-y-auto h-[50%] lg:h-auto",
-          )}
-        >
-          <div className="flex flex-row gap-2 items-center justify-between font-medium text text-muted-foreground border-b p-3">
-            <p>Undated </p>
-            <Badge variant="outline" className="aspect-square items-center">
+        <div className="flex h-[40%] flex-col overflow-y-auto rounded-lg bg-card/50 lg:h-auto lg:w-72 lg:shrink-0 border border-border/50">
+          <div className="flex items-center gap-2 p-4">
+            <p className="text-sm font-medium">Undated</p>
+            <span className="text-xs text-muted-foreground">
               {tasksWithoutDue.length}
-            </Badge>
+            </span>
           </div>
-          <div className="flex flex-col gap-2 rounded-md h-full p-2">
+          <div className="flex flex-col gap-1.5 p-2">
             {tasksWithoutDue.map((task) => (
               <TaskItem
                 key={task.id}

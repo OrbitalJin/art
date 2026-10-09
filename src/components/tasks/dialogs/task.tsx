@@ -335,7 +335,7 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = (props) => {
 
       {isCreate && !props.trigger && (
         <DialogTrigger asChild>
-          <Button size="icon" variant="outline" className="gap-2">
+          <Button size="icon" variant="outline" className="gap-2 h-9 w-9">
             <Plus className="h-4 w-4" />
           </Button>
         </DialogTrigger>

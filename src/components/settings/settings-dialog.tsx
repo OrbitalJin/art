@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Palette,
-  BookOpen,
   Settings2,
   UserCircle,
   MessageCircle,
@@ -30,7 +29,6 @@ import {
 } from "lucide-react";
 import { ChatSettingsTab } from "./tabs/chat";
 import { IdentitiesSettingsTab } from "./tabs/identities";
-import { JournalSettingsTab } from "./tabs/journal";
 import { AppearanceSettingTab } from "./tabs/appearance";
 import { getVersion } from "@tauri-apps/api/app";
 import { useEffect, useState } from "react";
@@ -138,13 +136,6 @@ export const SettingsDialog = () => {
                   Appearance
                 </div>
               </TabsTrigger>
-
-              <TabsTrigger value="journal">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  Journal
-                </div>
-              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -159,10 +150,6 @@ export const SettingsDialog = () => {
 
             <TabsContent value="appearance" className="m-0 space-y-4 p-6">
               <AppearanceSettingTab />
-            </TabsContent>
-
-            <TabsContent value="journal" className="m-0 space-y-4 p-6">
-              <JournalSettingsTab />
             </TabsContent>
           </div>
         </Tabs>

@@ -7,7 +7,6 @@ import { useTasksStore } from "@/lib/store/use-tasks-store";
 
 import { useTaskManager } from "@/hooks/use-task-manager";
 import { TaskBoard } from "@/components/tasks/board/board";
-import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -23,13 +22,8 @@ export const Tasks = () => {
   const setView = useTasksStore((state) => state.setView);
 
   return (
-    <div className="flex-1 flex flex-col h-full">
-      <div
-        className={cn(
-          "flex flex-row gap-2 items-center p-2",
-          "rounded-tl opacity-80 hover:opacity-100 transition-opacity",
-        )}
-      >
+    <div className="flex h-full flex-1 flex-col p-2 gap-2">
+      <div className="flex flex-row items-center gap-2">
         <TaskFormDialog
           mode="create"
           onSubmit={manager.createTask}
@@ -40,17 +34,22 @@ export const Tasks = () => {
         <ProjectActions />
         <div className="flex-1" />
         <Tooltip>
-          <TooltipTrigger>
-            <Tabs value={currentView} onValueChange={(v) => setView(v as View)}>
-              <TabsList>
-                <TabsTrigger value="board">
-                  <LayoutGrid className="w-4 h-4" />
-                </TabsTrigger>
-                <TabsTrigger value="calendar">
-                  <CalendarDays className="w-4 h-4" />
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+          <TooltipTrigger asChild>
+            <div>
+              <Tabs
+                value={currentView}
+                onValueChange={(v) => setView(v as View)}
+              >
+                <TabsList className="h-8 bg-muted/50 p-0.5">
+                  <TabsTrigger value="board">
+                    <LayoutGrid className="size-4" />
+                  </TabsTrigger>
+                  <TabsTrigger value="calendar">
+                    <CalendarDays className="size-4" />
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </TooltipTrigger>
           <TooltipContent side="left">
             <KbdGroup>

@@ -33,57 +33,48 @@ export const TaskItem = ({
     }
   };
 
-  const hasDependencies = task.dependencies && task.dependencies.length > 0;
-  const dependencyTasks = hasDependencies
-    ? tasks.filter((t) => task.dependencies!.includes(t.id))
-    : [];
-  const completedDeps = dependencyTasks.filter(
-    (t) => t.status === "completed",
+  const dependencyIds = task.dependencies ?? [];
+  const hasDependencies = dependencyIds.length > 0;
+  const completedDeps = tasks.filter(
+    (t) => dependencyIds.includes(t.id) && t.status === "completed",
   ).length;
   const allDepsCompleted =
-    hasDependencies && completedDeps === task.dependencies!.length;
+    hasDependencies && completedDeps === dependencyIds.length;
+
+  const dotColor = task.urgency ? urgencyColors[task.urgency] : "bg-primary";
+  const isCompleted = task.status === "completed";
 
   if (variant === "minimal") {
     return (
       <div
         onClick={handleClick}
         className={cn(
-          "w-1.5 h-1.5 rounded-full cursor-pointer relative",
-          task.urgency ? urgencyColors[task.urgency] : "bg-primary",
-          task.status === "completed" && "opacity-30",
-          hasDependencies && "ring-1 ring-offset-1 ring-amber-500/50",
+          "relative size-1.5 cursor-pointer rounded-full",
+          dotColor,
+          isCompleted && "opacity-30",
+          hasDependencies && "ring-1 ring-amber-500/50 ring-offset-1",
         )}
       />
     );
   }
 
+  const depTone = allDepsCompleted
+    ? "text-green-600 dark:text-green-400"
+    : "text-amber-600 dark:text-amber-400";
+
   return (
     <button
       onClick={handleClick}
       className={cn(
-        "text-left text-xs px-2 py-2 rounded border truncate transition-colors hover:bg-accent w-full",
-        task.status === "completed" && "opacity-60 line-through",
+        "w-full truncate rounded-lg bg-background/70 px-2 py-1.5 text-left text-xs transition-colors hover:bg-background",
+        isCompleted && "opacity-60 line-through",
       )}
     >
       <div className="flex items-center gap-2">
         {task.urgency && (
-          <div
-            className={cn(
-              "w-1.5 h-1.5 rounded-full shrink-0",
-              urgencyColors[task.urgency],
-            )}
-          />
+          <div className={cn("size-1.5 shrink-0 rounded-full", dotColor)} />
         )}
-        {hasDependencies && (
-          <Link
-            className={cn(
-              "h-3 w-3 shrink-0",
-              allDepsCompleted
-                ? "text-green-600 dark:text-green-400"
-                : "text-amber-600 dark:text-amber-400",
-            )}
-          />
-        )}
+        {hasDependencies && <Link className={cn("size-3 shrink-0", depTone)} />}
         <span className="truncate">{task.title}</span>
       </div>
     </button>

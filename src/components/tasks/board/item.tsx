@@ -9,11 +9,8 @@ import {
   CheckCircle2,
   Circle,
   Clock,
-  Frown,
   Link,
-  Meh,
   Pencil,
-  Smile,
   Trash2,
   Zap,
 } from "lucide-react";
@@ -90,26 +87,14 @@ export const BoardItem: React.FC<Props> = ({
   const isDueTomorrow = dueDate ? isSameDay(dueDate, addDays(today, 1)) : false;
   const isCompleted = item.status === "completed";
   const isCollapsedCompleted = isCompleted && !isOverlay;
+  const hasDependencies = item.dependencies && item.dependencies.length > 0;
+  const isBlocked =
+    !isOverlay && !isCompleted && hasUnmetDependencies(item, tasks);
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition: transition || "transform 150ms ease-out",
     opacity: isDragging ? 0.3 : 1,
-  };
-
-  const urgencyStyles: Record<string, string> = {
-    low: cn(
-      "border-green-200 bg-green-50 text-green-600",
-      "dark:border-green-900 dark:bg-green-900/20",
-    ),
-    medium: cn(
-      "border-amber-200 bg-amber-100/80 text-amber-700",
-      "dark:border-amber-800 dark:bg-amber-900/40 dark:text-amber-400",
-    ),
-    high: cn(
-      "border-red-200 bg-red-100/80 text-red-700",
-      "dark:border-red-800 dark:bg-red-900/40 dark:text-red-400",
-    ),
   };
 
   const sortableProps =
@@ -136,246 +121,241 @@ export const BoardItem: React.FC<Props> = ({
     moveTask(item.id, "completed");
   };
 
+  const dueLabel = isDueToday
+    ? "Today"
+    : isDueTomorrow
+      ? "Tomorrow"
+      : item.due
+        ? new Date(item.due).toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          })
+        : "";
+
+  const dueTone = isOverDue
+    ? "bg-red-500/10 text-red-600 dark:text-red-400"
+    : isDueToday || isDueTomorrow
+      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+      : "bg-muted text-muted-foreground";
+
+  const dueIcon = isOverDue ? (
+    <AlertCircle className="size-3" />
+  ) : isDueToday || isDueTomorrow ? (
+    <Clock className="size-3" />
+  ) : (
+    <Calendar className="size-3" />
+  );
+
+  const completeButton = isBlocked ? (
+    <HoverCard openDelay={200}>
+      <HoverCardTrigger asChild>
+        <div className="inline-flex">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 cursor-not-allowed rounded-full text-muted-foreground/40 opacity-50"
+            disabled
+          >
+            <Circle className="size-3.5" />
+          </Button>
+        </div>
+      </HoverCardTrigger>
+      <HoverCardContent
+        className="w-auto rounded-lg border-none p-2 shadow-lg ring-1 ring-border"
+        side="bottom"
+      >
+        <p className="text-xs text-muted-foreground">
+          Complete dependencies first
+        </p>
+      </HoverCardContent>
+    </HoverCard>
+  ) : (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className={cn(
+        "size-7 rounded-full text-muted-foreground/50 transition-colors",
+        isCompleted
+          ? "text-green-600 hover:bg-green-500/10 dark:text-green-400"
+          : "hover:bg-green-500/10 hover:text-green-600",
+      )}
+      onClick={handleToggleComplete}
+    >
+      {isCompleted ? (
+        <CheckCircle2 className="size-3.5" />
+      ) : (
+        <Circle className="size-3.5" />
+      )}
+    </Button>
+  );
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...sortableProps}
       className={cn(
-        "group relative overflow-hidden rounded-sm border border-border bg-card/40 p-4 shadow-sm transition-all duration-300",
+        "group relative overflow-hidden rounded-xl bg-background p-3.5 shadow-sm ring-1 ring-border transition-all duration-300",
+        "hover:shadow-md hover:ring-foreground/15",
         disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing",
-        isCompleted && "bg-muted/20",
+        isCompleted && "bg-background/60 shadow-none ring-border/60",
         isOverlay &&
-          "z-50 rotate-2 scale-105 cursor-grabbing shadow-xl ring-2 ring-primary/20",
+          "z-50 scale-[1.02] cursor-grabbing shadow-xl ring-primary/40",
       )}
     >
-      <div
-        className={cn(
-          "grid transition-all duration-300 ease-in-out",
-          isCollapsedCompleted
-            ? "grid-rows-[0fr] opacity-0 group-hover:grid-rows-[1fr] group-hover:opacity-100"
-            : "grid-rows-[1fr] opacity-100",
-        )}
-      >
-        <div className="overflow-hidden">
-          <div className="mb-3 flex items-start justify-between gap-2">
-            <div className="flex items-center gap-2">
-              {item.urgency ? (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "gap-1 border px-1 py-0.5 pr-2 text-xs",
-                    urgencyStyles[item.urgency],
-                  )}
-                >
-                  {item.urgency === "low" ? (
-                    <Smile className="h-3 w-3" />
-                  ) : item.urgency === "medium" ? (
-                    <Meh className="h-3 w-3" />
-                  ) : (
-                    <Frown className="h-3 w-3" />
-                  )}
-                  {item.urgency}
-                </Badge>
-              ) : (
-                <div className="h-5" />
-              )}
-            </div>
+      <CollapsibleRow collapsed={isCollapsedCompleted}>
+        <div className="mb-2 flex min-h-7 items-center justify-between gap-2">
+          <UrgencyIndicator urgency={item.urgency} />
 
-            <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground/40 hover:bg-primary/10 hover:text-primary"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit?.(item);
-                }}
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
+          <div className="flex items-center opacity-0 transition-opacity group-hover:opacity-100">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-full text-muted-foreground/50 hover:bg-primary/10 hover:text-primary"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit?.(item);
+              }}
+            >
+              <Pencil className="size-3.5" />
+            </Button>
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground/40 hover:bg-destructive/10 hover:text-destructive"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent
-                  size="sm"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      variant="destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete?.(item.id);
-                      }}
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-
-              {!isOverlay &&
-              !isCompleted &&
-              hasUnmetDependencies(item, tasks) ? (
-                <HoverCard openDelay={200}>
-                  <HoverCardTrigger asChild>
-                    <div className="inline-flex">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 cursor-not-allowed text-muted-foreground/40 opacity-50"
-                        disabled
-                      >
-                        <Circle className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-auto p-2" side="bottom">
-                    <p className="text-xs text-muted-foreground">
-                      Complete dependencies first
-                    </p>
-                  </HoverCardContent>
-                </HoverCard>
-              ) : (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
                 <Button
-                  type="button"
                   variant="ghost"
                   size="icon"
-                  className={cn(
-                    "h-7 w-7 text-muted-foreground/40 transition-colors",
-                    isCompleted
-                      ? "text-green-600 hover:bg-green-500/10 dark:text-green-400"
-                      : "hover:bg-green-500/10 hover:text-green-600",
-                  )}
-                  onClick={handleToggleComplete}
+                  className="size-7 rounded-full text-muted-foreground/50 hover:bg-destructive/10 hover:text-destructive"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {isCompleted ? (
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  ) : (
-                    <Circle className="h-3.5 w-3.5" />
-                  )}
+                  <Trash2 className="size-3.5" />
                 </Button>
-              )}
-            </div>
+              </AlertDialogTrigger>
+              <AlertDialogContent
+                size="sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete?.(item.id);
+                    }}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {completeButton}
           </div>
         </div>
-      </div>
+      </CollapsibleRow>
 
-      {/* 2. MAIN CONTENT (Always Visible Title, Collapsible Description) */}
-      <div className="space-y-1.5">
-        <h4
-          className={cn(
-            "text-sm font-medium leading-snug text-foreground transition-all duration-300",
-            isCompleted && "text-muted-foreground line-through",
-          )}
-        >
-          {item.title}
-        </h4>
-
-        {item.description && (
-          <div
-            className={cn(
-              "grid transition-all duration-300 ease-in-out",
-              isCollapsedCompleted
-                ? "grid-rows-[0fr] opacity-0 group-hover:grid-rows-[1fr] group-hover:opacity-100"
-                : "grid-rows-[1fr] opacity-100",
-            )}
-          >
-            <div className="overflow-hidden">
-              <p
-                className={cn(
-                  "pt-1 text-xs leading-relaxed text-muted-foreground transition-all duration-300",
-                  isCompleted && "opacity-70 line-through",
-                )}
-              >
-                {item.description}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 3. FOOTER SECTION (Collapsible) */}
-      <div
+      <h4
         className={cn(
-          "grid transition-all duration-300 ease-in-out",
-          isCollapsedCompleted
-            ? "grid-rows-[0fr] opacity-0 group-hover:grid-rows-[1fr] group-hover:opacity-100"
-            : "grid-rows-[1fr] opacity-100",
+          "text-sm font-medium leading-snug text-foreground transition-all duration-300",
+          isCompleted && "text-muted-foreground line-through",
         )}
       >
-        <div className="overflow-hidden">
-          <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3">
-            <div className="flex items-center gap-3">
-              {item.energy !== undefined ? (
-                <div title={`Energy Level: ${item.energy}/5`}>
-                  <Energy level={item.energy} />
-                </div>
-              ) : null}
-            </div>
+        {item.title}
+      </h4>
 
-            <div className="flex items-center gap-2">
-              {item.dependencies && item.dependencies.length > 0 && (
-                <DependenciesHoverCard
-                  dependencies={item.dependencies}
-                  tasks={tasks}
-                />
-              )}
+      {item.description && (
+        <CollapsibleRow collapsed={isCollapsedCompleted}>
+          <p
+            className={cn(
+              "pt-1 text-xs leading-relaxed text-muted-foreground",
+              isCompleted && "opacity-70 line-through",
+            )}
+          >
+            {item.description}
+          </p>
+        </CollapsibleRow>
+      )}
 
-              {item.due ? (
-                <div
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors duration-300",
-                    "border-transparent bg-muted/30 text-muted-foreground",
-                    (isDueTomorrow || isDueToday) && urgencyStyles.medium,
-                    isOverDue && urgencyStyles.high,
-                  )}
-                >
-                  {isOverDue ? (
-                    <AlertCircle className="h-3 w-3" />
-                  ) : isDueTomorrow || isDueToday ? (
-                    <Clock className="h-3 w-3" />
-                  ) : (
-                    <Calendar className="h-3 w-3" />
-                  )}
+      <CollapsibleRow collapsed={isCollapsedCompleted}>
+        <div className="flex items-center justify-between pt-3">
+          <div title={`Energy Level: ${item.energy}/5`}>
+            {item.energy !== undefined ? <Energy level={item.energy} /> : null}
+          </div>
 
-                  <span>
-                    {isOverDue && "Overdue: "}
-                    {isDueToday
-                      ? "Today"
-                      : isDueTomorrow
-                        ? "Tomorrow"
-                        : new Date(item.due).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                  </span>
-                </div>
-              ) : null}
-            </div>
+          <div className="flex items-center gap-1.5">
+            {hasDependencies && item.dependencies ? (
+              <DependenciesHoverCard
+                dependencies={item.dependencies}
+                tasks={tasks}
+              />
+            ) : null}
+
+            {item.due ? (
+              <div
+                className={cn(
+                  "flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+                  dueTone,
+                )}
+              >
+                {dueIcon}
+                <span>
+                  {isOverDue && "Overdue · "}
+                  {dueLabel}
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
-      </div>
+      </CollapsibleRow>
     </div>
   );
+};
+
+const CollapsibleRow = ({
+  collapsed,
+  children,
+}: {
+  collapsed: boolean;
+  children: React.ReactNode;
+}) => {
+  const collapseStyle = collapsed
+    ? "grid-rows-[0fr] opacity-0 group-hover:grid-rows-[1fr] group-hover:opacity-100"
+    : "grid-rows-[1fr] opacity-100";
+
+  return (
+    <div
+      className={cn(
+        "grid transition-all duration-300 ease-in-out",
+        collapseStyle,
+      )}
+    >
+      <div className="overflow-hidden">{children}</div>
+    </div>
+  );
+};
+
+const UrgencyDot = ({ dot, label }: { dot: string; label: string }) => (
+  <div className="flex items-center gap-1.5 text-[11px] font-medium capitalize text-muted-foreground">
+    <span className={cn("size-1.5 rounded-full", dot)} />
+    {label}
+  </div>
+);
+
+const UrgencyIndicator = ({ urgency }: { urgency: Task["urgency"] }) => {
+  if (urgency === "low") return <UrgencyDot dot="bg-green-500" label="low" />;
+  if (urgency === "medium")
+    return <UrgencyDot dot="bg-amber-500" label="medium" />;
+  if (urgency === "high") return <UrgencyDot dot="bg-red-500" label="high" />;
+  return <div className="h-5" />;
 };
 
 const DependenciesHoverCard = ({
@@ -393,114 +373,101 @@ const DependenciesHoverCard = ({
     (t) => t.status === "completed",
   ).length;
 
+  const isReady = completedCount === dependencyTasks.length;
+
+  const statusBadge = isReady ? (
+    <Badge
+      variant="secondary"
+      className="h-5 rounded-full border-none bg-green-500/10 text-[10px] text-green-600"
+    >
+      Ready
+    </Badge>
+  ) : (
+    <Badge
+      variant="secondary"
+      className="h-5 rounded-full border-none bg-amber-500/10 text-[10px] text-amber-600"
+    >
+      Blocked
+    </Badge>
+  );
+
   return (
     <HoverCard openDelay={100}>
       <HoverCardTrigger asChild>
-        <div
-          className={cn(
-            "flex cursor-default items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium",
-            "border-transparent bg-muted/30 text-muted-foreground transition-all hover:bg-muted/50",
-          )}
-        >
-          <Link className="h-3 w-3" />
+        <div className="flex cursor-default items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/70">
+          <Link className="size-3" />
           <span>
             {completedCount}/{dependencyTasks.length}
           </span>
         </div>
       </HoverCardTrigger>
       <HoverCardContent
-        className="w-80 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
+        className="w-80 overflow-hidden rounded-xl border-none p-0 shadow-xl ring-1 ring-border"
         align="end"
       >
-        <div className="flex flex-col gap-1 border-b bg-muted/30 p-3">
-          <p className="text-sm font-medium text-foreground">
-            Task Dependencies
-          </p>
-          <p className="leading-tight text-[11px] text-muted-foreground">
+        <div className="px-4 pb-2 pt-3">
+          <p className="text-sm font-medium text-foreground">Dependencies</p>
+          <p className="text-[11px] text-muted-foreground">
             Complete these tasks to unblock this item.
           </p>
         </div>
 
-        <div className="flex flex-col gap-1 p-2">
+        <div className="flex flex-col gap-0.5 px-2 pb-2">
           {dependencyTasks.map((task) => {
-            const isCompleted = task.status === "completed";
+            const isDepCompleted = task.status === "completed";
             return (
               <div
                 key={task.id}
-                className={cn(
-                  "group flex flex-col gap-2 rounded-sm p-2 transition-all duration-200",
-                  isCompleted
-                    ? "bg-primary/5 ring-1 ring-primary/20"
-                    : "hover:bg-accent/20",
-                )}
+                className="flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/50"
               >
-                <div className="flex items-center justify-between gap-4">
-                  <p
-                    className={cn(
-                      "truncate text-sm font-medium",
-                      isCompleted
-                        ? "text-primary opacity-70 line-through"
-                        : "text-foreground",
-                    )}
-                  >
-                    {task.title}
-                  </p>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "h-5 py-0 text-[10px] font-normal capitalize opacity-60 transition-opacity group-hover:opacity-100",
-                      isCompleted &&
-                        "border-primary/30 text-primary opacity-100",
-                    )}
-                  >
-                    {task.status}
-                  </Badge>
-                </div>
+                <p
+                  className={cn(
+                    "truncate text-sm",
+                    isDepCompleted
+                      ? "text-muted-foreground line-through"
+                      : "text-foreground",
+                  )}
+                >
+                  {task.title}
+                </p>
+                <span className="shrink-0 text-[10px] capitalize text-muted-foreground">
+                  {task.status}
+                </span>
               </div>
             );
           })}
         </div>
 
-        <div className="flex items-center justify-between border-t bg-muted/10 p-2">
-          <p className="px-1 text-[10px] text-muted-foreground">
+        <div className="flex items-center justify-between bg-muted/30 px-4 py-2">
+          <p className="text-[11px] text-muted-foreground">
             {completedCount} of {dependencyTasks.length} completed
           </p>
-          {completedCount === dependencyTasks.length ? (
-            <Badge
-              variant="secondary"
-              className="h-5 border-none bg-green-500/10 text-[10px] text-green-600"
-            >
-              Ready
-            </Badge>
-          ) : (
-            <Badge
-              variant="secondary"
-              className="h-5 border-none bg-amber-500/10 text-[10px] text-amber-600"
-            >
-              Blocked
-            </Badge>
-          )}
+          {statusBadge}
         </div>
       </HoverCardContent>
     </HoverCard>
   );
 };
 
-const Energy = ({ level }: { level: number }) => {
+const EnergyBolt = ({ filled }: { filled: boolean }) => {
+  const tone = filled
+    ? "text-yellow-500/80 dark:text-yellow-400"
+    : "text-muted-foreground/20";
+
   return (
-    <div className="flex gap-0.5">
-      {[...Array(5)].map((_, i) => (
-        <Zap
-          key={i}
-          fill={i < level ? "currentColor" : "none"}
-          className={cn(
-            "h-3 w-3",
-            i < level
-              ? "text-yellow-500/80 dark:text-yellow-400"
-              : "text-muted-foreground/20",
-          )}
-        />
-      ))}
-    </div>
+    <Zap
+      fill={filled ? "currentColor" : "none"}
+      className={cn("size-3", tone)}
+    />
   );
 };
+
+const Energy = ({ level }: { level: number }) => (
+  <div className="flex gap-0.5">
+    <EnergyBolt filled={level >= 1} />
+    <EnergyBolt filled={level >= 2} />
+    <EnergyBolt filled={level >= 3} />
+    <EnergyBolt filled={level >= 4} />
+    <EnergyBolt filled={level >= 5} />
+  </div>
+);

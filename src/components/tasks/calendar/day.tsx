@@ -20,21 +20,22 @@ export const CalendarDay = ({
 }: CalendarDayProps) => {
   const isCurrentMonth = isSameMonth(day, currentMonth);
   const isToday = isSameDay(day, new Date());
+  const overflowCount = tasks.length - 3;
 
   return (
     <div
       className={cn(
-        "min-h-[80px] md:min-h-[120px] border border-border/50 rounded-md p-1 md:p-2 flex flex-col gap-1 relative",
-        !isCurrentMonth && "bg-muted/30 text-muted-foreground",
-        isToday && "bg-primary/5 border-primary/30",
+        "relative flex min-h-[80px] flex-col gap-1 rounded-xl bg-muted/20 p-1.5 transition-colors hover:bg-muted/40 md:min-h-[120px] md:p-2",
+        !isCurrentMonth && "bg-transparent opacity-40",
+        isToday && "bg-primary/5 ring-1 ring-primary/30 hover:bg-primary/10",
       )}
     >
-      <div className="flex justify-between items-center mb-1">
+      <div className="mb-1 flex items-center justify-between">
         <span
           className={cn(
-            "text-xs md:text-sm font-medium",
+            "text-xs font-medium text-muted-foreground md:text-sm",
             isToday &&
-              "bg-primary text-primary-foreground rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center",
+              "flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground md:size-6",
           )}
         >
           {format(day, "d")}
@@ -42,7 +43,7 @@ export const CalendarDay = ({
       </div>
 
       {/* Mobile: Dots */}
-      <div className="flex xl:hidden flex-wrap content-start gap-1 p-0.5">
+      <div className="flex flex-wrap content-start gap-1 p-0.5 xl:hidden">
         {tasks.slice(0, 8).map((task) => (
           <TaskItem
             key={task.id}
@@ -55,7 +56,7 @@ export const CalendarDay = ({
       </div>
 
       {/* Desktop: List */}
-      <div className="hidden xl:flex flex-1 flex-col gap-1 overflow-y-auto">
+      <div className="hidden flex-1 flex-col gap-1 overflow-y-auto xl:flex">
         {tasks.slice(0, 3).map((task) => (
           <TaskItem
             key={task.id}
@@ -64,9 +65,9 @@ export const CalendarDay = ({
             onEdit={onEditTask}
           />
         ))}
-        {tasks.length > 3 && (
-          <div className="text-xs text-muted-foreground text-center">
-            +{tasks.length - 3} more
+        {overflowCount > 0 && (
+          <div className="text-center text-[11px] text-muted-foreground">
+            +{overflowCount} more
           </div>
         )}
       </div>
