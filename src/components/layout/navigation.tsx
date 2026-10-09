@@ -2,7 +2,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   Book,
   BookOpen,
-  Bookmark,
   Clock,
   ClockFading,
   MessageCircle,
@@ -93,15 +92,7 @@ export const Navigation = () => {
     shortcut: "4",
   };
 
-  const capture: NavigationItem = {
-    href: "/capture",
-    label: "Capture",
-    icon: Bookmark,
-    activeIcon: Bookmark,
-    shortcut: "5",
-  };
-
-  const items = [chat, journal, tasks, intervals, capture];
+  const items = [chat, journal, tasks, intervals];
 
   return (
     <nav className="flex w-full flex-1 flex-col items-center gap-2 px-2">
@@ -109,7 +100,6 @@ export const Navigation = () => {
       <NavItem item={journal} selected={isActive(journal.href)} />
       <NavItem item={tasks} selected={isActive(tasks.href)} />
       <NavItem item={intervals} selected={isActive(intervals.href)} />
-      <NavItem item={capture} selected={isActive(capture.href)} />
 
       <Command items={items} />
     </nav>

@@ -149,7 +149,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
 
   const textareaClasses = cn(
     "resize-none border-0 bg-transparent! shadow-none focus-visible:ring-0",
-    "max-h-[250px] lg:max-h-[400px]",
+    "min-h-[80px] max-h-[250px] lg:max-h-[400px]",
     "px-3.5 pt-3.5 pb-1 text-[15px] text-foreground/90",
     "placeholder:text-muted-foreground/50",
   );

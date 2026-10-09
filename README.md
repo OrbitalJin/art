@@ -1,6 +1,6 @@
 # Art
 
-A personalized, local-first desktop workspace for chat & AI agents, journaling, tasks, focus, and capture.
+A personalized, local-first desktop workspace for chat & AI agents, journaling, tasks, and focus.
 
 Bring your own AI gateway key, keep your workflow close to home, and organize thinking, writing, and execution in one place.
 
@@ -20,7 +20,6 @@ Art is built for people who want one personal workspace instead of juggling disc
 - Journals and notes that can become reusable context
 - Task management and calendar in the same workspace
 - Focus intervals with an integrated audio player
-- A quick-capture inbox reachable from anywhere
 - Customizable interface, identities, and navigation
 
 ![Art settings](assets/screenshots/settings.png)
@@ -92,19 +91,6 @@ A customizable timer with an integrated audio player, playlist, and memo for foc
 - Floating player for easy access
 - Session persistence across navigation
 - Simple memo for quick notes during sessions
-
-### Capture
-
-A quick inbox for anything — text, links, and images — with a global hotkey and a dedicated page.
-
-![Art captures](assets/screenshots/captures.png)
-
-- Vertical feed, newest first
-- Text, link, and image capture kinds
-- Global quick-capture dialog (`Mod+Shift+C`)
-- Paste or drop images into the composer
-- Search and all / starred / unstarred filters
-- Per-capture star, copy, and delete actions
 
 ### Productivity & Customization
 

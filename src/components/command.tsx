@@ -5,7 +5,6 @@ import {
   BookPlus,
   CheckSquare,
   Drama,
-  Inbox,
   MessageCirclePlus,
   Settings2,
 } from "lucide-react";
@@ -34,7 +33,6 @@ export const Command: React.FC<Props> = ({ items }) => {
   const setSettingsDialogOpen = useUIStateStore(
     (state) => state.setSettingsDialogOpen,
   );
-  const setCaptureState = useUIStateStore((state) => state.setCaptureState);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -55,11 +53,6 @@ export const Command: React.FC<Props> = ({ items }) => {
 
   const handleQuickTask = () => {
     handleNavigate("/tasks?create=true");
-  };
-
-  const handleQuickCapture = () => {
-    setCaptureState({ dialogOpen: true });
-    setOpen(false);
   };
 
   const handleOpenSettings = () => {
@@ -110,15 +103,6 @@ export const Command: React.FC<Props> = ({ items }) => {
     { ignoreInputs: false },
   );
 
-  useHotkey(
-    "Alt+5",
-    () => {
-      const item = items[4];
-      if (item) handleNavigate(item.href);
-    },
-    { ignoreInputs: false },
-  );
-
   useHotkey("Mod+Alt+C", handleQuickChat);
   useHotkey("Mod+Alt+A", handleQuickAgent);
   useHotkey("Mod+Alt+N", handleQuickThought);
@@ -164,13 +148,6 @@ export const Command: React.FC<Props> = ({ items }) => {
             </CommandShortcut>
           </CommandItem>
 
-          <CommandItem value="quick capture" onSelect={handleQuickCapture}>
-            <Inbox className="mr-2 h-4 w-4" />
-            New Capture
-            <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
-              <Kbd>Ctrl</Kbd>+<Kbd>Shift</Kbd>+<Kbd>C</Kbd>
-            </CommandShortcut>
-          </CommandItem>
         </CommandGroup>
 
         <CommandSeparator />

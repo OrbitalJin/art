@@ -1,7 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { Sidebar } from "./sidebar";
 import { HiddenPlayer } from "@/components/audio/hidden-player";
-import { QuickCapture } from "@/components/capture/quick-capture";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -28,7 +27,6 @@ export function Layout({ children }: LayoutProps) {
         <Sidebar />
       </div>
       <HiddenPlayer />
-      <QuickCapture />
       <Toaster position="top-center" expand={false} />
     </>
   );

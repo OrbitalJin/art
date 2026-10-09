@@ -31,7 +31,6 @@ import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useIsStreaming } from "@/lib/store/use-stream-store";
 import { useSessionAttention } from "@/hooks/use-session-attention";
-import { useCreatePageFromSession } from "@/hooks/use-create-page-from-session";
 import { useTradeSession } from "@/hooks/use-trade-session";
 import type { Session } from "@/lib/store/session/types";
 
@@ -149,7 +148,6 @@ const SessionMenu: React.FC<{ item: Session; onRename: () => void }> = ({
   const deleteFn = useSessionStore((state) => state.deleteFn);
   const branch = useSessionStore((state) => state.branch);
 
-  const { creating, create } = useCreatePageFromSession();
   const { exportSession } = useTradeSession();
   const navigate = useNavigate();
 
@@ -158,12 +156,6 @@ const SessionMenu: React.FC<{ item: Session; onRename: () => void }> = ({
 
   const handleRegenerateTitle = () => {
     void generateSessionTitle(item.id);
-  };
-
-  const handleGenerateNotes = async (event: Event) => {
-    event.preventDefault();
-    await create(item.id);
-    setOpen(false);
   };
 
   const handleBranch = () => {
@@ -227,14 +219,6 @@ const SessionMenu: React.FC<{ item: Session; onRename: () => void }> = ({
                 <DropdownMenuItem onSelect={handleRegenerateTitle}>
                   Regenerate title
                 </DropdownMenuItem>
-                {item.type === "chat" && (
-                  <DropdownMenuItem
-                    disabled={creating}
-                    onSelect={handleGenerateNotes}
-                  >
-                    {creating ? "Creating notes…" : "Generate notes"}
-                  </DropdownMenuItem>
-                )}
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />

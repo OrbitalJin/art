@@ -20,12 +20,40 @@ export const CATEGORY_LABELS: Record<ToolCategory, string> = {
 };
 
 export const CATEGORY_ORDER: ToolCategory[] = [
-  "workspace",
-  "computer",
   "interaction",
+  "computer",
+  "workspace",
 ];
 
 export const TOOL_FAMILIES: ToolFamily[] = [
+  {
+    key: "askUser",
+    label: "Ask User",
+    description: "Ask clarifying questions with choices",
+    category: "interaction",
+    usage: "free",
+    tools: ["ask_user"],
+  },
+
+  {
+    key: "files",
+    label: "Files",
+    description: "Read & write local folders",
+    category: "computer",
+    usage: "free",
+    tools: [
+      "list_folders",
+      "list_folder",
+      "read_file",
+      "stat",
+      "write_file",
+      "edit_file",
+      "make_dir",
+      "remove_path",
+      "move_path",
+      "copy_path",
+    ],
+  },
   {
     key: "journal",
     label: "Journal",
@@ -64,33 +92,6 @@ export const TOOL_FAMILIES: ToolFamily[] = [
       "delete_project",
       "create_project_with_tasks",
     ],
-  },
-  {
-    key: "files",
-    label: "Files",
-    description: "Read & write local folders",
-    category: "computer",
-    usage: "free",
-    tools: [
-      "list_folders",
-      "list_folder",
-      "read_file",
-      "stat",
-      "write_file",
-      "edit_file",
-      "make_dir",
-      "remove_path",
-      "move_path",
-      "copy_path",
-    ],
-  },
-  {
-    key: "askUser",
-    label: "Ask User",
-    description: "Ask clarifying questions with choices",
-    category: "interaction",
-    usage: "free",
-    tools: ["ask_user"],
   },
 ];
 
