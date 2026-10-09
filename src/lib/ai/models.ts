@@ -6,7 +6,7 @@ export type ModelType =
   | "deepseek/deepseek-v4.1-flash"
   | "deepseek/deepseek-v4-pro"
   | "zai/glm-5.3-flash"
-  | "anthropic/claude-haiku-4.5"
+  | "anthropic/claude-haiku-5.5"
   | "alibaba/qwen3.5-flash"
   | "alibaba/qwen3.7-plus";
 
@@ -41,7 +41,7 @@ export const MODELS: readonly Model[] = [
   {
     tier: 3,
     id: "model-3",
-    type: "anthropic/claude-haiku-4.5",
+    type: "anthropic/claude-haiku-5.5",
     displayName: "Chopin",
     description:
       "Most capable and deliberate. Best for nuanced reasoning, polished writing, and more demanding tasks.",

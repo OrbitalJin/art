@@ -32,8 +32,14 @@ const CodeBlockComponent = ({
     defaultExpanded,
   });
 
+  const showingContent = !shouldCollapse || isExpanded;
+
+  const handleToggle = () => setIsExpanded(!isExpanded);
+  const handleExpand = () => setIsExpanded(true);
+  const handleToggleWrap = () => setWraps((current) => !current);
+
   return (
-    <div className="relative my-2 overflow-hidden rounded-md border bg-background/50">
+    <div className="my-2 overflow-hidden rounded-lg border border-border/50 bg-muted/20">
       <CodeBlockHeader
         language={language}
         lineCount={lineCount}
@@ -41,17 +47,18 @@ const CodeBlockComponent = ({
         isExpanded={isExpanded}
         wraps={wraps}
         copied={copyState.copied}
-        onToggle={() => shouldCollapse && setIsExpanded(!isExpanded)}
-        onToggleWrap={() => setWraps((v) => !v)}
+        onToggle={handleToggle}
+        onToggleWrap={handleToggleWrap}
         onCopy={copyState.copy}
       />
 
-      {!shouldCollapse || isExpanded ? (
+      {showingContent ? (
         <CodeBlockContent code={code} language={language} wraps={wraps} />
       ) : (
         <CodeBlockPreview
           code={previewCode}
-          onExpand={() => setIsExpanded(true)}
+          lineCount={lineCount}
+          onExpand={handleExpand}
         />
       )}
     </div>

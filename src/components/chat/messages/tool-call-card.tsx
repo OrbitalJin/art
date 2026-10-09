@@ -1,15 +1,22 @@
 import { useState } from "react";
-import {
-  ChevronRight,
-  CircleCheck,
-  CircleX,
-  LoaderPinwheel,
-} from "lucide-react";
+import { ChevronRight, CircleX, LoaderPinwheel } from "lucide-react";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
+import { resolveRenderer } from "@/components/chat/messages/tools/registry";
+import {
+  CodePanel,
+  SectionLabel,
+} from "@/components/chat/messages/tools/primitives";
+import {
+  formatToolName,
+  formatValue,
+  getSummaryText,
+} from "@/components/chat/messages/tools/helpers";
 
-type ToolState = "executing" | "result" | "error";
+export { formatToolName };
+
+type ToolRendererEntry = ReturnType<typeof resolveRenderer>;
 
 interface Props {
   block: ToolCallBlock;
@@ -17,45 +24,10 @@ interface Props {
   variant?: "default" | "compact";
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
-
-const formatValue = (value: unknown): string => {
-  if (typeof value === "string") return value;
-  if (value === null || value === undefined) return "";
-  try {
-    return JSON.stringify(value, null, 2) ?? String(value);
-  } catch {
-    return String(value);
-  }
-};
-
-export const formatToolName = (name: string): string => {
-  const withSpaces = name
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/[_-]+/g, " ")
-    .trim()
-    .toLowerCase();
-
-  return withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1);
-};
-
-const getSummaryText = (input: unknown): string | null => {
-  if (!isRecord(input)) return null;
-
-  const candidateKeys = ["summary", "query", "path", "url", "title", "name"];
-
-  for (const key of candidateKeys) {
-    const value = input[key];
-    if (typeof value === "string" && value.trim()) {
-      return value;
-    }
-  }
-
-  return null;
-};
-
-const StatusGlyph: React.FC<{ state: ToolState }> = ({ state }) => {
+const LeadingGlyph: React.FC<{
+  state: ToolCallBlock["state"];
+  icon: ToolRendererEntry["icon"];
+}> = ({ state, icon: Icon }) => {
   if (state === "executing") {
     return (
       <LoaderPinwheel
@@ -71,46 +43,50 @@ const StatusGlyph: React.FC<{ state: ToolState }> = ({ state }) => {
   }
 
   return (
-    <CircleCheck
-      size={13}
-      aria-hidden
-      className="shrink-0 text-emerald-500/70"
-    />
+    <Icon size={13} aria-hidden className="shrink-0 text-muted-foreground/60" />
   );
 };
 
-const CodeBlock: React.FC<{
-  children: React.ReactNode;
-  maxHeightClass: string;
-  isError?: boolean;
-}> = ({ children, maxHeightClass, isError = false }) => (
-  <pre
-    className={cn(
-      "overflow-auto rounded-md bg-muted/30 p-2.5 font-mono text-[11px] leading-relaxed",
-      maxHeightClass,
-      isError ? "text-red-500/80" : "text-foreground/65",
-    )}
-  >
-    {children}
-  </pre>
-);
+const RawView: React.FC<{ block: ToolCallBlock; isError: boolean }> = ({
+  block,
+  isError,
+}) => {
+  const input = formatValue(block.input);
+  const output = block.output !== undefined ? formatValue(block.output) : null;
+  const outputLabel = isError ? "Something went wrong" : "Response";
 
-const DetailSection: React.FC<{
-  label: string;
-  children: React.ReactNode;
-}> = ({ label, children }) => (
-  <div className="flex min-w-0 flex-col gap-1.5">
-    <span className="text-[11px] font-medium text-muted-foreground/60 select-none">
-      {label}
-    </span>
-    {children}
-  </div>
-);
+  return (
+    <div className="flex flex-col gap-3">
+      {input && (
+        <div className="flex flex-col gap-1.5">
+          <SectionLabel>Request</SectionLabel>
+          <CodePanel maxHeightClass="max-h-28">{input}</CodePanel>
+        </div>
+      )}
+
+      {output !== null && (
+        <div className="flex flex-col gap-1.5">
+          <SectionLabel>{outputLabel}</SectionLabel>
+          <CodePanel
+            maxHeightClass="max-h-40"
+            tone={isError ? "error" : "default"}
+          >
+            {output}
+          </CodePanel>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const CompactSummary: React.FC<{ block: ToolCallBlock }> = ({
   block,
 }) => {
   if (block.state === "executing") return null;
+
+  const renderer = resolveRenderer(block.toolName);
+  const Summary = renderer.Summary;
+  if (Summary) return <Summary block={block} />;
 
   const summaryText = getSummaryText(block.input);
   if (!summaryText) return null;
@@ -122,24 +98,65 @@ export const CompactSummary: React.FC<{ block: ToolCallBlock }> = ({
   );
 };
 
+const DetailBody: React.FC<{
+  block: ToolCallBlock;
+  renderer: ToolRendererEntry;
+  showRaw: boolean;
+  onToggleRaw: () => void;
+}> = ({ block, renderer, showRaw, onToggleRaw }) => {
+  const Detail = renderer.Detail;
+  const isError = block.state === "error";
+
+  const raw = showRaw || isError || !Detail;
+  const canToggle = Boolean(Detail) && !isError;
+
+  return (
+    <div className="flex flex-col gap-3">
+      {raw || !Detail ? (
+        <RawView block={block} isError={isError} />
+      ) : (
+        <Detail block={block} />
+      )}
+
+      {canToggle && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={onToggleRaw}
+            className={cn(
+              "cursor-pointer rounded px-1.5 py-0.5 text-[10px] font-medium",
+              "text-muted-foreground/50 outline-none transition-colors duration-150",
+              "hover:bg-foreground/5 hover:text-foreground/80",
+              "focus-visible:ring-2 focus-visible:ring-ring/50",
+            )}
+          >
+            {showRaw ? "Show formatted" : "Show raw"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const ToolCallCard: React.FC<Props> = ({
   className,
   block,
   variant = "default",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showRaw, setShowRaw] = useState(false);
+
+  const renderer = resolveRenderer(block.toolName);
 
   const isDone = block.toolName === DONE_TOOL_NAME;
   const isExecuting = block.state === "executing";
   const isError = block.state === "error";
   const compact = variant === "compact";
 
-  const title = isDone ? "Finished" : formatToolName(block.toolName);
-  const input = formatValue(block.input);
-  const output = block.output !== undefined ? formatValue(block.output) : null;
-  const hasDetails = Boolean(input) || output !== null;
-
-  const outputLabel = isError ? "Something went wrong" : "Response";
+  const title = isDone
+    ? "Finished"
+    : renderer.title || formatToolName(block.toolName);
+  const hasDetails = block.input !== undefined || block.output !== undefined;
 
   const containerClasses = cn(
     "min-w-0 transition-colors duration-150",
@@ -166,26 +183,29 @@ export const ToolCallCard: React.FC<Props> = ({
   );
 
   const detailsClasses = cn(
-    "flex flex-col gap-3 border-t border-border/30 px-2.5 py-2.5",
+    "border-t border-border/30 px-2.5 py-3",
     "animate-in fade-in duration-150 motion-reduce:animate-none",
     compact && "px-1.5",
   );
+
+  const handleToggleOpen = () => setIsOpen((open) => !open);
+  const handleToggleRaw = () => setShowRaw((raw) => !raw);
 
   return (
     <div className={containerClasses}>
       <button
         type="button"
-        onClick={() => setIsOpen((open) => !open)}
+        onClick={handleToggleOpen}
         aria-expanded={isOpen}
         disabled={!hasDetails}
         className={headerClasses}
       >
-        <StatusGlyph state={block.state} />
+        <LeadingGlyph state={block.state} icon={renderer.icon} />
 
         <span className={titleClasses}>{title}</span>
 
         {isExecuting && !isDone && (
-          <span className="shrink-0 text-xs text-muted-foreground/70 animate-pulse motion-reduce:animate-none">
+          <span className="shrink-0 animate-pulse text-xs text-muted-foreground/70 motion-reduce:animate-none">
             Working…
           </span>
         )}
@@ -199,19 +219,12 @@ export const ToolCallCard: React.FC<Props> = ({
 
       {isOpen && hasDetails && (
         <div className={detailsClasses}>
-          {input && (
-            <DetailSection label="Request">
-              <CodeBlock maxHeightClass="max-h-28">{input}</CodeBlock>
-            </DetailSection>
-          )}
-
-          {output !== null && (
-            <DetailSection label={outputLabel}>
-              <CodeBlock maxHeightClass="max-h-40" isError={isError}>
-                {output}
-              </CodeBlock>
-            </DetailSection>
-          )}
+          <DetailBody
+            block={block}
+            renderer={renderer}
+            showRaw={showRaw}
+            onToggleRaw={handleToggleRaw}
+          />
         </div>
       )}
     </div>

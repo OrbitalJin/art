@@ -1,6 +1,12 @@
 import { useTheme, type ThemeColor } from "@/contexts/theme-context";
-import { createHighlighter, type Highlighter } from "shiki";
+import {
+  bundledLanguages,
+  createHighlighter,
+  type BundledLanguage,
+  type Highlighter,
+} from "shiki";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 const themeShikiMap: Record<ThemeColor, string> = {
   "amethyst haze": "tokyo-night",
@@ -23,21 +29,7 @@ const themeShikiMap: Record<ThemeColor, string> = {
   zen: "dark-plus",
 };
 
-const THEMES = [
-  "dracula",
-  "material-theme-darker",
-  "solarized-light",
-  "gruvbox-dark-hard",
-  "min-dark",
-  "dracula-soft",
-  "everforest-dark",
-  "synthwave-84",
-  "tokyo-night",
-  "solarized-dark",
-  "kanagawa-dragon",
-  "nord",
-  "dark-plus",
-];
+const THEMES = [...new Set(Object.values(themeShikiMap))];
 
 const LANGUAGES = [
   "javascript",
@@ -70,24 +62,41 @@ const LANGUAGES = [
 
 let highlighterPromise: Promise<Highlighter> | null = null;
 
-function getHighlighter(): Promise<Highlighter> {
+const getHighlighter = (): Promise<Highlighter> => {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
       themes: THEMES,
       langs: LANGUAGES,
+    }).catch((error) => {
+      highlighterPromise = null;
+      throw error;
     });
   }
   return highlighterPromise;
-}
+};
 
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+const isBundledLanguage = (value: string): value is BundledLanguage =>
+  value in bundledLanguages;
+
+// Returns a language the highlighter can render, loading it on demand.
+// Anything unknown falls back to plain text instead of throwing.
+const resolveLanguage = async (
+  highlighter: Highlighter,
+  language: string,
+): Promise<string> => {
+  if (language === "text") return language;
+
+  const loaded = highlighter.getLoadedLanguages();
+  if (loaded.some((name) => name === language)) return language;
+  if (!isBundledLanguage(language)) return "text";
+
+  try {
+    await highlighter.loadLanguage(language);
+    return language;
+  } catch {
+    return "text";
+  }
+};
 
 interface CodeBlockContentProps {
   code: string;
@@ -104,62 +113,50 @@ export const CodeBlockContent = ({
   const theme = themeShikiMap[color];
   const [html, setHtml] = useState<string | null>(null);
 
+  // Wrapping is pure CSS, so toggling it doesn't re-run the highlighter.
   useEffect(() => {
     let cancelled = false;
 
-    (async () => {
+    const highlight = async () => {
       try {
         const highlighter = await getHighlighter();
-
+        const lang = await resolveLanguage(highlighter, language);
         if (cancelled) return;
 
-        const loadedLangs = highlighter.getLoadedLanguages();
-        const normalizedLang = language.toLowerCase();
-
-        try {
-          if (
-            normalizedLang !== "text" &&
-            !(loadedLangs as readonly string[]).includes(normalizedLang)
-          ) {
-            await highlighter.loadLanguage(
-              normalizedLang as Parameters<Highlighter["loadLanguage"]>[0],
-            );
-          }
-        } catch {
-          // language not available — fall through to plain text
-        }
-
-        if (cancelled) return;
-
-        const styled = highlighter.codeToHtml(code, {
-          lang: normalizedLang,
-          theme,
-          rootStyle: `margin:0;background:transparent;font-family:monospace${wraps ? ";white-space:pre-wrap;word-break:break-word" : ""}`,
-        });
-
-        setHtml(styled);
+        setHtml(
+          highlighter.codeToHtml(code, {
+            lang,
+            theme,
+            rootStyle: "background:transparent;margin:0",
+          }),
+        );
       } catch {
-        if (!cancelled) {
-          setHtml(
-            `<pre style="margin:0;background:transparent;font-family:monospace">${escapeHtml(code)}</pre>`,
-          );
-        }
+        if (!cancelled) setHtml(null);
       }
-    })();
+    };
+
+    void highlight();
 
     return () => {
       cancelled = true;
     };
-  }, [code, language, theme, wraps]);
+  }, [code, language, theme]);
+
+  const classes = cn(
+    "max-h-[32rem] overflow-auto px-4 py-3 text-[13px] leading-relaxed",
+    "[&_pre]:m-0 [&_pre]:bg-transparent [&_pre]:p-0",
+    wraps && "[&_pre]:wrap-anywhere [&_pre]:whitespace-pre-wrap",
+  );
+
+  if (html) {
+    return (
+      <div className={classes} dangerouslySetInnerHTML={{ __html: html }} />
+    );
+  }
 
   return (
-    <div
-      className="text-sm p-4 overflow-x-auto"
-      dangerouslySetInnerHTML={{
-        __html:
-          html ??
-          `<pre style="margin:0;background:transparent;font-family:monospace">${escapeHtml(code)}</pre>`,
-      }}
-    />
+    <div className={classes}>
+      <pre className="text-foreground/80">{code}</pre>
+    </div>
   );
 };
