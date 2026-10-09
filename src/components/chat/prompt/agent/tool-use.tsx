@@ -15,7 +15,12 @@ import {
   CATEGORY_ORDER,
   TOOL_FAMILIES,
 } from "@/lib/ai/tools/registry";
-import { makeRoot, selectDirectory, type FsRoot } from "@/lib/fs";
+import {
+  grantFolder,
+  makeRoot,
+  selectDirectory,
+  type FsRoot,
+} from "@/lib/fs";
 import {
   CompactSummary,
   formatToolName,
@@ -457,6 +462,13 @@ export const ToolUse: React.FC<ToolUseProps> = ({ active }) => {
     const path = await selectDirectory();
     if (!path) {
       toast.warning("No folder was selected.");
+      return;
+    }
+
+    try {
+      await grantFolder(path);
+    } catch (error) {
+      toast.error(`Cannot connect folder: ${String(error)}`);
       return;
     }
 

@@ -16,8 +16,17 @@ export const useRestoreFolderScope = () => {
   useEffect(() => {
     if (!hydrated || !folderPaths) return;
 
-    for (const path of folderPaths.split("\n")) {
-      grantFolder(path).catch(() => {});
+    const { sessions, removeFolder } = useSessionStore.getState();
+
+    for (const session of sessions) {
+      for (const folder of session.folders ?? []) {
+        grantFolder(folder.path).catch((error) => {
+          console.warn(
+            `Removing folder "${folder.name}" (${folder.path}): ${String(error)}`,
+          );
+          removeFolder(session.id, folder.id);
+        });
+      }
     }
   }, [hydrated, folderPaths]);
 };

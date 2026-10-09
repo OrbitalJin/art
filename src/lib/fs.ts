@@ -20,6 +20,22 @@ export const grantFolder = async (path: string): Promise<void> => {
   await invoke("allow_folder", { path });
 };
 
+export const isInsideRoot = (
+  rootPath: string,
+  resolvedPath: string,
+): boolean => {
+  const windows = /^[a-zA-Z]:[\\/]/.test(rootPath) || rootPath.includes("\\");
+  const fold = (p: string) => (windows ? p.toLowerCase() : p);
+  const root = fold(rootPath).replace(/[\\/]+$/, "");
+  const resolved = fold(resolvedPath);
+
+  return (
+    resolved === root ||
+    resolved.startsWith(`${root}/`) ||
+    resolved.startsWith(`${root}\\`)
+  );
+};
+
 export const resolveInRoot = async (
   root: FsRoot,
   rel = ".",
@@ -30,7 +46,14 @@ export const resolveInRoot = async (
     );
   }
 
-  return normalize(await join(root.path, rel));
+  const base = await normalize(root.path);
+  const resolved = await normalize(await join(base, rel));
+
+  if (!isInsideRoot(base, resolved)) {
+    throw new Error(`Path "${rel}" escapes the folder "${root.name}".`);
+  }
+
+  return resolved;
 };
 
 export const makeRoot = async (
