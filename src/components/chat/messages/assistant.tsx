@@ -16,7 +16,6 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { toast } from "sonner";
 import { ThinkingSection } from "./thinking-section";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import { Spinner } from "@/components/ui/spinner";
 
 const FooterAction: React.FC<{
   label: string;
@@ -105,7 +104,6 @@ export const AssistantMessage: React.FC<Message> = (message) => {
 
         <MessageParts parts={parts} />
 
-        {hasContent && isStreamingMessage && <Spinner className="opacity-80" />}
         {shouldRenderFooter && (
           <div className={footerClasses}>
             <div className="flex items-center gap-0.5">

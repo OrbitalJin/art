@@ -45,6 +45,8 @@ export const TOOL_FAMILIES: ToolFamily[] = [
       "list_folders",
       "list_folder",
       "read_file",
+      "read_image",
+      "read_pdf",
       "stat",
       "write_file",
       "edit_file",

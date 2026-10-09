@@ -1,8 +1,16 @@
 import { resolveInRoot, type FsRoot } from "@/lib/fs";
 import {
+  arrayBufferToBase64,
+  getReadableMediaType,
+  isImageMedia,
+  isPdfMedia,
+  MAX_MEDIA_SIZE,
+} from "@/lib/utils/images";
+import {
   copyFile,
   mkdir,
   readDir,
+  readFile,
   readTextFile,
   remove,
   rename,
@@ -45,6 +53,53 @@ export const fileTools = ({ roots }: Opts): ToolSet => {
     resolveInRoot(findRoot(roots, folder), path);
 
   const folders = roots.map((root) => root.name).join(", ") || "none";
+
+  const readMedia = async (
+    folder: string,
+    path: string,
+    expect: "image" | "pdf",
+  ) => {
+    const file = await resolve(folder, path);
+    const mediaType = getReadableMediaType(path);
+
+    const matches =
+      mediaType !== null &&
+      (expect === "image" ? isImageMedia(mediaType) : isPdfMedia(mediaType));
+
+    if (!matches) {
+      const allowed =
+        expect === "image"
+          ? "an image (png, jpeg, gif, webp, svg)"
+          : "a PDF";
+      throw new Error(`"${path}" is not ${allowed}.`);
+    }
+
+    const info = await stat(file);
+
+    if (info.size > MAX_MEDIA_SIZE) {
+      const sizeInMB = (info.size / (1024 * 1024)).toFixed(2);
+      throw new Error(
+        `File is ${sizeInMB}MB, exceeding the ${MAX_MEDIA_SIZE / (1024 * 1024)}MB limit.`,
+      );
+    }
+
+    const bytes = await readFile(file);
+    const name = path.split(/[/\\]/).pop() || path;
+
+    return {
+      name,
+      mediaType,
+      size: info.size,
+      base64: arrayBufferToBase64(bytes),
+    };
+  };
+
+  const mediaOutputSchema = z.object({
+    name: z.string(),
+    mediaType: z.string(),
+    size: z.number(),
+    base64: z.string(),
+  });
 
   return {
     list_folders: tool({
@@ -89,6 +144,57 @@ export const fileTools = ({ roots }: Opts): ToolSet => {
       outputSchema: z.string(),
       execute: async ({ folder, path }) =>
         readTextFile(await resolve(folder, path)),
+    }),
+
+    read_image: tool({
+      title: "Read Image",
+      description: `Read an image file so you can see it. Use this instead of read_file for images (png, jpeg, gif, webp, svg). Connected folders: ${folders}.`,
+      inputSchema: z.object({
+        folder: folderSchema,
+        path: z.string().describe("Relative path to the image."),
+      }),
+      outputSchema: mediaOutputSchema,
+      execute: async ({ folder, path }) => readMedia(folder, path, "image"),
+      toModelOutput: ({ output }) => ({
+        type: "content" as const,
+        value: [
+          {
+            type: "text" as const,
+            text: `${output.name} (${output.mediaType}, ${output.size} bytes)`,
+          },
+          {
+            type: "image-data" as const,
+            data: output.base64,
+            mediaType: output.mediaType,
+          },
+        ],
+      }),
+    }),
+
+    read_pdf: tool({
+      title: "Read PDF",
+      description: `Read a PDF file so you can see its contents. Use this instead of read_file for PDFs. Connected folders: ${folders}.`,
+      inputSchema: z.object({
+        folder: folderSchema,
+        path: z.string().describe("Relative path to the PDF."),
+      }),
+      outputSchema: mediaOutputSchema,
+      execute: async ({ folder, path }) => readMedia(folder, path, "pdf"),
+      toModelOutput: ({ output }) => ({
+        type: "content" as const,
+        value: [
+          {
+            type: "text" as const,
+            text: `${output.name} (${output.mediaType}, ${output.size} bytes)`,
+          },
+          {
+            type: "file-data" as const,
+            data: output.base64,
+            mediaType: output.mediaType,
+            filename: output.name,
+          },
+        ],
+      }),
     }),
 
     stat: tool({

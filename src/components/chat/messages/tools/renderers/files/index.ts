@@ -3,16 +3,20 @@ import {
   FilePen,
   FilePlus,
   FileText,
+  FileType2,
   FolderPlus,
   FolderTree,
+  Image as ImageIcon,
   Info,
   MoveRight,
   Trash2,
 } from "lucide-react";
 import type { ToolRenderer } from "../../types";
 import { EditFileDetail, EditFileSummary } from "./edit";
+import { ReadImageDetail, ReadImageSummary } from "./image";
 import { ListFolderDetail, ListFolderSummary, ListFoldersDetail } from "./list";
 import { MoveDetail, MoveSummary, PathDetail, PathSummary } from "./mutate";
+import { ReadPdfDetail, ReadPdfSummary } from "./pdf";
 import { ReadFileDetail, ReadFileSummary } from "./read";
 import { StatDetail, StatSummary } from "./stat";
 import { WriteFileDetail, WriteFileSummary } from "./write";
@@ -34,6 +38,18 @@ export const fileRenderers: Record<string, ToolRenderer> = {
     title: "Read file",
     Summary: ReadFileSummary,
     Detail: ReadFileDetail,
+  },
+  read_image: {
+    icon: ImageIcon,
+    title: "Read image",
+    Summary: ReadImageSummary,
+    Detail: ReadImageDetail,
+  },
+  read_pdf: {
+    icon: FileType2,
+    title: "Read PDF",
+    Summary: ReadPdfSummary,
+    Detail: ReadPdfDetail,
   },
   stat: {
     icon: Info,

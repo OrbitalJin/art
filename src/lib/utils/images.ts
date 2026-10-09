@@ -3,6 +3,7 @@ import { appCacheDir, join } from "@tauri-apps/api/path";
 import { writeFile, remove, BaseDirectory } from "@tauri-apps/plugin-fs";
 
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+export const MAX_MEDIA_SIZE = 5 * 1024 * 1024;
 
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -30,9 +31,31 @@ export function getMimeTypeFromPath(path: string): string {
     gif: "image/gif",
     webp: "image/webp",
     svg: "image/svg+xml",
+    pdf: "application/pdf",
   };
   return mimeTypes[ext || ""] || "image/png";
 }
+
+export const isImageMedia = (mediaType: string): boolean =>
+  mediaType.startsWith("image/");
+
+export const isPdfMedia = (mediaType: string): boolean =>
+  mediaType === "application/pdf";
+
+const READABLE_MEDIA_TYPES: Record<string, string> = {
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  gif: "image/gif",
+  webp: "image/webp",
+  svg: "image/svg+xml",
+  pdf: "application/pdf",
+};
+
+export const getReadableMediaType = (path: string): string | null => {
+  const ext = path.split(".").pop()?.toLowerCase() ?? "";
+  return READABLE_MEDIA_TYPES[ext] ?? null;
+};
 
 export async function rgbaToPng(
   rgba: Uint8Array,
