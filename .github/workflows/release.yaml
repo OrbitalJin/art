@@ -83,6 +83,31 @@ jobs:
           releaseDraft: false
           prerelease: false
 
+      - name: Verify AppImage does not bundle display-stack libraries
+        if: matrix.platform == 'ubuntu-22.04'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          APPIMAGE=$(find src-tauri/target/release/bundle/appimage -maxdepth 1 -name '*.AppImage' | head -n1)
+          if [ -z "$APPIMAGE" ]; then
+            echo "No AppImage found to verify"
+            exit 1
+          fi
+
+          echo "Verifying $APPIMAGE"
+          "$APPIMAGE" --appimage-extract >/dev/null
+
+          BAD=$(find squashfs-root/usr/lib -maxdepth 1 -name 'libwayland-client.so*' 2>/dev/null || true)
+
+          if [ -n "$BAD" ]; then
+            echo "::error::AppImage bundles libwayland-client, which breaks EGL on newer Mesa hosts (EGL_BAD_PARAMETER). Requires @tauri-apps/cli >= 2.12.0 (linuxdeploy 07333c6)."
+            echo "$BAD"
+            exit 1
+          fi
+
+          echo "OK: libwayland-client is not bundled"
+
   publish-latest-json-pages:
     needs: publish-tauri
     runs-on: ubuntu-22.04

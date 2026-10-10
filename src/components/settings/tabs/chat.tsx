@@ -249,7 +249,7 @@ export const ChatSettingsTab: React.FC = () => {
           />
           <SecretKeyField
             label="Connections"
-            description="Composio key for Gmail, Notion, etc. Connecting a service sends its content to Composio and your model provider."
+            description="Composio key for Gmail, Notion, Slack etc."
             placeholder="secret key"
             value={composioApiKey}
             onSave={setComposioApiKey}
