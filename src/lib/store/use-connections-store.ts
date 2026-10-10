@@ -132,7 +132,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
 
       syncConnections: async (force = false) => {
         if (!force && get().synced) return;
-        const composio = getComposio();
+        const composio = await getComposio();
         if (!composio) {
           set({ error: "Add a Composio key in Settings > Chat." });
           return;
@@ -210,7 +210,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
       },
 
       disconnect: async (toolkit: string) => {
-        const composio = getComposio();
+        const composio = await getComposio();
         if (!composio) return;
         await get().syncConnections(true);
         const accountId = get().toolkits[toolkit]?.connectedAccountId;

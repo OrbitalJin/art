@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronRight, CircleX, LoaderPinwheel } from "lucide-react";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
-import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
+import { DONE_TOOL_NAME } from "@/lib/ai/tools/names";
 import { resolveRenderer } from "@/components/chat/messages/tools/registry";
 import {
   CodePanel,

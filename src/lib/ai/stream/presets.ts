@@ -4,7 +4,7 @@ import { ambientTools, toolsFor } from "../tools/tools";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { toolkitEnabled } from "../tools/toolkits";
 import { stepCountIs, hasToolCall } from "ai";
-import { DONE_TOOL_NAME } from "../tools/done";
+import { DONE_TOOL_NAME } from "../tools/names";
 import { adaptiveStopCondition, BACKSTOP_STEPS } from "./stop-conditions";
 
 export interface RequestContext {

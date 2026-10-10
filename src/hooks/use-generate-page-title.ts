@@ -2,14 +2,13 @@ import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useState } from "react";
 import { toast } from "sonner";
-import { generateText, Output } from "ai";
 import { type ModelType } from "@/lib/ai/models";
 import { z } from "zod";
-import { useGateway } from "./use-gateway";
+
+const loadAi = () => import("ai");
 
 export const useGeneratePageTitle = () => {
   const [generating, setGenerating] = useState(false);
-  const gateway = useGateway();
 
   const generateTitle = async (pageId: string) => {
     if (generating) return;
@@ -25,6 +24,10 @@ export const useGeneratePageTitle = () => {
 
       const contentPreview = page.content.slice(0, 2000).trim();
       if (!contentPreview) return;
+
+      const [{ generateText, Output, createGateway }, { nativeFetch }] =
+        await Promise.all([loadAi(), import("@/lib/native-fetch")]);
+      const gateway = createGateway({ apiKey, fetch: nativeFetch });
 
       const { output: genOutput } = await generateText({
         model: gateway("deepseek/deepseek-v4-flash" as ModelType),

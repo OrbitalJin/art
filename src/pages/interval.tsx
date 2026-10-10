@@ -2,10 +2,11 @@ import { Memo } from "@/components/interval/memo";
 import { Player } from "@/components/interval/player";
 import { Playlist } from "@/components/interval/playlist";
 import { Timer } from "@/components/interval/timer";
+import { IntervalContextProvider } from "@/contexts/interval-context";
 import { useIntervalStore } from "@/lib/store/use-interval-store";
 import { cn } from "@/lib/utils";
 
-export const Interval = () => {
+const IntervalContent = () => {
   const fullscreen = useIntervalStore((state) => state.fullscreen);
   const setFullScreen = useIntervalStore((state) => state.setFullscreen);
   return (
@@ -38,3 +39,9 @@ export const Interval = () => {
     </div>
   );
 };
+
+export const Interval = () => (
+  <IntervalContextProvider>
+    <IntervalContent />
+  </IntervalContextProvider>
+);

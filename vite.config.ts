@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { visualizer } from "rollup-plugin-visualizer";
 import path from "path";
 
 // @composio/core ships workerd-specific builds for its node built-in shims.
@@ -21,6 +22,14 @@ export default defineConfig({
         plugins: [["babel-plugin-react-compiler"]],
       },
     }),
+    process.env.ANALYZE
+      ? visualizer({
+          filename: "dist/stats.html",
+          gzipSize: true,
+          brotliSize: true,
+          template: "treemap",
+        })
+      : undefined,
   ],
   resolve: {
     alias: {

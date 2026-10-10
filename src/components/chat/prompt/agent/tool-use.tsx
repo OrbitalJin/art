@@ -5,8 +5,8 @@ import { useChatStream } from "@/hooks/use-chat-stream";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session, ToolCallBlock } from "@/lib/store/session/types";
-import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
-import { SUPPORTED_TOOLKITS, TOOLKIT_LABELS } from "@/lib/services/composio";
+import { DONE_TOOL_NAME } from "@/lib/ai/tools/names";
+import { SUPPORTED_TOOLKITS, TOOLKIT_LABELS } from "@/lib/services/toolkits";
 import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
 import {
   CATEGORY_LABELS,

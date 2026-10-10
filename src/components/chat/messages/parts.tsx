@@ -2,7 +2,7 @@ import type React from "react";
 import type { MessagePart, ToolCallPart } from "@/lib/store/session/types";
 import { Renderer } from "./renderer";
 import { ToolCallCard } from "./tool-call-card";
-import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
+import { DONE_TOOL_NAME } from "@/lib/ai/tools/names";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import { useQuestionStore } from "@/lib/store/use-question-store";
 

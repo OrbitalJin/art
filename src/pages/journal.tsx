@@ -10,7 +10,10 @@ import { StaticSidebar } from "@/components/journal/sidebar/static";
 import { FloatingSidebar } from "@/components/journal/sidebar/floating";
 import { EditorContextMenu } from "@/components/journal/editor/context-menu/context-menu";
 import { Command } from "@/components/journal/command";
-import { useJournalEditor } from "@/contexts/note-editor-context";
+import {
+  JournalEditorProvider,
+  useJournalEditor,
+} from "@/contexts/note-editor-context";
 import {
   Tooltip,
   TooltipContent,
@@ -22,7 +25,7 @@ import { useJournalStore } from "@/lib/store/use-journal-store";
 import { Button } from "@/components/ui/button";
 import { useParams, useNavigate } from "react-router-dom";
 
-export const Journal = () => {
+const JournalContent = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
   const { isDisabled, isEditable, toggleEditable, editor, setCurrentTab } =
@@ -212,3 +215,9 @@ export const Journal = () => {
     </div>
   );
 };
+
+export const Journal = () => (
+  <JournalEditorProvider>
+    <JournalContent />
+  </JournalEditorProvider>
+);

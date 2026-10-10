@@ -1,34 +1,8 @@
-import { Composio, SessionPreset } from "@composio/core";
-import { VercelProvider } from "@composio/vercel";
+import type { Composio } from "@composio/core";
+import type { VercelProvider } from "@composio/vercel";
 import type { ToolSet } from "ai";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-
-export const SUPPORTED_TOOLKITS = ["gmail"] as const;
-export type SupportedToolkit = (typeof SUPPORTED_TOOLKITS)[number];
-
-export const TOOLKIT_LABELS: Record<SupportedToolkit, string> = {
-  gmail: "Gmail",
-};
-
-/**
- * Connections are read-only. Only these non-destructive actions are exposed to
- * the agent; every other Composio action is filtered out in
- * `refreshComposioTools`.
- */
-export const READ_ONLY_TOOLS: ReadonlySet<string> = new Set([
-  "GMAIL_GET_PROFILE",
-  "GMAIL_LIST_LABELS",
-  "GMAIL_GET_LABEL",
-  "GMAIL_FETCH_EMAILS",
-  "GMAIL_LIST_MESSAGES",
-  "GMAIL_FETCH_MESSAGE_BY_MESSAGE_ID",
-  "GMAIL_LIST_THREADS",
-  "GMAIL_FETCH_MESSAGE_BY_THREAD_ID",
-  "GMAIL_LIST_DRAFTS",
-  "GMAIL_GET_DRAFT",
-  "GMAIL_GET_CONTACTS",
-  "GMAIL_SEARCH_PEOPLE",
-]);
+import { READ_ONLY_TOOLS, SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
 
 export type ComposioClient = Composio<VercelProvider>;
 export type ComposioSession = Awaited<
@@ -51,10 +25,14 @@ const clearCaches = (): void => {
   toolCaches.clear();
 };
 
-export const getComposio = (): ComposioClient | null => {
+export const getComposio = async (): Promise<ComposioClient | null> => {
   const apiKey = useSettingsStore.getState().composioApiKey;
   if (!apiKey) return null;
   if (instance?.key === apiKey) return instance.composio;
+  const [{ Composio }, { VercelProvider }] = await Promise.all([
+    import("@composio/core"),
+    import("@composio/vercel"),
+  ]);
   const composio = new Composio({
     apiKey,
     provider: new VercelProvider(),
@@ -69,8 +47,9 @@ export const getComposio = (): ComposioClient | null => {
 export const createSession = async (
   userId: string,
 ): Promise<ComposioSession | null> => {
-  const composio = getComposio();
+  const composio = await getComposio();
   if (!composio) return null;
+  const { SessionPreset } = await import("@composio/core");
   const session = await composio.sessions.create(userId, {
     sessionPreset: SessionPreset.DIRECT_TOOLS,
     toolkits: { enable: [...SUPPORTED_TOOLKITS] },
@@ -84,7 +63,7 @@ export const getOrCreateSession = async (
 ): Promise<ComposioSession | null> => {
   const cached = sessionCache.get(sessionId);
   if (cached) return cached;
-  const composio = getComposio();
+  const composio = await getComposio();
   if (!composio) return null;
   try {
     const session = await composio.sessions.use(sessionId);

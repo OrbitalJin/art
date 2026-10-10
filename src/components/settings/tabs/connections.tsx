@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
-import { SUPPORTED_TOOLKITS, TOOLKIT_LABELS } from "@/lib/services/composio";
+import { SUPPORTED_TOOLKITS, TOOLKIT_LABELS } from "@/lib/services/toolkits";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SettingsCard } from "./settings-layout";

@@ -5,7 +5,7 @@ import type {
   Message,
   MessageAttachment,
 } from "@/lib/store/session/types";
-import { sendToSession } from "@/lib/ai/stream/send-stream";
+const loadSendToSession = () => import("@/lib/ai/stream/send-stream");
 import {
   STREAMING_MESSAGE_ID,
   useStreamStore,
@@ -97,6 +97,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         tokenUsage: { input: 0, output: 0 },
       });
       useDraftStore.getState().clear(activeId);
+      const { sendToSession } = await loadSendToSession();
       await sendToSession(activeId, text, messageAttachments);
     },
     [activeId, addMessage],
@@ -127,6 +128,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         tokenUsage: { input: 0, output: 0 },
       });
       useDraftStore.getState().clear(activeId);
+      const { sendToSession } = await loadSendToSession();
       await sendToSession(activeId, text, existingAttachments);
     },
     [addMessage, activeId, revertMessage],

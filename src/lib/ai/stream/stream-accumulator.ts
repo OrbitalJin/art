@@ -6,7 +6,7 @@ import type {
   ToolCallPart,
 } from "@/lib/store/session/types";
 import { toolCallsOf } from "@/lib/store/session/types";
-import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
+import { DONE_TOOL_NAME } from "@/lib/ai/tools/names";
 
 export interface StreamAccumulator {
   parts: MessagePart[];

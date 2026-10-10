@@ -10,7 +10,7 @@ import type {
   SessionToolkits,
   ToolCallBlock,
 } from "@/lib/store/session/types";
-import { SUPPORTED_TOOLKITS } from "@/lib/services/composio";
+import { SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import type { FsRoot } from "@/lib/fs";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";

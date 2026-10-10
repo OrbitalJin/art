@@ -5,9 +5,6 @@ import { useAppearanceEffects } from "./hooks/use-appearance-effects";
 import { useRestoreFolderScope } from "./hooks/use-restore-folder-scope";
 import { Spinner } from "@/components/ui/spinner";
 
-import { JournalEditorProvider } from "@/contexts/note-editor-context.tsx";
-import { IntervalContextProvider } from "./contexts/interval-context.tsx";
-
 const Chat = lazy(() =>
   import("@/pages/chat").then((m) => ({ default: m.Chat })),
 );
@@ -38,31 +35,10 @@ export default function App() {
             <Route path="/" element={<Navigate to="/session/chat" replace />} />
             <Route path="/session/:type" element={<Chat />} />
             <Route path="/session/:type/:sessionId" element={<Chat />} />
-            <Route
-              path="/journal"
-              element={
-                <JournalEditorProvider>
-                  <Journal />
-                </JournalEditorProvider>
-              }
-            />
-            <Route
-              path="/journal/:pageId"
-              element={
-                <JournalEditorProvider>
-                  <Journal />
-                </JournalEditorProvider>
-              }
-            />
+            <Route path="/journal" element={<Journal />} />
+            <Route path="/journal/:pageId" element={<Journal />} />
             <Route path="/tasks" element={<Tasks />} />
-            <Route
-              path="/interval"
-              element={
-                <IntervalContextProvider>
-                  <Interval />
-                </IntervalContextProvider>
-              }
-            />
+            <Route path="/interval" element={<Interval />} />
           </Routes>
         </Suspense>
       </Layout>

@@ -1,4 +1,4 @@
-import { SUPPORTED_TOOLKITS } from "@/lib/services/composio";
+import { SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
 import type { Session } from "@/lib/store/session/types";
 
 const CONNECTION_TOOLKITS = new Set<string>(SUPPORTED_TOOLKITS);

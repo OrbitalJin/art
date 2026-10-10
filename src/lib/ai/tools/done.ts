@@ -1,7 +1,6 @@
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
-
-export const DONE_TOOL_NAME = "done";
+import { DONE_TOOL_NAME } from "./names";
 
 export const doneTools = (): ToolSet => ({
   [DONE_TOOL_NAME]: tool({

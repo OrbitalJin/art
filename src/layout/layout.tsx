@@ -1,7 +1,13 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { Sidebar } from "./sidebar";
-import { HiddenPlayer } from "@/components/audio/hidden-player";
 import { cn } from "@/lib/utils";
+
+const HiddenPlayer = lazy(() =>
+  import("@/components/audio/hidden-player").then((m) => ({
+    default: m.HiddenPlayer,
+  })),
+);
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -26,7 +32,9 @@ export function Layout({ children }: LayoutProps) {
 
         <Sidebar />
       </div>
-      <HiddenPlayer />
+      <Suspense fallback={null}>
+        <HiddenPlayer />
+      </Suspense>
       <Toaster position="top-center" expand={false} />
     </>
   );

@@ -1,10 +1,9 @@
 import { useTheme, type ThemeColor } from "@/contexts/theme-context";
 import {
-  bundledLanguages,
-  createHighlighter,
-  type BundledLanguage,
-  type Highlighter,
-} from "shiki";
+  createHighlighterCore,
+  type HighlighterCore,
+} from "shiki/core";
+import { createOnigurumaEngine } from "shiki/engine/oniguruma";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -29,44 +28,56 @@ const themeShikiMap: Record<ThemeColor, string> = {
   zen: "dark-plus",
 };
 
-const THEMES = [...new Set(Object.values(themeShikiMap))];
-
+// Lazy language/theme registrations keep each grammar in its own chunk so the
+// chat bundle only carries the languages actually used at runtime.
 const LANGUAGES = [
-  "javascript",
-  "typescript",
-  "jsx",
-  "tsx",
-  "python",
-  "css",
-  "html",
-  "json",
-  "bash",
-  "shell",
-  "sql",
-  "rust",
-  "go",
-  "java",
-  "cpp",
-  "c",
-  "yaml",
-  "xml",
-  "markdown",
-  "text",
-  "diff",
-  "r",
-  "zig",
-  "docker",
-  "swift",
-  "lua",
+  () => import("@shikijs/langs/javascript"),
+  () => import("@shikijs/langs/typescript"),
+  () => import("@shikijs/langs/jsx"),
+  () => import("@shikijs/langs/tsx"),
+  () => import("@shikijs/langs/python"),
+  () => import("@shikijs/langs/css"),
+  () => import("@shikijs/langs/html"),
+  () => import("@shikijs/langs/json"),
+  () => import("@shikijs/langs/bash"),
+  () => import("@shikijs/langs/shell"),
+  () => import("@shikijs/langs/sql"),
+  () => import("@shikijs/langs/rust"),
+  () => import("@shikijs/langs/go"),
+  () => import("@shikijs/langs/java"),
+  () => import("@shikijs/langs/cpp"),
+  () => import("@shikijs/langs/c"),
+  () => import("@shikijs/langs/yaml"),
+  () => import("@shikijs/langs/xml"),
+  () => import("@shikijs/langs/markdown"),
+  () => import("@shikijs/langs/diff"),
+  () => import("@shikijs/langs/r"),
+  () => import("@shikijs/langs/zig"),
+  () => import("@shikijs/langs/docker"),
+  () => import("@shikijs/langs/swift"),
+  () => import("@shikijs/langs/lua"),
 ];
 
-let highlighterPromise: Promise<Highlighter> | null = null;
+const THEMES = [
+  () => import("@shikijs/themes/tokyo-night"),
+  () => import("@shikijs/themes/dracula"),
+  () => import("@shikijs/themes/synthwave-84"),
+  () => import("@shikijs/themes/everforest-dark"),
+  () => import("@shikijs/themes/kanagawa-dragon"),
+  () => import("@shikijs/themes/gruvbox-dark-hard"),
+  () => import("@shikijs/themes/dracula-soft"),
+  () => import("@shikijs/themes/dark-plus"),
+  () => import("@shikijs/themes/nord"),
+];
 
-const getHighlighter = (): Promise<Highlighter> => {
+let highlighterPromise: Promise<HighlighterCore> | null = null;
+
+const getHighlighter = (): Promise<HighlighterCore> => {
   if (!highlighterPromise) {
-    highlighterPromise = createHighlighter({
+    highlighterPromise = createHighlighterCore({
       themes: THEMES,
       langs: LANGUAGES,
+      engine: createOnigurumaEngine(import("shiki/wasm")),
     }).catch((error) => {
       highlighterPromise = null;
       throw error;
@@ -75,27 +86,14 @@ const getHighlighter = (): Promise<Highlighter> => {
   return highlighterPromise;
 };
 
-const isBundledLanguage = (value: string): value is BundledLanguage =>
-  value in bundledLanguages;
-
-// Returns a language the highlighter can render, loading it on demand.
-// Anything unknown falls back to plain text instead of throwing.
-const resolveLanguage = async (
-  highlighter: Highlighter,
-  language: string,
-): Promise<string> => {
-  if (language === "text") return language;
-
-  const loaded = highlighter.getLoadedLanguages();
-  if (loaded.some((name) => name === language)) return language;
-  if (!isBundledLanguage(language)) return "text";
-
-  try {
-    await highlighter.loadLanguage(language);
+// Returns a language the highlighter can render. Anything unknown falls back to
+// plain text instead of throwing.
+const resolveLanguage = (highlighter: HighlighterCore, language: string) => {
+  if (language === "text") return "text";
+  if (highlighter.getLoadedLanguages().some((name) => name === language)) {
     return language;
-  } catch {
-    return "text";
   }
+  return "text";
 };
 
 interface CodeBlockContentProps {
@@ -120,7 +118,7 @@ export const CodeBlockContent = ({
     const highlight = async () => {
       try {
         const highlighter = await getHighlighter();
-        const lang = await resolveLanguage(highlighter, language);
+        const lang = resolveLanguage(highlighter, language);
         if (cancelled) return;
 
         setHtml(
