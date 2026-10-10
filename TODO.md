@@ -194,10 +194,12 @@ Bento-style task board with drag-and-drop organization.
 - [x] Chat vs Agent modes
 - [x] Ask user tool
 - [x] Todo tool for agent planning
+- [x] Make sure the todo roadmap remains visible even when asking for approval
 
 ### Planned
 
-- [ ] Make sure the todo roadmap remains visible even when asking for approval
+- [ ] Make ui more consistent
+- [ ] Add external connections
 - [ ] Custom renderer per tool for write approval (similar to tool calls)
 - [ ] Make todo expandable in agent bar
 - [ ] More local primitives

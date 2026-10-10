@@ -7,8 +7,6 @@ export const applyAccessPolicy = (
   mode: AccessMode,
   sessionId: string,
 ): ToolSet => {
-  if (mode === "autonomous") return tools;
-
   const result: ToolSet = {};
 
   for (const [name, entry] of Object.entries(tools)) {
@@ -18,6 +16,11 @@ export const applyAccessPolicy = (
     }
 
     if (mode === "readonly") continue;
+
+    if (mode === "autonomous") {
+      result[name] = entry;
+      continue;
+    }
 
     result[name] = withApprovalTool(entry, { name, sessionId });
   }

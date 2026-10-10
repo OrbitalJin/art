@@ -6,6 +6,7 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { modelById } from "@/lib/ai/models";
 import { TOOL_FAMILIES } from "@/lib/ai/tools/registry";
+import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
 import { useChatInput } from "@/contexts/chat-context";
 
 interface Props {
@@ -184,7 +185,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
       if (family.key === "files") {
         return activeSession.folders?.length ? [family.label] : [];
       }
-      return activeSession.capabilities[family.key] ? [family.label] : [];
+      return toolkitEnabled(activeSession, family.key) ? [family.label] : [];
     });
   }, [isAgent, activeSession]);
 

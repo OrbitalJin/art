@@ -1,26 +1,19 @@
-// tool-use.tsx
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import type {
-  Session,
-  SessionCapabilities,
-  ToolCallBlock,
-} from "@/lib/store/session/types";
+import { useConnectionsStore } from "@/lib/store/use-connections-store";
+import type { Session, ToolCallBlock } from "@/lib/store/session/types";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
+import { SUPPORTED_TOOLKITS, TOOLKIT_LABELS } from "@/lib/services/composio";
+import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
 import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   TOOL_FAMILIES,
 } from "@/lib/ai/tools/registry";
-import {
-  grantFolder,
-  makeRoot,
-  selectDirectory,
-  type FsRoot,
-} from "@/lib/fs";
+import { grantFolder, makeRoot, selectDirectory, type FsRoot } from "@/lib/fs";
 import {
   CompactSummary,
   formatToolName,
@@ -33,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+type Toolkit = (typeof SUPPORTED_TOOLKITS)[number];
 type MenuPage = "main" | "files";
 
 const basename = (path: string): string => {
@@ -40,22 +34,41 @@ const basename = (path: string): string => {
   return parts[parts.length - 1] ?? path;
 };
 
+const slugsForToolkit = (toolkit: string, slugs: string[]): string[] => {
+  const prefix = `${toolkit.toLowerCase()}_`;
+  return slugs.filter((slug) => slug.toLowerCase().startsWith(prefix));
+};
+
+const useToolkitToolCount = (toolkit: string): number => {
+  const slugs = useConnectionsStore((state) => state.slugs);
+  return slugsForToolkit(toolkit, slugs).length;
+};
+
 const ToolTag: React.FC<{ label: string; value?: string }> = ({
   label,
   value,
-}) => (
-  <span
-    className={cn(
-      "flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5",
-      "bg-foreground/5 text-xs whitespace-nowrap text-foreground/80 ring-1 ring-border/50",
-    )}
-  >
-    <span className={value ? "text-muted-foreground/70" : ""}>{label}</span>
-    {value ? <span className="font-medium">{value}</span> : null}
-  </span>
-);
+}) => {
+  const tagClasses = cn(
+    "flex shrink-0 items-center gap-1.5 rounded-md px-2 py-0.5",
+    "bg-muted/50 text-xs whitespace-nowrap text-foreground/80 ring-1 ring-border/60",
+  );
+
+  return (
+    <span className={tagClasses}>
+      <span className={value ? "text-muted-foreground" : ""}>{label}</span>
+      {value ? <span className="font-medium">{value}</span> : null}
+    </span>
+  );
+};
 
 const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
+  const toolkits = useConnectionsStore((state) => state.toolkits);
+  const connectedCount = SUPPORTED_TOOLKITS.filter(
+    (toolkit) =>
+      toolkits[toolkit]?.status === "ACTIVE" &&
+      toolkitEnabled(session, toolkit),
+  ).length;
+
   const tags: { label: string; value?: string }[] = [];
   for (const family of TOOL_FAMILIES) {
     if (family.key === "files") {
@@ -69,14 +82,20 @@ const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
               : `${folders.length} folders`,
         });
       }
-    } else if (session.capabilities[family.key]) {
+    } else if (family.key === "connections") {
+      continue;
+    } else if (toolkitEnabled(session, family.key)) {
       tags.push({ label: family.label });
     }
   }
 
+  if (connectedCount > 0) {
+    tags.push({ label: "Connections", value: String(connectedCount) });
+  }
+
   if (tags.length === 0) {
     return (
-      <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground/40">
+      <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground/50">
         No tools enabled
       </span>
     );
@@ -124,7 +143,7 @@ const ActivityLine: React.FC<{
 const MenuSectionLabel: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => (
-  <p className="px-2 pb-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground/60 uppercase">
+  <p className="px-2.5 pt-1.5 pb-1 text-xs font-medium text-muted-foreground">
     {children}
   </p>
 );
@@ -133,12 +152,12 @@ const MainHeader: React.FC<{
   nothingToRevoke: boolean;
   onRevokeAll: () => void;
 }> = ({ nothingToRevoke, onRevokeAll }) => (
-  <div className="flex items-center justify-between gap-2 border-b bg-muted/30 py-1.5 pr-1.5 pl-3">
-    <p className="text-sm font-medium">Configure agent</p>
+  <div className="flex items-center justify-between gap-2 border-b border-border/50 py-2 pr-2 pl-3.5">
+    <p className="text-[13px] font-medium text-foreground">Configure agent</p>
     <Button
       variant="ghost"
       size="sm"
-      className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+      className="h-7 px-2 text-xs text-muted-foreground shadow-none hover:text-destructive"
       onClick={onRevokeAll}
       disabled={nothingToRevoke}
     >
@@ -151,17 +170,47 @@ const SubPageHeader: React.FC<{ title: string; onBack: () => void }> = ({
   title,
   onBack,
 }) => (
-  <div className="flex items-center gap-1 border-b bg-muted/30 py-1.5 pr-3 pl-1.5">
+  <div className="flex items-center gap-1 border-b border-border/50 py-2 pr-3.5 pl-2">
     <button
       type="button"
       onClick={onBack}
       aria-label="Back"
-      className="cursor-pointer rounded p-1 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+      className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
     >
       <ChevronLeft size={16} aria-hidden />
     </button>
-    <p className="text-sm font-medium">{title}</p>
+    <p className="text-[13px] font-medium text-foreground">{title}</p>
   </div>
+);
+
+const selectableRowClasses = (active: boolean): string =>
+  cn(
+    "flex w-full cursor-pointer items-center gap-3 rounded-lg border px-2.5 py-2 text-left outline-none",
+    "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
+    "disabled:pointer-events-none",
+    active
+      ? "border-foreground/15 bg-muted/50"
+      : "border-transparent hover:bg-muted/40",
+  );
+
+const RowText: React.FC<{
+  label: string;
+  subtitle: string;
+  active?: boolean;
+}> = ({ label, subtitle, active = false }) => (
+  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+    <span
+      className={cn(
+        "truncate text-[13px] font-medium",
+        active ? "text-foreground" : "text-foreground/80",
+      )}
+    >
+      {label}
+    </span>
+    <span className="truncate text-[11px] text-muted-foreground">
+      {subtitle}
+    </span>
+  </span>
 );
 
 const ToolRow: React.FC<{
@@ -169,36 +218,43 @@ const ToolRow: React.FC<{
   subtitle: string;
   enabled: boolean;
   onToggle: () => void;
-}> = ({ label, subtitle, enabled, onToggle }) => {
-  const rowClasses = cn(
-    "flex w-full cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-left outline-none",
-    "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
-    enabled ? "bg-primary/5 ring-1 ring-primary/20" : "hover:bg-accent/20",
-  );
+}> = ({ label, subtitle, enabled, onToggle }) => (
+  <button
+    type="button"
+    onClick={onToggle}
+    aria-pressed={enabled}
+    title={subtitle}
+    className={selectableRowClasses(enabled)}
+  >
+    <RowText label={label} subtitle={subtitle} active={enabled} />
+  </button>
+);
 
-  const labelClasses = cn(
-    "shrink-0 text-sm font-medium",
-    enabled ? "text-primary" : "text-foreground",
-  );
-
-  const stateClasses = cn(
-    "shrink-0 text-[10px] font-medium",
-    enabled ? "text-primary" : "text-muted-foreground/50",
+const LinkRow: React.FC<{
+  label: string;
+  subtitle: string;
+  active: boolean;
+  trailing: React.ReactNode;
+  onOpen: () => void;
+}> = ({ label, subtitle, active, trailing, onOpen }) => {
+  const trailingClasses = cn(
+    "flex shrink-0 items-center gap-1.5 text-xs",
+    active ? "text-foreground/80" : "text-muted-foreground",
   );
 
   return (
     <button
       type="button"
-      onClick={onToggle}
-      aria-pressed={enabled}
-      title={subtitle}
-      className={rowClasses}
+      onClick={onOpen}
+      className={selectableRowClasses(active)}
     >
-      <span className={labelClasses}>{label}</span>
-      <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground/70">
-        {subtitle}
-      </span>
-      <span className={stateClasses}>{enabled ? "On" : "Off"}</span>
+      <RowText label={label} subtitle={subtitle} active={active} />
+      <span className={trailingClasses}>{trailing}</span>
+      <ChevronRight
+        size={14}
+        aria-hidden
+        className="shrink-0 text-muted-foreground/60"
+      />
     </button>
   );
 };
@@ -209,98 +265,100 @@ const FilesLink: React.FC<{
 }> = ({ folderCount, onOpen }) => {
   const active = folderCount > 0;
 
-  const rowClasses = cn(
-    "flex w-full cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-left outline-none",
-    "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
-    active ? "bg-primary/5 ring-1 ring-primary/20" : "hover:bg-accent/20",
-  );
-
-  const labelClasses = cn(
-    "shrink-0 text-sm font-medium",
-    active ? "text-primary" : "text-foreground",
-  );
-
   const summary = active
     ? `${folderCount} ${folderCount === 1 ? "folder" : "folders"}`
     : "Connect";
 
   return (
-    <button type="button" onClick={onOpen} className={rowClasses}>
-      <span className={labelClasses}>Files</span>
-      <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground/70">
-        Read &amp; write local folders
-      </span>
-      <span className="shrink-0 text-[10px] font-medium text-muted-foreground/50">
-        {summary}
-      </span>
-      <ChevronRight
-        size={14}
-        aria-hidden
-        className="shrink-0 text-muted-foreground/50"
+    <LinkRow
+      label="Files"
+      subtitle="Read & write local folders"
+      active={active}
+      trailing={summary}
+      onOpen={onOpen}
+    />
+  );
+};
+
+const ConnectionRow: React.FC<{
+  toolkit: Toolkit;
+  session: Session;
+  onToggle: (key: string, value: boolean) => void;
+}> = ({ toolkit, session, onToggle }) => {
+  const toolkits = useConnectionsStore((state) => state.toolkits);
+  const toolCount = useToolkitToolCount(toolkit);
+
+  const connected = toolkits[toolkit]?.status === "ACTIVE";
+  const enabled = connected && toolkitEnabled(session, toolkit);
+
+  const subtitle = connected
+    ? `Read-only · ${toolCount} tools`
+    : "Not connected — configure in Settings";
+
+  const rowClasses = cn(
+    selectableRowClasses(enabled),
+    !connected && "opacity-60",
+  );
+
+  return (
+    <button
+      type="button"
+      disabled={!connected}
+      aria-pressed={enabled}
+      onClick={() => onToggle(toolkit, !enabled)}
+      className={rowClasses}
+    >
+      <RowText
+        label={TOOLKIT_LABELS[toolkit]}
+        subtitle={subtitle}
+        active={enabled}
       />
     </button>
   );
 };
 
-const FolderItem: React.FC<{
-  folder: FsRoot;
-  onRemove: (folderId: string) => void;
-}> = ({ folder, onRemove }) => (
-  <div className="flex items-center justify-between gap-2 rounded-md bg-primary/5 px-2.5 py-1.5 ring-1 ring-primary/20">
-    <div className="flex min-w-0 flex-col">
-      <span className="truncate text-sm font-medium text-primary">
-        {folder.name}
-      </span>
-      <span
-        title={folder.path}
-        className="truncate text-[11px] leading-snug text-muted-foreground/70"
-      >
-        {folder.path}
-      </span>
-    </div>
-    <button
-      type="button"
-      onClick={() => onRemove(folder.id)}
-      aria-label={`Remove ${folder.name}`}
-      className="shrink-0 cursor-pointer rounded p-1 text-muted-foreground transition-colors hover:text-destructive"
-    >
-      <X size={14} aria-hidden />
-    </button>
-  </div>
-);
-
 const MainPage: React.FC<{
   session: Session;
   onOpenFiles: () => void;
-  onToggle: (key: keyof SessionCapabilities, value: boolean) => void;
+  onToggle: (key: string, value: boolean) => void;
   onRevokeAll: () => void;
 }> = ({ session, onOpenFiles, onToggle, onRevokeAll }) => {
-  const { capabilities } = session;
+  const toolkits = useConnectionsStore((state) => state.toolkits);
   const folderCount = (session.folders ?? []).length;
+  const toggleFamilies = TOOL_FAMILIES.filter(
+    (family) => family.key !== "files" && family.key !== "connections",
+  );
   const nothingToRevoke =
-    !capabilities.journal && !capabilities.tasks && !capabilities.askUser;
+    !toggleFamilies.some((family) => toolkitEnabled(session, family.key)) &&
+    !SUPPORTED_TOOLKITS.some(
+      (toolkit) =>
+        toolkits[toolkit]?.status === "ACTIVE" &&
+        toolkitEnabled(session, toolkit),
+    );
 
   return (
     <>
       <MainHeader nothingToRevoke={nothingToRevoke} onRevokeAll={onRevokeAll} />
 
-      {CATEGORY_ORDER.map((category, index) => {
+      {CATEGORY_ORDER.map((category) => {
         const families = TOOL_FAMILIES.filter(
           (family) => family.category === category,
         );
-        if (families.length === 0) return null;
+        const hasVisible = families.some(
+          (family) => family.key !== "connections",
+        );
+        if (!hasVisible) return null;
 
         return (
           <div
             key={category}
-            className={cn(
-              "flex flex-col gap-0.5 p-1.5",
-              index > 0 && "border-t",
-            )}
+            className="flex flex-col gap-0.5 border-b border-border/50 p-1.5"
           >
             <MenuSectionLabel>{CATEGORY_LABELS[category]}</MenuSectionLabel>
 
             {families.map((family) => {
+              if (family.key === "connections") return null;
+
               if (family.key === "files") {
                 return (
                   <FilesLink
@@ -311,8 +369,7 @@ const MainPage: React.FC<{
                 );
               }
 
-              const capKey = family.key;
-              const enabled = capabilities[capKey];
+              const enabled = toolkitEnabled(session, family.key);
 
               return (
                 <ToolRow
@@ -320,16 +377,55 @@ const MainPage: React.FC<{
                   label={family.label}
                   subtitle={family.description}
                   enabled={enabled}
-                  onToggle={() => onToggle(capKey, !enabled)}
+                  onToggle={() => onToggle(family.key, !enabled)}
                 />
               );
             })}
           </div>
         );
       })}
+
+      <div className="flex flex-col gap-0.5 p-1.5">
+        <MenuSectionLabel>Connections</MenuSectionLabel>
+        {SUPPORTED_TOOLKITS.map((toolkit) => (
+          <ConnectionRow
+            key={toolkit}
+            toolkit={toolkit}
+            session={session}
+            onToggle={onToggle}
+          />
+        ))}
+      </div>
     </>
   );
 };
+
+const FolderItem: React.FC<{
+  folder: FsRoot;
+  onRemove: (folderId: string) => void;
+}> = ({ folder, onRemove }) => (
+  <div className="flex items-center justify-between gap-2 rounded-lg border border-foreground/15 bg-muted/50 px-2.5 py-2">
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <span className="truncate text-[13px] font-medium text-foreground">
+        {folder.name}
+      </span>
+      <span
+        title={folder.path}
+        className="truncate text-[11px] leading-snug text-muted-foreground"
+      >
+        {folder.path}
+      </span>
+    </div>
+    <button
+      type="button"
+      onClick={() => onRemove(folder.id)}
+      aria-label={`Remove ${folder.name}`}
+      className="shrink-0 cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:text-destructive"
+    >
+      <X size={14} aria-hidden />
+    </button>
+  </div>
+);
 
 const FilesPage: React.FC<{
   folders: FsRoot[];
@@ -342,7 +438,7 @@ const FilesPage: React.FC<{
 
     <div className="flex flex-col gap-1 p-1.5">
       {folders.length === 0 ? (
-        <p className="px-2.5 py-3 text-[11px] leading-snug text-muted-foreground/70">
+        <p className="px-2.5 py-3 text-xs leading-snug text-muted-foreground">
           No folders connected. Connect a folder to let the agent read and write
           files in it.
         </p>
@@ -353,11 +449,11 @@ const FilesPage: React.FC<{
       )}
     </div>
 
-    <div className="border-t p-1.5">
+    <div className="border-t border-border/50 p-1.5">
       <Button
         variant="ghost"
         size="sm"
-        className="h-8 w-full justify-start gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+        className="h-8 w-full justify-start gap-1.5 text-xs text-muted-foreground shadow-none hover:text-foreground"
         onClick={onAdd}
       >
         <Plus size={13} aria-hidden />
@@ -372,7 +468,7 @@ const ConfigureMenu: React.FC<{
   session: Session;
   onAddFolder: () => void;
   onRemoveFolder: (folderId: string) => void;
-  onToggle: (key: keyof SessionCapabilities, value: boolean) => void;
+  onToggle: (key: string, value: boolean) => void;
   onRevokeAll: () => void;
 }> = ({
   disabled,
@@ -382,8 +478,13 @@ const ConfigureMenu: React.FC<{
   onToggle,
   onRevokeAll,
 }) => {
+  const syncConnections = useConnectionsStore((state) => state.syncConnections);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState<MenuPage>("main");
+
+  useEffect(() => {
+    if (open) void syncConnections();
+  }, [open, syncConnections]);
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
@@ -391,18 +492,18 @@ const ConfigureMenu: React.FC<{
   };
 
   const triggerClasses = cn(
-    "flex shrink-0 cursor-pointer items-center rounded-full px-2.5 py-0.5",
-    "text-xs whitespace-nowrap text-muted-foreground/70 ring-1 ring-border/50 outline-none",
-    "transition-colors duration-150 hover:bg-foreground/5 hover:text-foreground",
+    "flex shrink-0 cursor-pointer items-center rounded-md px-2 py-0.5 h-7",
+    "text-xs whitespace-nowrap text-muted-foreground ring-1 ring-border/60 outline-none",
+    "transition-colors duration-150 hover:bg-muted/60 hover:text-foreground",
     "focus-visible:ring-2 focus-visible:ring-ring/50",
-    "data-[state=open]:bg-foreground/10 data-[state=open]:text-foreground",
+    "data-[state=open]:bg-muted/60 data-[state=open]:text-foreground",
     "disabled:pointer-events-none disabled:opacity-50",
   );
 
   const contentClasses = cn(
-    "w-80 max-w-[calc(100vw-2rem)] p-0 shadow-xl",
+    "w-80 max-w-[calc(100vw-2rem)] rounded-xl p-0 shadow-lg",
     "max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto",
-    "border-muted-foreground/20",
+    "border-border/60",
   );
 
   return (
@@ -450,9 +551,9 @@ export const ToolUse: React.FC<ToolUseProps> = ({ active }) => {
   );
   const addFolder = useSessionStore((state) => state.addFolder);
   const removeFolder = useSessionStore((state) => state.removeFolder);
-  const setCapability = useSessionStore((state) => state.setCapability);
-  const disableAllCapabilities = useSessionStore(
-    (state) => state.disableAllCapabilities,
+  const setToolkit = useSessionStore((state) => state.setToolkit);
+  const disableAllToolkits = useSessionStore(
+    (state) => state.disableAllToolkits,
   );
   const { isSending, toolCalls } = useChatStream();
 
@@ -486,17 +587,17 @@ export const ToolUse: React.FC<ToolUseProps> = ({ active }) => {
   );
 
   const handleToggle = useCallback(
-    (key: keyof SessionCapabilities, value: boolean) => {
+    (key: string, value: boolean) => {
       if (!activeId) return;
-      setCapability(activeId, key, value);
+      setToolkit(activeId, key, value);
     },
-    [activeId, setCapability],
+    [activeId, setToolkit],
   );
 
   const handleRevokeAll = useCallback(() => {
     if (!activeId) return;
-    disableAllCapabilities(activeId);
-  }, [activeId, disableAllCapabilities]);
+    disableAllToolkits(activeId);
+  }, [activeId, disableAllToolkits]);
 
   if (!session) return null;
 

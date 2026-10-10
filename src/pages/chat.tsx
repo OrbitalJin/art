@@ -9,12 +9,14 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 import { useChatMessages } from "@/contexts/chat-context";
 import { useSessionStore } from "@/lib/store/use-session-store";
+import { useConnectionsSync } from "@/hooks/use-connections-sync";
 import type { SessionType } from "@/lib/store/session/types";
 
 const isSessionType = (value: string | undefined): value is SessionType =>
   value === "chat" || value === "agent";
 
 export const Chat = () => {
+  useConnectionsSync();
   const { type, sessionId } = useParams<{
     type: string;
     sessionId: string;

@@ -26,6 +26,8 @@ export interface AgentProfile {
 interface SettingsState {
   apiKey: string;
   searchApiKey: string;
+  composioApiKey: string;
+  composioUserId: string;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
@@ -39,6 +41,8 @@ interface SettingsState {
 
   setApiKey: (key: string) => void;
   setSearchApiKey: (key: string) => void;
+  setComposioApiKey: (key: string) => void;
+  ensureComposioUserId: () => string;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
   setDefaultModel: (model: ModelId) => void;
@@ -73,6 +77,8 @@ export const DEFAULT_AGENT_PROFILE: AgentProfile = {
 const initialState = {
   apiKey: "",
   searchApiKey: "",
+  composioApiKey: "",
+  composioUserId: "",
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
@@ -87,10 +93,18 @@ const initialState = {
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
       setApiKey: (key: string) => set({ apiKey: key }),
       setSearchApiKey: (key: string) => set({ searchApiKey: key }),
+      setComposioApiKey: (key: string) => set({ composioApiKey: key }),
+      ensureComposioUserId: () => {
+        const existing = get().composioUserId;
+        if (existing) return existing;
+        const id = crypto.randomUUID();
+        set({ composioUserId: id });
+        return id;
+      },
       setFontSize: (size: FontSize) => set({ fontSize: size }),
       setCornerRadius: (radius: CornerRadius) => set({ cornerRadius: radius }),
       setDefaultModel: (model: ModelId) => set({ defaultModel: model }),
@@ -112,7 +126,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => settingsStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -164,6 +178,16 @@ export const useSettingsStore = create<SettingsState>()(
               state.defaultAccessMode = "confirm";
             if (state.defaultAgentModel === undefined)
               state.defaultAgentModel = "model-1";
+          }
+        }
+        if (version < 6) {
+          const state = persistedState as {
+            composioApiKey?: string;
+            composioUserId?: string;
+          };
+          if (state) {
+            if (state.composioApiKey === undefined) state.composioApiKey = "";
+            if (state.composioUserId === undefined) state.composioUserId = "";
           }
         }
         return persistedState as SettingsState;

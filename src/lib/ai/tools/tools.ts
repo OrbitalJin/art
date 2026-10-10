@@ -7,7 +7,9 @@ import { fileTools } from "./files";
 import { askUserTools } from "./ask-user";
 import { doneTools } from "./done";
 import { todoTools } from "./todo";
+import { composioTools } from "./composio";
 import { applyAccessPolicy } from "./policy";
+import { toolkitEnabled } from "./toolkits";
 
 export interface Opts {
   session?: Session;
@@ -20,13 +22,16 @@ export const ambientTools = (): ToolSet => {
 };
 
 export const toolsFor = ({ session }: Opts): ToolSet => {
-  const { journal, tasks, askUser } = session?.capabilities ?? {};
+  const enabled = (key: string): boolean =>
+    session ? toolkitEnabled(session, key) : false;
+
   const tools: ToolSet = {
     ...(session?.folders?.length && fileTools({ roots: session.folders })),
-    ...(journal && journalTools()),
-    ...(tasks && tasksTools()),
-    ...(askUser && session && askUserTools(session.id)),
-    ...(session?.type === "agent" && session && todoTools(session.id)),
+    ...(enabled("journal") && journalTools()),
+    ...(enabled("tasks") && tasksTools()),
+    ...(enabled("askUser") && session && askUserTools(session.id)),
+    ...(session && composioTools(session)),
+    ...(enabled("todo") && session && todoTools(session.id)),
     ...ambientTools(),
     ...doneTools(),
   };

@@ -5,7 +5,7 @@ export type ToolCategory = "workspace" | "computer" | "interaction";
 export type ToolKind = "read" | "write";
 
 export interface ToolFamily {
-  key: "journal" | "tasks" | "files" | "askUser";
+  key: "journal" | "tasks" | "files" | "askUser" | "connections" | "todo";
   label: string;
   description: string;
   category: ToolCategory;
@@ -33,6 +33,14 @@ export const TOOL_FAMILIES: ToolFamily[] = [
     category: "interaction",
     usage: "free",
     tools: ["ask_user"],
+  },
+  {
+    key: "todo",
+    label: "Todo",
+    description: "Plan multi-step work",
+    category: "interaction",
+    usage: "free",
+    tools: ["todo_write"],
   },
 
   {
@@ -94,6 +102,14 @@ export const TOOL_FAMILIES: ToolFamily[] = [
       "delete_project",
       "create_project_with_tasks",
     ],
+  },
+  {
+    key: "connections",
+    label: "Connections",
+    description: "Read-only access to Gmail",
+    category: "workspace",
+    usage: "$$$",
+    tools: [],
   },
 ];
 

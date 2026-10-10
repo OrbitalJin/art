@@ -8,67 +8,23 @@ import {
 } from "@/components/ui/hover-card";
 import type { AccessMode } from "@/lib/ai/tools/registry";
 
-type Tone = "safe" | "warn" | "risky";
-
-interface ModeDef {
-  id: AccessMode;
-  label: string;
-  description: string;
-  tone: Tone;
-  icon: React.ReactNode;
-}
-
-const MODES: ModeDef[] = [
-  {
-    id: "readonly",
-    label: "Read only",
-    description:
-      "The agent can read, search, and ask questions, but cannot create, edit, or delete anything.",
-    tone: "safe",
-    icon: <Eye size={11} aria-hidden className="shrink-0" />,
-  },
-  {
-    id: "confirm",
-    label: "Ask to write",
-    description:
-      "Reads run freely; every create, edit, or delete pauses for your approval first.",
-    tone: "warn",
-    icon: <ShieldAlert size={11} aria-hidden className="shrink-0" />,
-  },
-  {
-    id: "autonomous",
-    label: "Autonomous",
-    description:
-      "The agent runs tools immediately, including writes, without waiting for you.",
-    tone: "risky",
-    icon: <LockOpen size={11} aria-hidden className="shrink-0" />,
-  },
-];
-
-const TONE_SELECTED: Record<Tone, string> = {
-  safe: "bg-emerald-500/15 text-emerald-500 ring-1 ring-emerald-500/25",
-  warn: "bg-amber-500/15 text-amber-500 ring-1 ring-amber-500/25",
-  risky: "bg-red-500/15 text-red-500 ring-1 ring-red-500/25",
-};
-
-const TONE_RING: Record<Tone, string> = {
-  safe: "ring-emerald-500/30",
-  warn: "ring-amber-500/30",
-  risky: "ring-red-500/30",
-};
+const SAFE_TONE = "text-emerald-500";
+const WARN_TONE = "text-amber-500";
+const RISKY_TONE = "text-red-500";
 
 const ModeOption: React.FC<{
-  mode: ModeDef;
+  label: string;
   selected: boolean;
+  toneClasses: string;
   onSelect: () => void;
-}> = ({ mode, selected, onSelect }) => {
+  children: React.ReactNode;
+}> = ({ label, selected, toneClasses, onSelect, children }) => {
   const optionClasses = cn(
-    "flex cursor-pointer items-center gap-1.5 rounded-full px-2.5 py-0.5",
-    "text-xs whitespace-nowrap outline-none transition-colors duration-150",
-    "focus-visible:ring-2 focus-visible:ring-ring/50",
+    "flex cursor-pointer items-center rounded-md border px-2 py-1 outline-none",
+    "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
     selected
-      ? TONE_SELECTED[mode.tone]
-      : "text-muted-foreground/60 hover:text-foreground",
+      ? cn("border-foreground/15 bg-muted/50", toneClasses)
+      : "border-transparent text-muted-foreground hover:text-foreground",
   );
 
   return (
@@ -76,51 +32,92 @@ const ModeOption: React.FC<{
       type="button"
       role="radio"
       aria-checked={selected}
+      aria-label={label}
+      title={label}
       onClick={onSelect}
       className={optionClasses}
     >
-      {mode.icon}
+      {children}
     </button>
   );
 };
 
-const ModeDescription: React.FC<{ mode: ModeDef; selected: boolean }> = ({
-  mode,
-  selected,
-}) => {
+const ModeDescription: React.FC<{
+  label: string;
+  description: string;
+  selected: boolean;
+  toneClasses: string;
+  children: React.ReactNode;
+}> = ({ label, description, selected, toneClasses, children }) => {
   const rowClasses = cn(
-    "flex flex-col gap-0.5 rounded-md p-2",
-    selected ? "bg-muted/50 border border-primary/20" : "opacity-60",
+    "flex items-start gap-2.5 rounded-lg border px-2.5 py-2",
+    selected
+      ? "border-foreground/15 bg-muted/50"
+      : "border-transparent opacity-60",
+  );
+
+  const iconClasses = cn(
+    "mt-0.5 shrink-0",
+    selected ? toneClasses : "text-muted-foreground",
   );
 
   return (
     <div className={rowClasses}>
-      <div className={cn("flex items-center justify-between")}>
-        <span className="text-xs font-medium">{mode.label}</span>
+      <span className={iconClasses}>{children}</span>
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-[13px] font-medium text-foreground">{label}</span>
+        <p className="text-[11px] leading-snug text-muted-foreground">
+          {description}
+        </p>
       </div>
-      <p className="text-[11px] leading-snug text-muted-foreground">
-        {mode.description}
-      </p>
     </div>
   );
 };
 
 const ApprovalDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
-  const current = MODES.find((m) => m.id === mode) ?? MODES[1];
+  const currentLabel =
+    mode === "readonly"
+      ? "Read only"
+      : mode === "autonomous"
+        ? "Autonomous"
+        : "Ask to write";
 
   return (
     <>
-      <div className="flex items-center justify-between border-b bg-muted/30 p-3">
-        <p className="text-sm font-medium">Tool access policy</p>
-        <span className="rounded border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
-          {current.label}
+      <div className="flex items-center justify-between gap-2 border-b border-border/50 py-2 pr-2.5 pl-3.5">
+        <p className="text-[13px] font-medium text-foreground">Tool access</p>
+        <span className="rounded-md bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground ring-1 ring-border/60">
+          {currentLabel}
         </span>
       </div>
 
-      <div className="flex flex-col gap-2 p-3">
-        {MODES.map((m) => (
-          <ModeDescription key={m.id} mode={m} selected={m.id === mode} />
-        ))}
+      <div className="flex flex-col gap-0.5 p-1.5">
+        <ModeDescription
+          label="Read only"
+          description="The agent can read, search, and ask questions, but cannot create, edit, or delete anything."
+          selected={mode === "readonly"}
+          toneClasses={SAFE_TONE}
+        >
+          <Eye size={13} aria-hidden />
+        </ModeDescription>
+
+        <ModeDescription
+          label="Ask to write"
+          description="Reads run freely; every create, edit, or delete pauses for your approval first."
+          selected={mode === "confirm"}
+          toneClasses={WARN_TONE}
+        >
+          <ShieldAlert size={13} aria-hidden />
+        </ModeDescription>
+
+        <ModeDescription
+          label="Autonomous"
+          description="The agent runs tools immediately, including writes, without waiting for you."
+          selected={mode === "autonomous"}
+          toneClasses={RISKY_TONE}
+        >
+          <LockOpen size={13} aria-hidden />
+        </ModeDescription>
       </div>
     </>
   );
@@ -136,12 +133,15 @@ export const Approval: React.FC<{ disabled: boolean }> = ({ disabled }) => {
   if (!activeId || !session) return null;
 
   const mode = session.accessMode ?? "confirm";
-  const current = MODES.find((m) => m.id === mode) ?? MODES[1];
 
   const groupClasses = cn(
-    "flex shrink-0 items-center rounded-full bg-foreground/5 p-0.5",
-    "ring-1 transition-colors duration-150",
-    TONE_RING[current.tone],
+    "flex shrink-0 items-center gap-0.5 rounded-lg p-0.5 h-7",
+    "ring-1 ring-border/60 transition-colors duration-150",
+    disabled && "pointer-events-none opacity-60",
+  );
+
+  const contentClasses = cn(
+    "w-80 overflow-hidden rounded-xl border-border/60 p-0 shadow-lg",
   );
 
   return (
@@ -150,27 +150,38 @@ export const Approval: React.FC<{ disabled: boolean }> = ({ disabled }) => {
         <div
           role="radiogroup"
           aria-label="Tool access"
-          className={cn(
-            groupClasses,
-            disabled && "pointer-events-none opacity-80",
-          )}
+          className={groupClasses}
         >
-          {MODES.map((m) => (
-            <ModeOption
-              key={m.id}
-              mode={m}
-              selected={m.id === mode}
-              onSelect={() => setAccessMode(activeId, m.id)}
-            />
-          ))}
+          <ModeOption
+            label="Read only"
+            selected={mode === "readonly"}
+            toneClasses={SAFE_TONE}
+            onSelect={() => setAccessMode(activeId, "readonly")}
+          >
+            <Eye size={12} aria-hidden />
+          </ModeOption>
+
+          <ModeOption
+            label="Ask to write"
+            selected={mode === "confirm"}
+            toneClasses={WARN_TONE}
+            onSelect={() => setAccessMode(activeId, "confirm")}
+          >
+            <ShieldAlert size={12} aria-hidden />
+          </ModeOption>
+
+          <ModeOption
+            label="Autonomous"
+            selected={mode === "autonomous"}
+            toneClasses={RISKY_TONE}
+            onSelect={() => setAccessMode(activeId, "autonomous")}
+          >
+            <LockOpen size={12} aria-hidden />
+          </ModeOption>
         </div>
       </HoverCardTrigger>
 
-      <HoverCardContent
-        align="end"
-        side="top"
-        className="w-80 overflow-hidden border-muted-foreground/20 p-0 shadow-xl"
-      >
+      <HoverCardContent align="end" side="top" className={contentClasses}>
         <ApprovalDetails mode={mode} />
       </HoverCardContent>
     </HoverCard>

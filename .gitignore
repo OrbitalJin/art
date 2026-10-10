@@ -10,6 +10,7 @@ public/changelog.json
 .agents/*
 
 .env
+.opencode/
 AGENTS.md
 node_modules
 dist

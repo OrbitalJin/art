@@ -7,9 +7,10 @@ import type {
   MessagePart,
   SessionType,
   Session,
-  SessionCapabilities,
+  SessionToolkits,
   ToolCallBlock,
 } from "@/lib/store/session/types";
+import { SUPPORTED_TOOLKITS } from "@/lib/services/composio";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import type { FsRoot } from "@/lib/fs";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
@@ -48,10 +49,11 @@ const createNewSession = ({
     type: sessionType,
     title: title ?? "New Session",
     accessMode: settings.defaultAccessMode,
-    capabilities: {
+    toolkits: {
       journal: false,
       tasks: false,
       askUser: sessionType === "agent",
+      todo: sessionType === "agent",
     },
     messages: [],
     mode: settings.defaultMode,
@@ -89,11 +91,7 @@ const normalizeSession = (session: Session): Session => ({
   mode: session.mode ?? DEFAULT_MODE,
   accessMode: session.accessMode ?? "confirm",
   folders: session.folders ?? [],
-  capabilities: session.capabilities ?? {
-    journal: false,
-    tasks: false,
-    askUser: (session.type ?? "chat") === "agent",
-  },
+  toolkits: session.toolkits ?? {},
   messages: (session.messages ?? []).map((message) =>
     normalizeMessage(message as LegacyMessage),
   ),
@@ -118,12 +116,8 @@ export interface SessionState {
   setAccessMode: (id: string, mode: AccessMode) => void;
   addFolder: (id: string, root: FsRoot) => void;
   removeFolder: (id: string, folderId: string) => void;
-  setCapability: (
-    id: string,
-    key: keyof SessionCapabilities,
-    value: boolean,
-  ) => void;
-  disableAllCapabilities: (id: string) => void;
+  setToolkit: (id: string, key: string, value: boolean) => void;
+  disableAllToolkits: (id: string) => void;
   setActive: (id: string) => void;
   importFn: (s: Session) => boolean;
   deleteFn: (id: string) => void;
@@ -185,36 +179,33 @@ export const useSessionStore = create<SessionState>()(
         }));
       },
 
-      setCapability: (
-        id: string,
-        key: keyof SessionCapabilities,
-        value: boolean,
-      ) => {
+      setToolkit: (id: string, key: string, value: boolean) => {
         set((state) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
               ? {
                   ...session,
-                  capabilities: {
-                    ...session.capabilities,
-                    [key]: value,
-                  },
+                  toolkits: { ...session.toolkits, [key]: value },
                 }
               : session,
           ),
         }));
       },
 
-      disableAllCapabilities: (id: string) => {
+      disableAllToolkits: (id: string) => {
         set((state) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
               ? {
                   ...session,
-                  capabilities: {
+                  toolkits: {
                     journal: false,
                     tasks: false,
                     askUser: false,
+                    todo: false,
+                    ...Object.fromEntries(
+                      SUPPORTED_TOOLKITS.map((toolkit) => [toolkit, false]),
+                    ),
                   },
                 }
               : session,
@@ -461,7 +452,7 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 25,
+      version: 28,
       storage: createJSONStorage(() => sessionStorage),
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as {
@@ -470,7 +461,8 @@ export const useSessionStore = create<SessionState>()(
             disableApproval?: boolean;
             knowledgeBase?: string;
             folders?: FsRoot[];
-            capabilities?: SessionCapabilities;
+            capabilities?: Record<string, boolean>;
+            toolkits?: SessionToolkits;
             messages?: Array<
               Message & {
                 role: string;
@@ -564,6 +556,64 @@ export const useSessionStore = create<SessionState>()(
                       },
                     ]
                   : [],
+              };
+            });
+          }
+        }
+
+        if (version < 26) {
+          if (Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => {
+              const type = (session as { type?: SessionType }).type ?? "chat";
+              return {
+                ...session,
+                capabilities: {
+                  ...(session.capabilities ?? {
+                    journal: false,
+                    tasks: false,
+                    askUser: false,
+                  }),
+                  connections:
+                    session.capabilities?.connections ?? type === "agent",
+                },
+              };
+            });
+          }
+        }
+
+        if (version < 27) {
+          if (Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => {
+              const { toolPolicy, ...rest } = session as {
+                toolPolicy?: unknown;
+              };
+              void toolPolicy;
+              return rest;
+            });
+          }
+        }
+
+        if (version < 28) {
+          if (Array.isArray(state.sessions)) {
+            state.sessions = state.sessions.map((session) => {
+              const type = (session as { type?: SessionType }).type ?? "chat";
+              const { capabilities, ...rest } = session;
+              if (session.toolkits) return rest;
+              const connections =
+                capabilities?.connections ?? type === "agent";
+              return {
+                ...rest,
+                toolkits: {
+                  journal: capabilities?.journal ?? false,
+                  tasks: capabilities?.tasks ?? false,
+                  askUser: capabilities?.askUser ?? type === "agent",
+                  ...Object.fromEntries(
+                    SUPPORTED_TOOLKITS.map((toolkit) => [
+                      toolkit,
+                      connections,
+                    ]),
+                  ),
+                },
               };
             });
           }

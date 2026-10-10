@@ -78,7 +78,7 @@ const SendButton: React.FC<{
   onClick: () => void;
 }> = ({ visible, stopping, disabled, onClick }) => {
   const buttonClasses = cn(
-    "size-8 rounded-full transition-all duration-200",
+    "size-8 transition-all duration-200",
     visible
       ? "scale-100 opacity-100"
       : "pointer-events-none scale-90 opacity-0",

@@ -5,11 +5,7 @@ import type { FsRoot } from "@/lib/fs";
 
 export type SessionType = "chat" | "agent";
 
-export interface SessionCapabilities {
-  journal: boolean;
-  tasks: boolean;
-  askUser: boolean;
-}
+export type SessionToolkits = Record<string, boolean>;
 
 export type MessageStatus =
   "thinking" | "streaming" | "complete" | "aborted" | "error";
@@ -87,7 +83,7 @@ export interface Session {
   title: string;
   accessMode: AccessMode;
   folders?: FsRoot[];
-  capabilities: SessionCapabilities;
+  toolkits: SessionToolkits;
   messages: Message[];
   modelId: ModelId;
   mode: ModeId;
