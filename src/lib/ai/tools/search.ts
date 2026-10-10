@@ -1,6 +1,6 @@
 import { nativeFetch } from "@/lib/native-fetch";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { tool, type ToolSet } from "ai";
+import { tool } from "ai";
 import { z } from "zod";
 
 const EXA_BASE = "https://api.exa.ai";
@@ -28,7 +28,7 @@ const fetchResultSchema = z.object({
 const NO_KEY_ERROR =
   "Exa API key is not configured. Ask the user to add one in Settings > Chat.";
 
-export const searchTools = (): ToolSet => {
+export const searchTools = () => {
   const getKey = () => useSettingsStore.getState().searchApiKey;
 
   return {
@@ -144,3 +144,5 @@ export const searchTools = (): ToolSet => {
     }),
   };
 };
+
+export type SearchToolName = keyof ReturnType<typeof searchTools>;

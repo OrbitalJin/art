@@ -1,4 +1,4 @@
-import { stepCountIs, type StopCondition, type ToolSet } from "ai";
+import type { StopCondition, ToolSet } from "ai";
 
 export const BACKSTOP_STEPS = 50;
 
@@ -33,8 +33,3 @@ export const adaptiveStopCondition = (): StopCondition<ToolSet> => {
     return false;
   };
 };
-
-export const agentStopWhen = (): Array<StopCondition<ToolSet>> => [
-  adaptiveStopCondition(),
-  stepCountIs(BACKSTOP_STEPS),
-];

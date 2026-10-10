@@ -17,8 +17,9 @@ import {
   stat,
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
-import { tool, type ToolSet } from "ai";
+import { tool } from "ai";
 import { z } from "zod";
+import { writeTool } from "./define";
 
 interface Opts {
   roots: FsRoot[];
@@ -48,7 +49,7 @@ const findRoot = (roots: FsRoot[], folder: string): FsRoot => {
   return root;
 };
 
-export const fileTools = ({ roots }: Opts): ToolSet => {
+export const fileTools = ({ roots }: Opts) => {
   const resolve = (folder: string, path?: string) =>
     resolveInRoot(findRoot(roots, folder), path);
 
@@ -228,7 +229,7 @@ export const fileTools = ({ roots }: Opts): ToolSet => {
       },
     }),
 
-    write_file: tool({
+    write_file: writeTool({
       title: "Write File",
       description: `Write text to a file, creating it if needed. Overwrites unless append is true. Parent directories must exist (use make_dir). Connected folders: ${folders}.`,
       inputSchema: z.object({
@@ -246,7 +247,7 @@ export const fileTools = ({ roots }: Opts): ToolSet => {
       },
     }),
 
-    edit_file: tool({
+    edit_file: writeTool({
       title: "Edit File",
       description: `Replace an exact string in a text file. Fails if old is absent, or appears more than once unless replaceAll is true. Connected folders: ${folders}.`,
       inputSchema: z.object({
@@ -286,7 +287,7 @@ export const fileTools = ({ roots }: Opts): ToolSet => {
       },
     }),
 
-    make_dir: tool({
+    make_dir: writeTool({
       title: "Make Directory",
       description: `Create a directory, including any missing parents. Connected folders: ${folders}.`,
       inputSchema: z.object({
@@ -300,7 +301,7 @@ export const fileTools = ({ roots }: Opts): ToolSet => {
       },
     }),
 
-    remove_path: tool({
+    remove_path: writeTool({
       title: "Remove Path",
       description: `Delete a file or directory (directories are removed recursively). Connected folders: ${folders}.`,
       inputSchema: z.object({
@@ -314,7 +315,7 @@ export const fileTools = ({ roots }: Opts): ToolSet => {
       },
     }),
 
-    move_path: tool({
+    move_path: writeTool({
       title: "Move Path",
       description: `Rename or move a file or directory within the same folder. Connected folders: ${folders}.`,
       inputSchema: z.object({
@@ -329,7 +330,7 @@ export const fileTools = ({ roots }: Opts): ToolSet => {
       },
     }),
 
-    copy_path: tool({
+    copy_path: writeTool({
       title: "Copy Path",
       description: `Copy a file to a new location within the same folder. Connected folders: ${folders}.`,
       inputSchema: z.object({
@@ -345,3 +346,5 @@ export const fileTools = ({ roots }: Opts): ToolSet => {
     }),
   };
 };
+
+export type FileToolName = keyof ReturnType<typeof fileTools>;

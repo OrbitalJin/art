@@ -1,6 +1,5 @@
 import type { Session } from "@/lib/store/session/types";
 import type { ToolSet } from "ai";
-import { journalTools } from "./journal";
 import { tasksTools } from "./tasks";
 import { searchTools } from "./search";
 import { fileTools } from "./files";
@@ -22,18 +21,18 @@ export const ambientTools = (): ToolSet => {
 };
 
 export const toolsFor = ({ session }: Opts): ToolSet => {
-  const enabled = (key: string): boolean =>
-    session ? toolkitEnabled(session, key) : false;
-
   const tools: ToolSet = {
-    ...(session?.folders?.length && fileTools({ roots: session.folders })),
-    ...(enabled("journal") && journalTools()),
-    ...(enabled("tasks") && tasksTools()),
-    ...(enabled("askUser") && session && askUserTools(session.id)),
-    ...(session && composioTools(session)),
-    ...(enabled("todo") && session && todoTools(session.id)),
-    ...ambientTools(),
     ...doneTools(),
+    ...ambientTools(),
+    ...(toolkitEnabled(session, "todo") && session && todoTools(session.id)),
+    ...(toolkitEnabled(session, "tasks") && tasksTools()),
+    ...(toolkitEnabled(session, "askUser") &&
+      session &&
+      askUserTools(session.id)),
+    ...(session && composioTools(session)),
+    ...(toolkitEnabled(session, "files") &&
+      session?.folders &&
+      fileTools({ roots: session.folders })),
   };
 
   return applyAccessPolicy(

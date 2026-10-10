@@ -1,8 +1,8 @@
 import { useTasksStore } from "@/lib/store/use-tasks-store";
 import { z } from "zod";
-import type { ToolSet } from "ai";
 import { tool } from "ai";
 import type { Energy } from "@/lib/store/tasks/types";
+import { writeTool } from "./define";
 
 const taskStatusSchema = z.enum(["backlog", "inProgress", "completed"]);
 const energySchema = z
@@ -46,7 +46,7 @@ const createTaskInputSchema = z.object({
   dependencies: z.array(z.string()).optional(),
 });
 
-export const tasksTools = (): ToolSet => {
+export const tasksTools = () => {
   const getState = () => useTasksStore.getState();
 
   return {
@@ -94,7 +94,7 @@ export const tasksTools = (): ToolSet => {
       },
     }),
 
-    create_task: tool({
+    create_task: writeTool({
       title: "Create Task",
       description: "Create a new task in the given column/status.",
       inputSchema: createTaskInputSchema,
@@ -105,7 +105,7 @@ export const tasksTools = (): ToolSet => {
       },
     }),
 
-    update_task: tool({
+    update_task: writeTool({
       title: "Update Task",
       description:
         "Update fields of an existing task. Only provided fields are changed.",
@@ -129,7 +129,7 @@ export const tasksTools = (): ToolSet => {
       },
     }),
 
-    move_task: tool({
+    move_task: writeTool({
       title: "Move Task",
       description:
         "Move a task to a different column/status. Appends to the end of the target column.",
@@ -147,7 +147,7 @@ export const tasksTools = (): ToolSet => {
       },
     }),
 
-    move_task_to_position: tool({
+    move_task_to_position: writeTool({
       title: "Move Task To Position",
       description:
         "Move a task to a specific column and index (0-based) within that column.",
@@ -166,7 +166,7 @@ export const tasksTools = (): ToolSet => {
       },
     }),
 
-    delete_task: tool({
+    delete_task: writeTool({
       title: "Delete Task",
       description: "Delete a task by id.",
       inputSchema: z.object({
@@ -192,7 +192,7 @@ export const tasksTools = (): ToolSet => {
       },
     }),
 
-    create_project: tool({
+    create_project: writeTool({
       title: "Create Project",
       description: "Create a new project. Returns the new project id.",
       inputSchema: z.object({
@@ -206,7 +206,7 @@ export const tasksTools = (): ToolSet => {
       },
     }),
 
-    update_project: tool({
+    update_project: writeTool({
       title: "Update Project",
       description: "Update fields of an existing project.",
       inputSchema: z.object({
@@ -224,7 +224,7 @@ export const tasksTools = (): ToolSet => {
       },
     }),
 
-    delete_project: tool({
+    delete_project: writeTool({
       title: "Delete Project",
       description:
         "Delete a project by id. Tasks in this project are moved to the inbox.",
@@ -240,7 +240,7 @@ export const tasksTools = (): ToolSet => {
         return { success: true };
       },
     }),
-    create_project_with_tasks: tool({
+    create_project_with_tasks: writeTool({
       title: "Create Project With Tasks",
       description:
         "Create a project and attach multiple tasks to it in one step. " +
@@ -265,3 +265,5 @@ export const tasksTools = (): ToolSet => {
     }),
   };
 };
+
+export type TaskToolName = keyof ReturnType<typeof tasksTools>;

@@ -1,4 +1,4 @@
-import { tool, type ToolSet } from "ai";
+import { tool } from "ai";
 import { z } from "zod";
 import { useQuestionStore } from "@/lib/store/use-question-store";
 
@@ -37,7 +37,7 @@ const questionSchema = z.object({
     .describe("Allow selecting more than one option. Defaults to false."),
 });
 
-export const askUserTools = (sessionId: string): ToolSet => ({
+export const askUserTools = (sessionId: string) => ({
   [ASK_USER_TOOL_NAME]: tool({
     title: "Ask User",
     description:
@@ -62,3 +62,5 @@ export const askUserTools = (sessionId: string): ToolSet => ({
     },
   }),
 });
+
+export type AskUserToolName = keyof ReturnType<typeof askUserTools>;

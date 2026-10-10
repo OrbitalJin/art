@@ -1,4 +1,4 @@
-import { tool, type ToolSet } from "ai";
+import { tool } from "ai";
 import { z } from "zod";
 import { useTodoStore } from "@/lib/store/use-todo-store";
 
@@ -18,7 +18,7 @@ const todoSchema = z.object({
     ),
 });
 
-export const todoTools = (sessionId: string): ToolSet => ({
+export const todoTools = (sessionId: string) => ({
   [TODO_TOOL_NAME]: tool({
     title: "Write Todos",
     description:
@@ -48,3 +48,5 @@ export const todoTools = (sessionId: string): ToolSet => ({
     },
   }),
 });
+
+export type TodoToolName = keyof ReturnType<typeof todoTools>;

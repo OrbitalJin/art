@@ -50,7 +50,6 @@ const createNewSession = ({
     title: title ?? "New Session",
     accessMode: settings.defaultAccessMode,
     toolkits: {
-      journal: false,
       tasks: false,
       askUser: sessionType === "agent",
       todo: sessionType === "agent",
@@ -599,8 +598,7 @@ export const useSessionStore = create<SessionState>()(
               const type = (session as { type?: SessionType }).type ?? "chat";
               const { capabilities, ...rest } = session;
               if (session.toolkits) return rest;
-              const connections =
-                capabilities?.connections ?? type === "agent";
+              const connections = capabilities?.connections ?? type === "agent";
               return {
                 ...rest,
                 toolkits: {
@@ -608,10 +606,7 @@ export const useSessionStore = create<SessionState>()(
                   tasks: capabilities?.tasks ?? false,
                   askUser: capabilities?.askUser ?? type === "agent",
                   ...Object.fromEntries(
-                    SUPPORTED_TOOLKITS.map((toolkit) => [
-                      toolkit,
-                      connections,
-                    ]),
+                    SUPPORTED_TOOLKITS.map((toolkit) => [toolkit, connections]),
                   ),
                 },
               };

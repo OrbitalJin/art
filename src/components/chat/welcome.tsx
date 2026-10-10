@@ -120,8 +120,8 @@ const AgentStarters: React.FC<{ onSelect: (prompt: string) => void }> = ({
       onSelect={onSelect}
     />
     <Starter
-      label="Summarize my recent journal…"
-      prompt="Summarize my recent journal entries about "
+      label="Check my email inbox"
+      prompt="Check my email inbox"
       onSelect={onSelect}
     />
   </>
@@ -181,12 +181,9 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const tools = useMemo(() => {
     if (!isAgent || !activeSession) return [];
 
-    return TOOL_FAMILIES.flatMap((family) => {
-      if (family.key === "files") {
-        return activeSession.folders?.length ? [family.label] : [];
-      }
-      return toolkitEnabled(activeSession, family.key) ? [family.label] : [];
-    });
+    return TOOL_FAMILIES.flatMap((family) =>
+      toolkitEnabled(activeSession, family.key) ? [family.label] : [],
+    );
   }, [isAgent, activeSession]);
 
   const recents = useMemo(() => {

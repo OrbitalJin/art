@@ -6,6 +6,7 @@ import {
   Trash2,
 } from "lucide-react";
 import type { ToolRenderer } from "../../types";
+import type { TaskToolName } from "@/lib/ai/tools/tasks";
 import { DoneNote } from "../../primitives";
 import {
   DeletedDetail,
@@ -26,7 +27,7 @@ import {
   TaskTargetSummary,
 } from "./summaries";
 
-export const taskRenderers: Record<string, ToolRenderer> = {
+export const taskRenderers = {
   get_tasks: {
     icon: ListTodo,
     title: "Read tasks",
@@ -98,4 +99,4 @@ export const taskRenderers: Record<string, ToolRenderer> = {
     Summary: ProjectWithTasksSummary,
     Detail: ProjectWithTasksDetail,
   },
-};
+} satisfies Record<TaskToolName, ToolRenderer>;

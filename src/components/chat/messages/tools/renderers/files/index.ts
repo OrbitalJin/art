@@ -12,6 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import type { ToolRenderer } from "../../types";
+import type { FileToolName } from "@/lib/ai/tools/files";
 import { EditFileDetail, EditFileSummary } from "./edit";
 import { ReadImageDetail, ReadImageSummary } from "./image";
 import { ListFolderDetail, ListFolderSummary, ListFoldersDetail } from "./list";
@@ -21,7 +22,7 @@ import { ReadFileDetail, ReadFileSummary } from "./read";
 import { StatDetail, StatSummary } from "./stat";
 import { WriteFileDetail, WriteFileSummary } from "./write";
 
-export const fileRenderers: Record<string, ToolRenderer> = {
+export const fileRenderers = {
   list_folders: {
     icon: FolderTree,
     title: "Listed folders",
@@ -93,4 +94,4 @@ export const fileRenderers: Record<string, ToolRenderer> = {
     Summary: MoveSummary,
     Detail: MoveDetail,
   },
-};
+} satisfies Record<FileToolName, ToolRenderer>;

@@ -1,6 +1,7 @@
 import type { ToolSet } from "ai";
-import { isMutatingTool, type AccessMode } from "./registry";
+import type { AccessMode } from "./registry";
 import { withApprovalTool } from "./approval";
+import { isMutating } from "./define";
 
 export const applyAccessPolicy = (
   tools: ToolSet,
@@ -10,7 +11,7 @@ export const applyAccessPolicy = (
   const result: ToolSet = {};
 
   for (const [name, entry] of Object.entries(tools)) {
-    if (!isMutatingTool(name)) {
+    if (!isMutating(entry)) {
       result[name] = entry;
       continue;
     }
