@@ -37,6 +37,13 @@ export const formatError = (err: unknown): string => {
       if (!err.message.includes(body)) lines.push(`Body:\n${body}`);
     }
 
+    if (record.cause !== undefined) {
+      const cause = safeStringify(record.cause);
+      if (!lines.some((line) => line.includes(cause))) {
+        lines.push(`Cause:\n${cause}`);
+      }
+    }
+
     if (err.stack) lines.push(`\nStack:\n${err.stack}`);
     return lines.join("\n");
   }

@@ -2,6 +2,7 @@ import type { Composio } from "@composio/core";
 import type { VercelProvider } from "@composio/vercel";
 import type { ToolSet } from "ai";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { nativeFetch } from "@/lib/native-fetch";
 import { READ_ONLY_TOOLS, SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
 
 export type ComposioClient = Composio<VercelProvider>;
@@ -33,12 +34,19 @@ export const getComposio = async (): Promise<ComposioClient | null> => {
     import("@composio/core"),
     import("@composio/vercel"),
   ]);
-  const composio = new Composio({
-    apiKey,
-    provider: new VercelProvider(),
-    allowTracking: false,
-    disableVersionCheck: true,
-  });
+  const globalFetch = globalThis.fetch;
+  globalThis.fetch = nativeFetch;
+  let composio: ComposioClient;
+  try {
+    composio = new Composio({
+      apiKey,
+      provider: new VercelProvider(),
+      allowTracking: false,
+      disableVersionCheck: true,
+    });
+  } finally {
+    globalThis.fetch = globalFetch;
+  }
   instance = { key: apiKey, composio };
   clearCaches();
   return composio;

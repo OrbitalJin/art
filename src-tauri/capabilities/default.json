@@ -41,7 +41,8 @@
       "identifier": "http:default",
       "allow": [
         { "url": "https://api.exa.ai" },
-        { "url": "https://ai-gateway.vercel.sh" }
+        { "url": "https://ai-gateway.vercel.sh" },
+        { "url": "https://backend.composio.dev" }
       ]
     }
   ]
