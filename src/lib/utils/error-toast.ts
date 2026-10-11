@@ -10,6 +10,18 @@ const safeStringify = (value: unknown): string => {
   }
 };
 
+const describe = (value: unknown): string => {
+  if (value instanceof Error) {
+    const head = `${value.name}: ${value.message}`;
+    const nested = (value as Error & { cause?: unknown }).cause;
+    const tail = value.stack ? `\n${value.stack}` : "";
+    return nested !== undefined
+      ? `${head}\nCause: ${describe(nested)}${tail}`
+      : `${head}${tail}`;
+  }
+  return safeStringify(value);
+};
+
 /**
  * Serialize an error (Composio `ComposioError` / `@composio/client` `APIError`
  * or a plain value) into a complete, copyable block.
@@ -38,7 +50,7 @@ export const formatError = (err: unknown): string => {
     }
 
     if (record.cause !== undefined) {
-      const cause = safeStringify(record.cause);
+      const cause = describe(record.cause);
       if (!lines.some((line) => line.includes(cause))) {
         lines.push(`Cause:\n${cause}`);
       }

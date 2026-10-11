@@ -5,6 +5,31 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { nativeFetch } from "@/lib/native-fetch";
 import { READ_ONLY_TOOLS, SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
 
+const COMPOSIO_HOST_SUFFIX = ".composio.dev";
+const originalFetch = globalThis.fetch;
+
+console.log("[composio-fetch] installing composio fetch shim");
+
+globalThis.fetch = ((input, init) => {
+  const url =
+    typeof input === "string"
+      ? input
+      : input instanceof URL
+        ? input.href
+        : input.url;
+  let host = "";
+  try {
+    host = new URL(url, "http://tauri.localhost").hostname;
+  } catch {
+    host = "";
+  }
+  if (host === "composio.dev" || host.endsWith(COMPOSIO_HOST_SUFFIX)) {
+    console.log("[composio-fetch] routing via native:", init?.method ?? "GET", url);
+    return nativeFetch(input as string, init);
+  }
+  return originalFetch(input, init);
+}) as typeof fetch;
+
 export type ComposioClient = Composio<VercelProvider>;
 export type ComposioSession = Awaited<
   ReturnType<ComposioClient["sessions"]["create"]>
@@ -34,19 +59,12 @@ export const getComposio = async (): Promise<ComposioClient | null> => {
     import("@composio/core"),
     import("@composio/vercel"),
   ]);
-  const globalFetch = globalThis.fetch;
-  globalThis.fetch = nativeFetch;
-  let composio: ComposioClient;
-  try {
-    composio = new Composio({
-      apiKey,
-      provider: new VercelProvider(),
-      allowTracking: false,
-      disableVersionCheck: true,
-    });
-  } finally {
-    globalThis.fetch = globalFetch;
-  }
+  const composio = new Composio({
+    apiKey,
+    provider: new VercelProvider(),
+    allowTracking: false,
+    disableVersionCheck: true,
+  });
   instance = { key: apiKey, composio };
   clearCaches();
   return composio;
