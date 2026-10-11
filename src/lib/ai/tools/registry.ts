@@ -3,7 +3,7 @@ export type AccessMode = "readonly" | "confirm" | "autonomous";
 export type ToolCategory = "art" | "computer" | "interaction" | "connections";
 
 export interface ToolFamily {
-  key: "tasks" | "files" | "askUser" | "connections" | "todo";
+  key: "tasks" | "files" | "askUser" | "connections" | "todo" | "youtube";
   label: string;
   description: string;
   category: ToolCategory;
@@ -42,6 +42,12 @@ export const TOOL_FAMILIES: ToolFamily[] = [
     label: "Files",
     description: "Read & write local folders",
     category: "computer",
+  },
+  {
+    key: "youtube",
+    label: "YouTube",
+    description: "Pull video transcripts",
+    category: "connections",
   },
   {
     key: "tasks",

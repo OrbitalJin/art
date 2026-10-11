@@ -26,10 +26,12 @@ const questionSchema = z.object({
   question: z.string().describe("The full question to ask the user."),
   options: z
     .array(optionSchema)
-    .min(2)
     .max(3)
     .describe(
-      "Multiple-choice options. Users can always type their own answer.",
+      "Provide 2–3 multiple-choice options when a choice is needed. For " +
+        "open-ended input, omit `options` (the user gets a free-text field). " +
+        "Never send exactly one option — add a second plausible alternative " +
+        "or drop `options`. Users can always type their own answer.",
     ),
   multiple: z
     .boolean()

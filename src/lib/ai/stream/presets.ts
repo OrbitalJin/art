@@ -21,7 +21,7 @@ const connectedToolkits = (session: Session): string[] =>
     .map(([slug]) => slug);
 
 const enabledToolkits = (session: Session): string[] =>
-  ["askUser", "todo"].filter((key) => toolkitEnabled(session, key));
+  ["askUser", "todo", "youtube"].filter((key) => toolkitEnabled(session, key));
 
 export const presetFor = (ctx: RequestContext) => {
   const { session } = ctx;

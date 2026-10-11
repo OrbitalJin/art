@@ -4,6 +4,7 @@ import { create } from "zustand";
 import type { ModelId } from "../ai/models";
 import type { AccessMode } from "../ai/tools/registry";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
+import { DEFAULT_TRANSCRIPT_PROVIDER_ID } from "../ai/tools/transcript/providers";
 
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
@@ -28,6 +29,8 @@ interface SettingsState {
   searchApiKey: string;
   composioApiKey: string;
   composioUserId: string;
+  youtubeApiKey: string;
+  transcriptProvider: string;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
@@ -42,6 +45,8 @@ interface SettingsState {
   setApiKey: (key: string) => void;
   setSearchApiKey: (key: string) => void;
   setComposioApiKey: (key: string) => void;
+  setYoutubeApiKey: (key: string) => void;
+  setTranscriptProvider: (id: string) => void;
   ensureComposioUserId: () => string;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
@@ -79,6 +84,8 @@ const initialState = {
   searchApiKey: "",
   composioApiKey: "",
   composioUserId: "",
+  youtubeApiKey: "",
+  transcriptProvider: DEFAULT_TRANSCRIPT_PROVIDER_ID,
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
@@ -98,6 +105,8 @@ export const useSettingsStore = create<SettingsState>()(
       setApiKey: (key: string) => set({ apiKey: key }),
       setSearchApiKey: (key: string) => set({ searchApiKey: key }),
       setComposioApiKey: (key: string) => set({ composioApiKey: key }),
+      setYoutubeApiKey: (key: string) => set({ youtubeApiKey: key }),
+      setTranscriptProvider: (id: string) => set({ transcriptProvider: id }),
       ensureComposioUserId: () => {
         const existing = get().composioUserId;
         if (existing) return existing;
@@ -126,7 +135,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 6,
+      version: 7,
       storage: createJSONStorage(() => settingsStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -188,6 +197,17 @@ export const useSettingsStore = create<SettingsState>()(
           if (state) {
             if (state.composioApiKey === undefined) state.composioApiKey = "";
             if (state.composioUserId === undefined) state.composioUserId = "";
+          }
+        }
+        if (version < 7) {
+          const state = persistedState as {
+            youtubeApiKey?: string;
+            transcriptProvider?: string;
+          };
+          if (state) {
+            if (state.youtubeApiKey === undefined) state.youtubeApiKey = "";
+            if (state.transcriptProvider === undefined)
+              state.transcriptProvider = DEFAULT_TRANSCRIPT_PROVIDER_ID;
           }
         }
         return persistedState as SettingsState;

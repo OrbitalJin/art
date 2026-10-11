@@ -7,6 +7,7 @@ import { askUserTools } from "./ask-user";
 import { doneTools } from "./done";
 import { todoTools } from "./todo";
 import { composioTools } from "./composio";
+import { youtubeTools } from "./youtube";
 import { applyAccessPolicy } from "./policy";
 import { toolkitEnabled } from "./toolkits";
 
@@ -29,6 +30,7 @@ export const toolsFor = ({ session }: Opts): ToolSet => {
     ...(toolkitEnabled(session, "askUser") &&
       session &&
       askUserTools(session.id)),
+    ...(toolkitEnabled(session, "youtube") && session && youtubeTools()),
     ...(session && composioTools(session)),
     ...(toolkitEnabled(session, "files") &&
       session?.folders &&

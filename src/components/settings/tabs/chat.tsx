@@ -187,6 +187,8 @@ export const ChatSettingsTab: React.FC = () => {
   const setComposioApiKey = useSettingsStore(
     (state) => state.setComposioApiKey,
   );
+  const youtubeApiKey = useSettingsStore((state) => state.youtubeApiKey);
+  const setYoutubeApiKey = useSettingsStore((state) => state.setYoutubeApiKey);
   const defaultModel = useSettingsStore((state) => state.defaultModel);
   const setDefaultModel = useSettingsStore((state) => state.setDefaultModel);
   const defaultAgentModel = useSettingsStore(
@@ -253,6 +255,13 @@ export const ChatSettingsTab: React.FC = () => {
             placeholder="secret key"
             value={composioApiKey}
             onSave={setComposioApiKey}
+          />
+          <SecretKeyField
+            label="YouTube"
+            description="Transcript key for youtube-transcript.ai."
+            placeholder="secret key"
+            value={youtubeApiKey}
+            onSave={setYoutubeApiKey}
           />
         </SettingsCard>
       </SettingsSection>

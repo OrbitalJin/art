@@ -200,6 +200,7 @@ Bento-style task board with drag-and-drop organization.
 
 ### Planned
 
+- [ ] better api key gating
 - [ ] Custom renderer per tool for write approval (similar to tool calls)
 - [ ] Make ui more consistent
 - [ ] Make todo expandable in agent bar

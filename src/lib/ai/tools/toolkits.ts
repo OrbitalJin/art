@@ -12,6 +12,7 @@ export const toolkitEnabled = (
   if (explicit !== undefined) return explicit;
   if (CONNECTION_TOOLKITS.has(key)) return true;
   if (key === "files") return (session.folders?.length ?? 0) > 0;
+  if (key === "youtube") return session.type === "agent";
   if (key === "askUser" || key === "todo") return session.type === "agent";
   return false;
 };
