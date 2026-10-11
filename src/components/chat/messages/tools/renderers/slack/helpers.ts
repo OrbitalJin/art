@@ -59,9 +59,7 @@ export const usersOf = (output: unknown): Record<string, unknown>[] => {
   return recordsOf(payload.users);
 };
 
-export const userOf = (
-  output: unknown,
-): Record<string, unknown> | null => {
+export const userOf = (output: unknown): Record<string, unknown> | null => {
   const payload = payloadOf(output);
   if (!payload) return null;
 
@@ -69,6 +67,33 @@ export const userOf = (
   if (user) return user;
 
   return usersOf(output)[0] ?? null;
+};
+
+export interface Identity {
+  userName: string | null;
+  teamName: string | null;
+  domain: string | null;
+  url: string | null;
+  userId: string | null;
+  teamId: string | null;
+}
+
+export const toIdentity = (output: unknown): Identity => {
+  const payload = payloadOf(output) ?? {};
+  const user = asRecord(payload.user);
+  const team = asRecord(payload.team);
+
+  return {
+    userName:
+      getString(payload, "user") ??
+      getString(user, "real_name") ??
+      getString(user, "name"),
+    teamName: getString(payload, "team") ?? getString(team, "name"),
+    domain: getString(team, "domain"),
+    url: getString(payload, "url"),
+    userId: getString(payload, "user_id") ?? getString(user, "id"),
+    teamId: getString(payload, "team_id") ?? getString(team, "id"),
+  };
 };
 
 export interface Channel {
@@ -150,8 +175,7 @@ export const toUser = (item: unknown): SlackUser => {
   return {
     id: getString(record, "id") ?? getString(record, "user_id"),
     name: getString(record, "name") ?? getString(profile, "display_name"),
-    realName:
-      getString(record, "real_name") ?? getString(profile, "real_name"),
+    realName: getString(record, "real_name") ?? getString(profile, "real_name"),
     displayName: getString(profile, "display_name"),
     email: getString(profile, "email") ?? getString(record, "email"),
     title: getString(profile, "title"),
@@ -164,6 +188,31 @@ export const toUser = (item: unknown): SlackUser => {
   };
 };
 
+/** Slack ids look like `C01234ABCDE`, `U…`, `G…`, `D…`, `W…`. */
+export const looksLikeId = (value: string): boolean =>
+  /^[CGDUW][A-Z0-9]{8,}$/.test(value);
+
+/**
+ * Turns Slack mrkdwn tokens into readable text: `<@U1>` -> `@U1`,
+ * `<#C1|general>` -> `#general`, `<https://x|label>` -> `label`, and decodes
+ * the three HTML entities Slack escapes.
+ */
+export const cleanSlackText = (text: string): string =>
+  text
+    .replace(
+      /<@([A-Z0-9]+)(?:\|([^>]+))?>/g,
+      (_match, id: string, label?: string) => `@${label ?? id}`,
+    )
+    .replace(/<#[A-Z0-9]+\|([^>]+)>/g, "#$1")
+    .replace(/<#([A-Z0-9]+)>/g, "#$1")
+    .replace(/<!(here|channel|everyone)[^>]*>/g, "@$1")
+    .replace(/<(https?:[^|>]+)\|([^>]+)>/g, "$2")
+    .replace(/<(https?:[^>]+)>/g, "$1")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+
+/** Gmail-style: time today, "Mar 4" this year, "Mar 4, 2024" otherwise. */
 export const formatSlackTs = (value: string | null): string | null => {
   if (!value) return null;
 
@@ -173,8 +222,25 @@ export const formatSlackTs = (value: string | null): string | null => {
   const date = new Date(seconds * 1000);
   if (Number.isNaN(date.getTime())) return null;
 
+  const now = new Date();
+
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
+    year: "numeric",
   });
 };

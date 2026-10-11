@@ -123,7 +123,9 @@ const ApprovalDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
   );
 };
 
-export const Approval: React.FC<{ disabled: boolean }> = ({ disabled }) => {
+export const ApprovalSwitch: React.FC<{ disabled: boolean }> = ({
+  disabled,
+}) => {
   const activeId = useSessionStore((store) => store.activeId);
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === activeId),

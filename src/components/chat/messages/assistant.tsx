@@ -96,7 +96,7 @@ export const AssistantMessage: React.FC<Message> = (message) => {
 
   return (
     <div className="group relative w-full min-w-0 animate-in fade-in duration-100 select-auto">
-      <div className="min-w-0 leading-7 text-foreground">
+      <div className="min-w-0 leading-7 text-foreground/80 text-base">
         <ThinkingSection
           reasoning={reasoning}
           status={isStreamingMessage ? "streaming" : "done"}

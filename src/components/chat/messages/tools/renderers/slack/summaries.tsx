@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import type { FC, ReactNode } from "react";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { ResultBadge, SummaryRow, SummaryText } from "../../primitives";
 import {
@@ -9,8 +9,12 @@ import {
 } from "../../helpers";
 import {
   channelsOf,
+  conversationOf,
   errorOf,
+  looksLikeId,
   messagesOf,
+  toChannel,
+  toIdentity,
   toUser,
   userOf,
   usersOf,
@@ -25,69 +29,101 @@ const userRefOf = (input: unknown): string | null =>
   getString(asRecord(input), "user_id") ??
   getString(asRecord(input), "email");
 
+const SummaryStatus: FC<{ block: ToolCallBlock; children: ReactNode }> = ({
+  block,
+  children,
+}) => {
+  const failed = block.state === "error" || errorOf(block.output) !== null;
+  if (failed) return <ResultBadge tone="error">failed</ResultBadge>;
+
+  if (block.state === "executing") return null;
+
+  return <>{children}</>;
+};
+
+const ChannelRefText: FC<{ channelRef: string }> = ({ channelRef }) => {
+  if (looksLikeId(channelRef)) {
+    return (
+      <SummaryText mono title={channelRef}>
+        {channelRef}
+      </SummaryText>
+    );
+  }
+
+  const label = `#${channelRef.replace(/^#/, "")}`;
+  return <SummaryText title={label}>{label}</SummaryText>;
+};
+
+const CountSummary: FC<{
+  block: ToolCallBlock;
+  label: string | null;
+  count: number;
+  noun: string;
+}> = ({ block, label, count, noun }) => (
+  <SummaryRow>
+    {label ? <SummaryText title={label}>{label}</SummaryText> : null}
+    <SummaryStatus block={block}>
+      <ResultBadge>{formatCount(count, noun)}</ResultBadge>
+    </SummaryStatus>
+  </SummaryRow>
+);
+
 export const WhoAmISummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const error = errorOf(block.output);
-  const input = asRecord(block.input);
-  const summary = getString(input, "user") ?? getSummaryText(block.input);
+  const identity = toIdentity(block.output);
+  const label = identity.userName;
 
   return (
     <SummaryRow>
-      {summary ? <SummaryText title={summary}>{summary}</SummaryText> : null}
-      {error ? (
-        <ResultBadge tone="error">failed</ResultBadge>
-      ) : block.state !== "executing" ? (
-        <ResultBadge>read</ResultBadge>
-      ) : null}
+      {label ? <SummaryText title={label}>{label}</SummaryText> : null}
+      <SummaryStatus block={block}>
+        <ResultBadge>{identity.teamName ?? "read"}</ResultBadge>
+      </SummaryStatus>
     </SummaryRow>
   );
 };
 
-export const ChannelsSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const query = getSummaryText(block.input);
-  const error = errorOf(block.output);
-  const channels = channelsOf(block.output);
-
-  return (
-    <SummaryRow>
-      {query ? <SummaryText title={query}>{query}</SummaryText> : null}
-      {error ? (
-        <ResultBadge tone="error">failed</ResultBadge>
-      ) : block.state !== "executing" ? (
-        <ResultBadge>{formatCount(channels.length, "channel")}</ResultBadge>
-      ) : null}
-    </SummaryRow>
-  );
-};
+export const ChannelsSummary: FC<{ block: ToolCallBlock }> = ({ block }) => (
+  <CountSummary
+    block={block}
+    label={getSummaryText(block.input)}
+    count={channelsOf(block.output).length}
+    noun="channel"
+  />
+);
 
 export const ChannelInfoSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   const ref = channelRefOf(block.input);
-  const error = errorOf(block.output);
+  const channel = toChannel(conversationOf(block.output));
+  const name = channel.name ? `#${channel.name}` : null;
+  const badge =
+    channel.memberCount !== null
+      ? formatCount(channel.memberCount, "member")
+      : "read";
 
   return (
     <SummaryRow>
-      {ref ? <SummaryText mono title={ref}>{ref}</SummaryText> : null}
-      {error ? (
-        <ResultBadge tone="error">failed</ResultBadge>
-      ) : block.state !== "executing" ? (
-        <ResultBadge>read</ResultBadge>
+      {name ? (
+        <SummaryText title={name}>{name}</SummaryText>
+      ) : ref ? (
+        <ChannelRefText channelRef={ref} />
       ) : null}
+      <SummaryStatus block={block}>
+        <ResultBadge>{badge}</ResultBadge>
+      </SummaryStatus>
     </SummaryRow>
   );
 };
 
 export const MessagesSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   const ref = channelRefOf(block.input);
-  const error = errorOf(block.output);
   const messages = messagesOf(block.output);
 
   return (
     <SummaryRow>
-      {ref ? <SummaryText title={ref}>#{ref}</SummaryText> : null}
-      {error ? (
-        <ResultBadge tone="error">failed</ResultBadge>
-      ) : block.state !== "executing" ? (
+      {ref ? <ChannelRefText channelRef={ref} /> : null}
+      <SummaryStatus block={block}>
         <ResultBadge>{formatCount(messages.length, "message")}</ResultBadge>
-      ) : null}
+      </SummaryStatus>
     </SummaryRow>
   );
 };
@@ -95,54 +131,37 @@ export const MessagesSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
 export const SearchSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   const query =
     getString(asRecord(block.input), "query") ?? getSummaryText(block.input);
-  const error = errorOf(block.output);
-  const messages = messagesOf(block.output);
 
   return (
-    <SummaryRow>
-      {query ? <SummaryText title={query}>{query}</SummaryText> : null}
-      {error ? (
-        <ResultBadge tone="error">failed</ResultBadge>
-      ) : block.state !== "executing" ? (
-        <ResultBadge>{formatCount(messages.length, "match")}</ResultBadge>
-      ) : null}
-    </SummaryRow>
+    <CountSummary
+      block={block}
+      label={query}
+      count={messagesOf(block.output).length}
+      noun="match"
+    />
   );
 };
 
-export const UsersSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const query = getSummaryText(block.input);
-  const error = errorOf(block.output);
-  const users = usersOf(block.output);
-
-  return (
-    <SummaryRow>
-      {query ? <SummaryText title={query}>{query}</SummaryText> : null}
-      {error ? (
-        <ResultBadge tone="error">failed</ResultBadge>
-      ) : block.state !== "executing" ? (
-        <ResultBadge>{formatCount(users.length, "user")}</ResultBadge>
-      ) : null}
-    </SummaryRow>
-  );
-};
+export const UsersSummary: FC<{ block: ToolCallBlock }> = ({ block }) => (
+  <CountSummary
+    block={block}
+    label={getSummaryText(block.input)}
+    count={usersOf(block.output).length}
+    noun="user"
+  />
+);
 
 export const UserSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   const ref = userRefOf(block.input);
-  const error = errorOf(block.output);
   const user = toUser(userOf(block.output));
-  const name = user.realName ?? user.displayName ?? user.name;
+  const label = user.realName ?? user.displayName ?? user.name ?? ref;
 
   return (
     <SummaryRow>
-      {name ?? ref ? (
-        <SummaryText title={name ?? ref ?? undefined}>{name ?? ref}</SummaryText>
-      ) : null}
-      {error ? (
-        <ResultBadge tone="error">failed</ResultBadge>
-      ) : user.id && block.state !== "executing" ? (
-        <ResultBadge>read</ResultBadge>
-      ) : null}
+      {label ? <SummaryText title={label}>{label}</SummaryText> : null}
+      <SummaryStatus block={block}>
+        {user.id ? <ResultBadge>read</ResultBadge> : null}
+      </SummaryStatus>
     </SummaryRow>
   );
 };

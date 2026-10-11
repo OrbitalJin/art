@@ -1,8 +1,16 @@
 import type { FC } from "react";
 import { cn } from "@/lib/utils";
 import type { ToolCallBlock } from "@/lib/store/session/types";
-import { ListRow, ResultBadge, RowList, SummaryRow, SummaryText } from "../../primitives";
-import { asArray, asRecord, getString } from "../../helpers";
+import {
+  EmptyNote,
+  ErrorNote,
+  ListRow,
+  ResultBadge,
+  RowList,
+  SummaryRow,
+  SummaryText,
+} from "../../primitives";
+import { asArray, asRecord, formatCount, getString } from "../../helpers";
 
 interface AnswerView {
   selected: string[];
@@ -11,6 +19,12 @@ interface AnswerView {
 
 const questionsOf = (input: unknown) =>
   asArray(asRecord(input)?.questions).map((item) => asRecord(item) ?? {});
+
+const optionsOf = (question: Record<string, unknown>) =>
+  asArray(question.options).map((item) => asRecord(item) ?? {});
+
+const errorOf = (output: unknown): string | null =>
+  getString(asRecord(output), "error");
 
 // Assumes the tool result is the submitted answers: an array of
 // { question, selected, custom } (or { answers: [...] }), in question order.
@@ -30,28 +44,50 @@ const answersOf = (output: unknown): AnswerView[] => {
   });
 };
 
-export const OptionRow: FC<{
-  label: string | null;
-  description: string | null;
-  chosen: boolean;
-}> = ({ label, description, chosen }) => {
+const hasAnswer = (answer: AnswerView): boolean =>
+  answer.selected.length > 0 || answer.custom !== null;
+
+const givenOf = (answer: AnswerView): string =>
+  [...answer.selected, answer.custom].filter(Boolean).join(", ");
+
+export const OptionMarker: FC<{ chosen: boolean }> = ({ chosen }) => {
   const dotClasses = cn(
-    "mt-[7px] size-1.5 shrink-0 rounded-full",
+    "size-1.5 rounded-full",
     chosen ? "bg-emerald-500" : "bg-muted-foreground/25",
   );
 
+  return (
+    <span
+      aria-hidden
+      className="flex h-4 w-3 shrink-0 items-center justify-center"
+    >
+      <span className={dotClasses} />
+    </span>
+  );
+};
+
+export const OptionRow: FC<{
+  label: string;
+  description: string | null;
+  chosen: boolean;
+  answered: boolean;
+}> = ({ label, description, chosen, answered }) => {
+  const dimmed = answered && !chosen;
+
   const labelClasses = cn(
-    "text-[12px]",
-    chosen ? "text-foreground/90" : "text-muted-foreground/70",
+    "text-[12px] leading-4",
+    chosen && "text-foreground/90",
+    dimmed && "text-muted-foreground/45",
+    !answered && "text-foreground/75",
   );
 
   return (
     <li className="flex min-w-0 items-start gap-2">
-      <span aria-hidden className={dotClasses} />
+      <OptionMarker chosen={chosen} />
       <span className="flex min-w-0 flex-col">
         <span className={labelClasses}>{label}</span>
         {description ? (
-          <span className="text-[11px] leading-snug text-muted-foreground/50">
+          <span className="text-[11px] leading-[14px] text-muted-foreground/50">
             {description}
           </span>
         ) : null}
@@ -66,7 +102,8 @@ export const QuestionView: FC<{
 }> = ({ question, answer }) => {
   const header = getString(question, "header");
   const text = getString(question, "question");
-  const options = asArray(question.options).map((item) => asRecord(item) ?? {});
+  const options = optionsOf(question);
+  const answered = answer !== undefined && hasAnswer(answer);
 
   return (
     <ListRow>
@@ -80,63 +117,96 @@ export const QuestionView: FC<{
         <p className="text-[12px] leading-snug text-foreground/85">{text}</p>
       ) : null}
 
-      {options.length > 0 ? (
+      {options.length > 0 || answer?.custom ? (
         <ul className="mt-1 flex flex-col gap-1.5">
           {options.map((option, index) => {
             const label = getString(option, "label");
-            const chosen = Boolean(
-              label && answer && answer.selected.includes(label),
-            );
+            if (!label) return null;
 
             return (
               <OptionRow
                 key={index}
                 label={label}
                 description={getString(option, "description")}
-                chosen={chosen}
+                chosen={answer?.selected.includes(label) ?? false}
+                answered={answered}
               />
             );
           })}
-        </ul>
-      ) : null}
 
-      {answer?.custom ? (
-        <p className="mt-1 text-[12px] text-foreground/85">
-          <span className="text-muted-foreground/60">Your answer: </span>
-          {answer.custom}
-        </p>
+          {answer?.custom ? (
+            <OptionRow
+              label={answer.custom}
+              description="Custom answer"
+              chosen
+              answered
+            />
+          ) : null}
+        </ul>
       ) : null}
     </ListRow>
   );
 };
 
+export const AnswerBadge: FC<{
+  block: ToolCallBlock;
+  questionCount: number;
+}> = ({ block, questionCount }) => {
+  if (errorOf(block.output)) {
+    return <ResultBadge tone="error">failed</ResultBadge>;
+  }
+
+  if (block.state === "executing") return <ResultBadge>waiting</ResultBadge>;
+
+  const answered = answersOf(block.output).filter(hasAnswer);
+  if (answered.length === 0) return null;
+
+  if (questionCount > 1) {
+    return (
+      <ResultBadge tone="success">
+        {formatCount(answered.length, "answer")}
+      </ResultBadge>
+    );
+  }
+
+  return <ResultBadge tone="success">{givenOf(answered[0])}</ResultBadge>;
+};
+
 export const AskUserSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const first = questionsOf(block.input)[0];
+  const questions = questionsOf(block.input);
+  const first = questions[0];
   const text = getString(first, "header") ?? getString(first, "question");
-  const answer = answersOf(block.output)[0];
-  const given = answer
-    ? [...answer.selected, answer.custom].filter(Boolean).join(", ")
-    : "";
 
   return (
     <SummaryRow>
       {text ? <SummaryText title={text}>{text}</SummaryText> : null}
-      {given ? <ResultBadge tone="success">{given}</ResultBadge> : null}
+      <AnswerBadge block={block} questionCount={questions.length} />
     </SummaryRow>
   );
 };
 
 export const AskUserDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
+  const error = errorOf(block.output);
+  if (error) return <ErrorNote>{error}</ErrorNote>;
+
   const questions = questionsOf(block.input);
   if (questions.length === 0) return null;
 
   const answers = answersOf(block.output);
+  const waiting = block.state === "executing";
 
   return (
-    <RowList>
-      {questions.map((question, index) => (
-        <QuestionView key={index} question={question} answer={answers[index]} />
-      ))}
-    </RowList>
+    <div className="flex flex-col gap-2">
+      <RowList>
+        {questions.map((question, index) => (
+          <QuestionView
+            key={index}
+            question={question}
+            answer={answers[index]}
+          />
+        ))}
+      </RowList>
+      {waiting ? <EmptyNote>Waiting for an answer…</EmptyNote> : null}
+    </div>
   );
 };

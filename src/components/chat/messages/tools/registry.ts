@@ -6,6 +6,7 @@ import { askUserRenderers } from "./renderers/ask-user";
 import { todoRenderers } from "./renderers/todo";
 import { gmailRenderers } from "./renderers/gmail";
 import { slackRenderers } from "./renderers/slack";
+import { googlesheetsRenderers } from "./renderers/googlesheets";
 import { genericRenderer } from "./renderers/generic";
 
 const TOOL_RENDERERS: Record<string, ToolRenderer> = {
@@ -16,6 +17,7 @@ const TOOL_RENDERERS: Record<string, ToolRenderer> = {
   ...todoRenderers,
   ...gmailRenderers,
   ...slackRenderers,
+  ...googlesheetsRenderers,
 };
 
 export const resolveRenderer = (toolName: string): ToolRenderer =>

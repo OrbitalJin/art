@@ -1,9 +1,10 @@
-export const SUPPORTED_TOOLKITS = ["gmail", "slack"] as const;
+export const SUPPORTED_TOOLKITS = ["gmail", "slack", "googlesheets"] as const;
 export type SupportedToolkit = (typeof SUPPORTED_TOOLKITS)[number];
 
 export const TOOLKIT_LABELS: Record<SupportedToolkit, string> = {
   gmail: "Gmail",
   slack: "Slack",
+  googlesheets: "Google Sheets",
 };
 
 /**
@@ -50,4 +51,10 @@ export const READ_ONLY_TOOLS: ReadonlySet<string> = new Set([
   // Slack — files / workspace
   "SLACK_LIST_FILES_WITH_FILTERS_IN_SLACK",
   "SLACK_FETCH_TEAM_INFO",
+  // Google Sheets — metadata
+  "GOOGLESHEETS_GET_SPREADSHEET_INFO",
+  "GOOGLESHEETS_GET_SHEET_NAMES",
+  // Google Sheets — values
+  "GOOGLESHEETS_VALUES_GET",
+  "GOOGLESHEETS_BATCH_GET",
 ]);

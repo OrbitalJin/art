@@ -1,6 +1,6 @@
 export type AccessMode = "readonly" | "confirm" | "autonomous";
 
-export type ToolCategory = "workspace" | "computer" | "interaction";
+export type ToolCategory = "art" | "computer" | "interaction" | "connections";
 
 export interface ToolFamily {
   key: "tasks" | "files" | "askUser" | "connections" | "todo";
@@ -10,15 +10,17 @@ export interface ToolFamily {
 }
 
 export const CATEGORY_LABELS: Record<ToolCategory, string> = {
-  workspace: "Workspace",
+  art: "Art",
   computer: "Computer",
   interaction: "Interaction",
+  connections: "Connections",
 };
 
 export const CATEGORY_ORDER: ToolCategory[] = [
-  "interaction",
+  "art",
+  "connections",
   "computer",
-  "workspace",
+  "interaction",
 ];
 
 export const TOOL_FAMILIES: ToolFamily[] = [
@@ -45,12 +47,12 @@ export const TOOL_FAMILIES: ToolFamily[] = [
     key: "tasks",
     label: "Tasks",
     description: "Create and manage tasks",
-    category: "workspace",
+    category: "art",
   },
   {
     key: "connections",
     label: "Connections",
-    description: "Read-only access to Gmail",
-    category: "workspace",
+    description: "Read-only access to Gmail, Slack & Sheets",
+    category: "connections",
   },
 ];

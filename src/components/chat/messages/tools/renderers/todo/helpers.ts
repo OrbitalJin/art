@@ -1,10 +1,15 @@
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { asArray, asRecord } from "../../helpers";
 
+export type TodoStatus = "pending" | "in_progress" | "completed";
+
 export interface ParsedTodo {
   content: string;
-  status: string;
+  status: TodoStatus;
 }
+
+const isTodoStatus = (value: unknown): value is TodoStatus =>
+  value === "pending" || value === "in_progress" || value === "completed";
 
 export const inputRecord = (block: ToolCallBlock) => asRecord(block.input);
 
@@ -17,6 +22,6 @@ export const parseTodos = (block: ToolCallBlock): ParsedTodo[] =>
         typeof todo.content === "string" && todo.content.trim()
           ? todo.content
           : "",
-      status: typeof todo.status === "string" ? todo.status : "pending",
+      status: isTodoStatus(todo.status) ? todo.status : "pending",
     }))
     .filter((todo) => todo.content);

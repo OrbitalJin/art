@@ -101,38 +101,18 @@ export const CompactSummary: React.FC<{ block: ToolCallBlock }> = ({
 const DetailBody: React.FC<{
   block: ToolCallBlock;
   renderer: ToolRendererEntry;
-  showRaw: boolean;
-  onToggleRaw: () => void;
-}> = ({ block, renderer, showRaw, onToggleRaw }) => {
+}> = ({ block, renderer }) => {
   const Detail = renderer.Detail;
   const isError = block.state === "error";
 
-  const raw = showRaw || isError || !Detail;
-  const canToggle = Boolean(Detail) && !isError;
+  const raw = isError || !Detail;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {raw || !Detail ? (
         <RawView block={block} isError={isError} />
       ) : (
         <Detail block={block} />
-      )}
-
-      {canToggle && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={onToggleRaw}
-            className={cn(
-              "cursor-pointer rounded px-1.5 py-0.5 text-[10px] font-medium",
-              "text-muted-foreground/50 outline-none transition-colors duration-150",
-              "hover:bg-foreground/5 hover:text-foreground/80",
-              "focus-visible:ring-2 focus-visible:ring-ring/50",
-            )}
-          >
-            {showRaw ? "Show formatted" : "Show raw"}
-          </button>
-        </div>
       )}
     </div>
   );
@@ -144,7 +124,6 @@ export const ToolCallCard: React.FC<Props> = ({
   variant = "default",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showRaw, setShowRaw] = useState(false);
 
   const renderer = resolveRenderer(block.toolName);
 
@@ -189,7 +168,6 @@ export const ToolCallCard: React.FC<Props> = ({
   );
 
   const handleToggleOpen = () => setIsOpen((open) => !open);
-  const handleToggleRaw = () => setShowRaw((raw) => !raw);
 
   return (
     <div className={containerClasses}>
@@ -219,12 +197,7 @@ export const ToolCallCard: React.FC<Props> = ({
 
       {isOpen && hasDetails && (
         <div className={detailsClasses}>
-          <DetailBody
-            block={block}
-            renderer={renderer}
-            showRaw={showRaw}
-            onToggleRaw={handleToggleRaw}
-          />
+          <DetailBody block={block} renderer={renderer} />
         </div>
       )}
     </div>

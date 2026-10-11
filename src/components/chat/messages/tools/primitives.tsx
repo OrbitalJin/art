@@ -1,9 +1,10 @@
-// primitives.tsx
 import { Fragment, useState, type FC, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
-import { asRecord, formatCount, formatValue } from "./helpers";
+import { asRecord, blockErrorOf, formatCount, formatValue } from "./helpers";
+
+/* Summary */
 
 export const SummaryRow: FC<{ children: ReactNode }> = ({ children }) => (
   <span className="flex min-w-0 items-center gap-2">{children}</span>
@@ -34,10 +35,12 @@ export const Arrow: FC = () => (
 export const ResultBadge: FC<{
   children: ReactNode;
   tone?: "default" | "success" | "error";
-}> = ({ children, tone = "default" }) => (
+  title?: string;
+}> = ({ children, tone = "default", title }) => (
   <span
+    title={title ?? (typeof children === "string" ? children : undefined)}
     className={cn(
-      "shrink-0 text-[11px] tabular-nums",
+      "max-w-40 shrink-0 truncate text-[11px] tabular-nums",
       tone === "default" && "text-muted-foreground/60",
       tone === "success" && "text-emerald-600/90 dark:text-emerald-400/90",
       tone === "error" && "text-red-600/90 dark:text-red-400/90",
@@ -47,7 +50,37 @@ export const ResultBadge: FC<{
   </span>
 );
 
-/* Detail pieces */
+/**
+ * Trailing status for a summary: `failed` on error, nothing while executing,
+ * otherwise the children.
+ */
+export const SummaryStatus: FC<{
+  block: ToolCallBlock;
+  children: ReactNode;
+}> = ({ block, children }) => {
+  const failed = block.state === "error" || blockErrorOf(block) !== null;
+  if (failed) return <ResultBadge tone="error">failed</ResultBadge>;
+
+  if (block.state === "executing") return null;
+
+  return <>{children}</>;
+};
+
+export const CountSummary: FC<{
+  block: ToolCallBlock;
+  label: string | null;
+  count: number;
+  noun: string;
+}> = ({ block, label, count, noun }) => (
+  <SummaryRow>
+    {label ? <SummaryText title={label}>{label}</SummaryText> : null}
+    <SummaryStatus block={block}>
+      <ResultBadge>{formatCount(count, noun)}</ResultBadge>
+    </SummaryStatus>
+  </SummaryRow>
+);
+
+/* Basics */
 
 export const Chip: FC<{
   children: ReactNode;
@@ -133,6 +166,8 @@ export const KeyValueList: FC<{
   </dl>
 );
 
+/* Lists */
+
 export const RowList: FC<{
   children: ReactNode;
   maxHeightClass?: string;
@@ -148,9 +183,93 @@ export const RowList: FC<{
 );
 
 export const ListRow: FC<{ children: ReactNode }> = ({ children }) => (
-  <li className="flex min-w-0 flex-col gap-1 first:pt-0 last:pb-0">
+  <li className="flex min-w-0 flex-col gap-1 py-2 first:pt-0 last:pb-0">
     {children}
   </li>
+);
+
+export const DateStamp: FC<{
+  value: string | null;
+  href?: string | null;
+}> = ({ value, href }) => {
+  if (!value) return null;
+
+  const classes =
+    "ml-auto shrink-0 text-[10px] tabular-nums text-muted-foreground/50";
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className={cn(
+          classes,
+          "outline-none hover:text-primary hover:underline focus-visible:underline",
+        )}
+      >
+        {value}
+      </a>
+    );
+  }
+
+  return <span className={classes}>{value}</span>;
+};
+
+/* Detail */
+
+export const DetailGate: FC<{
+  block: ToolCallBlock;
+  executingLabel?: string;
+  children: ReactNode;
+}> = ({ block, executingLabel = "Loading…", children }) => {
+  const error = blockErrorOf(block);
+  if (error) return <ErrorNote>{error}</ErrorNote>;
+
+  if (block.state === "executing") {
+    return <EmptyNote>{executingLabel}</EmptyNote>;
+  }
+
+  return <>{children}</>;
+};
+
+export const DetailTitle: FC<{ title: string; children?: ReactNode }> = ({
+  title,
+  children,
+}) => (
+  <div className="flex min-w-0 items-center gap-2">
+    <span
+      className="min-w-0 truncate text-[12px] font-medium text-foreground/90"
+      title={title}
+    >
+      {title}
+    </span>
+    {children}
+  </div>
+);
+
+export const DetailSubtitle: FC<{ children: ReactNode }> = ({ children }) => (
+  <p className="truncate text-[10px] text-muted-foreground/50">{children}</p>
+);
+
+export const HeaderLine: FC<{
+  label: string;
+  mono?: boolean;
+  children: ReactNode;
+}> = ({ label, mono, children }) => (
+  <div className="flex min-w-0 items-baseline gap-2">
+    <span className="w-14 shrink-0 text-[10px] text-muted-foreground/50">
+      {label}
+    </span>
+    <span
+      className={cn(
+        "min-w-0 break-words text-[11px] text-foreground/70",
+        mono && "font-mono text-[10px]",
+      )}
+    >
+      {children}
+    </span>
+  </div>
 );
 
 /* JSON */
@@ -239,7 +358,7 @@ export const JsonTree: FC<{ value: unknown }> = ({ value }) => (
   </div>
 );
 
-/* Diff and code */
+/* Code and diff */
 
 const DiffLines: FC<{ text: string; sign: "+" | "-"; className?: string }> = ({
   text,

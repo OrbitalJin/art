@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -17,6 +17,30 @@ interface Props {
   trailing?: React.ReactNode;
 }
 
+const OptionIndicator: React.FC<{ selected: boolean; multiple: boolean }> = ({
+  selected,
+  multiple,
+}) => {
+  const ringClasses = cn(
+    "flex size-3.5 items-center justify-center border transition-colors",
+    multiple ? "rounded-[4px]" : "rounded-full",
+    selected ? "border-emerald-500/70" : "border-muted-foreground/30",
+  );
+
+  return (
+    <span
+      aria-hidden
+      className="flex h-[18px] w-4 shrink-0 items-center justify-center"
+    >
+      <span className={ringClasses}>
+        {selected ? (
+          <span className="size-1.5 rounded-full bg-emerald-500" />
+        ) : null}
+      </span>
+    </span>
+  );
+};
+
 const OptionRow: React.FC<{
   option: { label: string; description?: string };
   selected: boolean;
@@ -25,20 +49,12 @@ const OptionRow: React.FC<{
   onSelect: () => void;
 }> = ({ option, selected, multiple, disabled, onSelect }) => {
   const rowClasses = cn(
-    "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left",
+    "flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left",
     "outline-none transition-colors duration-150",
     "focus-visible:ring-2 focus-visible:ring-ring/50",
-    selected ? "bg-primary/10" : "hover:bg-muted/40",
+    selected ? "bg-muted/40" : "hover:bg-muted/30",
     disabled && "cursor-default hover:bg-transparent",
     disabled && !selected && "opacity-50",
-  );
-
-  const indicatorClasses = cn(
-    "flex size-4 shrink-0 items-center justify-center border transition-colors",
-    multiple ? "rounded-[4px]" : "rounded-full",
-    selected
-      ? "border-primary bg-primary text-primary-foreground"
-      : "border-muted-foreground/30",
   );
 
   return (
@@ -50,16 +66,14 @@ const OptionRow: React.FC<{
       aria-checked={selected}
       className={rowClasses}
     >
-      <span className={indicatorClasses}>
-        {selected && <Check size={10} strokeWidth={3} aria-hidden />}
-      </span>
+      <OptionIndicator selected={selected} multiple={multiple} />
 
       <span className="flex min-w-0 flex-col">
-        <span className="text-[13px] leading-snug text-foreground/90">
+        <span className="text-[13px] leading-[18px] text-foreground/90">
           {option.label}
         </span>
         {option.description && (
-          <span className="text-xs leading-snug text-muted-foreground/70">
+          <span className="text-xs leading-4 text-muted-foreground/70">
             {option.description}
           </span>
         )}
@@ -194,6 +208,32 @@ const QuestionBlock: React.FC<{
   );
 };
 
+const QuestionNav: React.FC<{
+  current: number;
+  total: number;
+  onBack?: () => void;
+}> = ({ current, total, onBack }) => (
+  <div className="flex items-center gap-1">
+    {onBack && (
+      <Button
+        size="icon"
+        variant="ghost"
+        aria-label="Previous question"
+        onClick={onBack}
+        className="size-5 text-muted-foreground hover:text-foreground"
+      >
+        <ChevronLeft size={12} aria-hidden />
+      </Button>
+    )}
+    <span
+      aria-live="polite"
+      className="text-[11px] font-medium text-muted-foreground/60 tabular-nums"
+    >
+      Question {current} of {total}
+    </span>
+  </div>
+);
+
 const CardHeader: React.FC<{
   isPending: boolean;
   current: number;
@@ -202,13 +242,14 @@ const CardHeader: React.FC<{
   trailing?: React.ReactNode;
 }> = ({ isPending, current, total, onBack, trailing }) => {
   const dotClasses = cn(
-    "size-1.5 rounded-full",
+    "size-1.5 shrink-0 rounded-full",
     isPending
-      ? "animate-pulse bg-primary motion-reduce:animate-none"
-      : "bg-muted-foreground/30",
+      ? "animate-pulse bg-amber-500 motion-reduce:animate-none"
+      : "bg-emerald-500/70",
   );
 
   const hasMultiple = total > 1;
+  const hasControls = hasMultiple || Boolean(trailing);
 
   return (
     <div className="flex items-center gap-2 px-3 pt-2.5">
@@ -217,38 +258,16 @@ const CardHeader: React.FC<{
         {isPending ? "Asking you" : "Asked you"}
       </span>
 
-      {trailing ? (
-        <div className="ml-auto flex shrink-0 items-center gap-1">
-          {trailing}
+      {hasControls ? (
+        <div className="ml-auto flex shrink-0 items-center gap-3">
+          {hasMultiple ? (
+            <QuestionNav current={current} total={total} onBack={onBack} />
+          ) : null}
+          {trailing ? (
+            <div className="flex items-center gap-1">{trailing}</div>
+          ) : null}
         </div>
       ) : null}
-
-      {hasMultiple && (
-        <div
-          className={cn(
-            "flex shrink-0 items-center gap-1",
-            !trailing && "ml-auto",
-          )}
-        >
-          {onBack && (
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label="Previous question"
-              onClick={onBack}
-              className="size-5 text-muted-foreground hover:text-foreground"
-            >
-              <ChevronLeft size={12} aria-hidden />
-            </Button>
-          )}
-          <span
-            aria-live="polite"
-            className="text-[11px] font-medium text-muted-foreground/60 tabular-nums"
-          >
-            {current} / {total}
-          </span>
-        </div>
-      )}
     </div>
   );
 };
@@ -337,7 +356,7 @@ export const AskUserCard: React.FC<Props> = ({
     "overflow-hidden transition-colors duration-200",
     variant === "default" && [
       "mb-2 max-w-3xl rounded-lg border bg-muted/10",
-      isPending ? "border-primary/30" : "border-border/40",
+      isPending ? "border-amber-500/30" : "border-border/40",
     ],
     variant === "embedded" && "w-full",
   );

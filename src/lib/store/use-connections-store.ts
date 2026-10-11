@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { connectionsStorage } from "@/lib/store/connections/adapter";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
+import { showConnectionErrorToast } from "@/lib/utils/error-toast";
 import {
   clearToolCache,
   createSession,
@@ -44,6 +46,7 @@ const statusOf = (value: string | undefined): ToolkitStatus => {
 interface ConnectionsState {
   hydrated: boolean;
   sessionId: string | null;
+  sessionToolkits: string[];
   toolkits: Record<string, ToolkitConnection>;
   slugs: string[];
   refreshing: boolean;
@@ -52,8 +55,12 @@ interface ConnectionsState {
 
   setHydrated: (value: boolean) => void;
   ensureSession: (force?: boolean) => Promise<string | null>;
-  refreshTools: () => Promise<string[]>;
-  syncConnections: (force?: boolean) => Promise<void>;
+  ensureToolkitAccess: () => Promise<void>;
+  refreshTools: (options?: { silent?: boolean }) => Promise<string[]>;
+  syncConnections: (
+    force?: boolean,
+    options?: { silent?: boolean },
+  ) => Promise<void>;
   connect: (toolkit: string) => Promise<string | null>;
   awaitConnection: (toolkit: string, timeoutMs?: number) => Promise<boolean>;
   disconnect: (toolkit: string) => Promise<void>;
@@ -65,11 +72,21 @@ const userId = (): string =>
 
 let inFlightSession: Promise<string | null> | null = null;
 
+const reportError = (
+  set: (partial: Partial<ConnectionsState>) => void,
+  err: unknown,
+  silent = false,
+): void => {
+  set({ error: err instanceof Error ? err.message : String(err) });
+  if (!silent) showConnectionErrorToast(err);
+};
+
 export const useConnectionsStore = create<ConnectionsState>()(
   persist(
     (set, get) => ({
       hydrated: false,
       sessionId: null,
+      sessionToolkits: [],
       toolkits: {},
       slugs: [],
       refreshing: false,
@@ -93,13 +110,14 @@ export const useConnectionsStore = create<ConnectionsState>()(
             }
             set({
               sessionId: session.sessionId,
+              sessionToolkits: [...SUPPORTED_TOOLKITS],
               slugs: [],
               synced: false,
               error: null,
             });
             return session.sessionId;
           } catch (err) {
-            set({ error: String(err) });
+            reportError(set, err);
             return null;
           } finally {
             inFlightSession = null;
@@ -109,7 +127,34 @@ export const useConnectionsStore = create<ConnectionsState>()(
         return inFlightSession;
       },
 
-      refreshTools: async () => {
+      ensureToolkitAccess: async () => {
+        const sessionId = await get().ensureSession();
+        if (!sessionId) return;
+
+        const target = [...SUPPORTED_TOOLKITS];
+        const current = get().sessionToolkits;
+        const upToDate =
+          current.length === target.length &&
+          target.every((toolkit) => current.includes(toolkit));
+        if (upToDate) return;
+
+        const session = await getOrCreateSession(sessionId);
+        if (session) {
+          try {
+            await session.update({ toolkits: { enable: target } });
+            clearToolCache(sessionId);
+            set({ sessionToolkits: target });
+            return;
+          } catch (err) {
+            reportError(set, err);
+          }
+        }
+
+        await get().ensureSession(true);
+      },
+
+      refreshTools: async (options) => {
+        const silent = options?.silent ?? false;
         const { sessionId } = get();
         if (!sessionId) return [];
         set({ refreshing: true });
@@ -123,22 +168,24 @@ export const useConnectionsStore = create<ConnectionsState>()(
           set({ slugs, error: null });
           return slugs;
         } catch (err) {
-          set({ error: String(err) });
+          reportError(set, err, silent);
           return [];
         } finally {
           set({ refreshing: false });
         }
       },
 
-      syncConnections: async (force = false) => {
+      syncConnections: async (force = false, options) => {
+        const silent = options?.silent ?? false;
         if (!force && get().synced) return;
         const composio = await getComposio();
         if (!composio) {
-          set({ error: "Add a Composio key in Settings > Chat." });
+          reportError(set, "Add a Composio key in Settings > Chat.", silent);
           return;
         }
         const sessionId = await get().ensureSession();
         if (!sessionId) return;
+        await get().ensureToolkitAccess();
 
         try {
           const accounts = await composio.connectedAccounts.list({
@@ -160,19 +207,20 @@ export const useConnectionsStore = create<ConnectionsState>()(
           const hasActive = Object.values(toolkits).some(
             (t) => t.status === "ACTIVE",
           );
-          if (hasActive) await get().refreshTools();
+          if (hasActive) await get().refreshTools({ silent });
           else {
             clearToolCache();
             set({ slugs: [] });
           }
         } catch (err) {
-          set({ error: String(err) });
+          reportError(set, err, silent);
         }
       },
 
       connect: async (toolkit: string) => {
         const sessionId = await get().ensureSession();
         if (!sessionId) return null;
+        await get().ensureToolkitAccess();
         let session = await getOrCreateSession(sessionId);
         if (!session) {
           const recreated = await get().ensureSession(true);
@@ -180,7 +228,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
           session = await getOrCreateSession(recreated);
         }
         if (!session) {
-          set({ error: "Could not open a Composio session." });
+          reportError(set, "Could not open a Composio session.");
           return null;
         }
         try {
@@ -194,7 +242,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
           }));
           return request.redirectUrl ?? null;
         } catch (err) {
-          set({ error: String(err) });
+          reportError(set, err);
           return null;
         }
       },
@@ -202,7 +250,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
       awaitConnection: async (toolkit: string, timeoutMs = 120_000) => {
         const deadline = Date.now() + timeoutMs;
         while (Date.now() < deadline) {
-          await get().syncConnections(true);
+          await get().syncConnections(true, { silent: true });
           if (get().toolkits[toolkit]?.status === "ACTIVE") return true;
           await new Promise((resolve) => setTimeout(resolve, 2500));
         }
@@ -228,7 +276,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
           }));
           await get().syncConnections(true);
         } catch (err) {
-          set({ error: String(err) });
+          reportError(set, err);
         }
       },
 
@@ -236,6 +284,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
         clearToolCache();
         set({
           sessionId: null,
+          sessionToolkits: [],
           toolkits: {},
           slugs: [],
           synced: false,
@@ -250,6 +299,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
       storage: createJSONStorage(() => connectionsStorage),
       partialize: (state) => ({
         sessionId: state.sessionId,
+        sessionToolkits: state.sessionToolkits,
         toolkits: state.toolkits,
       }),
       onRehydrateStorage: () => (state, error) => {

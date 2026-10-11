@@ -1,59 +1,54 @@
 import type { FC } from "react";
-import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import {
   EmptyNote,
+  ErrorNote,
   ResultBadge,
   SummaryRow,
   SummaryText,
 } from "../../primitives";
-import { parseTodos, type ParsedTodo } from "./helpers";
+import { parseTodos, type ParsedTodo, type TodoStatus } from "./helpers";
+
+const STATUS_LABEL: Record<TodoStatus, string> = {
+  pending: "Pending",
+  in_progress: "In progress",
+  completed: "Completed",
+};
 
 const countCompleted = (todos: ParsedTodo[]): number =>
   todos.filter((todo) => todo.status === "completed").length;
 
-const STATUS_LABEL: Record<string, string> = {
-  completed: "Completed",
-  in_progress: "In progress",
-};
+const StatusMarker: FC<{ status: TodoStatus }> = ({ status }) => {
+  const dotClasses = cn(
+    "size-1.5 rounded-full",
+    status === "completed" && "bg-emerald-500",
+    status === "in_progress" &&
+      "animate-pulse bg-amber-500 motion-reduce:animate-none",
+    status === "pending" && "bg-muted-foreground/25",
+  );
 
-const StatusMarker: FC<{ status: string }> = ({ status }) => {
-  if (status === "completed") {
-    return (
-      <span
-        aria-hidden
-        className="flex size-3.5 shrink-0 items-center justify-center rounded-full bg-emerald-500/80"
-      >
-        <Check size={9} strokeWidth={3} className="text-background" />
-      </span>
-    );
-  }
-
-  if (status === "in_progress") {
-    return (
-      <span
-        aria-hidden
-        className="flex size-3.5 shrink-0 items-center justify-center rounded-full border border-amber-500/70"
-      >
-        <span className="size-1.5 animate-pulse rounded-full bg-amber-500 motion-reduce:animate-none" />
-      </span>
-    );
-  }
+  return (
+    <span
+      aria-hidden
+      className="flex h-[18px] w-3 shrink-0 items-center justify-center"
+    >
+      <span className={dotClasses} />
+    </span>
+  );
 };
 
 const TodoRow: FC<{ todo: ParsedTodo }> = ({ todo }) => {
   const done = todo.status === "completed";
   const active = todo.status === "in_progress";
-  const statusLabel = STATUS_LABEL[todo.status] ?? "Pending";
 
   const rowClasses = cn(
-    "flex min-w-0 items-start gap-2.5 rounded-md px-2 py-1.5",
+    "flex min-w-0 items-start gap-2 rounded-md px-2 py-1.5",
     active && "bg-amber-500/5",
   );
 
   const textClasses = cn(
-    "min-w-0 text-[12px] leading-snug break-words",
+    "min-w-0 text-[12px] leading-[18px] break-words",
     done && "text-foreground/45 line-through",
     active && "font-medium text-foreground/90",
     !done && !active && "text-foreground/70",
@@ -61,11 +56,9 @@ const TodoRow: FC<{ todo: ParsedTodo }> = ({ todo }) => {
 
   return (
     <li className={rowClasses}>
-      <span className="mt-px">
-        <StatusMarker status={todo.status} />
-      </span>
+      <StatusMarker status={todo.status} />
       <span className={textClasses}>
-        <span className="sr-only">{statusLabel}: </span>
+        <span className="sr-only">{STATUS_LABEL[todo.status]}: </span>
         {todo.content}
       </span>
     </li>
@@ -99,6 +92,10 @@ const ProgressBar: FC<{ completed: number; total: number }> = ({
 };
 
 export const TodoListDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
+  if (block.state === "error") {
+    return <ErrorNote>Couldn't update the plan.</ErrorNote>;
+  }
+
   const todos = parseTodos(block);
 
   if (todos.length === 0) {
@@ -124,7 +121,7 @@ export const TodoListDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
         <ProgressBar completed={completed} total={todos.length} />
       </div>
 
-      <ol className="-mx-2 flex max-h-64 flex-col gap-0.5 overflow-auto">
+      <ol className="-mx-2 flex max-h-72 flex-col gap-0.5 overflow-auto">
         {todos.map((todo, index) => (
           <TodoRow key={index} todo={todo} />
         ))}
@@ -135,24 +132,27 @@ export const TodoListDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
 
 export const TodoSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   const todos = parseTodos(block);
-  if (todos.length === 0) return null;
+  const failed = block.state === "error";
+
+  if (todos.length === 0 && !failed) return null;
 
   const completed = countCompleted(todos);
-  const allDone = completed === todos.length;
+  const allDone = todos.length > 0 && completed === todos.length;
   const focus =
     todos.find((todo) => todo.status === "in_progress") ??
     todos.find((todo) => todo.status !== "completed");
+  const label = allDone ? "Plan complete" : (focus?.content ?? null);
 
   return (
     <SummaryRow>
-      <ResultBadge tone={allDone ? "success" : "default"}>
-        {completed}/{todos.length}
-      </ResultBadge>
-      {allDone ? (
-        <SummaryText>Plan complete</SummaryText>
-      ) : focus ? (
-        <SummaryText title={focus.content}>{focus.content}</SummaryText>
-      ) : null}
+      {label ? <SummaryText title={label}>{label}</SummaryText> : null}
+      {failed ? (
+        <ResultBadge tone="error">failed</ResultBadge>
+      ) : (
+        <ResultBadge tone={allDone ? "success" : "default"}>
+          {completed}/{todos.length}
+        </ResultBadge>
+      )}
     </SummaryRow>
   );
 };

@@ -39,7 +39,7 @@ const RequestBlock: React.FC<{ input: unknown }> = ({ input }) => (
     <span className="text-[11px] font-medium text-muted-foreground/60 select-none">
       Request
     </span>
-    <pre className="max-h-48 overflow-auto rounded-md bg-muted/30 p-2.5 font-mono text-[11px] leading-relaxed text-foreground/65">
+    <pre className="max-h-48 overflow-auto rounded-md bg-muted/30 p-2.5 font-mono text-[11px] leading-relaxed break-words whitespace-pre-wrap text-foreground/70">
       {formatInput(input)}
     </pre>
   </div>
@@ -126,13 +126,13 @@ export const ToolApprovalCard: React.FC<Props> = ({
   );
 
   const bodyClasses = cn(
-    "flex flex-col gap-3 border-t border-border/30 px-3.5 py-3",
+    "flex flex-col gap-3 border-t border-border/30 px-3 py-3",
     "animate-in fade-in duration-150 motion-reduce:animate-none",
   );
 
   return (
     <div className={containerClasses}>
-      <div className="flex w-full items-center gap-2 px-2 py-1">
+      <div className="flex w-full items-center gap-2 px-3">
         <button
           type="button"
           onClick={() => setIsOpen((open) => !open)}
@@ -155,14 +155,6 @@ export const ToolApprovalCard: React.FC<Props> = ({
 
       {isOpen && (
         <div className={bodyClasses}>
-          {isPending && (
-            <p className="text-xs leading-snug text-muted-foreground">
-              The agent wants to use{" "}
-              <span className="font-medium text-foreground/80">{title}</span>.
-              Review the request before continuing.
-            </p>
-          )}
-
           {hasInput && <RequestBlock input={input} />}
 
           {isPending && (

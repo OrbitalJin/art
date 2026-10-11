@@ -1,35 +1,65 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { useApprovalStore, type PendingApproval } from "@/lib/store/use-approval-store";
+import {
+  useApprovalStore,
+  type PendingApproval,
+} from "@/lib/store/use-approval-store";
 import {
   useQuestionStore,
   type PendingQuestion,
 } from "@/lib/store/use-question-store";
 import { useTodoStore, type TodoPlan } from "@/lib/store/use-todo-store";
 import { ToolUse } from "./tool-use";
-import { Approval } from "./approval";
+import { ApprovalSwitch } from "./approval-switch";
 import { ToolApprovalCard } from "./tool-approval-card";
 import { AskUserCard } from "./ask-user-card";
 import { cn } from "@/lib/utils";
 
-const StateDot: React.FC<{ active: boolean }> = ({ active }) => (
-  <span className="relative flex size-2 shrink-0 self-center">
-    <span
-      className={cn(
-        "relative inline-flex size-2 rounded-full",
-        active
-          ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)]"
-          : "bg-emerald-500/80 shadow-[0_0_8px_rgba(16,185,129,0.45)]",
-      )}
-    />
-    {active ? (
-      <span className="absolute inline-flex size-2 animate-ping rounded-full bg-amber-500/60 motion-reduce:animate-none" />
-    ) : null}
-  </span>
-);
+interface PendingPrompts {
+  approvals: [string, PendingApproval][];
+  questions: [string, PendingQuestion][];
+}
+
+const NO_PROMPTS: PendingPrompts = { approvals: [], questions: [] };
+
+const usePendingPrompts = (sessionId: string | undefined): PendingPrompts => {
+  const approvals = useApprovalStore((state) => state.pending);
+  const questions = useQuestionStore((state) => state.pending);
+
+  return useMemo(() => {
+    if (!sessionId) return NO_PROMPTS;
+
+    const pendingApprovals = Object.entries(approvals)
+      .filter(
+        ([, approval]) =>
+          approval.status === "pending" && approval.sessionId === sessionId,
+      )
+      .sort(([, a], [, b]) => a.requestedAt - b.requestedAt);
+
+    const pendingQuestions = Object.entries(questions)
+      .filter(
+        ([, question]) =>
+          question.status === "pending" && question.sessionId === sessionId,
+      )
+      .sort(([, a], [, b]) => a.requestedAt - b.requestedAt);
+
+    return { approvals: pendingApprovals, questions: pendingQuestions };
+  }, [approvals, questions, sessionId]);
+};
+
+const StateDot: React.FC<{ active: boolean }> = ({ active }) => {
+  const dotClasses = cn(
+    "size-2 shrink-0 self-center rounded-full",
+    active
+      ? "animate-pulse bg-amber-500 motion-reduce:animate-none"
+      : "bg-emerald-500/70",
+  );
+
+  return <span aria-hidden className={dotClasses} />;
+};
 
 const StatusLabel: React.FC<{ active: boolean }> = ({ active }) => (
   <span
@@ -153,49 +183,49 @@ const QuestionQueue: React.FC<{
   );
 };
 
-const PendingPrompt: React.FC<{ sessionId: string }> = ({ sessionId }) => {
-  const approvals = useApprovalStore((state) => state.pending);
-  const questions = useQuestionStore((state) => state.pending);
-
-  const pendingApprovals = useMemo(
-    () =>
-      Object.entries(approvals)
-        .filter(
-          ([, approval]) =>
-            approval.status === "pending" && approval.sessionId === sessionId,
-        )
-        .sort(([, a], [, b]) => a.requestedAt - b.requestedAt),
-    [approvals, sessionId],
-  );
-
-  const pendingQuestions = useMemo(
-    () =>
-      Object.entries(questions)
-        .filter(
-          ([, question]) =>
-            question.status === "pending" && question.sessionId === sessionId,
-        )
-        .sort(([, a], [, b]) => a.requestedAt - b.requestedAt),
-    [questions, sessionId],
-  );
-
-  if (pendingApprovals.length > 0) {
-    return <ApprovalQueue entries={pendingApprovals} />;
+const PendingPrompt: React.FC<{ prompts: PendingPrompts }> = ({ prompts }) => {
+  if (prompts.approvals.length > 0) {
+    return <ApprovalQueue entries={prompts.approvals} />;
   }
 
-  if (pendingQuestions.length > 0) {
-    return <QuestionQueue entries={pendingQuestions} />;
+  if (prompts.questions.length > 0) {
+    return <QuestionQueue entries={prompts.questions} />;
   }
 
   return null;
 };
 
+const PlanMarker: React.FC<{ active: boolean; done: boolean }> = ({
+  active,
+  done,
+}) => {
+  const dotClasses = cn(
+    "size-1.5 rounded-full",
+    done && "bg-emerald-500",
+    !done && active && "animate-pulse bg-amber-500 motion-reduce:animate-none",
+    !done && !active && "bg-muted-foreground/25",
+  );
+
+  return (
+    <span
+      aria-hidden
+      className="flex size-2 shrink-0 items-center justify-center"
+    >
+      <span className={dotClasses} />
+    </span>
+  );
+};
+
 const PlanStrip: React.FC<{ plan: TodoPlan }> = ({ plan }) => {
-  const completed = plan.todos.filter((todo) => todo.status === "completed")
-    .length;
+  const total = plan.todos.length;
+  const completed = plan.todos.filter(
+    (todo) => todo.status === "completed",
+  ).length;
   const current = plan.todos.find((todo) => todo.status === "in_progress");
   const next = plan.todos.find((todo) => todo.status !== "completed");
+  const allDone = completed === total;
   const label = current?.content ?? next?.content ?? "Plan complete";
+
   const title = plan.todos
     .map((todo) => {
       const mark =
@@ -211,18 +241,14 @@ const PlanStrip: React.FC<{ plan: TodoPlan }> = ({ plan }) => {
   return (
     <div
       title={title}
-      className="flex h-8 items-center gap-2 px-3 animate-in fade-in duration-200 motion-reduce:animate-none"
+      className="flex h-8 items-center gap-2.5 px-3 animate-in fade-in duration-200 motion-reduce:animate-none"
     >
-      <ListTodo
-        size={12}
-        aria-hidden
-        className="shrink-0 text-amber-500/80"
-      />
-      <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground/70">
-        {completed}/{plan.todos.length}
-      </span>
+      <PlanMarker active={current !== undefined} done={allDone} />
       <span className="min-w-0 truncate text-[11px] text-foreground/70">
         {label}
+      </span>
+      <span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground/60">
+        {completed}/{total}
       </span>
     </div>
   );
@@ -233,30 +259,21 @@ export const AgentBar = () => {
     state.sessions.find((s) => s.id === state.activeId),
   );
   const { isSending, toolCalls, streamingSessionId } = useChatStream();
-  const approvals = useApprovalStore((state) => state.pending);
-  const questions = useQuestionStore((state) => state.pending);
 
   const sessionId = session?.id;
+  const prompts = usePendingPrompts(sessionId);
   const plan = useTodoStore((state) =>
     sessionId ? state.bySession[sessionId] : undefined,
-  );
-  const ownsStream = !!session && streamingSessionId === session.id;
-  const hasPending = useMemo(
-    () =>
-      !!sessionId &&
-      (Object.values(approvals).some(
-        (a) => a.status === "pending" && a.sessionId === sessionId,
-      ) ||
-        Object.values(questions).some(
-          (q) => q.status === "pending" && q.sessionId === sessionId,
-        )),
-    [sessionId, approvals, questions],
   );
 
   if (!session || session.type !== "agent") return null;
 
+  const ownsStream = streamingSessionId === session.id;
   const streaming = ownsStream && isSending;
   const active = streaming && toolCalls.length > 0;
+  const hasPending =
+    prompts.approvals.length > 0 || prompts.questions.length > 0;
+  const showPlan = streaming && !hasPending && !!plan && plan.todos.length > 0;
 
   const barClasses = cn(
     "relative flex items-center gap-2.5",
@@ -265,14 +282,12 @@ export const AgentBar = () => {
     hasPending ? "items-stretch px-0" : "h-10 px-3",
   );
 
-  const showPlan = streaming && !hasPending && !!plan && plan.todos.length > 0;
-
   return (
     <div className="relative flex flex-col border-b border-border/40">
       <div className={barClasses}>
         {hasPending ? (
           <div className="w-full animate-in fade-in slide-in-from-top-1 duration-200 motion-reduce:animate-none">
-            <PendingPrompt key={session.id} sessionId={session.id} />
+            <PendingPrompt key={session.id} prompts={prompts} />
           </div>
         ) : (
           <>
@@ -280,7 +295,7 @@ export const AgentBar = () => {
             <StatusLabel active={streaming} />
             <Divider />
             <ToolUse active={active} />
-            <Approval disabled={streaming} />
+            <ApprovalSwitch disabled={streaming} />
           </>
         )}
       </div>

@@ -1,27 +1,46 @@
 // connections.tsx
 import { useEffect } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import type { IconType } from "react-icons";
+import { SiGooglesheets } from "react-icons/si";
+import { TbBrandGmail, TbBrandSlack } from "react-icons/tb";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
-import { SUPPORTED_TOOLKITS, TOOLKIT_LABELS } from "@/lib/services/toolkits";
+import {
+  SUPPORTED_TOOLKITS,
+  TOOLKIT_LABELS,
+  type SupportedToolkit,
+} from "@/lib/services/toolkits";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SettingsCard } from "./settings-layout";
 
 type ConnectionState = "active" | "pending" | "idle";
 
-const ConnectionMonogram: React.FC<{ label: string; active: boolean }> = ({
-  label,
+const TOOLKIT_ICONS: Record<SupportedToolkit, IconType> = {
+  gmail: TbBrandGmail,
+  slack: TbBrandSlack,
+  googlesheets: SiGooglesheets,
+};
+
+const ToolkitIcon: React.FC<{ toolkit: SupportedToolkit; active: boolean }> = ({
+  toolkit,
   active,
 }) => {
-  const monogramClasses = cn(
+  const Icon = TOOLKIT_ICONS[toolkit];
+
+  const iconClasses = cn(
     "flex size-9 shrink-0 items-center justify-center rounded-lg border",
-    "text-[13px] font-medium transition-colors duration-150",
+    "transition-colors duration-150",
     active
       ? "border-foreground/15 bg-foreground/[0.04] text-foreground"
       : "border-border/60 bg-muted/40 text-muted-foreground",
   );
 
-  return <span className={monogramClasses}>{label.charAt(0)}</span>;
+  return (
+    <span className={iconClasses}>
+      <Icon size={24} strokeWidth={2} aria-hidden />
+    </span>
+  );
 };
 
 const ConnectionStatus: React.FC<{ state: ConnectionState }> = ({ state }) => {
@@ -45,6 +64,7 @@ const ConnectionStatus: React.FC<{ state: ConnectionState }> = ({ state }) => {
 };
 
 interface ConnectionRowProps {
+  toolkit: SupportedToolkit;
   label: string;
   state: ConnectionState;
   onConnect: () => void;
@@ -52,6 +72,7 @@ interface ConnectionRowProps {
 }
 
 const ConnectionRow: React.FC<ConnectionRowProps> = ({
+  toolkit,
   label,
   state,
   onConnect,
@@ -63,7 +84,7 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
   return (
     <div className="flex items-center justify-between gap-4 px-4 py-3.5">
       <div className="flex min-w-0 items-center gap-3">
-        <ConnectionMonogram label={label} active={active} />
+        <ToolkitIcon toolkit={toolkit} active={active} />
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-[13px] font-medium text-foreground">
             {label}
@@ -165,6 +186,7 @@ export const ConnectionsSettings: React.FC = () => {
     return (
       <ConnectionRow
         key={toolkit}
+        toolkit={toolkit}
         label={TOOLKIT_LABELS[toolkit]}
         state={state}
         onConnect={() => void handleConnect(toolkit)}

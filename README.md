@@ -17,6 +17,7 @@ Art is built for people who want one personal workspace instead of juggling disc
 - Local-first desktop experience
 - Chat and Agent modes with real tool calling
 - Bring-your-own-key AI gateway
+- Read-only connections to Gmail and Slack
 - Journals and notes that can become reusable context
 - Task management and calendar in the same workspace
 - Focus intervals with an integrated audio player
@@ -35,17 +36,23 @@ Multi-session conversations with dedicated workflow modes and an autonomous agen
 
 - Chat, research, and tutor modes
 - Separate Chat and Agent workspaces (`Ctrl+Tab` to switch)
-- Agent tools for journal, tasks, and local files
+- Agent tools for tasks, local files, and read-only service connections
+- Agent todo list for planning multi-step work
+- Read images and PDFs from connected folders
+- Read-only Gmail and Slack connections (bring your own Composio key)
+- Connections are linked once in Settings and enabled per session
 - Tool access policy: read-only, confirm, or autonomous
 - Approval gating for destructive actions
 - Concurrent streaming sessions with per-session drafts
 - Image attachments and paste support
 - Search grounding and model reasoning
 - LaTeX math and syntax highlighting
+- Per-tool renderers for inline tool calls
 - Rename, pin, archive, fork, import, and export sessions
 - Session token usage
 - Notes can be attached as context
 - Folder-scoped local context from your knowledge base
+- Configurable default agent model and access policy
 - Three model tiers: Monet, Voltaire, Chopin
 - Bring your own AI gateway key
 
@@ -97,6 +104,7 @@ A customizable timer with an integrated audio player, playlist, and memo for foc
 Extra utilities that support the rest of your workflow.
 
 - Shared context between parts of the app
+- External connections (Gmail, Slack) managed in Settings
 - Command palette navigation (`Mod+K`)
 - Theme colors, text size, and radius customization
 - Customizable user and agent identities
