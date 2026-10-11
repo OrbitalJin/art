@@ -8,8 +8,6 @@ import { READ_ONLY_TOOLS, SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
 const COMPOSIO_HOST_SUFFIX = ".composio.dev";
 const originalFetch = globalThis.fetch;
 
-console.log("[composio-fetch] installing composio fetch shim");
-
 globalThis.fetch = ((input, init) => {
   const url =
     typeof input === "string"
@@ -24,7 +22,6 @@ globalThis.fetch = ((input, init) => {
     host = "";
   }
   if (host === "composio.dev" || host.endsWith(COMPOSIO_HOST_SUFFIX)) {
-    console.log("[composio-fetch] routing via native:", init?.method ?? "GET", url);
     return nativeFetch(input as string, init);
   }
   return originalFetch(input, init);
