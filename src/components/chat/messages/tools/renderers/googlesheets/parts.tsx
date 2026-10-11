@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { cn } from "@/lib/utils";
-import { EmptyNote } from "../../primitives";
+import { EmptyNote, ListRow } from "../../primitives";
 import {
   cellText,
   columnCountOf,
@@ -9,6 +9,7 @@ import {
   gridOriginOf,
   isNumericCell,
   type SheetMeta,
+  type SpreadsheetRef,
 } from "./helpers";
 
 const GridCell: FC<{ value: unknown }> = ({ value }) => {
@@ -136,5 +137,31 @@ export const SheetRow: FC<{ sheet: SheetMeta; index: number }> = ({
         </span>
       ) : null}
     </div>
+  );
+};
+
+export const SpreadsheetRow: FC<{
+  spreadsheet: SpreadsheetRef;
+  index: number;
+}> = ({ spreadsheet, index }) => {
+  const name =
+    spreadsheet.name ?? spreadsheet.id ?? `Spreadsheet ${index + 1}`;
+
+  return (
+    <ListRow>
+      <div className="flex min-w-0 items-center gap-2">
+        <span
+          className="min-w-0 truncate text-[12px] font-medium text-foreground/80"
+          title={name}
+        >
+          {name}
+        </span>
+        {spreadsheet.id ? (
+          <span className="ml-auto shrink-0 font-mono text-[10px] text-muted-foreground/50">
+            {spreadsheet.id}
+          </span>
+        ) : null}
+      </div>
+    </ListRow>
   );
 };

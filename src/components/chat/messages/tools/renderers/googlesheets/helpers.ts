@@ -126,6 +126,26 @@ export const valueRangesOf = (output: unknown): ValueRange[] => {
   }));
 };
 
+export interface SpreadsheetRef {
+  id: string | null;
+  name: string | null;
+}
+
+export const spreadsheetsOf = (output: unknown): SpreadsheetRef[] => {
+  const payload = payloadOf(output);
+  if (!payload) return [];
+
+  return recordsOf(payload.spreadsheets ?? payload.files ?? payload.items).map(
+    (item) => ({
+      id:
+        getString(item, "id") ??
+        getString(item, "spreadsheetId") ??
+        getString(item, "spreadsheet_id"),
+      name: getString(item, "name") ?? getString(item, "title"),
+    }),
+  );
+};
+
 /** 0 -> A, 25 -> Z, 26 -> AA. */
 export const columnLabel = (index: number): string => {
   let label = "";

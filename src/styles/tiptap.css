@@ -7,17 +7,17 @@
 }
 
 .tiptap {
-  @apply font-sans text-base leading-relaxed text-foreground/80 outline-none min-h-full selection:bg-primary/30;
+  @apply font-sans text-[15px] leading-[1.7] text-foreground/90 outline-none min-h-full selection:bg-primary/30;
   word-wrap: break-word;
   white-space: pre-wrap;
   scroll-padding-bottom: 40vh;
 
-  :first-child {
+  > :first-child {
     margin-top: 0;
   }
 
   .mention-highlight {
-    @apply bg-primary/20 text-primary font-medium p-1 rounded-sm border-primary/50;
+    @apply bg-primary/20 text-primary font-medium px-1 py-0.5 rounded-sm border-primary/50;
     font-family: inherit;
   }
 
@@ -32,47 +32,78 @@
   h1,
   h2,
   h3,
-  h4 {
-    @apply font-semibold leading-tight mt-8 mb-4;
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold text-foreground leading-tight;
   }
 
   h1 {
-    @apply text-3xl;
+    @apply text-xl tracking-tight mt-6 mb-3;
   }
 
   h2 {
-    @apply text-2xl;
+    @apply text-lg tracking-tight mt-5 mb-2;
   }
 
   h3 {
-    @apply text-xl;
+    @apply text-base tracking-tight mt-4 mb-2;
+  }
+
+  h4 {
+    @apply text-[15px] mt-4 mb-1.5;
+  }
+
+  h5 {
+    @apply text-sm mt-3 mb-1;
+  }
+
+  h6 {
+    @apply text-sm font-medium text-muted-foreground mt-3 mb-1;
   }
 
   p {
-    @apply my-4;
+    @apply my-3;
+  }
+
+  strong {
+    @apply font-semibold text-foreground;
+  }
+
+  em {
+    @apply italic;
+  }
+
+  s {
+    @apply text-foreground/50 line-through;
   }
 
   :not(pre)>code {
-    @apply text-sm bg-muted px-1.5 py-0.5 rounded text-primary;
+    @apply text-[13.5px] bg-muted px-1.5 py-0.5 rounded text-primary;
     @apply before:opacity-30 after:opacity-30;
     font-family: monospace;
   }
 
   /* highlight */
   mark {
-    @apply bg-primary/20 text-foreground/80 rounded-sm p-1;
+    @apply bg-primary/20 text-foreground rounded-sm px-1 py-0.5;
   }
 
   ul,
   ol {
-    @apply pl-6 my-5;
+    @apply pl-6 my-3;
 
     li {
-      @apply my-1.5;
+      @apply my-1.5 pl-0.5 marker:text-muted-foreground/70;
 
       p {
         @apply my-1;
       }
+    }
+
+    ul,
+    ol {
+      @apply my-1.5;
     }
   }
 
@@ -88,7 +119,7 @@
     @apply list-none p-0 ml-0;
 
     li {
-      @apply flex flex-row items-start gap-2;
+      @apply flex flex-row items-start gap-2 pl-0;
 
       >label {
         @apply flex-none select-none mt-1;
@@ -100,7 +131,7 @@
           position: relative;
 
           &:checked::after {
-            content: "o";
+            content: "✓";
             @apply absolute inset-0 flex items-center justify-center text-[10px] text-primary-foreground font-bold;
           }
         }
@@ -121,7 +152,7 @@
   }
 
   pre {
-    @apply bg-card/50 border border-border rounded-md p-4 my-6 font-mono text-sm overflow-x-auto;
+    @apply bg-card/50 border border-border rounded-md p-4 my-4 font-mono text-[13.5px] overflow-x-auto;
 
     code {
       @apply bg-transparent p-0 text-foreground;
@@ -131,20 +162,20 @@
   }
 
   blockquote {
-    @apply border-l-2 border-primary pl-4 text-muted-foreground;
+    @apply my-4 border-l-2 border-border pl-4 text-foreground/70;
   }
 
   a {
-    @apply text-primary hover:underline hover:text-primary/80 transition-colors;
-    @apply hover:opacity-80;
+    @apply text-primary underline decoration-primary/40 underline-offset-4 transition-colors;
+    @apply hover:decoration-primary hover:text-primary;
   }
 
   hr {
-    @apply border-t my-8;
+    @apply border-t border-border/40 my-6;
   }
 
   img {
-    @apply max-w-full h-auto rounded-md transition-all;
+    @apply max-w-full h-auto rounded-lg border border-border/50 my-4 transition-all;
     @apply cursor-pointer;
     resize: both;
     overflow: hidden;
@@ -185,16 +216,32 @@
     @apply ring-3 ring-primary ring-offset-0 rounded-md;
   }
 
+  .tableWrapper {
+    @apply my-4 w-full overflow-x-auto rounded-lg border border-border/50;
+  }
+
   table {
-    @apply w-full border-collapse my-6 text-sm;
+    @apply w-full border-collapse my-4 text-[13.5px] leading-6;
+
+    .tableWrapper & {
+      @apply my-0;
+    }
 
     th,
     td {
-      @apply border border-border p-2 text-left;
+      @apply border-b border-border/30 px-3 py-2 text-left align-middle;
+    }
+
+    td {
+      @apply text-foreground/85;
     }
 
     th {
-      @apply bg-muted/40 font-normal;
+      @apply bg-muted/40 font-medium text-foreground border-border/50;
+    }
+
+    tr:last-child td {
+      @apply border-b-0;
     }
   }
 }

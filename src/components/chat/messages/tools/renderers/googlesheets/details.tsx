@@ -7,6 +7,7 @@ import {
   DetailTitle,
   EmptyNote,
   HeaderLine,
+  RowList,
   SectionLabel,
 } from "../../primitives";
 import {
@@ -15,10 +16,11 @@ import {
   spreadsheetIdOf,
   spreadsheetTitleOf,
   spreadsheetUrlOf,
+  spreadsheetsOf,
   valueRangesOf,
   valuesOf,
 } from "./helpers";
-import { RangeHeader, SheetRow, ValueGrid } from "./parts";
+import { RangeHeader, SheetRow, SpreadsheetRow, ValueGrid } from "./parts";
 
 const SpreadsheetInfoBody: FC<{ block: ToolCallBlock }> = ({ block }) => {
   const title = spreadsheetTitleOf(block.output);
@@ -129,6 +131,25 @@ const BatchGetBody: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
+const SearchBody: FC<{ block: ToolCallBlock }> = ({ block }) => {
+  const spreadsheets = spreadsheetsOf(block.output);
+  if (spreadsheets.length === 0) {
+    return <EmptyNote>No spreadsheets found.</EmptyNote>;
+  }
+
+  return (
+    <RowList maxHeightClass="max-h-72">
+      {spreadsheets.map((spreadsheet, index) => (
+        <SpreadsheetRow
+          key={spreadsheet.id ?? index}
+          spreadsheet={spreadsheet}
+          index={index}
+        />
+      ))}
+    </RowList>
+  );
+};
+
 export const SpreadsheetInfoDetail: FC<{ block: ToolCallBlock }> = ({
   block,
 }) => (
@@ -152,5 +173,11 @@ export const ValuesDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
 export const BatchGetDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
   <DetailGate block={block} executingLabel="Reading values…">
     <BatchGetBody block={block} />
+  </DetailGate>
+);
+
+export const SearchDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
+  <DetailGate block={block} executingLabel="Searching…">
+    <SearchBody block={block} />
   </DetailGate>
 );

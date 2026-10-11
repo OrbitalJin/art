@@ -7,12 +7,13 @@ import {
   SummaryStatus,
   SummaryText,
 } from "../../primitives";
-import { formatCount, getSummaryText } from "../../helpers";
+import { asRecord, formatCount, getString, getSummaryText } from "../../helpers";
 import {
   rangeOf,
   sheetsOf,
   spreadsheetIdOf,
   spreadsheetTitleOf,
+  spreadsheetsOf,
   valueRangesOf,
   valuesOf,
 } from "./helpers";
@@ -85,5 +86,19 @@ export const BatchGetSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
         <ResultBadge>{formatCount(ranges.length, "range")}</ResultBadge>
       </SummaryStatus>
     </SummaryRow>
+  );
+};
+
+export const SearchSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
+  const query =
+    getString(asRecord(block.input), "query") ?? getSummaryText(block.input);
+
+  return (
+    <CountSummary
+      block={block}
+      label={query}
+      count={spreadsheetsOf(block.output).length}
+      noun="spreadsheet"
+    />
   );
 };

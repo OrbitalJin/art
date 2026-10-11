@@ -54,6 +54,7 @@ export const READ_ONLY_TOOLS: ReadonlySet<string> = new Set([
   // Google Sheets — metadata
   "GOOGLESHEETS_GET_SPREADSHEET_INFO",
   "GOOGLESHEETS_GET_SHEET_NAMES",
+  "GOOGLESHEETS_SEARCH_SPREADSHEETS",
   // Google Sheets — values
   "GOOGLESHEETS_VALUES_GET",
   "GOOGLESHEETS_BATCH_GET",

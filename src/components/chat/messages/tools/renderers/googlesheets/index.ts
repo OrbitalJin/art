@@ -1,13 +1,15 @@
-import { FileSpreadsheet, List, Table } from "lucide-react";
+import { FileSpreadsheet, List, Search, Table } from "lucide-react";
 import type { ToolRenderer } from "../../types";
 import {
   BatchGetDetail,
+  SearchDetail,
   SheetNamesDetail,
   SpreadsheetInfoDetail,
   ValuesDetail,
 } from "./details";
 import {
   BatchGetSummary,
+  SearchSummary,
   SheetNamesSummary,
   SpreadsheetInfoSummary,
   ValuesSummary,
@@ -37,5 +39,11 @@ export const googlesheetsRenderers: Record<string, ToolRenderer> = {
     title: "Read ranges",
     Summary: BatchGetSummary,
     Detail: BatchGetDetail,
+  },
+  GOOGLESHEETS_SEARCH_SPREADSHEETS: {
+    icon: Search,
+    title: "Searched Sheets",
+    Summary: SearchSummary,
+    Detail: SearchDetail,
   },
 };
