@@ -181,8 +181,6 @@ const AccessModeOption: React.FC<AccessModeOptionProps> = ({
 export const ChatSettingsTab: React.FC = () => {
   const apiKey = useSettingsStore((state) => state.apiKey);
   const setApiKey = useSettingsStore((state) => state.setApiKey);
-  const searchApiKey = useSettingsStore((state) => state.searchApiKey);
-  const setSearchApiKey = useSettingsStore((state) => state.setSearchApiKey);
   const composioApiKey = useSettingsStore((state) => state.composioApiKey);
   const setComposioApiKey = useSettingsStore(
     (state) => state.setComposioApiKey,
@@ -243,15 +241,8 @@ export const ChatSettingsTab: React.FC = () => {
             onSave={setApiKey}
           />
           <SecretKeyField
-            label="Web discovery"
-            description="Exa web discovery key."
-            placeholder="secret key"
-            value={searchApiKey}
-            onSave={setSearchApiKey}
-          />
-          <SecretKeyField
             label="Connections"
-            description="Composio key for Gmail, Notion, Slack etc."
+            description="Composio key for Gmail, Slack, search & more."
             placeholder="secret key"
             value={composioApiKey}
             onSave={setComposioApiKey}

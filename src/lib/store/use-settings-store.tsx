@@ -26,7 +26,6 @@ export interface AgentProfile {
 
 interface SettingsState {
   apiKey: string;
-  searchApiKey: string;
   composioApiKey: string;
   composioUserId: string;
   youtubeApiKey: string;
@@ -43,7 +42,6 @@ interface SettingsState {
   agentProfile: AgentProfile;
 
   setApiKey: (key: string) => void;
-  setSearchApiKey: (key: string) => void;
   setComposioApiKey: (key: string) => void;
   setYoutubeApiKey: (key: string) => void;
   setTranscriptProvider: (id: string) => void;
@@ -81,7 +79,6 @@ export const DEFAULT_AGENT_PROFILE: AgentProfile = {
 
 const initialState = {
   apiKey: "",
-  searchApiKey: "",
   composioApiKey: "",
   composioUserId: "",
   youtubeApiKey: "",
@@ -103,7 +100,6 @@ export const useSettingsStore = create<SettingsState>()(
     (set, get) => ({
       ...initialState,
       setApiKey: (key: string) => set({ apiKey: key }),
-      setSearchApiKey: (key: string) => set({ searchApiKey: key }),
       setComposioApiKey: (key: string) => set({ composioApiKey: key }),
       setYoutubeApiKey: (key: string) => set({ youtubeApiKey: key }),
       setTranscriptProvider: (id: string) => set({ transcriptProvider: id }),
@@ -135,7 +131,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 7,
+      version: 8,
       storage: createJSONStorage(() => settingsStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -149,7 +145,6 @@ export const useSettingsStore = create<SettingsState>()(
         }
         if (version < 3) {
           const state = persistedState as {
-            searchApiKey?: string;
             toolOptions?: {
               google_search?: boolean;
               url_context?: boolean;
@@ -158,7 +153,6 @@ export const useSettingsStore = create<SettingsState>()(
             };
           };
           if (state) {
-            if (state.searchApiKey === undefined) state.searchApiKey = "";
             if (state.toolOptions) {
               const { google_search, url_context, ...rest } = state.toolOptions;
               void google_search;
@@ -209,6 +203,10 @@ export const useSettingsStore = create<SettingsState>()(
             if (state.transcriptProvider === undefined)
               state.transcriptProvider = DEFAULT_TRANSCRIPT_PROVIDER_ID;
           }
+        }
+        if (version < 8) {
+          const state = persistedState as { searchApiKey?: string };
+          if (state) delete state.searchApiKey;
         }
         return persistedState as SettingsState;
       },

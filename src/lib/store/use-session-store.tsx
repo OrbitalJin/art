@@ -15,6 +15,7 @@ import { sessionStorage } from "@/lib/store/session/adapter";
 import type { FsRoot } from "@/lib/fs";
 import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
 import type { AccessMode } from "@/lib/ai/tools/registry";
+import { TOOL_FAMILIES } from "@/lib/ai/tools/registry";
 import { useSettingsStore } from "./use-settings-store";
 import { useStreamStore } from "./use-stream-store";
 import { useDraftStore } from "./use-draft-store";
@@ -197,15 +198,11 @@ export const useSessionStore = create<SessionState>()(
             session.id === id
               ? {
                   ...session,
-                  toolkits: {
-                    journal: false,
-                    tasks: false,
-                    askUser: false,
-                    todo: false,
-                    ...Object.fromEntries(
-                      SUPPORTED_TOOLKITS.map((toolkit) => [toolkit, false]),
-                    ),
-                  },
+                  toolkits: Object.fromEntries(
+                    TOOL_FAMILIES.filter(
+                      (family) => family.source !== "folders",
+                    ).map((family) => [family.key, false]),
+                  ),
                 }
               : session,
           ),

@@ -3,6 +3,7 @@ import { system, type Profiles } from "../prompts/system";
 import { ambientTools, toolsFor } from "../tools/tools";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { toolkitEnabled } from "../tools/toolkits";
+import { TOOL_FAMILIES } from "../tools/registry";
 import { stepCountIs, hasToolCall } from "ai";
 import { DONE_TOOL_NAME } from "../tools/names";
 import { adaptiveStopCondition, BACKSTOP_STEPS } from "./stop-conditions";
@@ -21,7 +22,10 @@ const connectedToolkits = (session: Session): string[] =>
     .map(([slug]) => slug);
 
 const enabledToolkits = (session: Session): string[] =>
-  ["askUser", "todo", "youtube"].filter((key) => toolkitEnabled(session, key));
+  TOOL_FAMILIES.filter(
+    (family) =>
+      family.source === "builtin" && toolkitEnabled(session, family.key),
+  ).map((family) => family.key);
 
 export const presetFor = (ctx: RequestContext) => {
   const { session } = ctx;

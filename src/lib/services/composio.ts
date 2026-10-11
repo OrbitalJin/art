@@ -3,7 +3,11 @@ import type { VercelProvider } from "@composio/vercel";
 import type { ToolSet } from "ai";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { nativeFetch } from "@/lib/native-fetch";
-import { READ_ONLY_TOOLS, SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
+import {
+  READ_ONLY_TOOLS,
+  SEARCH_TOOLKITS,
+  SUPPORTED_TOOLKITS,
+} from "@/lib/services/toolkits";
 
 const COMPOSIO_HOST_SUFFIX = ".composio.dev";
 const originalFetch = globalThis.fetch;
@@ -33,6 +37,7 @@ export type ComposioSession = Awaited<
 >;
 
 let instance: { key: string; composio: ComposioClient } | null = null;
+let searchSession: ComposioSession | null = null;
 const sessionCache = new Map<string, ComposioSession>();
 
 export interface ToolCache {
@@ -46,6 +51,7 @@ const toolCaches = new Map<string, ToolCache>();
 const clearCaches = (): void => {
   sessionCache.clear();
   toolCaches.clear();
+  searchSession = null;
 };
 
 export const getComposio = async (): Promise<ComposioClient | null> => {
@@ -79,6 +85,31 @@ export const createSession = async (
   });
   sessionCache.set(session.sessionId, session);
   return session;
+};
+
+/**
+ * A dedicated, no-auth session scoped to the search toolkits. Search tools
+ * invoke slugs directly (`session.execute`) instead of enumerating and
+ * filtering the toolkit's tools, so this session never surfaces tool schemas
+ * to the model on its own.
+ */
+export const getSearchSession = async (): Promise<ComposioSession | null> => {
+  const composio = await getComposio();
+  if (!composio) return null;
+  if (searchSession) return searchSession;
+  const { SessionPreset } = await import("@composio/core");
+  try {
+    searchSession = await composio.sessions.create(
+      useSettingsStore.getState().ensureComposioUserId(),
+      {
+        sessionPreset: SessionPreset.DIRECT_TOOLS,
+        toolkits: { enable: [...SEARCH_TOOLKITS] },
+      },
+    );
+    return searchSession;
+  } catch {
+    return null;
+  }
 };
 
 export const getOrCreateSession = async (

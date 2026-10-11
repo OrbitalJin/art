@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
+import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { modelById } from "@/lib/ai/models";
 import { TOOL_FAMILIES } from "@/lib/ai/tools/registry";
 import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
@@ -165,6 +166,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const sessions = useSessionStore((state) => state.sessions);
   const activeId = useSessionStore((state) => state.activeId);
+  const connectedToolkits = useConnectionsStore((state) => state.toolkits);
 
   const greeting = useMemo(() => greetingFor(new Date()), []);
 
@@ -181,10 +183,17 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const tools = useMemo(() => {
     if (!isAgent || !activeSession) return [];
 
-    return TOOL_FAMILIES.flatMap((family) =>
-      toolkitEnabled(activeSession, family.key) ? [family.label] : [],
-    );
-  }, [isAgent, activeSession]);
+    return TOOL_FAMILIES.flatMap((family) => {
+      if (!toolkitEnabled(activeSession, family.key)) return [];
+      if (
+        family.source === "composio" &&
+        connectedToolkits[family.key]?.status !== "ACTIVE"
+      ) {
+        return [];
+      }
+      return [family.label];
+    });
+  }, [isAgent, activeSession, connectedToolkits]);
 
   const recents = useMemo(() => {
     return sessions

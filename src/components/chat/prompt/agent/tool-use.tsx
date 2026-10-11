@@ -6,12 +6,12 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session, ToolCallBlock } from "@/lib/store/session/types";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/names";
-import { SUPPORTED_TOOLKITS, TOOLKIT_LABELS } from "@/lib/services/toolkits";
 import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
 import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   TOOL_FAMILIES,
+  type ToolFamily,
 } from "@/lib/ai/tools/registry";
 import { grantFolder, makeRoot, selectDirectory, type FsRoot } from "@/lib/fs";
 import {
@@ -26,8 +26,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type Toolkit = (typeof SUPPORTED_TOOLKITS)[number];
 type MenuPage = "main" | "files";
+
+const isConnected = (
+  toolkits: Record<string, { status?: string } | undefined>,
+  key: string,
+): boolean => toolkits[key]?.status === "ACTIVE";
+
+const familyEnabled = (
+  session: Session,
+  family: ToolFamily,
+  toolkits: Record<string, { status?: string } | undefined>,
+): boolean =>
+  toolkitEnabled(session, family.key) &&
+  (family.source !== "composio" || isConnected(toolkits, family.key));
 
 const basename = (path: string): string => {
   const parts = path.split(/[\\/]/).filter(Boolean);
@@ -63,34 +75,26 @@ const ToolTag: React.FC<{ label: string; value?: string }> = ({
 
 const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
   const toolkits = useConnectionsStore((state) => state.toolkits);
-  const connectedCount = SUPPORTED_TOOLKITS.filter(
-    (toolkit) =>
-      toolkits[toolkit]?.status === "ACTIVE" &&
-      toolkitEnabled(session, toolkit),
-  ).length;
 
   const tags: { label: string; value?: string }[] = [];
   for (const family of TOOL_FAMILIES) {
-    if (family.key === "files") {
+    if (family.source === "folders") {
       const folders = session.folders ?? [];
       if (folders.length) {
         tags.push({
-          label: "Files",
+          label: family.label,
           value:
             folders.length === 1
               ? basename(folders[0].path)
               : `${folders.length} folders`,
         });
       }
-    } else if (family.key === "connections") {
       continue;
-    } else if (toolkitEnabled(session, family.key)) {
+    }
+
+    if (familyEnabled(session, family, toolkits)) {
       tags.push({ label: family.label });
     }
-  }
-
-  if (connectedCount > 0) {
-    tags.push({ label: "Connections", value: String(connectedCount) });
   }
 
   if (tags.length === 0) {
@@ -281,15 +285,15 @@ const FilesLink: React.FC<{
 };
 
 const ConnectionRow: React.FC<{
-  toolkit: Toolkit;
+  family: ToolFamily;
   session: Session;
   onToggle: (key: string, value: boolean) => void;
-}> = ({ toolkit, session, onToggle }) => {
+}> = ({ family, session, onToggle }) => {
   const toolkits = useConnectionsStore((state) => state.toolkits);
-  const toolCount = useToolkitToolCount(toolkit);
+  const toolCount = useToolkitToolCount(family.key);
 
-  const connected = toolkits[toolkit]?.status === "ACTIVE";
-  const enabled = connected && toolkitEnabled(session, toolkit);
+  const connected = isConnected(toolkits, family.key);
+  const enabled = connected && toolkitEnabled(session, family.key);
 
   const subtitle = connected
     ? `Read-only · ${toolCount} tools`
@@ -305,14 +309,10 @@ const ConnectionRow: React.FC<{
       type="button"
       disabled={!connected}
       aria-pressed={enabled}
-      onClick={() => onToggle(toolkit, !enabled)}
+      onClick={() => onToggle(family.key, !enabled)}
       className={rowClasses}
     >
-      <RowText
-        label={TOOLKIT_LABELS[toolkit]}
-        subtitle={subtitle}
-        active={enabled}
-      />
+      <RowText label={family.label} subtitle={subtitle} active={enabled} />
     </button>
   );
 };
@@ -325,16 +325,10 @@ const MainPage: React.FC<{
 }> = ({ session, onOpenFiles, onToggle, onRevokeAll }) => {
   const toolkits = useConnectionsStore((state) => state.toolkits);
   const folderCount = (session.folders ?? []).length;
-  const toggleFamilies = TOOL_FAMILIES.filter(
-    (family) => family.key !== "files" && family.key !== "connections",
+  const nothingToRevoke = !TOOL_FAMILIES.some(
+    (family) =>
+      family.source !== "folders" && familyEnabled(session, family, toolkits),
   );
-  const nothingToRevoke =
-    !toggleFamilies.some((family) => toolkitEnabled(session, family.key)) &&
-    !SUPPORTED_TOOLKITS.some(
-      (toolkit) =>
-        toolkits[toolkit]?.status === "ACTIVE" &&
-        toolkitEnabled(session, toolkit),
-    );
 
   return (
     <>
@@ -344,10 +338,7 @@ const MainPage: React.FC<{
         const families = TOOL_FAMILIES.filter(
           (family) => family.category === category,
         );
-        const hasVisible = families.some(
-          (family) => family.key !== "connections",
-        );
-        if (!hasVisible) return null;
+        if (!families.length) return null;
 
         return (
           <div
@@ -357,14 +348,23 @@ const MainPage: React.FC<{
             <MenuSectionLabel>{CATEGORY_LABELS[category]}</MenuSectionLabel>
 
             {families.map((family) => {
-              if (family.key === "connections") return null;
-
-              if (family.key === "files") {
+              if (family.source === "folders") {
                 return (
                   <FilesLink
                     key={family.key}
                     folderCount={folderCount}
                     onOpen={onOpenFiles}
+                  />
+                );
+              }
+
+              if (family.source === "composio") {
+                return (
+                  <ConnectionRow
+                    key={family.key}
+                    family={family}
+                    session={session}
+                    onToggle={onToggle}
                   />
                 );
               }
@@ -384,18 +384,6 @@ const MainPage: React.FC<{
           </div>
         );
       })}
-
-      <div className="flex flex-col gap-0.5 p-1.5">
-        <MenuSectionLabel>Connections</MenuSectionLabel>
-        {SUPPORTED_TOOLKITS.map((toolkit) => (
-          <ConnectionRow
-            key={toolkit}
-            toolkit={toolkit}
-            session={session}
-            onToggle={onToggle}
-          />
-        ))}
-      </div>
     </>
   );
 };
