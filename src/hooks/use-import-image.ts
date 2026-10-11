@@ -12,8 +12,13 @@ import { readImage } from "@tauri-apps/plugin-clipboard-manager";
 
 export const useImportImage = () => {
   return {
-    importClipboardImage: async (): Promise<MessageAttachment | null> => {
-      const id = toast.loading("Importing image from clipboard...");
+    importClipboardImage: async (options?: {
+      silent?: boolean;
+    }): Promise<MessageAttachment | null> => {
+      const silent = options?.silent ?? false;
+      const id = silent
+        ? undefined
+        : toast.loading("Importing image from clipboard...");
       try {
         const image = await readImage();
         const { width, height } = await image.size();
@@ -25,21 +30,25 @@ export const useImportImage = () => {
         if (size > MAX_IMAGE_SIZE) {
           const sizeInMB = (size / (1024 * 1024)).toFixed(2);
 
-          toast.error(
-            `Image size (${sizeInMB}MB) exceeds maximum allowed size of 5MB`,
-            { id },
-          );
+          if (!silent) {
+            toast.error(
+              `Image size (${sizeInMB}MB) exceeds maximum allowed size of 5MB`,
+              { id },
+            );
+          }
 
           return null;
         }
 
         const base64 = arrayBufferToBase64(pngBytes);
 
-        toast.success(
-          "Image imported successfully",
+        if (!silent) {
+          toast.success(
+            "Image imported successfully",
 
-          { id },
-        );
+            { id },
+          );
+        }
 
         return {
           base64,
@@ -48,7 +57,9 @@ export const useImportImage = () => {
           size,
         };
       } catch (error) {
-        toast.error("Failed to import image", { id });
+        if (!silent) {
+          toast.error("Failed to import image", { id });
+        }
         console.error("Image import error:", error);
         return null;
       }

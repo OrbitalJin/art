@@ -24,6 +24,7 @@ import {
 import { Attach } from "./attach";
 import { AgentBar } from "./agent/bar";
 import { AgentAttention } from "./agent/attention";
+import { useImportImage } from "@/hooks/use-import-image";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
@@ -103,9 +104,10 @@ const SendButton: React.FC<{
 };
 
 export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
-  const { prompt, setPrompt, attachments, removeAttachment, sendMessage } =
+  const { prompt, setPrompt, attachments, addAttachment, removeAttachment, sendMessage } =
     useChatInput();
   const { abortStream, isSending } = useChatStream();
+  const { importClipboardImage } = useImportImage();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
@@ -138,6 +140,34 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (isSending) return;
+
+    const data = e.clipboardData;
+    if (!data) return;
+
+    const types = Array.from(data.types);
+    const items = Array.from(data.items);
+
+    const hasImage =
+      items.some((item) => item.type.startsWith("image/")) ||
+      types.includes("Files") ||
+      types.some((type) => type.startsWith("image/"));
+    const hasText = types.includes("text/plain") || types.includes("text/html");
+
+    if (hasImage) {
+      e.preventDefault();
+      const imported = await importClipboardImage();
+      if (imported) addAttachment(imported);
+      return;
+    }
+
+    if (hasText) return;
+
+    const imported = await importClipboardImage({ silent: true });
+    if (imported) addAttachment(imported);
   };
 
   const containerClasses = cn(
@@ -177,6 +207,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
             placeholder={placeholder}
             className={textareaClasses}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
           />
 
           <div className="flex items-center justify-between px-2 pb-2">
