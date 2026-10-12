@@ -22,6 +22,8 @@ import {
   AttachmentTitle,
 } from "@/components/ui/attachment";
 import { Attach } from "./attach";
+import { StashSelect } from "./stash/stash-select";
+import { StashSaveButton } from "./stash/stash-save-button";
 import { AgentBar } from "./agent/bar";
 import { AgentAttention } from "./agent/attention";
 import { useImportImage } from "@/hooks/use-import-image";
@@ -216,6 +218,8 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
               <ModelSelect />
               {!isAgent && <ModeSelect />}
               <Attach />
+              {isAgent && <StashSaveButton />}
+              {isAgent && <StashSelect textAreaRef={textAreaRef} />}
             </div>
 
             <SendButton

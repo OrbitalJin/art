@@ -8,18 +8,11 @@ import { useChatStream } from "@/hooks/use-chat-stream";
 import { useImportImage } from "@/hooks/use-import-image";
 import { Button } from "@/components/ui/button";
 import { ImageIcon } from "lucide-react";
-import { useHotkey } from "@tanstack/react-hotkeys";
 
 export const Attach = () => {
-  const { importFSImage, importClipboardImage } = useImportImage();
+  const { importFSImage } = useImportImage();
   const { addAttachment } = useChatInput();
   const { isSending: disabled } = useChatStream();
-
-  const handleAttachPaste = async () => {
-    const imported = await importClipboardImage();
-    if (!imported) return;
-    addAttachment(imported);
-  };
 
   const handleAttachClick = async () => {
     const imported = await importFSImage();
@@ -27,7 +20,6 @@ export const Attach = () => {
     addAttachment(imported);
   };
 
-  useHotkey("Mod+Shift+V", handleAttachPaste);
   return (
     <Tooltip>
       <TooltipTrigger>
@@ -41,7 +33,7 @@ export const Attach = () => {
           <ImageIcon className="h-4 w-4" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent>Attach image (Ctrl+Shift+V)</TooltipContent>
+      <TooltipContent>Attach image</TooltipContent>
     </Tooltip>
   );
 };
