@@ -1,4 +1,3 @@
-// chat-settings-tab.tsx
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +26,8 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
+import type { IconType } from "react-icons";
+import { TbBrandVercel, TbBrandYoutube, TbPlugConnected } from "react-icons/tb";
 import { toast } from "sonner";
 import { ConnectionsSettings } from "./connections";
 import {
@@ -39,7 +40,26 @@ import {
   SettingsSection,
 } from "./settings-layout";
 
-interface SecretKeyFieldProps {
+const KeyIcon: React.FC<{ icon: IconType; active: boolean }> = ({
+  icon: Icon,
+  active,
+}) => {
+  const iconClasses = cn(
+    "flex size-9 shrink-0 items-center justify-center rounded-lg border",
+    "transition-colors duration-150",
+    active
+      ? "border-foreground/15 bg-foreground/[0.04] text-foreground"
+      : "border-border/60 bg-muted/40 text-muted-foreground",
+  );
+
+  return (
+    <span className={iconClasses}>
+      <Icon size={24} strokeWidth={1} aria-hidden />
+    </span>
+  );
+};
+
+interface KeyEditorProps {
   label: string;
   description: string;
   placeholder: string;
@@ -47,7 +67,7 @@ interface SecretKeyFieldProps {
   onSave: (value: string) => void;
 }
 
-const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
+const KeyEditor: React.FC<KeyEditorProps> = ({
   label,
   description,
   placeholder,
@@ -84,11 +104,8 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-3 px-4 py-4">
-      <div className="flex flex-col gap-0.5">
-        <p className="text-[13px] font-medium text-foreground">{label}</p>
-        <p className="text-xs text-muted-foreground">{description}</p>
-      </div>
+    <div className="flex flex-col gap-2.5 bg-muted/20 px-4 py-3">
+      <p className="text-xs text-muted-foreground">{description}</p>
 
       <div className="flex items-center gap-2">
         <div className="relative min-w-0 flex-1">
@@ -98,6 +115,7 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
             aria-label={label}
             autoComplete="off"
             spellCheck={false}
+            autoFocus
             className={inputClasses}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
@@ -116,14 +134,84 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
         <Button
           type="button"
           size="sm"
-          variant={dirty ? "default" : "ghost"}
           disabled={!dirty}
           onClick={handleSave}
-          className="h-8 w-16 text-xs"
+          className="h-8 w-16 text-xs shadow-none"
         >
-          {dirty ? "Save" : "Saved"}
+          Save
         </Button>
       </div>
+    </div>
+  );
+};
+
+interface SecretKeyFieldProps {
+  icon: IconType;
+  label: string;
+  description: string;
+  placeholder: string;
+  value: string;
+  onSave: (value: string) => void;
+}
+
+const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
+  icon,
+  label,
+  description,
+  placeholder,
+  value,
+  onSave,
+}) => {
+  const [editing, setEditing] = useState(false);
+
+  const configured = value.length > 0;
+  const statusText = configured ? "Key saved" : "Not set";
+  const buttonText = editing ? "Cancel" : configured ? "Edit" : "Add";
+  const buttonVariant = editing || configured ? "outline" : "default";
+
+  const statusClasses = cn(
+    "text-xs",
+    configured ? "text-foreground/70" : "text-muted-foreground",
+  );
+
+  const handleSave = (next: string) => {
+    onSave(next);
+    setEditing(false);
+  };
+
+  return (
+    <div className="flex flex-col">
+      <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+        <div className="flex min-w-0 items-center gap-3">
+          <KeyIcon icon={icon} active={configured} />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="text-[13px] font-medium text-foreground">
+              {label}
+            </span>
+            <span className={statusClasses}>{statusText}</span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          size="sm"
+          variant={buttonVariant}
+          className="h-8 text-xs shadow-none"
+          onClick={() => setEditing((open) => !open)}
+        >
+          {buttonText}
+        </Button>
+      </div>
+
+      {editing && (
+        <KeyEditor
+          label={label}
+          description={description}
+          placeholder={placeholder}
+          value={value}
+          onSave={handleSave}
+        />
+      )}
     </div>
   );
 };
@@ -234,6 +322,7 @@ export const ChatSettingsTab: React.FC = () => {
       <SettingsSection title="Keys" description="Stored on this device.">
         <SettingsCard>
           <SecretKeyField
+            icon={TbBrandVercel}
             label="Gateway"
             description="Vercel AI gateway key."
             placeholder="secret key"
@@ -241,6 +330,7 @@ export const ChatSettingsTab: React.FC = () => {
             onSave={setApiKey}
           />
           <SecretKeyField
+            icon={TbPlugConnected}
             label="Connections"
             description="Composio key for Gmail, Slack, search & more."
             placeholder="secret key"
@@ -248,6 +338,7 @@ export const ChatSettingsTab: React.FC = () => {
             onSave={setComposioApiKey}
           />
           <SecretKeyField
+            icon={TbBrandYoutube}
             label="YouTube"
             description="Transcript key for youtube-transcript.ai."
             placeholder="secret key"
