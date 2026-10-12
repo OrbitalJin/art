@@ -100,19 +100,26 @@ interface CodeBlockContentProps {
   code: string;
   language: string;
   wraps: boolean;
+  streaming?: boolean;
 }
 
 export const CodeBlockContent = ({
   code,
   language,
   wraps,
+  streaming,
 }: CodeBlockContentProps) => {
   const { color } = useTheme();
   const theme = themeShikiMap[color];
   const [html, setHtml] = useState<string | null>(null);
 
   // Wrapping is pure CSS, so toggling it doesn't re-run the highlighter.
+  // While the block is still streaming we skip highlighting entirely: the code
+  // changes on every chunk, so highlighting it would re-tokenize the whole
+  // block each time. It renders as plain text until the fence closes.
   useEffect(() => {
+    if (streaming) return;
+
     let cancelled = false;
 
     const highlight = async () => {
@@ -138,7 +145,7 @@ export const CodeBlockContent = ({
     return () => {
       cancelled = true;
     };
-  }, [code, language, theme]);
+  }, [code, language, theme, streaming]);
 
   const classes = cn(
     "max-h-[32rem] overflow-auto px-4 py-3 text-[13px] leading-relaxed",
@@ -146,7 +153,7 @@ export const CodeBlockContent = ({
     wraps && "[&_pre]:wrap-anywhere [&_pre]:whitespace-pre-wrap",
   );
 
-  if (html) {
+  if (!streaming && html) {
     return (
       <div className={classes} dangerouslySetInnerHTML={{ __html: html }} />
     );

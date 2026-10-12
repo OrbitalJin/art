@@ -102,7 +102,7 @@ export const AssistantMessage: React.FC<Message> = (message) => {
           status={isStreamingMessage ? "streaming" : "done"}
         />
 
-        <MessageParts parts={parts} />
+        <MessageParts parts={parts} streaming={isStreamingMessage} />
 
         {shouldRenderFooter && (
           <div className={footerClasses}>

@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 interface Props {
   content: string;
   className?: string;
+  streaming?: boolean;
 }
 
 let katexCssLoaded = false;
@@ -62,7 +63,11 @@ const MarkdownLink: React.FC<React.ComponentPropsWithoutRef<"a">> = ({
   );
 };
 
-const RendererComponent: React.FC<Props> = ({ content, className }) => {
+const RendererComponent: React.FC<Props> = ({
+  content,
+  className,
+  streaming,
+}) => {
   useEffect(() => {
     if (!katexCssLoaded) {
       katexCssLoaded = true;
@@ -200,7 +205,9 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
 
             return (
               <div className="my-4 grid min-w-0 max-w-full overflow-x-auto first:mt-0 last:mb-0">
-                <CodeBlock className={className}>{text}</CodeBlock>
+                <CodeBlock className={className} streaming={streaming}>
+                  {text}
+                </CodeBlock>
               </div>
             );
           },
@@ -267,5 +274,9 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
 };
 
 export const Renderer = memo(RendererComponent, (prev, next) => {
-  return prev.content === next.content && prev.className === next.className;
+  return (
+    prev.content === next.content &&
+    prev.className === next.className &&
+    prev.streaming === next.streaming
+  );
 });

@@ -15,6 +15,7 @@ import {
   applyStreamEvent,
   initialAccumulator,
   isTerminal,
+  type StreamAccumulator,
 } from "@/lib/ai/stream/stream-accumulator";
 import { presetFor } from "@/lib/ai/stream/presets";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
@@ -74,6 +75,37 @@ export async function sendToSession(
   let status: MessageStatus = "streaming";
   let stream: ReturnType<typeof streamText> | null = null;
 
+  let frame = 0;
+  let pending: StreamAccumulator | null = null;
+
+  const cancelPending = () => {
+    if (frame) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+    pending = null;
+  };
+
+  const flush = () => {
+    if (frame) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+    if (pending) {
+      useStreamStore.getState().setSnapshot(sessionId, pending);
+      pending = null;
+    }
+  };
+
+  const schedule = (snapshot: StreamAccumulator) => {
+    pending = snapshot;
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      flush();
+    });
+  };
+
   try {
     const history =
       useSessionStore.getState().sessions.find((s) => s.id === sessionId)
@@ -115,9 +147,11 @@ export async function sendToSession(
         status = acc.status;
         break;
       }
-      useStreamStore.getState().setSnapshot(sessionId, acc);
+      schedule(acc);
     }
+    flush();
   } catch (err) {
+    cancelPending();
     if (controller.signal.aborted) {
       status = "aborted";
       acc = { ...acc, status: "aborted" };

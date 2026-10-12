@@ -7,12 +7,14 @@ import { CodeBlockContent } from "@/components/chat/messages/code/block/content"
 interface CodeBlockProps extends React.HTMLAttributes<HTMLElement> {
   children: React.ReactNode;
   defaultExpanded?: boolean;
+  streaming?: boolean;
 }
 
 const CodeBlockComponent = ({
   className,
   children,
   defaultExpanded,
+  streaming,
 }: CodeBlockProps) => {
   const code = String(children ?? "").replace(/\n$/, "");
   const match = /language-(\w+)/.exec(className || "");
@@ -53,7 +55,12 @@ const CodeBlockComponent = ({
       />
 
       {showingContent ? (
-        <CodeBlockContent code={code} language={language} wraps={wraps} />
+        <CodeBlockContent
+          code={code}
+          language={language}
+          wraps={wraps}
+          streaming={streaming}
+        />
       ) : (
         <CodeBlockPreview
           code={previewCode}
