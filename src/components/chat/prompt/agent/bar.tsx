@@ -12,7 +12,7 @@ import {
   type PendingQuestion,
 } from "@/lib/store/use-question-store";
 import { useTodoStore, type TodoPlan } from "@/lib/store/use-todo-store";
-import { ToolUse } from "./tool-use";
+import { AgentTools } from "./agent-tools";
 import { ApprovalSwitch } from "./approval-switch";
 import { ToolApprovalCard } from "./tool-approval-card";
 import { AskUserCard } from "./ask-user-card";
@@ -278,7 +278,7 @@ export const AgentBar = () => {
   const barClasses = cn(
     "relative flex items-center gap-2.5",
     "bg-linear-to-r to-transparent transition-colors duration-300",
-    streaming ? "from-amber-500/3" : "from-emerald-500/2",
+    streaming ? "from-amber-500/3" : "",
     hasPending ? "items-stretch px-0" : "h-10 px-3",
   );
 
@@ -294,7 +294,7 @@ export const AgentBar = () => {
             <StateDot active={streaming} />
             <StatusLabel active={streaming} />
             <Divider />
-            <ToolUse active={active} />
+            <AgentTools active={active} />
             <ApprovalSwitch disabled={streaming} />
           </>
         )}

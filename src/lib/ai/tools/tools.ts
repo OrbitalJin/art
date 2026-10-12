@@ -22,9 +22,15 @@ export const ambientTools = (): ToolSet => {
 };
 
 export const toolsFor = ({ session }: Opts): ToolSet => {
+  const enabledSearch = Object.fromEntries(
+    Object.entries(searchTools()).filter(([name]) =>
+      toolkitEnabled(session, name),
+    ),
+  );
+
   const tools: ToolSet = {
     ...doneTools(),
-    ...ambientTools(),
+    ...enabledSearch,
     ...(toolkitEnabled(session, "todo") && session && todoTools(session.id)),
     ...(toolkitEnabled(session, "tasks") && tasksTools()),
     ...(toolkitEnabled(session, "askUser") &&

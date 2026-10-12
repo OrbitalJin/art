@@ -1,0 +1,124 @@
+import { useEffect, useRef, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useConnectionsStore } from "@/lib/store/use-connections-store";
+import type { Session } from "@/lib/store/session/types";
+import type { ToolCategory } from "@/lib/ai/tools/registry";
+import { cn } from "@/lib/utils";
+import { CategoryPage } from "./category-page";
+import { FilesPage } from "./files-page";
+import { MainPage } from "./main-page";
+
+type MenuPage =
+  | { name: "main" }
+  | { name: "category"; category: ToolCategory }
+  | { name: "files"; category: ToolCategory };
+
+const MAIN_PAGE: MenuPage = { name: "main" };
+
+export const ConfigureMenu: React.FC<{
+  disabled: boolean;
+  session: Session;
+  onAddFolder: () => void;
+  onRemoveFolder: (folderId: string) => void;
+  onToggle: (key: string, value: boolean) => void;
+  onRevokeAll: () => void;
+}> = ({
+  disabled,
+  session,
+  onAddFolder,
+  onRemoveFolder,
+  onToggle,
+  onRevokeAll,
+}) => {
+  const syncConnections = useConnectionsStore((state) => state.syncConnections);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [page, setPage] = useState<MenuPage>(MAIN_PAGE);
+
+  useEffect(() => {
+    if (open) void syncConnections();
+  }, [open, syncConnections]);
+
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [page]);
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) setPage(MAIN_PAGE);
+  };
+
+  const triggerClasses = cn(
+    "flex shrink-0 cursor-pointer items-center rounded-md px-2 py-0.5 h-7",
+    "text-xs whitespace-nowrap text-muted-foreground ring-1 ring-border/60 outline-none",
+    "transition-colors duration-150 hover:bg-muted/60 hover:text-foreground",
+    "focus-visible:ring-2 focus-visible:ring-ring/50",
+    "data-[state=open]:bg-muted/60 data-[state=open]:text-foreground",
+    "disabled:pointer-events-none disabled:opacity-50",
+  );
+
+  const contentClasses = cn(
+    "w-80 max-w-[calc(100vw-2rem)] rounded-xl p-0 shadow-lg",
+    "max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto",
+    "border-border/60",
+  );
+
+  const renderPage = () => {
+    if (page.name === "category") {
+      const category = page.category;
+      return (
+        <CategoryPage
+          category={category}
+          session={session}
+          onBack={() => setPage(MAIN_PAGE)}
+          onOpenFiles={() => setPage({ name: "files", category })}
+          onToggle={onToggle}
+        />
+      );
+    }
+
+    if (page.name === "files") {
+      const category = page.category;
+      return (
+        <FilesPage
+          folders={session.folders ?? []}
+          onBack={() => setPage({ name: "category", category })}
+          onAdd={onAddFolder}
+          onRemove={onRemoveFolder}
+        />
+      );
+    }
+
+    return (
+      <MainPage
+        session={session}
+        onOpenCategory={(category) => setPage({ name: "category", category })}
+        onRevokeAll={onRevokeAll}
+      />
+    );
+  };
+
+  return (
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
+      <DropdownMenuTrigger asChild disabled={disabled}>
+        <button type="button" className={triggerClasses}>
+          Configure
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        ref={contentRef}
+        side="top"
+        align="end"
+        avoidCollisions={false}
+        className={contentClasses}
+      >
+        {renderPage()}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};

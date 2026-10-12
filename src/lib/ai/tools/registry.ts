@@ -7,7 +7,7 @@ import {
 
 export type AccessMode = "readonly" | "confirm" | "autonomous";
 
-export type ToolCategory = "art" | "device" | "human" | "services";
+export type ToolCategory = "art" | "device" | "human" | "services" | "web";
 
 export type ToolSource = "builtin" | "folders" | "composio";
 
@@ -25,9 +25,11 @@ export const CATEGORY_LABELS: Record<ToolCategory, string> = {
   device: "Device",
   human: "Human",
   services: "Services",
+  web: "Web",
 };
 
 export const CATEGORY_ORDER: ToolCategory[] = [
+  "web",
   "art",
   "human",
   "device",
@@ -44,6 +46,54 @@ const CONNECTION_FAMILIES: ToolFamily[] = SUPPORTED_TOOLKITS.map((toolkit) => ({
 }));
 
 export const TOOL_FAMILIES: ToolFamily[] = [
+  {
+    key: "web_search",
+    label: "Web Search",
+    description: "Search the web for current information",
+    category: "web",
+    source: "builtin",
+    defaultEnabled: () => true,
+  },
+  {
+    key: "fetch_url",
+    label: "Fetch URL",
+    description: "Read the contents of a URL",
+    category: "web",
+    source: "builtin",
+    defaultEnabled: () => true,
+  },
+  {
+    key: "news_search",
+    label: "News",
+    description: "Search recent news articles",
+    category: "web",
+    source: "builtin",
+    defaultEnabled: () => false,
+  },
+  {
+    key: "flight_search",
+    label: "Flights",
+    description: "Search flights, schedules, and pricing",
+    category: "web",
+    source: "builtin",
+    defaultEnabled: () => false,
+  },
+  {
+    key: "hotel_search",
+    label: "Hotels",
+    description: "Search hotels and rentals with prices",
+    category: "web",
+    source: "builtin",
+    defaultEnabled: () => false,
+  },
+  {
+    key: "maps_search",
+    label: "Places",
+    description: "Search places, businesses, and locations",
+    category: "web",
+    source: "builtin",
+    defaultEnabled: () => false,
+  },
   {
     key: "tasks",
     label: "Tasks",
@@ -83,7 +133,7 @@ export const TOOL_FAMILIES: ToolFamily[] = [
     key: "youtube",
     label: "YouTube",
     description: "Pull video transcripts",
-    category: "services",
+    category: "web",
     source: "builtin",
     defaultEnabled: () => false,
   },
