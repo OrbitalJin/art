@@ -1,5 +1,11 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
+import type {
+  FlightsOutput,
+  HotelsOutput,
+  PlacesOutput,
+  ResultsOutput,
+} from "@/lib/ai/tools/search";
+import type { RendererProps } from "../../types";
 import {
   CountSummary,
   ResultBadge,
@@ -9,54 +15,62 @@ import {
 } from "../../primitives";
 import { asRecord, formatCount, getString, hostnameOf } from "../../helpers";
 import {
-  flightsOf,
   formatMoney,
-  hotelsOf,
   lowestOf,
-  placesOf,
-  resultsOf,
   wordCountOf,
 } from "./helpers";
 
-export const WebSearchSummary: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const WebSearchSummary: FC<RendererProps<ResultsOutput>> = ({
+  block,
+  output,
+}) => (
   <CountSummary
     block={block}
     label={getString(asRecord(block.input), "query")}
-    count={resultsOf(block.output).length}
+    count={output?.results.length ?? 0}
     noun="result"
   />
 );
 
-export const NewsSummary: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const NewsSummary: FC<RendererProps<ResultsOutput>> = ({
+  block,
+  output,
+}) => (
   <CountSummary
     block={block}
     label={getString(asRecord(block.input), "query")}
-    count={resultsOf(block.output).length}
+    count={output?.results.length ?? 0}
     noun="article"
   />
 );
 
-export const MapsSummary: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const MapsSummary: FC<RendererProps<PlacesOutput>> = ({
+  block,
+  output,
+}) => (
   <CountSummary
     block={block}
     label={getString(asRecord(block.input), "q")}
-    count={placesOf(block.output).places.length}
+    count={output?.places.length ?? 0}
     noun="place"
   />
 );
 
-export const FlightSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const FlightSummary: FC<RendererProps<FlightsOutput>> = ({
+  block,
+  output,
+}) => {
   const input = asRecord(block.input);
   const from = getString(input, "departure_id");
   const to = getString(input, "arrival_id");
   const query = getString(input, "query");
   const label = from && to ? `${from} → ${to}` : query;
-  const currency = getString(input, "currency");
 
-  const flights = flightsOf(block.output);
-  const options = [...flights.best, ...flights.other];
+  const best = output?.best ?? [];
+  const other = output?.other ?? [];
+  const options = [...best, ...other];
   const lowest = lowestOf(options.map((flight) => flight.price));
-  const price = formatMoney(lowest, currency);
+  const price = formatMoney(lowest, output?.currency ?? null);
 
   return (
     <SummaryRow>
@@ -70,14 +84,16 @@ export const FlightSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const HotelSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const HotelSummary: FC<RendererProps<HotelsOutput>> = ({
+  block,
+  output,
+}) => {
   const input = asRecord(block.input);
   const q = getString(input, "q");
-  const currency = getString(input, "currency");
 
-  const hotels = hotelsOf(block.output);
+  const hotels = output?.hotels ?? [];
   const lowest = lowestOf(hotels.map((hotel) => hotel.pricePerNight));
-  const price = formatMoney(lowest, currency);
+  const price = formatMoney(lowest, output?.currency ?? null);
 
   return (
     <SummaryRow>
@@ -91,9 +107,12 @@ export const HotelSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const FetchSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const FetchSummary: FC<RendererProps<ResultsOutput>> = ({
+  block,
+  output,
+}) => {
   const url = getString(asRecord(block.input), "url");
-  const page = resultsOf(block.output)[0];
+  const page = output?.results[0];
   const body = page?.text ?? page?.snippet ?? null;
   const words = body ? formatCount(wordCountOf(body), "word") : null;
 

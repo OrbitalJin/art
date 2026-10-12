@@ -10,7 +10,10 @@ import { googlesheetsRenderers } from "./renderers/googlesheets";
 import { youtubeRenderers } from "./renderers/youtube";
 import { genericRenderer } from "./renderers/generic";
 
-const TOOL_RENDERERS: Record<string, ToolRenderer> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyRenderer = ToolRenderer<any>;
+
+const TOOL_RENDERERS: Record<string, AnyRenderer> = {
   ...fileRenderers,
   ...searchRenderers,
   ...taskRenderers,
@@ -22,5 +25,5 @@ const TOOL_RENDERERS: Record<string, ToolRenderer> = {
   ...youtubeRenderers,
 };
 
-export const resolveRenderer = (toolName: string): ToolRenderer =>
+export const resolveRenderer = (toolName: string): AnyRenderer =>
   TOOL_RENDERERS[toolName] ?? genericRenderer;

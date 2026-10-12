@@ -1,8 +1,14 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
+import type {
+  FlightsOutput,
+  HotelsOutput,
+  PlacesOutput,
+  ResultsOutput,
+} from "@/lib/ai/tools/search";
+import type { RendererProps } from "../../types";
 import { DetailGate, EmptyNote, RowList, SectionLabel } from "../../primitives";
-import { asRecord, formatCount, getString } from "../../helpers";
-import { flightsOf, hotelsOf, placesOf, type FlightOption } from "./helpers";
+import { formatCount } from "../../helpers";
+import { type FlightOption } from "./helpers";
 import {
   FetchBody,
   FlightCard,
@@ -11,17 +17,34 @@ import {
   ResultsDetail,
 } from "./parts";
 
-export const WebSearchDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
-  <ResultsDetail block={block} emptyLabel="No results found." />
+export const WebSearchDetail: FC<RendererProps<ResultsOutput>> = ({
+  block,
+  output,
+}) => (
+  <ResultsDetail
+    block={block}
+    output={output}
+    emptyLabel="No results found."
+  />
 );
 
-export const NewsDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
-  <ResultsDetail block={block} emptyLabel="No articles found." />
+export const NewsDetail: FC<RendererProps<ResultsOutput>> = ({
+  block,
+  output,
+}) => (
+  <ResultsDetail
+    block={block}
+    output={output}
+    emptyLabel="No articles found."
+  />
 );
 
-export const FetchDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const FetchDetail: FC<RendererProps<ResultsOutput>> = ({
+  block,
+  output,
+}) => (
   <DetailGate block={block} executingLabel="Fetching page…">
-    <FetchBody block={block} />
+    <FetchBody block={block} output={output} />
   </DetailGate>
 );
 
@@ -48,11 +71,15 @@ const FlightGroup: FC<{
   );
 };
 
-export const FlightDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const flights = flightsOf(block.output);
-  const currency = getString(asRecord(block.input), "currency");
-  const total = flights.best.length + flights.other.length;
-  const showLabels = flights.best.length > 0 && flights.other.length > 0;
+export const FlightDetail: FC<RendererProps<FlightsOutput>> = ({
+  block,
+  output,
+}) => {
+  const best = output?.best ?? [];
+  const other = output?.other ?? [];
+  const currency = output?.currency ?? null;
+  const total = best.length + other.length;
+  const showLabels = best.length > 0 && other.length > 0;
 
   return (
     <DetailGate block={block} executingLabel="Searching flights…">
@@ -62,12 +89,12 @@ export const FlightDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
         <div className="flex max-h-72 min-h-0 flex-col gap-3 overflow-y-auto scroll-fade-y">
           <FlightGroup
             label={showLabels ? "Best" : null}
-            flights={flights.best}
+            flights={best}
             currency={currency}
           />
           <FlightGroup
             label={showLabels ? "Other" : null}
-            flights={flights.other}
+            flights={other}
             currency={currency}
           />
         </div>
@@ -76,9 +103,12 @@ export const FlightDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const HotelDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const hotels = hotelsOf(block.output);
-  const currency = getString(asRecord(block.input), "currency");
+export const HotelDetail: FC<RendererProps<HotelsOutput>> = ({
+  block,
+  output,
+}) => {
+  const hotels = output?.hotels ?? [];
+  const currency = output?.currency ?? null;
 
   return (
     <DetailGate block={block} executingLabel="Searching hotels…">
@@ -99,8 +129,12 @@ export const HotelDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const MapsDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const { places, single } = placesOf(block.output);
+export const MapsDetail: FC<RendererProps<PlacesOutput>> = ({
+  block,
+  output,
+}) => {
+  const places = output?.places ?? [];
+  const single = output?.single ?? false;
 
   return (
     <DetailGate block={block} executingLabel="Searching places…">

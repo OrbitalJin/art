@@ -1,6 +1,6 @@
 import type { FC, ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import type { ToolCallBlock } from "@/lib/store/session/types";
+import type { ResultsOutput } from "@/lib/ai/tools/search";
 import {
   Arrow,
   DateStamp,
@@ -17,7 +17,6 @@ import {
   formatDuration,
   formatMoney,
   formatResultDate,
-  resultsOf,
   wordCountOf,
   type FlightOption,
   type Hotel,
@@ -112,11 +111,12 @@ export const ResultItem: FC<{ result: WebResult }> = ({ result }) => {
 };
 
 export const ResultsDetail: FC<{
-  block: ToolCallBlock;
+  block: React.ComponentProps<typeof DetailGate>["block"];
+  output: ResultsOutput | null;
   emptyLabel: string;
   executingLabel?: string;
-}> = ({ block, emptyLabel, executingLabel = "Searching…" }) => {
-  const results = resultsOf(block.output);
+}> = ({ block, output, emptyLabel, executingLabel = "Searching…" }) => {
+  const results = output?.results ?? [];
 
   return (
     <DetailGate block={block} executingLabel={executingLabel}>
@@ -135,8 +135,11 @@ export const ResultsDetail: FC<{
 
 /* Fetched page */
 
-export const FetchBody: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const page = resultsOf(block.output)[0];
+export const FetchBody: FC<{
+  block: React.ComponentProps<typeof DetailGate>["block"];
+  output: ResultsOutput | null;
+}> = ({ output }) => {
+  const page = output?.results[0];
   if (!page) return <EmptyNote>No content returned.</EmptyNote>;
 
   const source = page.url ? hostnameOf(page.url) : null;

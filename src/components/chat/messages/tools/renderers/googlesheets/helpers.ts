@@ -1,17 +1,11 @@
-import {
-  asArray,
-  asRecord,
-  dataOf,
-  formatValue,
-  getNumber,
-  getString,
-  recordsOf,
-} from "../../helpers";
+import { formatValue } from "../../helpers";
 
-const payloadOf = (output: unknown): Record<string, unknown> | null => {
-  const data = dataOf(output);
-  return asRecord(data) ?? asRecord(output);
-};
+export type {
+  SheetMeta,
+  SpreadsheetInfo,
+  SpreadsheetRef,
+  ValueRange,
+} from "@/lib/ai/tools/googlesheets";
 
 export const cellText = (value: unknown): string => {
   if (value === null || value === undefined) return "";
@@ -20,130 +14,6 @@ export const cellText = (value: unknown): string => {
     return String(value);
   }
   return formatValue(value);
-};
-
-const toGrid = (value: unknown): unknown[][] =>
-  asArray(value).map((row) => (Array.isArray(row) ? row : [row]));
-
-export const spreadsheetIdOf = (
-  output: unknown,
-  input: unknown,
-): string | null => {
-  const payload = payloadOf(output);
-  return (
-    getString(payload, "spreadsheetId") ??
-    getString(payload, "spreadsheet_id") ??
-    getString(asRecord(input), "spreadsheet_id")
-  );
-};
-
-export const spreadsheetTitleOf = (output: unknown): string | null => {
-  const payload = payloadOf(output);
-  const properties = asRecord(payload?.properties);
-  return getString(properties, "title") ?? getString(payload, "title");
-};
-
-export const spreadsheetUrlOf = (output: unknown): string | null => {
-  const payload = payloadOf(output);
-  return (
-    getString(payload, "spreadsheetUrl") ??
-    getString(payload, "spreadsheet_url")
-  );
-};
-
-export const rangeOf = (output: unknown, input: unknown): string | null => {
-  const payload = payloadOf(output);
-  return getString(payload, "range") ?? getString(asRecord(input), "range");
-};
-
-export const valuesOf = (output: unknown): unknown[][] => {
-  const payload = payloadOf(output);
-  if (!payload) return [];
-  return toGrid(payload.values);
-};
-
-export interface SheetMeta {
-  title: string | null;
-  sheetId: number | null;
-  index: number | null;
-  rowCount: number | null;
-  columnCount: number | null;
-}
-
-export const toSheet = (item: unknown): SheetMeta => {
-  const record = asRecord(item) ?? {};
-  const properties = asRecord(record.properties) ?? record;
-  const grid = asRecord(properties.gridProperties);
-
-  return {
-    title: getString(properties, "title") ?? getString(record, "name"),
-    sheetId: getNumber(properties, "sheetId"),
-    index: getNumber(properties, "index"),
-    rowCount: getNumber(grid, "rowCount"),
-    columnCount: getNumber(grid, "columnCount"),
-  };
-};
-
-export const sheetsOf = (output: unknown): SheetMeta[] => {
-  const payload = payloadOf(output);
-  if (!payload) return [];
-
-  const sheets = recordsOf(payload.sheets);
-  if (sheets.length > 0) return sheets.map(toSheet);
-
-  const names = asArray(payload.sheet_names ?? payload.names ?? payload.sheets);
-  return names
-    .map((item): SheetMeta | null => {
-      const title =
-        typeof item === "string"
-          ? item
-          : (getString(asRecord(item), "title") ??
-            getString(asRecord(item), "name"));
-      if (!title) return null;
-      return {
-        title,
-        sheetId: null,
-        index: null,
-        rowCount: null,
-        columnCount: null,
-      };
-    })
-    .filter((item): item is SheetMeta => item !== null);
-};
-
-export interface ValueRange {
-  range: string | null;
-  values: unknown[][];
-}
-
-export const valueRangesOf = (output: unknown): ValueRange[] => {
-  const payload = payloadOf(output);
-  if (!payload) return [];
-
-  return recordsOf(payload.valueRanges ?? payload.value_ranges).map((item) => ({
-    range: getString(item, "range"),
-    values: toGrid(item.values),
-  }));
-};
-
-export interface SpreadsheetRef {
-  id: string | null;
-  name: string | null;
-}
-
-export const spreadsheetsOf = (output: unknown): SpreadsheetRef[] => {
-  const payload = payloadOf(output);
-  if (!payload) return [];
-
-  return recordsOf(payload.spreadsheets ?? payload.files ?? payload.items).map(
-    (item) => ({
-      id:
-        getString(item, "id") ??
-        getString(item, "spreadsheetId") ??
-        getString(item, "spreadsheet_id"),
-      name: getString(item, "name") ?? getString(item, "title"),
-    }),
-  );
 };
 
 /** 0 -> A, 25 -> Z, 26 -> AA. */

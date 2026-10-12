@@ -1,4 +1,7 @@
-import { asRecord, getNumber, getString, recordsOf } from "../../helpers";
+import type {
+  YoutubeTranscriptOutput,
+  YoutubeTranscriptSegment,
+} from "@/lib/ai/tools/youtube";
 
 export interface TranscriptTurn {
   text: string;
@@ -52,35 +55,44 @@ const turnsOf = (text: string): TranscriptTurn[] =>
     .filter((turn) => turn.text !== "");
 
 const toSegment = (
-  record: Record<string, unknown>,
+  segment: YoutubeTranscriptSegment,
 ): TranscriptSegment | null => {
-  const text = getString(record, "text");
+  const text = segment.text?.trim();
   if (!text) return null;
 
   const turns = turnsOf(text);
   if (turns.length === 0) return null;
 
-  const seconds = getNumber(record, "seconds");
+  const seconds = segment.seconds;
   const timestamp =
-    getString(record, "timestamp") ??
-    (seconds !== null ? formatTimestamp(seconds) : null);
+    segment.timestamp ??
+    (typeof seconds === "number" ? formatTimestamp(seconds) : null);
 
   return { timestamp, seconds, turns };
 };
 
-export const toTranscript = (output: unknown): Transcript => {
-  const record = asRecord(output);
-
-  const segments = recordsOf(record?.segments)
-    .map(toSegment)
-    .filter((segment): segment is TranscriptSegment => segment !== null);
+export const toTranscript = (
+  output: YoutubeTranscriptOutput | null,
+): Transcript => {
+  if (!output) {
+    return {
+      title: null,
+      language: null,
+      duration: null,
+      words: null,
+      videoId: null,
+      segments: [],
+    };
+  }
 
   return {
-    title: getString(record, "title"),
-    language: getString(record, "language"),
-    duration: getString(record, "duration"),
-    words: getNumber(record, "words"),
-    videoId: getString(record, "videoId"),
-    segments,
+    title: output.title ?? null,
+    language: output.language ?? null,
+    duration: output.duration ?? null,
+    words: output.words ?? null,
+    videoId: output.videoId ?? null,
+    segments: output.segments
+      .map(toSegment)
+      .filter((segment): segment is TranscriptSegment => segment !== null),
   };
 };

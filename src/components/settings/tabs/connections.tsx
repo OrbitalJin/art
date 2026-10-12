@@ -120,14 +120,12 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
 interface ConnectionsFooterProps {
   error: string | null;
   showRefresh: boolean;
-  refreshing: boolean;
   onRefresh: () => void;
 }
 
 const ConnectionsFooter: React.FC<ConnectionsFooterProps> = ({
   error,
   showRefresh,
-  refreshing,
   onRefresh,
 }) => (
   <div className="flex items-center justify-between gap-4 bg-muted/20 px-4 py-2.5">
@@ -140,10 +138,9 @@ const ConnectionsFooter: React.FC<ConnectionsFooterProps> = ({
         variant="ghost"
         size="sm"
         className="h-7 shrink-0 px-2.5 text-xs text-muted-foreground hover:text-foreground"
-        disabled={refreshing}
         onClick={onRefresh}
       >
-        {refreshing ? "Refreshing tools…" : "Refresh tools"}
+        Refresh
       </Button>
     )}
   </div>
@@ -151,12 +148,10 @@ const ConnectionsFooter: React.FC<ConnectionsFooterProps> = ({
 
 export const ConnectionsSettings: React.FC = () => {
   const toolkits = useConnectionsStore((state) => state.toolkits);
-  const refreshing = useConnectionsStore((state) => state.refreshing);
   const error = useConnectionsStore((state) => state.error);
   const connect = useConnectionsStore((state) => state.connect);
   const disconnect = useConnectionsStore((state) => state.disconnect);
   const awaitConnection = useConnectionsStore((state) => state.awaitConnection);
-  const refreshTools = useConnectionsStore((state) => state.refreshTools);
   const syncConnections = useConnectionsStore((state) => state.syncConnections);
 
   useEffect(() => {
@@ -201,8 +196,7 @@ export const ConnectionsSettings: React.FC = () => {
         <ConnectionsFooter
           error={error}
           showRefresh={anyActive}
-          refreshing={refreshing}
-          onRefresh={() => void refreshTools()}
+          onRefresh={() => void syncConnections(true)}
         />
       )}
     </SettingsCard>

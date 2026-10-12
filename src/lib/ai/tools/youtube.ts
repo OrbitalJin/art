@@ -8,13 +8,13 @@ import {
   setCachedTranscript,
 } from "./transcript/cache";
 
-const segmentSchema = z.object({
+export const transcriptSegmentSchema = z.object({
   timestamp: z.string().describe("Timestamp marker, e.g. 4:12"),
   seconds: z.number().describe("Offset from the start of the video in seconds"),
   text: z.string(),
 });
 
-const resultSchema = z.object({
+export const youtubeTranscriptOutput = z.object({
   videoId: z.string(),
   url: z.string(),
   title: z.string().optional(),
@@ -22,15 +22,18 @@ const resultSchema = z.object({
   duration: z.string().optional(),
   words: z.number().optional(),
   otherLanguages: z.array(z.string()).optional(),
-  segments: z.array(segmentSchema),
+  segments: z.array(transcriptSegmentSchema),
   transcript: z.string().describe("Full transcript as timestamped markdown"),
   error: z.string().optional(),
 });
 
+export type YoutubeTranscriptSegment = z.infer<typeof transcriptSegmentSchema>;
+export type YoutubeTranscriptOutput = z.infer<typeof youtubeTranscriptOutput>;
+
 const NO_KEY_ERROR =
   "YouTube transcript API key is not configured. Ask the user to add one in Settings > Chat.";
 
-const parseError = (video: string): z.infer<typeof resultSchema> => ({
+const parseError = (video: string): YoutubeTranscriptOutput => ({
   videoId: "",
   url: "",
   segments: [],
@@ -72,7 +75,7 @@ export const youtubeTools = () => {
             "Optional YouTube language code, e.g. en, es, zh-Hant. Falls back to an available track.",
           ),
       }),
-      outputSchema: resultSchema,
+      outputSchema: youtubeTranscriptOutput,
       execute: async ({ video, lang }) => {
         const videoId = extractVideoId(video);
         if (!videoId) return parseError(video);

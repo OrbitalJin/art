@@ -1,45 +1,27 @@
-import type { FC, ReactNode } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
-import { ResultBadge, SummaryRow, SummaryText } from "../../primitives";
+import type { FC } from "react";
+import type {
+  SlackChannelOutput,
+  SlackChannelsOutput,
+  SlackIdentityOutput,
+  SlackMessagesOutput,
+  SlackUserOutput,
+  SlackUsersOutput,
+} from "@/lib/ai/tools/slack";
+import type { RendererProps } from "../../types";
 import {
-  asRecord,
-  formatCount,
-  getString,
-  getSummaryText,
-} from "../../helpers";
-import {
-  channelsOf,
-  conversationOf,
-  errorOf,
-  looksLikeId,
-  messagesOf,
-  toChannel,
-  toIdentity,
-  toUser,
-  userOf,
-  usersOf,
-} from "./helpers";
+  ResultBadge,
+  SummaryRow,
+  SummaryStatus,
+  SummaryText,
+} from "../../primitives";
+import { asRecord, formatCount, getString, getSummaryText } from "../../helpers";
+import { looksLikeId } from "./helpers";
 
 const channelRefOf = (input: unknown): string | null =>
-  getString(asRecord(input), "channel") ??
-  getString(asRecord(input), "channel_id");
+  getString(asRecord(input), "channel");
 
 const userRefOf = (input: unknown): string | null =>
-  getString(asRecord(input), "user") ??
-  getString(asRecord(input), "user_id") ??
-  getString(asRecord(input), "email");
-
-const SummaryStatus: FC<{ block: ToolCallBlock; children: ReactNode }> = ({
-  block,
-  children,
-}) => {
-  const failed = block.state === "error" || errorOf(block.output) !== null;
-  if (failed) return <ResultBadge tone="error">failed</ResultBadge>;
-
-  if (block.state === "executing") return null;
-
-  return <>{children}</>;
-};
+  getString(asRecord(input), "user") ?? getString(asRecord(input), "email");
 
 const ChannelRefText: FC<{ channelRef: string }> = ({ channelRef }) => {
   if (looksLikeId(channelRef)) {
@@ -55,7 +37,7 @@ const ChannelRefText: FC<{ channelRef: string }> = ({ channelRef }) => {
 };
 
 const CountSummary: FC<{
-  block: ToolCallBlock;
+  block: RendererProps["block"];
   label: string | null;
   count: number;
   noun: string;
@@ -68,37 +50,45 @@ const CountSummary: FC<{
   </SummaryRow>
 );
 
-export const WhoAmISummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const identity = toIdentity(block.output);
-  const label = identity.userName;
+export const WhoAmISummary: FC<RendererProps<SlackIdentityOutput>> = ({
+  block,
+  output,
+}) => {
+  const identity = output?.identity ?? null;
+  const label = identity?.userName ?? null;
 
   return (
     <SummaryRow>
       {label ? <SummaryText title={label}>{label}</SummaryText> : null}
       <SummaryStatus block={block}>
-        <ResultBadge>{identity.teamName ?? "read"}</ResultBadge>
+        <ResultBadge>{identity?.teamName ?? "read"}</ResultBadge>
       </SummaryStatus>
     </SummaryRow>
   );
 };
 
-export const ChannelsSummary: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const ChannelsSummary: FC<RendererProps<SlackChannelsOutput>> = ({
+  block,
+  output,
+}) => (
   <CountSummary
     block={block}
     label={getSummaryText(block.input)}
-    count={channelsOf(block.output).length}
+    count={output?.channels.length ?? 0}
     noun="channel"
   />
 );
 
-export const ChannelInfoSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const ChannelInfoSummary: FC<RendererProps<SlackChannelOutput>> = ({
+  block,
+  output,
+}) => {
   const ref = channelRefOf(block.input);
-  const channel = toChannel(conversationOf(block.output));
-  const name = channel.name ? `#${channel.name}` : null;
+  const channel = output?.channel ?? null;
+  const name = channel?.name ? `#${channel.name}` : null;
+  const memberCount = channel?.memberCount ?? null;
   const badge =
-    channel.memberCount !== null
-      ? formatCount(channel.memberCount, "member")
-      : "read";
+    memberCount !== null ? formatCount(memberCount, "member") : "read";
 
   return (
     <SummaryRow>
@@ -114,9 +104,12 @@ export const ChannelInfoSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const MessagesSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const MessagesSummary: FC<RendererProps<SlackMessagesOutput>> = ({
+  block,
+  output,
+}) => {
   const ref = channelRefOf(block.input);
-  const messages = messagesOf(block.output);
+  const messages = output?.messages ?? [];
 
   return (
     <SummaryRow>
@@ -128,7 +121,10 @@ export const MessagesSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const SearchSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const SearchSummary: FC<RendererProps<SlackMessagesOutput>> = ({
+  block,
+  output,
+}) => {
   const query =
     getString(asRecord(block.input), "query") ?? getSummaryText(block.input);
 
@@ -136,31 +132,37 @@ export const SearchSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
     <CountSummary
       block={block}
       label={query}
-      count={messagesOf(block.output).length}
+      count={output?.messages.length ?? 0}
       noun="match"
     />
   );
 };
 
-export const UsersSummary: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const UsersSummary: FC<RendererProps<SlackUsersOutput>> = ({
+  block,
+  output,
+}) => (
   <CountSummary
     block={block}
     label={getSummaryText(block.input)}
-    count={usersOf(block.output).length}
+    count={output?.users.length ?? 0}
     noun="user"
   />
 );
 
-export const UserSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const UserSummary: FC<RendererProps<SlackUserOutput>> = ({
+  block,
+  output,
+}) => {
   const ref = userRefOf(block.input);
-  const user = toUser(userOf(block.output));
-  const label = user.realName ?? user.displayName ?? user.name ?? ref;
+  const user = output?.user ?? null;
+  const label = user?.realName ?? user?.displayName ?? user?.name ?? ref;
 
   return (
     <SummaryRow>
       {label ? <SummaryText title={label}>{label}</SummaryText> : null}
       <SummaryStatus block={block}>
-        {user.id ? <ResultBadge>read</ResultBadge> : null}
+        {user?.id ? <ResultBadge>read</ResultBadge> : null}
       </SummaryStatus>
     </SummaryRow>
   );

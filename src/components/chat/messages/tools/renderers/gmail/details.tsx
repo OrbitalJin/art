@@ -1,52 +1,54 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
+import type {
+  GmailMessageOutput,
+  GmailMessagesOutput,
+} from "@/lib/ai/tools/gmail";
+import type { RendererProps } from "../../types";
 import { EmptyNote, ErrorNote } from "../../primitives";
-import {
-  errorOf,
-  formatFullEmailDate,
-  messageOf,
-  messagesOf,
-  senderEmail,
-  senderName,
-  toEmail,
-} from "./helpers";
+import { formatFullEmailDate, senderEmail, senderName } from "./helpers";
 import {
   HeaderLine,
   LabelChips,
-  MessageIdsDetail,
   MessagesDetail,
   StarMark,
-  ThreadMessagesDetail,
   UnreadDot,
 } from "./parts";
 
-export const FetchEmailsDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const FetchEmailsDetail: FC<RendererProps<GmailMessagesOutput>> = ({
+  block,
+  output,
+}) => (
   <MessagesDetail
     block={block}
+    output={output}
     emptyLabel="No emails found."
     executingLabel="Searching…"
   />
 );
 
-export const ListMessagesDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
-  <MessageIdsDetail block={block} />
-);
-
-export const ThreadDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
-  <ThreadMessagesDetail block={block} />
-);
-
-export const SingleMessageDetail: FC<{ block: ToolCallBlock }> = ({
+export const ListMessagesDetail: FC<RendererProps<GmailMessagesOutput>> = ({
   block,
+  output,
+}) => (
+  <MessagesDetail
+    block={block}
+    output={output}
+    emptyLabel="No messages found."
+    executingLabel="Fetching…"
+    idOnly
+  />
+);
+
+export const SingleMessageDetail: FC<RendererProps<GmailMessageOutput>> = ({
+  block,
+  output,
 }) => {
-  const error = errorOf(block.output);
-  if (error) return <ErrorNote>{error}</ErrorNote>;
+  if (output?.error) return <ErrorNote>{output.error}</ErrorNote>;
 
   if (block.state === "executing") return <EmptyNote>Loading…</EmptyNote>;
 
-  const messages = messagesOf(block.output);
-  const email = toEmail(messageOf(block.output));
-  if (!email.id && !email.subject && messages.length === 0) {
+  const email = output?.message ?? null;
+  if (!email || (!email.id && !email.subject)) {
     return <EmptyNote>Message not found.</EmptyNote>;
   }
 

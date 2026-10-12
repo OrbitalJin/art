@@ -1,84 +1,28 @@
-import type { FC, ReactNode } from "react";
+import type { FC } from "react";
 import { Lock } from "lucide-react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
+import type {
+  SlackChannel,
+  SlackChannelsOutput,
+  SlackMessage,
+  SlackMessagesOutput,
+  SlackUser,
+  SlackUsersOutput,
+} from "@/lib/ai/tools/slack";
 import { cn } from "@/lib/utils";
+import type { ToolCallBlock } from "@/lib/store/session/types";
 import {
   Chip,
+  DetailGate,
   EmptyNote,
-  ErrorNote,
   ListRow,
   MetaLine,
   RowList,
 } from "../../primitives";
 import { formatCount } from "../../helpers";
 import {
-  channelsOf,
   cleanSlackText,
-  errorOf,
   formatSlackTs,
-  messagesOf,
-  toChannel,
-  toMessage,
-  toUser,
-  usersOf,
-  type Channel,
-  type SlackMessage,
-  type SlackUser,
 } from "./helpers";
-
-export const DetailGate: FC<{
-  block: ToolCallBlock;
-  executingLabel: string;
-  children: ReactNode;
-}> = ({ block, executingLabel, children }) => {
-  const error = errorOf(block.output);
-  if (error) return <ErrorNote>{error}</ErrorNote>;
-
-  if (block.state === "executing") {
-    return <EmptyNote>{executingLabel}</EmptyNote>;
-  }
-
-  return <>{children}</>;
-};
-
-export const DetailTitle: FC<{ title: string; children?: ReactNode }> = ({
-  title,
-  children,
-}) => (
-  <div className="flex min-w-0 items-center gap-2">
-    <span
-      className="min-w-0 truncate text-[12px] font-medium text-foreground/90"
-      title={title}
-    >
-      {title}
-    </span>
-    {children}
-  </div>
-);
-
-export const DetailSubtitle: FC<{ children: ReactNode }> = ({ children }) => (
-  <p className="truncate text-[10px] text-muted-foreground/50">{children}</p>
-);
-
-export const HeaderLine: FC<{
-  label: string;
-  mono?: boolean;
-  children: ReactNode;
-}> = ({ label, mono, children }) => {
-  const valueClasses = cn(
-    "min-w-0 break-words text-[11px] text-foreground/70",
-    mono && "font-mono text-[10px]",
-  );
-
-  return (
-    <div className="flex min-w-0 items-baseline gap-2">
-      <span className="w-14 shrink-0 text-[10px] text-muted-foreground/50">
-        {label}
-      </span>
-      <span className={valueClasses}>{children}</span>
-    </div>
-  );
-};
 
 const ChannelMark: FC<{ isPrivate: boolean }> = ({ isPrivate }) => {
   if (isPrivate) {
@@ -144,7 +88,7 @@ const AuthorName: FC<{ username: string | null; userId: string | null }> = ({
   );
 };
 
-export const ChannelRow: FC<{ channel: Channel }> = ({ channel }) => {
+export const ChannelRow: FC<{ channel: SlackChannel }> = ({ channel }) => {
   const title = channel.name ?? channel.id ?? "Unknown channel";
   const description = channel.topic ?? channel.purpose;
 
@@ -229,83 +173,71 @@ export const UserRow: FC<{ user: SlackUser }> = ({ user }) => {
   );
 };
 
-const ChannelsList: FC<{ block: ToolCallBlock; emptyLabel: string }> = ({
-  block,
-  emptyLabel,
-}) => {
-  const channels = channelsOf(block.output);
-  if (channels.length === 0) return <EmptyNote>{emptyLabel}</EmptyNote>;
-
-  return (
-    <RowList maxHeightClass="max-h-72">
-      {channels.map((record, index) => {
-        const channel = toChannel(record);
-        return <ChannelRow key={channel.id ?? index} channel={channel} />;
-      })}
-    </RowList>
-  );
-};
-
-const MessagesList: FC<{ block: ToolCallBlock; emptyLabel: string }> = ({
-  block,
-  emptyLabel,
-}) => {
-  const messages = messagesOf(block.output);
-  if (messages.length === 0) return <EmptyNote>{emptyLabel}</EmptyNote>;
-
-  return (
-    <RowList maxHeightClass="max-h-72">
-      {messages.map((record, index) => {
-        const message = toMessage(record);
-        return <MessageRow key={message.id ?? index} message={message} />;
-      })}
-    </RowList>
-  );
-};
-
-const UsersList: FC<{ block: ToolCallBlock; emptyLabel: string }> = ({
-  block,
-  emptyLabel,
-}) => {
-  const users = usersOf(block.output);
-  if (users.length === 0) return <EmptyNote>{emptyLabel}</EmptyNote>;
-
-  return (
-    <RowList maxHeightClass="max-h-72">
-      {users.map((record, index) => {
-        const user = toUser(record);
-        return <UserRow key={user.id ?? index} user={user} />;
-      })}
-    </RowList>
-  );
-};
-
 export const ChannelsDetail: FC<{
   block: ToolCallBlock;
+  output: SlackChannelsOutput | null;
   emptyLabel: string;
   executingLabel?: string;
-}> = ({ block, emptyLabel, executingLabel = "Fetching…" }) => (
-  <DetailGate block={block} executingLabel={executingLabel}>
-    <ChannelsList block={block} emptyLabel={emptyLabel} />
-  </DetailGate>
-);
+}> = ({ block, output, emptyLabel, executingLabel = "Fetching…" }) => {
+  const channels = output?.channels ?? [];
+
+  return (
+    <DetailGate block={block} executingLabel={executingLabel}>
+      {channels.length === 0 ? (
+        <EmptyNote>{emptyLabel}</EmptyNote>
+      ) : (
+        <RowList maxHeightClass="max-h-72">
+          {channels.map((channel, index) => (
+            <ChannelRow key={channel.id ?? index} channel={channel} />
+          ))}
+        </RowList>
+      )}
+    </DetailGate>
+  );
+};
 
 export const MessagesDetail: FC<{
   block: ToolCallBlock;
+  output: SlackMessagesOutput | null;
   emptyLabel: string;
   executingLabel?: string;
-}> = ({ block, emptyLabel, executingLabel = "Fetching…" }) => (
-  <DetailGate block={block} executingLabel={executingLabel}>
-    <MessagesList block={block} emptyLabel={emptyLabel} />
-  </DetailGate>
-);
+}> = ({ block, output, emptyLabel, executingLabel = "Fetching…" }) => {
+  const messages = output?.messages ?? [];
+
+  return (
+    <DetailGate block={block} executingLabel={executingLabel}>
+      {messages.length === 0 ? (
+        <EmptyNote>{emptyLabel}</EmptyNote>
+      ) : (
+        <RowList maxHeightClass="max-h-72">
+          {messages.map((message, index) => (
+            <MessageRow key={message.id ?? index} message={message} />
+          ))}
+        </RowList>
+      )}
+    </DetailGate>
+  );
+};
 
 export const UsersDetail: FC<{
   block: ToolCallBlock;
+  output: SlackUsersOutput | null;
   emptyLabel: string;
   executingLabel?: string;
-}> = ({ block, emptyLabel, executingLabel = "Fetching…" }) => (
-  <DetailGate block={block} executingLabel={executingLabel}>
-    <UsersList block={block} emptyLabel={emptyLabel} />
-  </DetailGate>
-);
+}> = ({ block, output, emptyLabel, executingLabel = "Fetching…" }) => {
+  const users = output?.users ?? [];
+
+  return (
+    <DetailGate block={block} executingLabel={executingLabel}>
+      {users.length === 0 ? (
+        <EmptyNote>{emptyLabel}</EmptyNote>
+      ) : (
+        <RowList maxHeightClass="max-h-72">
+          {users.map((user, index) => (
+            <UserRow key={user.id ?? index} user={user} />
+          ))}
+        </RowList>
+      )}
+    </DetailGate>
+  );
+};

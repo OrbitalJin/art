@@ -1,31 +1,38 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
-import { Chip, EmptyNote } from "../../primitives";
+import type {
+  SlackChannelOutput,
+  SlackChannelsOutput,
+  SlackIdentityOutput,
+  SlackMessagesOutput,
+  SlackUserOutput,
+  SlackUsersOutput,
+} from "@/lib/ai/tools/slack";
+import type { RendererProps } from "../../types";
 import {
-  conversationOf,
-  toChannel,
-  toIdentity,
-  toUser,
-  userOf,
-} from "./helpers";
-import {
-  ChannelsDetail,
+  Chip,
   DetailGate,
   DetailSubtitle,
   DetailTitle,
+  EmptyNote,
   HeaderLine,
+} from "../../primitives";
+import {
+  ChannelsDetail,
   MessagesDetail,
   UsersDetail,
 } from "./parts";
 
-const WhoAmIBody: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const identity = toIdentity(block.output);
+const WhoAmIBody: FC<RendererProps<SlackIdentityOutput>> = ({ output }) => {
+  const identity = output?.identity ?? null;
 
   const hasIdentity =
-    identity.userName !== null ||
-    identity.teamName !== null ||
-    identity.userId !== null;
-  if (!hasIdentity) return <EmptyNote>No identity returned.</EmptyNote>;
+    identity !== null &&
+    (identity.userName !== null ||
+      identity.teamName !== null ||
+      identity.userId !== null);
+  if (!identity || !hasIdentity) {
+    return <EmptyNote>No identity returned.</EmptyNote>;
+  }
 
   const subtitle = identity.teamName ?? identity.domain;
 
@@ -64,10 +71,10 @@ const WhoAmIBody: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-const ChannelInfoBody: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const channel = toChannel(conversationOf(block.output));
+const ChannelInfoBody: FC<RendererProps<SlackChannelOutput>> = ({ output }) => {
+  const channel = output?.channel ?? null;
 
-  if (!channel.name && !channel.id) {
+  if (!channel || (!channel.name && !channel.id)) {
     return <EmptyNote>Channel not found.</EmptyNote>;
   }
 
@@ -102,11 +109,11 @@ const ChannelInfoBody: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-const UserBody: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const user = toUser(userOf(block.output));
+const UserBody: FC<RendererProps<SlackUserOutput>> = ({ output }) => {
+  const user = output?.user ?? null;
 
-  const name = user.realName ?? user.displayName ?? user.name;
-  if (!name && !user.id && !user.email) {
+  const name = user?.realName ?? user?.displayName ?? user?.name ?? null;
+  if (!user || (!name && !user.id && !user.email)) {
     return <EmptyNote>User not found.</EmptyNote>;
   }
 
@@ -146,54 +153,76 @@ const UserBody: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const WhoAmIDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const WhoAmIDetail: FC<RendererProps<SlackIdentityOutput>> = ({
+  block,
+  output,
+}) => (
   <DetailGate block={block} executingLabel="Loading…">
-    <WhoAmIBody block={block} />
+    <WhoAmIBody block={block} output={output} />
   </DetailGate>
 );
 
-export const ChannelsListDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const ChannelsListDetail: FC<RendererProps<SlackChannelsOutput>> = ({
+  block,
+  output,
+}) => (
   <ChannelsDetail
     block={block}
+    output={output}
     emptyLabel="No channels found."
     executingLabel="Fetching channels…"
   />
 );
 
-export const ChannelInfoDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const ChannelInfoDetail: FC<RendererProps<SlackChannelOutput>> = ({
+  block,
+  output,
+}) => (
   <DetailGate block={block} executingLabel="Loading…">
-    <ChannelInfoBody block={block} />
+    <ChannelInfoBody block={block} output={output} />
   </DetailGate>
 );
 
-export const ConversationHistoryDetail: FC<{ block: ToolCallBlock }> = ({
-  block,
-}) => (
+export const ConversationHistoryDetail: FC<
+  RendererProps<SlackMessagesOutput>
+> = ({ block, output }) => (
   <MessagesDetail
     block={block}
+    output={output}
     emptyLabel="No messages found."
     executingLabel="Reading messages…"
   />
 );
 
-export const SearchDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const SearchDetail: FC<RendererProps<SlackMessagesOutput>> = ({
+  block,
+  output,
+}) => (
   <MessagesDetail
     block={block}
+    output={output}
     emptyLabel="No matches found."
     executingLabel="Searching…"
   />
 );
 
-export const UsersListDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const UsersListDetail: FC<RendererProps<SlackUsersOutput>> = ({
+  block,
+  output,
+}) => (
   <UsersDetail
     block={block}
+    output={output}
     emptyLabel="No users found."
     executingLabel="Fetching users…"
   />
 );
 
-export const UserDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const UserDetail: FC<RendererProps<SlackUserOutput>> = ({
+  block,
+  output,
+}) => (
   <DetailGate block={block} executingLabel="Loading…">
-    <UserBody block={block} />
+    <UserBody block={block} output={output} />
   </DetailGate>
 );

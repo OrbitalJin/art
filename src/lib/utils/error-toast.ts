@@ -23,8 +23,8 @@ const describe = (value: unknown): string => {
 };
 
 /**
- * Serialize an error (Composio `ComposioError` / `@composio/client` `APIError`
- * or a plain value) into a complete, copyable block.
+ * Serialize an error (Composio `ComposioApiError` or a plain value) into a
+ * complete, copyable block.
  */
 export const formatError = (err: unknown): string => {
   if (err instanceof Error) {

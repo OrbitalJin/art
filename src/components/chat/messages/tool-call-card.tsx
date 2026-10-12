@@ -3,6 +3,7 @@ import { ChevronRight, CircleX, LoaderPinwheel } from "lucide-react";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/names";
+import { parseOutput } from "@/lib/ai/tools/composio/output";
 import { resolveRenderer } from "@/components/chat/messages/tools/registry";
 import {
   CodePanel,
@@ -17,6 +18,12 @@ import {
 export { formatToolName };
 
 type ToolRendererEntry = ReturnType<typeof resolveRenderer>;
+
+/** Parse a block's output once against its renderer's schema. */
+const outputOf = (renderer: ToolRendererEntry, block: ToolCallBlock): unknown =>
+  renderer.schema
+    ? parseOutput(renderer.schema, block.output)
+    : (block.output ?? null);
 
 interface Props {
   block: ToolCallBlock;
@@ -86,7 +93,7 @@ export const CompactSummary: React.FC<{ block: ToolCallBlock }> = ({
 
   const renderer = resolveRenderer(block.toolName);
   const Summary = renderer.Summary;
-  if (Summary) return <Summary block={block} />;
+  if (Summary) return <Summary block={block} output={outputOf(renderer, block)} />;
 
   const summaryText = getSummaryText(block.input);
   if (!summaryText) return null;
@@ -112,7 +119,7 @@ const DetailBody: React.FC<{
       {raw || !Detail ? (
         <RawView block={block} isError={isError} />
       ) : (
-        <Detail block={block} />
+        <Detail block={block} output={outputOf(renderer, block)} />
       )}
     </div>
   );

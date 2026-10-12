@@ -1,5 +1,12 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
+import type {
+  BatchValuesOutput,
+  SheetNamesOutput,
+  SpreadsheetInfoOutput,
+  SpreadsheetsOutput,
+  ValuesOutput,
+} from "@/lib/ai/tools/googlesheets";
+import type { RendererProps } from "../../types";
 import {
   CountSummary,
   ResultBadge,
@@ -8,36 +15,39 @@ import {
   SummaryText,
 } from "../../primitives";
 import { asRecord, formatCount, getString, getSummaryText } from "../../helpers";
-import {
-  rangeOf,
-  sheetsOf,
-  spreadsheetIdOf,
-  spreadsheetTitleOf,
-  spreadsheetsOf,
-  valueRangesOf,
-  valuesOf,
-} from "./helpers";
 
-export const SpreadsheetInfoSummary: FC<{ block: ToolCallBlock }> = ({
+const inputString = (input: unknown, key: string): string | null =>
+  getString(asRecord(input), key);
+
+export const SpreadsheetInfoSummary: FC<RendererProps<SpreadsheetInfoOutput>> =
+  ({ block, output }) => {
+    const spreadsheet = output?.spreadsheet ?? {
+      id: null,
+      title: null,
+      url: null,
+    };
+    const sheets = output?.sheets ?? [];
+    const title =
+      spreadsheet.title ??
+      spreadsheet.id ??
+      inputString(block.input, "spreadsheet_id") ??
+      getSummaryText(block.input);
+
+    return (
+      <CountSummary
+        block={block}
+        label={title}
+        count={sheets.length}
+        noun="sheet"
+      />
+    );
+  };
+
+export const SheetNamesSummary: FC<RendererProps<SheetNamesOutput>> = ({
   block,
+  output,
 }) => {
-  const title =
-    spreadsheetTitleOf(block.output) ??
-    spreadsheetIdOf(block.output, block.input) ??
-    getSummaryText(block.input);
-
-  return (
-    <CountSummary
-      block={block}
-      label={title}
-      count={sheetsOf(block.output).length}
-      noun="sheet"
-    />
-  );
-};
-
-export const SheetNamesSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const sheets = sheetsOf(block.output);
+  const sheets = output?.sheets ?? [];
   const names = sheets
     .map((sheet) => sheet.title)
     .filter((title): title is string => title !== null)
@@ -53,15 +63,19 @@ export const SheetNamesSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const ValuesSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const range = rangeOf(block.output, block.input);
-  const values = valuesOf(block.output);
+export const ValuesSummary: FC<RendererProps<ValuesOutput>> = ({
+  block,
+  output,
+}) => {
+  const range = output?.range ?? null;
+  const values = output?.values ?? [];
+  const resolvedRange = range ?? inputString(block.input, "range");
 
   return (
     <SummaryRow>
-      {range ? (
-        <SummaryText mono title={range}>
-          {range}
+      {resolvedRange ? (
+        <SummaryText mono title={resolvedRange}>
+          {resolvedRange}
         </SummaryText>
       ) : null}
       <SummaryStatus block={block}>
@@ -71,8 +85,11 @@ export const ValuesSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const BatchGetSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const ranges = valueRangesOf(block.output);
+export const BatchGetSummary: FC<RendererProps<BatchValuesOutput>> = ({
+  block,
+  output,
+}) => {
+  const ranges = output?.ranges ?? [];
   const first = ranges[0]?.range ?? null;
 
   return (
@@ -89,15 +106,18 @@ export const BatchGetSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const SearchSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const SearchSummary: FC<RendererProps<SpreadsheetsOutput>> = ({
+  block,
+  output,
+}) => {
   const query =
-    getString(asRecord(block.input), "query") ?? getSummaryText(block.input);
+    inputString(block.input, "query") ?? getSummaryText(block.input);
 
   return (
     <CountSummary
       block={block}
       label={query}
-      count={spreadsheetsOf(block.output).length}
+      count={output?.spreadsheets.length ?? 0}
       noun="spreadsheet"
     />
   );

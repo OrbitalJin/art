@@ -7,6 +7,7 @@ import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session, ToolCallBlock } from "@/lib/store/session/types";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/names";
 import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
+import { composioToolCount } from "@/lib/ai/tools/composio";
 import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
@@ -46,15 +47,8 @@ const basename = (path: string): string => {
   return parts[parts.length - 1] ?? path;
 };
 
-const slugsForToolkit = (toolkit: string, slugs: string[]): string[] => {
-  const prefix = `${toolkit.toLowerCase()}_`;
-  return slugs.filter((slug) => slug.toLowerCase().startsWith(prefix));
-};
-
-const useToolkitToolCount = (toolkit: string): number => {
-  const slugs = useConnectionsStore((state) => state.slugs);
-  return slugsForToolkit(toolkit, slugs).length;
-};
+const useToolkitToolCount = (toolkit: string): number =>
+  composioToolCount(toolkit);
 
 const ToolTag: React.FC<{ label: string; value?: string }> = ({
   label,

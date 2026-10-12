@@ -1,5 +1,6 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
+import type { YoutubeTranscriptOutput } from "@/lib/ai/tools/youtube";
+import type { RendererProps } from "../../types";
 import {
   ResultBadge,
   SummaryRow,
@@ -9,9 +10,12 @@ import {
 import { asRecord, formatCount, getString } from "../../helpers";
 import { toTranscript } from "./helpers";
 
-export const YoutubeSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const YoutubeSummary: FC<RendererProps<YoutubeTranscriptOutput>> = ({
+  block,
+  output,
+}) => {
   const video = getString(asRecord(block.input), "video");
-  const transcript = toTranscript(block.output);
+  const transcript = toTranscript(output);
   const words =
     transcript.words !== null ? formatCount(transcript.words, "word") : null;
 

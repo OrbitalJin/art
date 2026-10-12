@@ -22,45 +22,20 @@ export const formatCount = (
   plural = pluralOf(singular),
 ): string => `${value.toLocaleString()} ${value === 1 ? singular : plural}`;
 
-export const asRecord = (value: unknown): Record<string, unknown> | null =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
+export {
+  asArray,
+  asBoolean,
+  asNumber,
+  asRecord,
+  asString,
+  getBoolean,
+  getNumber,
+  getString,
+  recordsOf,
+  stringsOf,
+} from "@/lib/utils/coerce";
 
-export const asArray = (value: unknown): unknown[] =>
-  Array.isArray(value) ? value : [];
-
-export const recordsOf = (value: unknown): Record<string, unknown>[] =>
-  asArray(value)
-    .map((item) => asRecord(item))
-    .filter((item): item is Record<string, unknown> => item !== null);
-
-export const stringsOf = (value: unknown): string[] =>
-  asArray(value).filter((item): item is string => typeof item === "string");
-
-export const getString = (
-  source: Record<string, unknown> | null,
-  key: string,
-): string | null => {
-  const value = source?.[key];
-  return typeof value === "string" && value.trim() ? value : null;
-};
-
-export const getNumber = (
-  source: Record<string, unknown> | null,
-  key: string,
-): number | null => {
-  const value = source?.[key];
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-};
-
-export const getBoolean = (
-  source: Record<string, unknown> | null,
-  key: string,
-): boolean | null => {
-  const value = source?.[key];
-  return typeof value === "boolean" ? value : null;
-};
+import { asRecord, getString } from "@/lib/utils/coerce";
 
 export const errorOf = (output: unknown): string | null =>
   getString(asRecord(output), "error");
@@ -82,16 +57,6 @@ export const blockErrorOf = (block: ToolCallBlock): string | null => {
   }
 
   return null;
-};
-
-/**
- * Composio tools return `{ data, error, successful }`. Unwrap `data` when
- * present and fall back to the raw value for defensiveness.
- */
-export const dataOf = (output: unknown): unknown => {
-  const record = asRecord(output);
-  if (!record) return output;
-  return "data" in record ? record.data : output;
 };
 
 export const formatValue = (value: unknown): string => {

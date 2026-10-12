@@ -2,14 +2,12 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { connectionsStorage } from "@/lib/store/connections/adapter";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
 import { showConnectionErrorToast } from "@/lib/utils/error-toast";
 import {
-  clearToolCache,
+  authorize,
   createSession,
-  getComposio,
-  refreshComposioTools,
-  getOrCreateSession,
+  disconnect as disconnectAccount,
+  listConnections,
 } from "@/lib/services/composio";
 
 export type ToolkitStatus =
@@ -39,24 +37,21 @@ const statusOf = (value: string | undefined): ToolkitStatus => {
     case "REVOKED":
       return value;
     default:
-      return "UNKNOWN";
+      return value ? "UNKNOWN" : "NOT_CONNECTED";
   }
 };
 
 interface ConnectionsState {
   hydrated: boolean;
   sessionId: string | null;
-  sessionToolkits: string[];
+  /** API key the current `sessionId` was created under. */
+  sessionKey: string | null;
   toolkits: Record<string, ToolkitConnection>;
-  slugs: string[];
-  refreshing: boolean;
   synced: boolean;
   error: string | null;
 
   setHydrated: (value: boolean) => void;
   ensureSession: (force?: boolean) => Promise<string | null>;
-  ensureToolkitAccess: () => Promise<void>;
-  refreshTools: (options?: { silent?: boolean }) => Promise<string[]>;
   syncConnections: (
     force?: boolean,
     options?: { silent?: boolean },
@@ -86,36 +81,26 @@ export const useConnectionsStore = create<ConnectionsState>()(
     (set, get) => ({
       hydrated: false,
       sessionId: null,
-      sessionToolkits: [],
+      sessionKey: null,
       toolkits: {},
-      slugs: [],
-      refreshing: false,
       synced: false,
       error: null,
 
       setHydrated: (value: boolean) => set({ hydrated: value }),
 
       ensureSession: async (force = false) => {
+        const key = useSettingsStore.getState().composioApiKey;
         const existing = get().sessionId;
-        if (existing && !force) return existing;
+        // A session is only valid for the key that created it, so a key change
+        // (e.g. from Settings) must not reuse the previous session.
+        if (existing && !force && get().sessionKey === key) return existing;
         if (inFlightSession) return inFlightSession;
 
         inFlightSession = (async () => {
           try {
-            const previous = get().sessionId;
-            const session = await createSession(userId());
-            if (!session) return null;
-            if (previous && previous !== session.sessionId) {
-              clearToolCache(previous);
-            }
-            set({
-              sessionId: session.sessionId,
-              sessionToolkits: [...SUPPORTED_TOOLKITS],
-              slugs: [],
-              synced: false,
-              error: null,
-            });
-            return session.sessionId;
+            const sessionId = await createSession(userId());
+            set({ sessionId, sessionKey: key, synced: false, error: null });
+            return sessionId;
           } catch (err) {
             reportError(set, err);
             return null;
@@ -127,91 +112,27 @@ export const useConnectionsStore = create<ConnectionsState>()(
         return inFlightSession;
       },
 
-      ensureToolkitAccess: async () => {
-        const sessionId = await get().ensureSession();
-        if (!sessionId) return;
-
-        const target = [...SUPPORTED_TOOLKITS];
-        const current = get().sessionToolkits;
-        const upToDate =
-          current.length === target.length &&
-          target.every((toolkit) => current.includes(toolkit));
-        if (upToDate) return;
-
-        const session = await getOrCreateSession(sessionId);
-        if (session) {
-          try {
-            await session.update({ toolkits: { enable: target } });
-            clearToolCache(sessionId);
-            set({ sessionToolkits: target });
-            return;
-          } catch (err) {
-            reportError(set, err);
-          }
-        }
-
-        await get().ensureSession(true);
-      },
-
-      refreshTools: async (options) => {
-        const silent = options?.silent ?? false;
-        const { sessionId } = get();
-        if (!sessionId) return [];
-        set({ refreshing: true });
-        try {
-          let cache = await refreshComposioTools(sessionId);
-          if (!cache) {
-            const recreated = await get().ensureSession(true);
-            if (recreated) cache = await refreshComposioTools(recreated);
-          }
-          const slugs = cache?.slugs ?? [];
-          set({ slugs, error: null });
-          return slugs;
-        } catch (err) {
-          reportError(set, err, silent);
-          return [];
-        } finally {
-          set({ refreshing: false });
-        }
-      },
-
       syncConnections: async (force = false, options) => {
         const silent = options?.silent ?? false;
         if (!force && get().synced) return;
-        const composio = await getComposio();
-        if (!composio) {
-          reportError(set, "Add a Composio key in Settings > Chat.", silent);
-          return;
-        }
+
         const sessionId = await get().ensureSession();
         if (!sessionId) return;
-        await get().ensureToolkitAccess();
 
         try {
-          const accounts = await composio.connectedAccounts.list({
-            userIds: [userId()],
-          });
+          const connections = await listConnections(sessionId);
           const toolkits: Record<string, ToolkitConnection> = {};
-          for (const item of accounts.items ?? []) {
-            const slug = item.toolkit?.slug;
-            if (!slug) continue;
-            const current = toolkits[slug];
+          for (const item of connections) {
+            const current = toolkits[item.toolkit];
             const next: ToolkitConnection = {
               status: statusOf(item.status),
-              connectedAccountId: item.id,
+              connectedAccountId: item.connectedAccountId,
             };
-            if (!current || next.status === "ACTIVE") toolkits[slug] = next;
+            if (!current || next.status === "ACTIVE") {
+              toolkits[item.toolkit] = next;
+            }
           }
           set({ toolkits, synced: true, error: null });
-
-          const hasActive = Object.values(toolkits).some(
-            (t) => t.status === "ACTIVE",
-          );
-          if (hasActive) await get().refreshTools({ silent });
-          else {
-            clearToolCache();
-            set({ slugs: [] });
-          }
         } catch (err) {
           reportError(set, err, silent);
         }
@@ -220,19 +141,9 @@ export const useConnectionsStore = create<ConnectionsState>()(
       connect: async (toolkit: string) => {
         const sessionId = await get().ensureSession();
         if (!sessionId) return null;
-        await get().ensureToolkitAccess();
-        let session = await getOrCreateSession(sessionId);
-        if (!session) {
-          const recreated = await get().ensureSession(true);
-          if (!recreated) return null;
-          session = await getOrCreateSession(recreated);
-        }
-        if (!session) {
-          reportError(set, "Could not open a Composio session.");
-          return null;
-        }
+
         try {
-          const request = await session.authorize(toolkit);
+          const redirectUrl = await authorize(sessionId, toolkit);
           set((state) => ({
             toolkits: {
               ...state.toolkits,
@@ -240,7 +151,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
             },
             error: null,
           }));
-          return request.redirectUrl ?? null;
+          return redirectUrl;
         } catch (err) {
           reportError(set, err);
           return null;
@@ -258,19 +169,15 @@ export const useConnectionsStore = create<ConnectionsState>()(
       },
 
       disconnect: async (toolkit: string) => {
-        const composio = await getComposio();
-        if (!composio) return;
         await get().syncConnections(true);
         const accountId = get().toolkits[toolkit]?.connectedAccountId;
         try {
-          if (accountId) await composio.connectedAccounts.delete(accountId);
-          clearToolCache();
+          if (accountId) await disconnectAccount(accountId);
           set((state) => ({
             toolkits: {
               ...state.toolkits,
               [toolkit]: { status: "NOT_CONNECTED" },
             },
-            slugs: [],
             synced: false,
             error: null,
           }));
@@ -281,25 +188,22 @@ export const useConnectionsStore = create<ConnectionsState>()(
       },
 
       clear: () => {
-        clearToolCache();
         set({
           sessionId: null,
-          sessionToolkits: [],
+          sessionKey: null,
           toolkits: {},
-          slugs: [],
           synced: false,
-          refreshing: false,
           error: null,
         });
       },
     }),
     {
       name: "connections-storage",
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => connectionsStorage),
       partialize: (state) => ({
         sessionId: state.sessionId,
-        sessionToolkits: state.sessionToolkits,
+        sessionKey: state.sessionKey,
         toolkits: state.toolkits,
       }),
       onRehydrateStorage: () => (state, error) => {
