@@ -12,6 +12,7 @@ export const youtubeRenderers = {
   youtube_transcript: {
     icon: FileVideo,
     title: "Read transcript",
+    executingTitle: "Reading transcript",
     inputSchema: youtubeTranscriptInput,
     outputSchema: youtubeTranscriptOutput,
     Summary: YoutubeSummary,

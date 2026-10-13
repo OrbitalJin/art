@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { useSessionStore } from "@/lib/store/use-session-store";
-import { DONE_TOOL_NAME } from "@/lib/ai/tools/names";
+import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
 import { grantFolder, makeRoot, selectDirectory } from "@/lib/fs";
 import { ConfigureMenu } from "./configure-menu";
 import { EnabledTools } from "./enabled-tools";
@@ -19,10 +19,8 @@ export const AgentTools: React.FC<AgentToolsProps> = ({ active }) => {
   );
   const addFolder = useSessionStore((state) => state.addFolder);
   const removeFolder = useSessionStore((state) => state.removeFolder);
-  const setToolkit = useSessionStore((state) => state.setToolkit);
-  const disableAllToolkits = useSessionStore(
-    (state) => state.disableAllToolkits,
-  );
+  const setGroup = useSessionStore((state) => state.setGroup);
+  const disableAllGroups = useSessionStore((state) => state.disableAllGroups);
   const { isSending, toolCalls } = useChatStream();
 
   const handleAddFolder = useCallback(async () => {
@@ -57,15 +55,15 @@ export const AgentTools: React.FC<AgentToolsProps> = ({ active }) => {
   const handleToggle = useCallback(
     (key: string, value: boolean) => {
       if (!activeId) return;
-      setToolkit(activeId, key, value);
+      setGroup(activeId, key, value);
     },
-    [activeId, setToolkit],
+    [activeId, setGroup],
   );
 
   const handleRevokeAll = useCallback(() => {
     if (!activeId) return;
-    disableAllToolkits(activeId);
-  }, [activeId, disableAllToolkits]);
+    disableAllGroups(activeId);
+  }, [activeId, disableAllGroups]);
 
   if (!session) return null;
 

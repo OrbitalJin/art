@@ -3,9 +3,10 @@ import { VercelProvider } from "@composio/vercel";
 import { nativeFetch } from "@/lib/native-fetch";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import {
-  SUPPORTED_TOOLKITS,
-  TOOLKIT_TOOL_ALLOWLIST,
-} from "@/lib/services/toolkits";
+  CONNECTED_SERVICES,
+  SERVICES,
+  SERVICE_TOOL_IDS,
+} from "@/lib/services/catalog";
 
 /**
  * Composio SDK wrapper.
@@ -46,13 +47,14 @@ export type ComposioSession = Awaited<
   ReturnType<ComposioClient["sessions"]["create"]>
 >;
 
-export interface ToolkitConnection {
-  toolkit: string;
-  status: string;
+export interface ServiceConnection {
+  service: string;
+  isActive: boolean;
+  status?: string;
   connectedAccountId?: string;
 }
 
-/** The session access policy derived from the app's enabled toolkits. */
+/** The session access policy derived from the app's enabled services. */
 export interface SessionPolicy {
   toolkits: { enable: string[] };
   tools: Record<string, { enable: string[] }>;
@@ -76,22 +78,25 @@ export const getComposio = async (): Promise<ComposioClient | null> => {
 };
 
 /**
- * Builds the session policy for a set of enabled toolkits. Only supported
- * toolkits are considered, and each contributes its read-only allowlist, so
- * the model can never reach a scope we did not explicitly enable.
+ * Builds the session policy for a set of enabled tool ids. Composio keys tools
+ * by service (its "toolkit"), so enabled ids are grouped under their service.
+ * Only the enabled ids are exposed, so the model can never reach a scope we did
+ * not explicitly enable.
  */
-export const policyFor = (enabled: readonly string[]): SessionPolicy => {
-  const active = SUPPORTED_TOOLKITS.filter((toolkit) => enabled.includes(toolkit));
+export const policyFor = (enabledToolIds: readonly string[]): SessionPolicy => {
+  const toolkits: string[] = [];
+  const tools: Record<string, { enable: string[] }> = {};
 
-  return {
-    toolkits: { enable: [...active] },
-    tools: Object.fromEntries(
-      active.map((toolkit) => [
-        toolkit,
-        { enable: [...TOOLKIT_TOOL_ALLOWLIST[toolkit]] },
-      ]),
-    ),
-  };
+  for (const service of Object.values(SERVICES)) {
+    const enabled = Object.values(service.tools).filter((toolId) =>
+      enabledToolIds.includes(toolId),
+    );
+    if (enabled.length === 0) continue;
+    toolkits.push(service.id);
+    tools[service.id] = { enable: enabled };
+  }
+
+  return { toolkits: { enable: toolkits }, tools };
 };
 
 export const getOrCreateCSession = async (
@@ -111,13 +116,7 @@ export const getOrCreateCSession = async (
   }
 
   return composio.sessions.create(userId, {
-    toolkits: { enable: [...SUPPORTED_TOOLKITS] },
-    tools: Object.fromEntries(
-      SUPPORTED_TOOLKITS.map((toolkit) => [
-        toolkit,
-        { enable: [...TOOLKIT_TOOL_ALLOWLIST[toolkit]] },
-      ]),
-    ),
+    ...policyFor(SERVICE_TOOL_IDS),
     sessionPreset: SessionPreset.DIRECT_TOOLS,
     manageConnections: { enable: false },
     sandbox: { enable: false },
@@ -136,10 +135,46 @@ export const getCSession = async (
   }
 };
 
+/**
+ * The dedicated, no-auth search session. Search tools never depend on a
+ * connected account, so this session is created lazily and cached per API key
+ * (a session is only valid for the key that created it).
+ */
+let searchSession: { key: string; session: ComposioSession } | null = null;
+
+export const resetSearchSession = (): void => {
+  searchSession = null;
+};
+
+export const ensureSearchSession = async (): Promise<ComposioSession | null> => {
+  const apiKey = useSettingsStore.getState().composioApiKey;
+  if (!apiKey) return null;
+  if (searchSession?.key === apiKey) return searchSession.session;
+
+  const composio = await getComposio();
+  if (!composio) return null;
+
+  try {
+    const session = await composio.sessions.create(
+      useSettingsStore.getState().ensureComposioUserId(),
+      {
+        toolkits: { enable: [SERVICES.search.id] },
+        sessionPreset: SessionPreset.DIRECT_TOOLS,
+        manageConnections: { enable: false },
+        sandbox: { enable: false },
+      },
+    );
+    searchSession = { key: apiKey, session };
+    return session;
+  } catch {
+    return null;
+  }
+};
+
 const appliedPolicies = new Map<string, string>();
 
 /**
- * Applies the session policy derived from the app's enabled toolkits. The
+ * Applies the session policy derived from the app's enabled services. The
  * update is skipped when the policy already matches what we last sent for this
  * session, so repeated turns do not churn the remote config.
  */
@@ -161,25 +196,24 @@ export const applyCSessionPolicy = async (
 export const csessionTools = (csession: ComposioSession) => csession.tools();
 
 /**
- * Reads the connection state of the supported toolkits through the session,
+ * Reads the connection state of the connected services through the session,
  * which is the single source of truth for what the agent can actually call.
  */
 export const listConnections = async (
   csession: ComposioSession,
-): Promise<ToolkitConnection[]> => {
+): Promise<ServiceConnection[]> => {
   const response = await csession.toolkits({
-    toolkits: [...SUPPORTED_TOOLKITS],
+    toolkits: CONNECTED_SERVICES.map((service) => service.id),
   });
 
   return (response.items ?? [])
+    .filter((item) => item.slug)
     .map((item) => ({
-      toolkit: item.slug,
-      status: item.connection?.isActive
-        ? "ACTIVE"
-        : (item.connection?.connectedAccount?.status ?? "NOT_CONNECTED"),
+      service: item.slug,
+      isActive: item.connection?.isActive === true,
+      status: item.connection?.connectedAccount?.status,
       connectedAccountId: item.connection?.connectedAccount?.id,
-    }))
-    .filter((entry) => entry.toolkit);
+    }));
 };
 
 /**
@@ -189,16 +223,16 @@ export const listConnections = async (
  * `connectedAccounts.initiate` endpoint. `session.authorize()` uses the
  * session link endpoint instead, which takes the toolkit slug directly.
  */
-export const authorizeToolkit = async (
+export const authorizeService = async (
   sessionId: string,
-  toolkit: string,
+  service: string,
 ): Promise<string> => {
   const csession = await getCSession(sessionId);
   if (!csession) {
     throw new Error("No Composio session. Add a key in Settings > Chat.");
   }
 
-  const request = await csession.authorize(toolkit);
+  const request = await csession.authorize(service);
   const url = request.redirectUrl;
   if (!url) throw new Error("Composio did not return an authorization URL.");
   return url;

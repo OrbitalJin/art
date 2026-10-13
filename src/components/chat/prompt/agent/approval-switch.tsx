@@ -6,7 +6,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import type { AccessMode } from "@/lib/ai/tools/registry";
+import type { AccessMode } from "@/lib/store/session/types";
 
 const SAFE_TONE = "text-emerald-500";
 const WARN_TONE = "text-amber-500";

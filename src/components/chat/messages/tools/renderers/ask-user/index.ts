@@ -11,6 +11,7 @@ export const askUserRenderers = {
   [ASK_USER_TOOL_NAME]: {
     icon: MessageCircleQuestion,
     title: "Asked a question",
+    executingTitle: "Asking a question",
     inputSchema: askUserToolSchemas[ASK_USER_TOOL_NAME].input,
     outputSchema: askUserToolSchemas[ASK_USER_TOOL_NAME].output,
     Summary: AskUserSummary,

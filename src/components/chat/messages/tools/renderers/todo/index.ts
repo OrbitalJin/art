@@ -11,6 +11,7 @@ export const todoRenderers = {
   [TODO_TOOL_NAME]: {
     icon: ListTodo,
     title: "Updated plan",
+    executingTitle: "Updating plan",
     inputSchema: todoToolSchemas[TODO_TOOL_NAME].input,
     outputSchema: todoToolSchemas[TODO_TOOL_NAME].output,
     Summary: TodoSummary,

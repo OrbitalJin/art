@@ -14,6 +14,11 @@ export interface RendererProps<I = unknown, O = unknown> {
 export interface ToolRenderer<I = unknown, O = unknown> {
   icon: LucideIcon;
   title: string;
+  /**
+   * Headline shown while the tool is executing; the card appends "…". Falls
+   * back to `title` plus a generic "Working…" when omitted.
+   */
+  executingTitle?: string;
   /** The tool's input schema, used to parse the block once before rendering. */
   inputSchema?: z.ZodType<I>;
   /** The tool's output schema, used to parse the block once before rendering. */

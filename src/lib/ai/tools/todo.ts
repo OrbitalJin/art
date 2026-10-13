@@ -38,7 +38,11 @@ export const todoTools = (sessionId: string) => ({
       "Write your working plan as a todo list for the current task. " +
       "Always send the FULL list with every call; the new list replaces " +
       "the previous one. Use it to plan before starting multi-step work, " +
-      "and re-send the list whenever statuses change or steps are added.",
+      "and re-send the list whenever statuses change or steps are added. " +
+      "Aim for a short plan (3-7 steps), mark items `completed` as soon as " +
+      "they finish, and add steps you discover along the way. Complete every " +
+      "item before calling `done`. Skip the list for trivial single-step " +
+      "requests.",
     inputSchema: todoInputSchema,
     outputSchema: todoOutputSchema,
     execute: async ({ todos }) => {

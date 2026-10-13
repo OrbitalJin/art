@@ -1,23 +1,15 @@
 import { ChevronRight } from "lucide-react";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session } from "@/lib/store/session/types";
-import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
+import { serviceById } from "@/lib/services/catalog";
+import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
 import {
-  TOOLKIT_TOOL_ALLOWLIST,
-  type SupportedToolkit,
-} from "@/lib/services/toolkits";
-import {
-  CATEGORY_LABELS,
-  type ToolCategory,
-  type ToolFamily,
-} from "@/lib/ai/tools/registry";
-import { cn } from "@/lib/utils";
-import {
-  familiesInCategory,
-  familyActive,
+  groupActive,
+  groupsInCategory,
   isConnected,
   selectableRowClasses,
 } from "./helpers";
+import { cn } from "@/lib/utils";
 
 const RowText: React.FC<{
   label: string;
@@ -48,8 +40,6 @@ const ToolRow: React.FC<{
   <button
     type="button"
     onClick={onToggle}
-    aria-pressed={enabled}
-    title={subtitle}
     className={selectableRowClasses(enabled)}
   >
     <RowText label={label} subtitle={subtitle} active={enabled} />
@@ -107,20 +97,18 @@ const FilesLink: React.FC<{
 };
 
 const ConnectionRow: React.FC<{
-  family: ToolFamily;
+  group: ToolGroup;
   session: Session;
   onToggle: (key: string, value: boolean) => void;
-}> = ({ family, session, onToggle }) => {
-  const toolkits = useConnectionsStore((state) => state.toolkits);
-  const toolCount =
-    TOOLKIT_TOOL_ALLOWLIST[family.key as SupportedToolkit]?.length ?? 0;
-
-  const connected = isConnected(toolkits, family.key);
-  const enabled = connected && toolkitEnabled(session, family.key);
+}> = ({ group, session, onToggle }) => {
+  const connections = useConnectionsStore((state) => state.connections);
+  const service = group.service ? serviceById(group.service) : undefined;
+  const connected = service ? isConnected(connections, service.id) : false;
+  const enabled = connected && session.groups?.[group.key] === true;
 
   const subtitle = connected
-    ? `Read-only · ${toolCount} tools`
-    : "Not connected — configure in Settings";
+    ? group.description
+    : `${service?.label ?? "Service"} not connected — configure in Settings`;
 
   const rowClasses = cn(
     selectableRowClasses(enabled),
@@ -132,68 +120,71 @@ const ConnectionRow: React.FC<{
       type="button"
       disabled={!connected}
       aria-pressed={enabled}
-      onClick={() => onToggle(family.key, !enabled)}
+      onClick={() => onToggle(group.key, !enabled)}
       className={rowClasses}
     >
-      <RowText label={family.label} subtitle={subtitle} active={enabled} />
+      <RowText label={group.label} subtitle={subtitle} active={enabled} />
     </button>
   );
 };
 
-export const FamilyRow: React.FC<{
-  family: ToolFamily;
+export const GroupRow: React.FC<{
+  group: ToolGroup;
   session: Session;
   onOpenFiles: () => void;
   onToggle: (key: string, value: boolean) => void;
-}> = ({ family, session, onOpenFiles, onToggle }) => {
-  if (family.source === "folders") {
+}> = ({ group, session, onOpenFiles, onToggle }) => {
+  if (group.source === "files") {
     const folderCount = (session.folders ?? []).length;
     return (
       <FilesLink
         folderCount={folderCount}
-        enabled={toolkitEnabled(session, family.key)}
+        enabled={session.groups?.[group.key] === true}
         onOpen={onOpenFiles}
       />
     );
   }
 
-  if (family.source === "composio") {
-    return (
-      <ConnectionRow family={family} session={session} onToggle={onToggle} />
-    );
+  if (group.source === "service" && group.service) {
+    const service = serviceById(group.service);
+    if (service && !service.noAuth) {
+      return (
+        <ConnectionRow group={group} session={session} onToggle={onToggle} />
+      );
+    }
   }
 
-  const enabled = toolkitEnabled(session, family.key);
+  const enabled = session.groups?.[group.key] === true;
 
   return (
     <ToolRow
-      label={family.label}
-      subtitle={family.description}
+      label={group.label}
+      subtitle={group.description}
       enabled={enabled}
-      onToggle={() => onToggle(family.key, !enabled)}
+      onToggle={() => onToggle(group.key, !enabled)}
     />
   );
 };
 
 export const CategoryLink: React.FC<{
-  category: ToolCategory;
+  category: Category;
   session: Session;
   onOpen: () => void;
 }> = ({ category, session, onOpen }) => {
-  const toolkits = useConnectionsStore((state) => state.toolkits);
+  const connections = useConnectionsStore((state) => state.connections);
 
-  const families = familiesInCategory(category);
-  const activeFamilies = families.filter((family) =>
-    familyActive(session, family, toolkits),
+  const groups = groupsInCategory(category);
+  const activeGroups = groups.filter((group) =>
+    groupActive(session, group, connections),
   );
 
-  const active = activeFamilies.length > 0;
+  const active = activeGroups.length > 0;
   const subtitle = active
-    ? activeFamilies.map((family) => family.label).join(", ")
-    : families.map((family) => family.label).join(", ");
+    ? activeGroups.map((group) => group.label).join(", ")
+    : groups.map((group) => group.label).join(", ");
   const summary = active
-    ? `${activeFamilies.length} of ${families.length}`
-    : `${families.length}`;
+    ? `${activeGroups.length} of ${groups.length}`
+    : `${groups.length}`;
 
   return (
     <LinkRow

@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session } from "@/lib/store/session/types";
-import type { ToolCategory } from "@/lib/ai/tools/registry";
+import type { Category } from "./groups";
 import { cn } from "@/lib/utils";
 import { CategoryPage } from "./category-page";
 import { FilesPage } from "./files-page";
@@ -14,8 +14,8 @@ import { MainPage } from "./main-page";
 
 type MenuPage =
   | { name: "main" }
-  | { name: "category"; category: ToolCategory }
-  | { name: "files"; category: ToolCategory };
+  | { name: "category"; category: Category }
+  | { name: "files"; category: Category };
 
 const MAIN_PAGE: MenuPage = { name: "main" };
 

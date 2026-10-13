@@ -1,5 +1,6 @@
 import type { ToolRenderer } from "./types";
 import { fileRenderers } from "./renderers/files";
+import { searchRenderers } from "./renderers/search";
 import { taskRenderers } from "./renderers/tasks";
 import { askUserRenderers } from "./renderers/ask-user";
 import { todoRenderers } from "./renderers/todo";
@@ -12,6 +13,7 @@ type AnyRenderer = ToolRenderer<any, any>;
 
 const TOOL_RENDERERS: Record<string, AnyRenderer> = {
   ...fileRenderers,
+  ...searchRenderers,
   ...taskRenderers,
   ...askUserRenderers,
   ...todoRenderers,

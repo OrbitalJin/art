@@ -1,11 +1,10 @@
 import type { Session } from "@/lib/store/session/types";
 import { system, type Profiles } from "../prompts/system";
 import { toolsFor } from "../tools/tools";
+import { DONE_TOOL_NAME } from "../tools/done";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
-import { toolkitEnabled } from "../tools/toolkits";
-import { TOOL_FAMILIES } from "../tools/registry";
+import { CONNECTED_SERVICES, serviceById } from "@/lib/services/catalog";
 import { stepCountIs, hasToolCall } from "ai";
-import { DONE_TOOL_NAME } from "../tools/names";
 import { adaptiveStopCondition, BACKSTOP_STEPS } from "./stop-conditions";
 
 export interface RequestContext {
@@ -13,22 +12,20 @@ export interface RequestContext {
   profiles: Profiles;
 }
 
-const connectedToolkits = (session: Session): string[] =>
-  Object.entries(useConnectionsStore.getState().toolkits)
-    .filter(
-      ([slug, entry]) =>
-        entry.status === "ACTIVE" && toolkitEnabled(session, slug),
-    )
-    .map(([slug]) => slug);
-
-const enabledToolkits = (session: Session): string[] =>
-  TOOL_FAMILIES.filter(
-    (family) =>
-      family.source === "builtin" && toolkitEnabled(session, family.key),
-  ).map((family) => family.key);
+const connectedServices = (session: Session): string[] =>
+  CONNECTED_SERVICES.map((service) => service.id).filter((id) => {
+    if (!useConnectionsStore.getState().connections[id]?.isActive) return false;
+    const service = serviceById(id);
+    return service
+      ? Object.values(service.tools).some(
+          (toolId) => session.groups?.[toolId] === true,
+        )
+      : false;
+  });
 
 export const presetFor = async (ctx: RequestContext) => {
   const { session } = ctx;
+  const tools = await toolsFor(session);
 
   if (session.type === "agent") {
     return {
@@ -36,10 +33,9 @@ export const presetFor = async (ctx: RequestContext) => {
         ...ctx,
         type: session.type,
         accessMode: session.accessMode,
-        connections: { toolkits: connectedToolkits(session) },
-        toolkits: enabledToolkits(session),
+        connections: connectedServices(session),
       }),
-      tools: await toolsFor({ session }),
+      tools,
       stopWhen: [
         hasToolCall(DONE_TOOL_NAME),
         adaptiveStopCondition(),
@@ -50,7 +46,7 @@ export const presetFor = async (ctx: RequestContext) => {
 
   return {
     system: system({ ...ctx, type: session.type, persona: session.persona }),
-    tools: {},
+    tools,
     stopWhen: stepCountIs(5),
   };
 };

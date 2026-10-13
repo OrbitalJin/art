@@ -28,6 +28,7 @@ export const taskRenderers = {
   get_tasks: {
     icon: ListTodo,
     title: "Read tasks",
+    executingTitle: "Reading tasks",
     inputSchema: taskToolSchemas.get_tasks.input,
     outputSchema: taskToolSchemas.get_tasks.output,
     Summary: GetTasksSummary,
@@ -36,6 +37,7 @@ export const taskRenderers = {
   get_task: {
     icon: ListTodo,
     title: "Read task",
+    executingTitle: "Reading task",
     inputSchema: taskToolSchemas.get_task.input,
     outputSchema: taskToolSchemas.get_task.output,
     Summary: TaskTargetSummary,
@@ -44,6 +46,7 @@ export const taskRenderers = {
   create_task: {
     icon: Plus,
     title: "Created task",
+    executingTitle: "Creating task",
     inputSchema: taskToolSchemas.create_task.input,
     outputSchema: taskToolSchemas.create_task.output,
     Summary: CreateTaskSummary,
@@ -52,6 +55,7 @@ export const taskRenderers = {
   update_task: {
     icon: ListTodo,
     title: "Updated task",
+    executingTitle: "Updating task",
     inputSchema: taskToolSchemas.update_task.input,
     outputSchema: taskToolSchemas.update_task.output,
     Summary: TaskTargetSummary,
@@ -60,6 +64,7 @@ export const taskRenderers = {
   move_task: {
     icon: ArrowRight,
     title: "Moved task",
+    executingTitle: "Moving task",
     inputSchema: taskToolSchemas.move_task.input,
     outputSchema: taskToolSchemas.move_task.output,
     Summary: MoveTaskSummary,
@@ -68,6 +73,7 @@ export const taskRenderers = {
   move_task_to_position: {
     icon: ArrowRight,
     title: "Reordered task",
+    executingTitle: "Reordering task",
     inputSchema: taskToolSchemas.move_task_to_position.input,
     outputSchema: taskToolSchemas.move_task_to_position.output,
     Summary: MoveTaskSummary,
@@ -76,6 +82,7 @@ export const taskRenderers = {
   delete_task: {
     icon: Trash2,
     title: "Deleted task",
+    executingTitle: "Deleting task",
     inputSchema: taskToolSchemas.delete_task.input,
     outputSchema: taskToolSchemas.delete_task.output,
     Summary: TaskTargetSummary,
@@ -84,6 +91,7 @@ export const taskRenderers = {
   get_projects: {
     icon: FolderKanban,
     title: "Read projects",
+    executingTitle: "Reading projects",
     inputSchema: taskToolSchemas.get_projects.input,
     outputSchema: taskToolSchemas.get_projects.output,
     Detail: ProjectListDetail,
@@ -91,6 +99,7 @@ export const taskRenderers = {
   create_project: {
     icon: Plus,
     title: "Created project",
+    executingTitle: "Creating project",
     inputSchema: taskToolSchemas.create_project.input,
     outputSchema: taskToolSchemas.create_project.output,
     Summary: ProjectNameSummary,
@@ -99,6 +108,7 @@ export const taskRenderers = {
   update_project: {
     icon: FolderKanban,
     title: "Updated project",
+    executingTitle: "Updating project",
     inputSchema: taskToolSchemas.update_project.input,
     outputSchema: taskToolSchemas.update_project.output,
     Summary: ProjectTargetSummary,
@@ -107,6 +117,7 @@ export const taskRenderers = {
   delete_project: {
     icon: Trash2,
     title: "Deleted project",
+    executingTitle: "Deleting project",
     inputSchema: taskToolSchemas.delete_project.input,
     outputSchema: taskToolSchemas.delete_project.output,
     Summary: ProjectTargetSummary,
@@ -115,6 +126,7 @@ export const taskRenderers = {
   create_project_with_tasks: {
     icon: FolderKanban,
     title: "Created project with tasks",
+    executingTitle: "Creating project with tasks",
     inputSchema: taskToolSchemas.create_project_with_tasks.input,
     outputSchema: taskToolSchemas.create_project_with_tasks.output,
     Summary: ProjectWithTasksSummary,

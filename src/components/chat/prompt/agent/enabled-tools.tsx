@@ -1,9 +1,8 @@
-import { TOOL_FAMILIES } from "@/lib/ai/tools/registry";
-import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
+import { TOOL_GROUPS } from "./configure-menu/groups";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
-import { basename, familyEnabled } from "./configure-menu/helpers";
+import { basename, groupEnabled } from "./configure-menu/helpers";
 
 const ToolTag: React.FC<{ label: string; value?: string }> = ({
   label,
@@ -23,15 +22,15 @@ const ToolTag: React.FC<{ label: string; value?: string }> = ({
 };
 
 export const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
-  const toolkits = useConnectionsStore((state) => state.toolkits);
+  const connections = useConnectionsStore((state) => state.connections);
 
   const tags: { label: string; value?: string }[] = [];
-  for (const family of TOOL_FAMILIES) {
-    if (family.source === "folders") {
+  for (const group of TOOL_GROUPS) {
+    if (group.source === "files") {
       const folders = session.folders ?? [];
-      if (folders.length && toolkitEnabled(session, family.key)) {
+      if (folders.length && session.groups?.[group.key] === true) {
         tags.push({
-          label: family.label,
+          label: group.label,
           value:
             folders.length === 1
               ? basename(folders[0].path)
@@ -41,8 +40,8 @@ export const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
       continue;
     }
 
-    if (familyEnabled(session, family, toolkits)) {
-      tags.push({ label: family.label });
+    if (groupEnabled(session, group, connections)) {
+      tags.push({ label: group.label });
     }
   }
 

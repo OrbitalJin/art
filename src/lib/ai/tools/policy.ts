@@ -1,9 +1,9 @@
 import type { ToolSet } from "ai";
-import type { AccessMode } from "./registry";
+import type { AccessMode } from "@/lib/store/session/types";
 import { withApprovalTool } from "./approval";
 import { isMutating } from "./define";
 
-export const applyAccessPolicy = (
+export const applyPolicy = (
   tools: ToolSet,
   mode: AccessMode,
   sessionId: string,

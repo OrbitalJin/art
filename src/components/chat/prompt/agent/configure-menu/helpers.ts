@@ -1,13 +1,9 @@
 import type { Session } from "@/lib/store/session/types";
-import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
-import {
-  TOOL_FAMILIES,
-  type ToolCategory,
-  type ToolFamily,
-} from "@/lib/ai/tools/registry";
+import { serviceById } from "@/lib/services/catalog";
+import { TOOL_GROUPS, type Category, type ToolGroup } from "./groups";
 import { cn } from "@/lib/utils";
 
-export type Toolkits = Record<string, { status?: string } | undefined>;
+export type Connections = Record<string, { isActive?: boolean } | undefined>;
 
 export const selectableRowClasses = (active: boolean): string =>
   cn(
@@ -19,25 +15,28 @@ export const selectableRowClasses = (active: boolean): string =>
       : "border-transparent hover:bg-muted/40",
   );
 
-export const isConnected = (toolkits: Toolkits, key: string): boolean =>
-  toolkits[key]?.status === "ACTIVE";
+export const isConnected = (connections: Connections, service: string): boolean =>
+  connections[service]?.isActive === true;
 
-export const familyEnabled = (
+export const groupEnabled = (
   session: Session,
-  family: ToolFamily,
-  toolkits: Toolkits,
-): boolean =>
-  toolkitEnabled(session, family.key) &&
-  (family.source !== "composio" || isConnected(toolkits, family.key));
+  group: ToolGroup,
+  connections: Connections,
+): boolean => {
+  if (session.groups?.[group.key] !== true) return false;
+  const service = group.service ? serviceById(group.service) : undefined;
+  if (service && !service.noAuth) return isConnected(connections, service.id);
+  return true;
+};
 
-export const familyActive = (
+export const groupActive = (
   session: Session,
-  family: ToolFamily,
-  toolkits: Toolkits,
-): boolean => familyEnabled(session, family, toolkits);
+  group: ToolGroup,
+  connections: Connections,
+): boolean => groupEnabled(session, group, connections);
 
-export const familiesInCategory = (category: ToolCategory): ToolFamily[] =>
-  TOOL_FAMILIES.filter((family) => family.category === category);
+export const groupsInCategory = (category: Category): ToolGroup[] =>
+  TOOL_GROUPS.filter((group) => group.category === category);
 
 export const basename = (path: string): string => {
   const parts = path.split(/[\\/]/).filter(Boolean);

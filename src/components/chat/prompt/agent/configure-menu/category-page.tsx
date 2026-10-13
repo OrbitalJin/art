@@ -1,8 +1,8 @@
 import { ChevronLeft } from "lucide-react";
 import type { Session } from "@/lib/store/session/types";
-import { CATEGORY_LABELS, type ToolCategory } from "@/lib/ai/tools/registry";
-import { FamilyRow } from "./rows";
-import { familiesInCategory } from "./helpers";
+import { CATEGORY_LABELS, type Category } from "./groups";
+import { GroupRow } from "./rows";
+import { groupsInCategory } from "./helpers";
 
 export const SubPageHeader: React.FC<{ title: string; onBack: () => void }> = ({
   title,
@@ -22,23 +22,23 @@ export const SubPageHeader: React.FC<{ title: string; onBack: () => void }> = ({
 );
 
 export const CategoryPage: React.FC<{
-  category: ToolCategory;
+  category: Category;
   session: Session;
   onBack: () => void;
   onOpenFiles: () => void;
   onToggle: (key: string, value: boolean) => void;
 }> = ({ category, session, onBack, onOpenFiles, onToggle }) => {
-  const families = familiesInCategory(category);
+  const groups = groupsInCategory(category);
 
   return (
     <>
       <SubPageHeader title={CATEGORY_LABELS[category]} onBack={onBack} />
 
       <div className="flex flex-col gap-0.5 p-1.5">
-        {families.map((family) => (
-          <FamilyRow
-            key={family.key}
-            family={family}
+        {groups.map((group) => (
+          <GroupRow
+            key={group.key}
+            group={group}
             session={session}
             onOpenFiles={onOpenFiles}
             onToggle={onToggle}

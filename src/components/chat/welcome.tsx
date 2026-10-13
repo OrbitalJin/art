@@ -6,8 +6,8 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { modelById } from "@/lib/ai/models";
-import { TOOL_FAMILIES } from "@/lib/ai/tools/registry";
-import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
+import { TOOL_GROUPS } from "./prompt/agent/configure-menu/groups";
+import { serviceById } from "@/lib/services/catalog";
 import { useChatInput } from "@/contexts/chat-context";
 
 interface Props {
@@ -166,7 +166,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const sessions = useSessionStore((state) => state.sessions);
   const activeId = useSessionStore((state) => state.activeId);
-  const connectedToolkits = useConnectionsStore((state) => state.toolkits);
+  const connections = useConnectionsStore((state) => state.connections);
 
   const greeting = useMemo(() => greetingFor(new Date()), []);
 
@@ -183,17 +183,15 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const tools = useMemo(() => {
     if (!isAgent || !activeSession) return [];
 
-    return TOOL_FAMILIES.flatMap((family) => {
-      if (!toolkitEnabled(activeSession, family.key)) return [];
-      if (
-        family.source === "composio" &&
-        connectedToolkits[family.key]?.status !== "ACTIVE"
-      ) {
+    return TOOL_GROUPS.flatMap((group) => {
+      if (activeSession.groups?.[group.key] !== true) return [];
+      const service = group.service ? serviceById(group.service) : undefined;
+      if (service && !service.noAuth && connections[service.id]?.isActive !== true) {
         return [];
       }
-      return [family.label];
+      return [group.label];
     });
-  }, [isAgent, activeSession, connectedToolkits]);
+  }, [isAgent, activeSession, connections]);
 
   const recents = useMemo(() => {
     return sessions

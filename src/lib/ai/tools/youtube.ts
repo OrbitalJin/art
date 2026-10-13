@@ -71,7 +71,12 @@ export const youtubeTools = () => {
         "using the segment's `seconds` value (e.g. " +
         "`[1:21](https://www.youtube.com/watch?v=7E6GjGx0tc8&t=81s)`). " +
         "This is the only tool for transcripts: always pass the video URL or " +
-        "ID here and never try to fetch a transcript URL with `fetch_url`.",
+        "ID here and never try to fetch a transcript URL with the URL-fetch " +
+        "tool. The daily transcript quota is very limited (~10 requests), so " +
+        "avoid spending requests unnecessarily. When the user asks for " +
+        "takeaways or action items, turn the relevant points into concrete " +
+        "tasks with the tasks tools, and keep each task's `[m:ss]` timestamp " +
+        "as a reference.",
       inputSchema: youtubeTranscriptInput,
       outputSchema: youtubeTranscriptOutput,
       execute: async ({ video, lang }) => {

@@ -1,13 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session } from "@/lib/store/session/types";
-import {
-  CATEGORY_ORDER,
-  TOOL_FAMILIES,
-  type ToolCategory,
-} from "@/lib/ai/tools/registry";
+import { CATEGORY_ORDER, TOOL_GROUPS, type Category } from "./groups";
 import { CategoryLink } from "./rows";
-import { familiesInCategory, familyEnabled } from "./helpers";
+import { groupEnabled, groupsInCategory } from "./helpers";
 
 const MainHeader: React.FC<{
   nothingToRevoke: boolean;
@@ -29,13 +25,13 @@ const MainHeader: React.FC<{
 
 export const MainPage: React.FC<{
   session: Session;
-  onOpenCategory: (category: ToolCategory) => void;
+  onOpenCategory: (category: Category) => void;
   onRevokeAll: () => void;
 }> = ({ session, onOpenCategory, onRevokeAll }) => {
-  const toolkits = useConnectionsStore((state) => state.toolkits);
-  const nothingToRevoke = !TOOL_FAMILIES.some(
-    (family) =>
-      family.source !== "folders" && familyEnabled(session, family, toolkits),
+  const connections = useConnectionsStore((state) => state.connections);
+  const nothingToRevoke = !TOOL_GROUPS.some(
+    (group) =>
+      group.source !== "files" && groupEnabled(session, group, connections),
   );
 
   return (
@@ -44,7 +40,7 @@ export const MainPage: React.FC<{
 
       <div className="flex flex-col gap-0.5 p-1.5">
         {CATEGORY_ORDER.map((category) => {
-          if (!familiesInCategory(category).length) return null;
+          if (!groupsInCategory(category).length) return null;
 
           return (
             <CategoryLink

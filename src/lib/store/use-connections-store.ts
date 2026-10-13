@@ -4,50 +4,25 @@ import { connectionsStorage } from "@/lib/store/connections/adapter";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { showConnectionErrorToast } from "@/lib/utils/error-toast";
 import {
-  authorizeToolkit,
+  authorizeService,
   disconnect as disconnectAccount,
   getOrCreateCSession,
   getCSession,
   listConnections,
 } from "@/lib/services/composio";
 
-export type ToolkitStatus =
-  | "ACTIVE"
-  | "INITIATED"
-  | "INITIALIZING"
-  | "INACTIVE"
-  | "FAILED"
-  | "EXPIRED"
-  | "REVOKED"
-  | "NOT_CONNECTED"
-  | "UNKNOWN";
-
-export interface ToolkitConnection {
-  status: ToolkitStatus;
+export interface ServiceConnection {
+  isActive: boolean;
+  status?: string;
   connectedAccountId?: string;
 }
-
-const statusOf = (value: string | undefined): ToolkitStatus => {
-  switch (value) {
-    case "ACTIVE":
-    case "INITIATED":
-    case "INITIALIZING":
-    case "INACTIVE":
-    case "FAILED":
-    case "EXPIRED":
-    case "REVOKED":
-      return value;
-    default:
-      return value ? "UNKNOWN" : "NOT_CONNECTED";
-  }
-};
 
 interface ConnectionsState {
   hydrated: boolean;
   sessionId: string | null;
   /** API key the current `sessionId` was created under. */
   sessionKey: string | null;
-  toolkits: Record<string, ToolkitConnection>;
+  connections: Record<string, ServiceConnection>;
   synced: boolean;
   error: string | null;
 
@@ -57,9 +32,9 @@ interface ConnectionsState {
     force?: boolean,
     options?: { silent?: boolean },
   ) => Promise<void>;
-  connect: (toolkit: string) => Promise<string | null>;
-  awaitConnection: (toolkit: string, timeoutMs?: number) => Promise<boolean>;
-  disconnect: (toolkit: string) => Promise<void>;
+  connect: (service: string) => Promise<string | null>;
+  awaitConnection: (service: string, timeoutMs?: number) => Promise<boolean>;
+  disconnect: (service: string) => Promise<void>;
   clear: () => void;
 }
 
@@ -83,7 +58,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
       hydrated: false,
       sessionId: null,
       sessionKey: null,
-      toolkits: {},
+      connections: {},
       synced: false,
       error: null,
 
@@ -130,34 +105,31 @@ export const useConnectionsStore = create<ConnectionsState>()(
         if (!csession) return;
 
         try {
-          const connections = await listConnections(csession);
-          const toolkits: Record<string, ToolkitConnection> = {};
-          for (const item of connections) {
-            const current = toolkits[item.toolkit];
-            const next: ToolkitConnection = {
-              status: statusOf(item.status),
+          const services = await listConnections(csession);
+          const connections: Record<string, ServiceConnection> = {};
+          for (const item of services) {
+            connections[item.service] = {
+              isActive: item.isActive,
+              status: item.status,
               connectedAccountId: item.connectedAccountId,
             };
-            if (!current || next.status === "ACTIVE") {
-              toolkits[item.toolkit] = next;
-            }
           }
-          set({ toolkits, synced: true, error: null });
+          set({ connections, synced: true, error: null });
         } catch (err) {
           reportError(set, err, silent);
         }
       },
 
-      connect: async (toolkit: string) => {
+      connect: async (service: string) => {
         const sessionId = await get().ensureSession();
         if (!sessionId) return null;
 
         try {
-          const redirectUrl = await authorizeToolkit(sessionId, toolkit);
+          const redirectUrl = await authorizeService(sessionId, service);
           set((state) => ({
-            toolkits: {
-              ...state.toolkits,
-              [toolkit]: { status: "INITIATED" },
+            connections: {
+              ...state.connections,
+              [service]: { isActive: false, status: "INITIATED" },
             },
             error: null,
           }));
@@ -168,25 +140,25 @@ export const useConnectionsStore = create<ConnectionsState>()(
         }
       },
 
-      awaitConnection: async (toolkit: string, timeoutMs = 120_000) => {
+      awaitConnection: async (service: string, timeoutMs = 120_000) => {
         const deadline = Date.now() + timeoutMs;
         while (Date.now() < deadline) {
           await get().syncConnections(true, { silent: true });
-          if (get().toolkits[toolkit]?.status === "ACTIVE") return true;
+          if (get().connections[service]?.isActive === true) return true;
           await new Promise((resolve) => setTimeout(resolve, 2500));
         }
-        return get().toolkits[toolkit]?.status === "ACTIVE";
+        return get().connections[service]?.isActive === true;
       },
 
-      disconnect: async (toolkit: string) => {
+      disconnect: async (service: string) => {
         await get().syncConnections(true);
-        const accountId = get().toolkits[toolkit]?.connectedAccountId;
+        const accountId = get().connections[service]?.connectedAccountId;
         try {
           if (accountId) await disconnectAccount(accountId);
           set((state) => ({
-            toolkits: {
-              ...state.toolkits,
-              [toolkit]: { status: "NOT_CONNECTED" },
+            connections: {
+              ...state.connections,
+              [service]: { isActive: false },
             },
             synced: false,
             error: null,
@@ -201,7 +173,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
         set({
           sessionId: null,
           sessionKey: null,
-          toolkits: {},
+          connections: {},
           synced: false,
           error: null,
         });
@@ -209,12 +181,16 @@ export const useConnectionsStore = create<ConnectionsState>()(
     }),
     {
       name: "connections-storage",
-      version: 2,
+      version: 4,
       storage: createJSONStorage(() => connectionsStorage),
+      migrate: (persisted) => ({
+        ...(persisted as object),
+        connections: {},
+      }),
       partialize: (state) => ({
         sessionId: state.sessionId,
         sessionKey: state.sessionKey,
-        toolkits: state.toolkits,
+        connections: state.connections,
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) {

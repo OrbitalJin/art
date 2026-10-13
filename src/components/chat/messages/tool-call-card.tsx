@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronRight, CircleX, LoaderPinwheel } from "lucide-react";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
-import { DONE_TOOL_NAME } from "@/lib/ai/tools/names";
+import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
 import { resolveRenderer } from "@/components/chat/messages/tools/registry";
 import {
   CodePanel,
@@ -19,14 +19,20 @@ export { formatToolName };
 type ToolRendererEntry = ReturnType<typeof resolveRenderer>;
 
 /** Parse a block's output once against its renderer's output schema. */
-const outputOf = (renderer: ToolRendererEntry, block: ToolCallBlock): unknown => {
+const outputOf = (
+  renderer: ToolRendererEntry,
+  block: ToolCallBlock,
+): unknown => {
   if (!renderer.outputSchema) return block.output ?? null;
   const parsed = renderer.outputSchema.safeParse(block.output);
   return parsed.success ? parsed.data : null;
 };
 
 /** Parse a block's input once against its renderer's input schema. */
-const inputOf = (renderer: ToolRendererEntry, block: ToolCallBlock): unknown => {
+const inputOf = (
+  renderer: ToolRendererEntry,
+  block: ToolCallBlock,
+): unknown => {
   if (!renderer.inputSchema) return block.input ?? null;
   const parsed = renderer.inputSchema.safeParse(block.input);
   return parsed.success ? parsed.data : null;
@@ -47,7 +53,7 @@ const LeadingGlyph: React.FC<{
       <LoaderPinwheel
         size={13}
         aria-hidden
-        className="shrink-0 animate-spin text-amber-500 motion-reduce:animate-none"
+        className="shrink-0 animate-spin motion-reduce:animate-none"
       />
     );
   }
@@ -157,9 +163,13 @@ export const ToolCallCard: React.FC<Props> = ({
   const isError = block.state === "error";
   const compact = variant === "compact";
 
-  const title = isDone
-    ? "Finished"
-    : renderer.title || formatToolName(block.toolName);
+  const hasExecutingTitle = isExecuting && !isDone && !!renderer.executingTitle;
+
+  const title = hasExecutingTitle
+    ? `${renderer.executingTitle}…`
+    : isDone
+      ? "Finished"
+      : renderer.title || formatToolName(block.toolName);
   const hasDetails = block.input !== undefined || block.output !== undefined;
 
   const containerClasses = cn(
@@ -207,7 +217,7 @@ export const ToolCallCard: React.FC<Props> = ({
 
         <span className={titleClasses}>{title}</span>
 
-        {isExecuting && !isDone && (
+        {isExecuting && !isDone && !hasExecutingTitle && (
           <span className="shrink-0 animate-pulse text-xs text-muted-foreground/70 motion-reduce:animate-none">
             Working…
           </span>

@@ -1,5 +1,5 @@
 import type { ToolCallBlock } from "@/lib/store/session/types";
-import { DONE_TOOL_NAME } from "@/lib/ai/tools/names";
+import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
 import {
   CompactSummary,
   formatToolName,

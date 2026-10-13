@@ -2,7 +2,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { settingsStorage } from "@/lib/store/settings/adapter";
 import { create } from "zustand";
 import type { ModelId } from "../ai/models";
-import type { AccessMode } from "../ai/tools/registry";
+import type { AccessMode } from "./session/types";
 import { DEFAULT_PERSONA, type PersonaId } from "../ai/prompts/personas";
 import { DEFAULT_TRANSCRIPT_PROVIDER_ID } from "../ai/tools/transcript/providers";
 

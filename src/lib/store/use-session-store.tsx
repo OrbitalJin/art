@@ -3,19 +3,22 @@ import { create } from "zustand";
 
 import { MODELS, type ModelId } from "@/lib/ai/models";
 import type {
+  AccessMode,
   Message,
   MessagePart,
   SessionType,
   Session,
-  SessionToolkits,
+  SessionGroups,
   ToolCallBlock,
 } from "@/lib/store/session/types";
-import { SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
+import {
+  CONNECTED_SERVICES,
+  GmailTools,
+  SearchTools,
+} from "@/lib/services/catalog";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import type { FsRoot } from "@/lib/fs";
 import { DEFAULT_PERSONA, type PersonaId } from "../ai/prompts/personas";
-import type { AccessMode } from "@/lib/ai/tools/registry";
-import { TOOL_FAMILIES } from "@/lib/ai/tools/registry";
 import { useSettingsStore } from "./use-settings-store";
 import { useStreamStore } from "./use-stream-store";
 import { useDraftStore } from "./use-draft-store";
@@ -27,16 +30,25 @@ interface CreateSessionOpts {
 }
 
 /**
- * The default toolkit state for a new session. This is the single source of
- * truth for defaults; `toolkitEnabled` only reads the stored map.
+ * The default group state for a new session. This is the single source of
+ * truth for defaults; the tools builder only reads the stored map.
  */
-export const defaultToolkits = (type: SessionType): SessionToolkits => ({
+export const defaultGroups = (type: SessionType): SessionGroups => ({
   tasks: false,
   todo: type === "agent",
   askUser: type === "agent",
   youtube: false,
   files: false,
-  ...Object.fromEntries(SUPPORTED_TOOLKITS.map((toolkit) => [toolkit, false])),
+  [SearchTools.web]: true,
+  [SearchTools.fetch]: true,
+  [SearchTools.news]: false,
+  [SearchTools.flights]: false,
+  [SearchTools.hotels]: false,
+  [SearchTools.maps]: false,
+  [GmailTools.fetchEmails]: false,
+  [GmailTools.listMessages]: false,
+  [GmailTools.fetchMessageById]: false,
+  [GmailTools.listLabels]: false,
 });
 
 const createNewSession = ({
@@ -63,7 +75,7 @@ const createNewSession = ({
     type: sessionType,
     title: title ?? "New Session",
     accessMode: settings.defaultAccessMode,
-    toolkits: defaultToolkits(sessionType),
+    groups: defaultGroups(sessionType),
     messages: [],
     persona: settings.defaultPersona,
     modelId,
@@ -72,7 +84,7 @@ const createNewSession = ({
   };
 };
 
-export const SESSION_STORAGE_VERSION = 30;
+export const SESSION_STORAGE_VERSION = 32;
 
 /**
  * Brings persisted sessions up to the current shape. This is the single place
@@ -94,7 +106,8 @@ const migrateState = (
       knowledgeBase?: string;
       folders?: FsRoot[];
       capabilities?: Record<string, boolean>;
-      toolkits?: SessionToolkits;
+      toolkits?: Record<string, boolean>;
+      groups?: Record<string, boolean>;
       messages?: Array<
         Message & {
           role: string;
@@ -240,7 +253,7 @@ const migrateState = (
             tasks: capabilities?.tasks ?? false,
             askUser: capabilities?.askUser ?? type === "agent",
             ...Object.fromEntries(
-              SUPPORTED_TOOLKITS.map((toolkit) => [toolkit, connections]),
+              CONNECTED_SERVICES.map((service) => [service.id, connections]),
             ),
           },
         };
@@ -254,16 +267,16 @@ const migrateState = (
         const type = session.type ?? "chat";
         const folders = session.folders ?? [];
         const stored = session.toolkits ?? {};
-        const defaults = defaultToolkits(type);
-        const toolkits: SessionToolkits = {};
-        for (const family of TOOL_FAMILIES) {
-          const value = stored[family.key];
+        const defaults = defaultGroups(type);
+        const toolkits: Record<string, boolean> = {};
+        for (const key of Object.keys(defaults)) {
+          const value = stored[key];
           if (value !== undefined) {
-            toolkits[family.key] = value;
-          } else if (family.source === "folders") {
-            toolkits[family.key] = folders.length > 0;
+            toolkits[key] = value;
+          } else if (key === "files") {
+            toolkits[key] = folders.length > 0;
           } else {
-            toolkits[family.key] = defaults[family.key] ?? false;
+            toolkits[key] = defaults[key] ?? false;
           }
         }
         return {
@@ -290,6 +303,43 @@ const migrateState = (
     }
   }
 
+  if (version < 31) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => {
+        const type = session.type ?? "chat";
+        const defaults = defaultGroups(type);
+        const toolkits: Record<string, boolean> = { ...(session.toolkits ?? {}) };
+        for (const key of Object.keys(defaults)) {
+          if (toolkits[key] === undefined) {
+            toolkits[key] = defaults[key] ?? false;
+          }
+        }
+        return { ...session, toolkits };
+      });
+    }
+  }
+
+  if (version < 32) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => {
+        const legacy = session.toolkits ?? {};
+        const groups: Record<string, boolean> = {};
+        for (const [key, value] of Object.entries(legacy)) {
+          if (key === "gmail") continue;
+          groups[key] = value;
+        }
+        if (legacy.gmail !== undefined) {
+          for (const toolId of Object.values(GmailTools)) {
+            groups[toolId] = legacy.gmail;
+          }
+        }
+        const { toolkits: _toolkits, ...rest } = session;
+        void _toolkits;
+        return { ...rest, groups };
+      });
+    }
+  }
+
   return state as SessionState;
 };
 
@@ -307,8 +357,8 @@ export interface SessionState {
   setAccessMode: (id: string, mode: AccessMode) => void;
   addFolder: (id: string, root: FsRoot) => void;
   removeFolder: (id: string, folderId: string) => void;
-  setToolkit: (id: string, key: string, value: boolean) => void;
-  disableAllToolkits: (id: string) => void;
+  setGroup: (id: string, key: string, value: boolean) => void;
+  disableAllGroups: (id: string) => void;
   setActive: (id: string) => void;
   deleteFn: (id: string) => void;
   create: (type: SessionType, title?: string) => string;
@@ -351,7 +401,7 @@ export const useSessionStore = create<SessionState>()(
               ? {
                   ...session,
                   folders: [...(session.folders ?? []), root],
-                  toolkits: { ...session.toolkits, files: true },
+                  groups: { ...session.groups, files: true },
                 }
               : session,
           ),
@@ -368,33 +418,36 @@ export const useSessionStore = create<SessionState>()(
             return {
               ...session,
               folders,
-              toolkits: { ...session.toolkits, files: folders.length > 0 },
+              groups: { ...session.groups, files: folders.length > 0 },
             };
           }),
         }));
       },
 
-      setToolkit: (id: string, key: string, value: boolean) => {
+      setGroup: (id: string, key: string, value: boolean) => {
         set((state) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
               ? {
                   ...session,
-                  toolkits: { ...session.toolkits, [key]: value },
+                  groups: { ...session.groups, [key]: value },
                 }
               : session,
           ),
         }));
       },
 
-      disableAllToolkits: (id: string) => {
+      disableAllGroups: (id: string) => {
         set((state) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
               ? {
                   ...session,
-                  toolkits: Object.fromEntries(
-                    TOOL_FAMILIES.map((family) => [family.key, false]),
+                  groups: Object.fromEntries(
+                    Object.keys(defaultGroups(session.type)).map((key) => [
+                      key,
+                      false,
+                    ]),
                   ),
                 }
               : session,

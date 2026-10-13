@@ -1,11 +1,12 @@
 import type { ModelId } from "@/lib/ai/models";
 import type { PersonaId } from "@/lib/ai/prompts/personas";
-import type { AccessMode } from "@/lib/ai/tools/registry";
 import type { FsRoot } from "@/lib/fs";
 
 export type SessionType = "chat" | "agent";
 
-export type SessionToolkits = Record<string, boolean>;
+export type AccessMode = "readonly" | "confirm" | "autonomous";
+
+export type SessionGroups = Record<string, boolean>;
 
 export type MessageStatus =
   "thinking" | "streaming" | "complete" | "aborted" | "error";
@@ -83,7 +84,7 @@ export interface Session {
   title: string;
   accessMode: AccessMode;
   folders?: FsRoot[];
-  toolkits: SessionToolkits;
+  groups: SessionGroups;
   messages: Message[];
   modelId: ModelId;
   persona: PersonaId;
