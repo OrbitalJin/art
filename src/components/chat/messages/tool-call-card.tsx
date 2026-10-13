@@ -53,17 +53,30 @@ const LeadingGlyph: React.FC<{
       <LoaderPinwheel
         size={13}
         aria-hidden
+        strokeWidth={1}
         className="shrink-0 animate-spin motion-reduce:animate-none"
       />
     );
   }
 
   if (state === "error") {
-    return <CircleX size={13} aria-hidden className="shrink-0 text-red-500" />;
+    return (
+      <CircleX
+        strokeWidth={1}
+        size={13}
+        aria-hidden
+        className="shrink-0 text-red-500"
+      />
+    );
   }
 
   return (
-    <Icon size={13} aria-hidden className="shrink-0 text-muted-foreground/60" />
+    <Icon
+      size={13}
+      strokeWidth={1}
+      aria-hidden
+      className="shrink-0 text-muted-foreground/60"
+    />
   );
 };
 
@@ -184,7 +197,7 @@ export const ToolCallCard: React.FC<Props> = ({
     "flex w-full items-center gap-2 text-left select-none outline-none",
     "rounded-lg text-foreground/75 transition-colors duration-150",
     "focus-visible:ring-2 focus-visible:ring-ring/50",
-    compact ? "px-1.5 py-0.5" : "px-2.5 py-1.5",
+    compact ? "" : "px-2.5 py-1.5",
     hasDetails ? "cursor-pointer hover:text-foreground" : "cursor-default",
   );
 

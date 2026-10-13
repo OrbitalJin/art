@@ -16,16 +16,3 @@ export interface TranscriptResult {
   transcript: string;
   error?: string;
 }
-
-export interface TranscriptRequest {
-  videoId: string;
-  lang?: string;
-  apiKey: string;
-}
-
-export interface TranscriptProvider {
-  id: string;
-  label: string;
-  requiresKey: boolean;
-  fetchTranscript: (request: TranscriptRequest) => Promise<TranscriptResult>;
-}

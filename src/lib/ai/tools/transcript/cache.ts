@@ -12,8 +12,8 @@ const memory = new Map<string, PersistedEntry>();
 let hydrated = false;
 let hydratePromise: Promise<void> | null = null;
 
-const keyOf = (providerId: string, videoId: string, lang?: string): string =>
-  `${providerId}:${videoId}:${lang ?? ""}`;
+const keyOf = (videoId: string, lang?: string): string =>
+  `${videoId}:${lang ?? ""}`;
 
 const hydrate = async (): Promise<void> => {
   if (hydrated) return;
@@ -45,24 +45,22 @@ const evict = (): void => {
 };
 
 export const getCachedTranscript = async (
-  providerId: string,
   videoId: string,
   lang?: string,
 ): Promise<TranscriptResult | null> => {
   await hydrate();
-  const entry = memory.get(keyOf(providerId, videoId, lang));
+  const entry = memory.get(keyOf(videoId, lang));
   return entry?.result ?? null;
 };
 
 export const setCachedTranscript = async (
-  providerId: string,
   videoId: string,
   result: TranscriptResult,
   lang?: string,
 ): Promise<void> => {
   if (result.error) return;
   await hydrate();
-  memory.set(keyOf(providerId, videoId, lang), {
+  memory.set(keyOf(videoId, lang), {
     result,
     savedAt: Date.now(),
   });

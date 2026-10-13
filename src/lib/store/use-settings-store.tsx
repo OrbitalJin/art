@@ -4,7 +4,6 @@ import { create } from "zustand";
 import type { ModelId } from "../ai/models";
 import type { AccessMode } from "./session/types";
 import { DEFAULT_PERSONA, type PersonaId } from "../ai/prompts/personas";
-import { DEFAULT_TRANSCRIPT_PROVIDER_ID } from "../ai/tools/transcript/providers";
 
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
@@ -29,7 +28,6 @@ interface SettingsState {
   composioApiKey: string;
   composioUserId: string;
   youtubeApiKey: string;
-  transcriptProvider: string;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
@@ -44,7 +42,6 @@ interface SettingsState {
   setApiKey: (key: string) => void;
   setComposioApiKey: (key: string) => void;
   setYoutubeApiKey: (key: string) => void;
-  setTranscriptProvider: (id: string) => void;
   ensureComposioUserId: () => string;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
@@ -82,7 +79,6 @@ const initialState = {
   composioApiKey: "",
   composioUserId: "",
   youtubeApiKey: "",
-  transcriptProvider: DEFAULT_TRANSCRIPT_PROVIDER_ID,
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
@@ -102,7 +98,6 @@ export const useSettingsStore = create<SettingsState>()(
       setApiKey: (key: string) => set({ apiKey: key }),
       setComposioApiKey: (key: string) => set({ composioApiKey: key }),
       setYoutubeApiKey: (key: string) => set({ youtubeApiKey: key }),
-      setTranscriptProvider: (id: string) => set({ transcriptProvider: id }),
       ensureComposioUserId: () => {
         const existing = get().composioUserId;
         if (existing) return existing;
@@ -132,7 +127,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 9,
+      version: 10,
       storage: createJSONStorage(() => settingsStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -198,12 +193,9 @@ export const useSettingsStore = create<SettingsState>()(
         if (version < 7) {
           const state = persistedState as {
             youtubeApiKey?: string;
-            transcriptProvider?: string;
           };
           if (state) {
             if (state.youtubeApiKey === undefined) state.youtubeApiKey = "";
-            if (state.transcriptProvider === undefined)
-              state.transcriptProvider = DEFAULT_TRANSCRIPT_PROVIDER_ID;
           }
         }
         if (version < 8) {
@@ -220,6 +212,10 @@ export const useSettingsStore = create<SettingsState>()(
               state.defaultPersona ?? state.defaultMode ?? DEFAULT_PERSONA;
             delete state.defaultMode;
           }
+        }
+        if (version < 10) {
+          const state = persistedState as { transcriptProvider?: string };
+          if (state) delete state.transcriptProvider;
         }
         return persistedState as SettingsState;
       },

@@ -152,15 +152,6 @@ const ResultsDetail: FC<{
   );
 };
 
-const AnswerBlock: FC<{ answer: string }> = ({ answer }) => (
-  <div className="flex flex-col gap-1.5">
-    <SectionLabel>Answer</SectionLabel>
-    <p className="rounded-md border border-border/40 bg-muted/20 px-2.5 py-2 text-[11px] leading-relaxed text-muted-foreground/80">
-      {answer}
-    </p>
-  </div>
-);
-
 /* Fetched page */
 
 const FetchBody: FC<{ output: FetchUrlOutput | null }> = ({ output }) => {
@@ -321,7 +312,9 @@ const OpenState: FC<{ value: string }> = ({ value }) => {
   const open = /^open/i.test(value);
 
   return (
-    <span className={cn(open && "text-emerald-600/90 dark:text-emerald-400/90")}>
+    <span
+      className={cn(open && "text-emerald-600/90 dark:text-emerald-400/90")}
+    >
       {value}
     </span>
   );
@@ -383,9 +376,11 @@ export const NewsSummary: FC<
   />
 );
 
-export const FetchSummary: FC<
-  RendererProps<FetchUrlInput, FetchUrlOutput>
-> = ({ block, input, output }) => {
+export const FetchSummary: FC<RendererProps<FetchUrlInput, FetchUrlOutput>> = ({
+  block,
+  input,
+  output,
+}) => {
   const url = input?.urls?.[0] ?? null;
   const page = output?.results[0];
   const body = page?.text ?? page?.snippet ?? null;
@@ -460,7 +455,6 @@ export const WebSearchDetail: FC<
   RendererProps<WebSearchInput, WebSearchOutput>
 > = ({ block, output }) => (
   <div className="flex flex-col gap-3">
-    {output?.answer ? <AnswerBlock answer={output.answer} /> : null}
     <ResultsDetail
       block={block}
       output={output}
@@ -479,9 +473,10 @@ export const NewsDetail: FC<
   />
 );
 
-export const FetchDetail: FC<
-  RendererProps<FetchUrlInput, FetchUrlOutput>
-> = ({ block, output }) => (
+export const FetchDetail: FC<RendererProps<FetchUrlInput, FetchUrlOutput>> = ({
+  block,
+  output,
+}) => (
   <DetailGate block={block} executingLabel="Fetching page…">
     <FetchBody output={output} />
   </DetailGate>

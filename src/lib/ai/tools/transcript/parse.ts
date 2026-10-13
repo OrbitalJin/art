@@ -61,8 +61,7 @@ export interface ParsedTranscript {
 
 /**
  * Parses the markdown document returned by youtube-transcript.ai into a
- * metadata header plus timestamped segments. Other providers can reuse this by
- * emitting the same shape, or supply their own parser.
+ * metadata header plus timestamped segments.
  */
 export const parseTranscript = (markdown: string): ParsedTranscript => {
   const result: ParsedTranscript = { segments: [] };

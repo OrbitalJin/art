@@ -1,9 +1,82 @@
+import { nativeFetch } from "@/lib/native-fetch";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { tool } from "ai";
 import { z } from "zod";
-import { extractVideoId } from "./transcript/parse";
-import { getTranscriptProvider } from "./transcript/providers";
+import { extractVideoId, parseTranscript } from "./transcript/parse";
+import type { TranscriptResult } from "./transcript/types";
 import { getCachedTranscript, setCachedTranscript } from "./transcript/cache";
+
+const TRANSCRIPT_BASE_URL = "https://youtube-transcript.ai";
+
+const watchUrl = (videoId: string): string =>
+  `https://www.youtube.com/watch?v=${videoId}`;
+
+const emptyTranscript = (
+  videoId: string,
+  error: string,
+): TranscriptResult => ({
+  videoId,
+  url: watchUrl(videoId),
+  segments: [],
+  transcript: "",
+  error,
+});
+
+const fetchTranscript = async ({
+  videoId,
+  lang,
+  apiKey,
+}: {
+  videoId: string;
+  lang?: string;
+  apiKey: string;
+}): Promise<TranscriptResult> => {
+  const endpoint = new URL(`${TRANSCRIPT_BASE_URL}/transcript/${videoId}.txt`);
+  if (lang) endpoint.searchParams.set("lang", lang);
+
+  let res: Response;
+  try {
+    res = await nativeFetch(endpoint.toString(), {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+  } catch (error) {
+    return emptyTranscript(
+      videoId,
+      `Transcript request failed: ${String(error).slice(0, 200)}`,
+    );
+  }
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      return emptyTranscript(
+        videoId,
+        "YouTube transcript API key is missing or invalid. Ask the user to add one in Settings > Chat.",
+      );
+    }
+    if (res.status === 429) {
+      const retryAfter = res.headers.get("Retry-After");
+      return emptyTranscript(
+        videoId,
+        `YouTube transcript daily quota reached${
+          retryAfter ? ` (retry after ${retryAfter}s)` : ""
+        }.`,
+      );
+    }
+    const detail = await res.text().catch(() => "");
+    return emptyTranscript(
+      videoId,
+      `Transcript request failed (${res.status}): ${detail.slice(0, 200)}`,
+    );
+  }
+
+  const transcript = await res.text();
+  return {
+    videoId,
+    url: watchUrl(videoId),
+    transcript,
+    ...parseTranscript(transcript),
+  };
+};
 
 export const transcriptSegmentSchema = z.object({
   timestamp: z.string().describe("Timestamp marker, e.g. 4:12"),
@@ -50,8 +123,6 @@ const parseError = (video: string): YoutubeTranscriptOutput => ({
 });
 
 export const youtubeTools = () => {
-  const provider = () =>
-    getTranscriptProvider(useSettingsStore.getState().transcriptProvider);
   const apiKey = () => useSettingsStore.getState().youtubeApiKey;
 
   return {
@@ -83,28 +154,26 @@ export const youtubeTools = () => {
         const videoId = extractVideoId(video);
         if (!videoId) return parseError(video);
 
-        const active = provider();
-
-        const cached = await getCachedTranscript(active.id, videoId, lang);
+        const cached = await getCachedTranscript(videoId, lang);
         if (cached) return cached;
 
         const key = apiKey();
-        if (active.requiresKey && !key) {
+        if (!key) {
           return {
             videoId,
-            url: `https://www.youtube.com/watch?v=${videoId}`,
+            url: watchUrl(videoId),
             segments: [],
             transcript: "",
             error: NO_KEY_ERROR,
           };
         }
 
-        const result = await active.fetchTranscript({
+        const result = await fetchTranscript({
           videoId,
           lang,
           apiKey: key,
         });
-        await setCachedTranscript(active.id, videoId, result, lang);
+        await setCachedTranscript(videoId, result, lang);
         return result;
       },
     }),
