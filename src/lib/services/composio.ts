@@ -1,126 +1,50 @@
-import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { Composio, SessionPreset } from "@composio/core";
+import { VercelProvider } from "@composio/vercel";
 import { nativeFetch } from "@/lib/native-fetch";
-import { SEARCH_TOOLKITS, SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
+import {
+  SUPPORTED_TOOLKITS,
+  TOOLKIT_TOOL_ALLOWLIST,
+} from "@/lib/services/toolkits";
 
 /**
- * Minimal Composio REST client.
+ * Composio SDK wrapper.
  *
- * The app talks to the v3.1 HTTP API directly instead of pulling in the
- * `@composio/*` SDKs. Requests go through `nativeFetch` (Tauri's HTTP plugin),
- * so no global `fetch` patch is needed. Each tool owns its own input/output
- * schema; this module only handles transport.
+ * The SDK talks to `*.composio.dev` through `globalThis.fetch`, which the
+ * packaged Tauri webview cannot use (the API does not return CORS headers for
+ * the `tauri://` origin). We route only Composio traffic through Tauri's HTTP
+ * plugin; everything else keeps the native fetch.
  */
 
-const BASE_URL = "https://backend.composio.dev/api/v3.1";
+const COMPOSIO_HOST = "composio.dev";
+const originalFetch = globalThis.fetch;
 
-export class ComposioApiError extends Error {
-  readonly status: number;
-  readonly body: unknown;
+globalThis.fetch = ((input, init) => {
+  const url =
+    typeof input === "string"
+      ? input
+      : input instanceof URL
+        ? input.href
+        : input.url;
 
-  constructor(message: string, status = 0, body: unknown = null) {
-    super(message);
-    this.name = "ComposioApiError";
-    this.status = status;
-    this.body = body;
-  }
-}
-
-const parseJson = (text: string): unknown => {
-  if (!text) return null;
+  let host = "";
   try {
-    return JSON.parse(text);
+    host = new URL(url, "http://tauri.localhost").hostname;
   } catch {
-    return text;
-  }
-};
-
-const stringOf = (value: unknown): string | null =>
-  typeof value === "string" && value.trim() ? value : null;
-
-const errorMessageOf = (body: unknown, status: number): string => {
-  if (typeof body === "string" && body.trim()) return body;
-
-  if (body && typeof body === "object") {
-    const record = body as Record<string, unknown>;
-    const direct = stringOf(record.message) ?? stringOf(record.detail);
-    if (direct) return direct;
-
-    const nested = record.error;
-    const nestedString = stringOf(nested);
-    if (nestedString) return nestedString;
-    if (nested && typeof nested === "object") {
-      const nestedMessage = stringOf(
-        (nested as Record<string, unknown>).message,
-      );
-      if (nestedMessage) return nestedMessage;
-    }
-
-    try {
-      return JSON.stringify(body);
-    } catch {
-      // fall through
-    }
+    host = "";
   }
 
-  return `Composio request failed (${status})`;
-};
-
-const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
-  const apiKey = useSettingsStore.getState().composioApiKey;
-  if (!apiKey) {
-    throw new ComposioApiError(
-      "Add a Composio key in Settings > Chat.",
-    );
+  if (host === COMPOSIO_HOST || host.endsWith(`.${COMPOSIO_HOST}`)) {
+    return nativeFetch(input as string, init);
   }
+  return originalFetch(input, init);
+}) as typeof fetch;
 
-  const response = await nativeFetch(`${BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      ...(init?.headers ?? {}),
-    },
-  });
+type ComposioClient = Composio<VercelProvider>;
 
-  const body = parseJson(await response.text());
-  if (!response.ok) {
-    throw new ComposioApiError(
-      errorMessageOf(body, response.status),
-      response.status,
-      body,
-    );
-  }
-  return body as T;
-};
-
-interface SessionCreateResponse {
-  session_id: string;
-}
-
-interface SessionExecuteResponse {
-  data: Record<string, unknown> | null;
-  error: string | null;
-  successful?: boolean;
-  log_id: string;
-}
-
-interface SessionLinkResponse {
-  redirect_url: string;
-  connected_account_id: string;
-}
-
-interface SessionToolkitsResponse {
-  items?: Array<{
-    slug: string;
-    connected_account: { id: string; status: string } | null;
-  }>;
-}
-
-export interface ComposioExecuteResult {
-  data: Record<string, unknown>;
-  error: string | null;
-  logId: string;
-}
+export type ComposioSession = Awaited<
+  ReturnType<ComposioClient["sessions"]["create"]>
+>;
 
 export interface ToolkitConnection {
   toolkit: string;
@@ -128,102 +52,160 @@ export interface ToolkitConnection {
   connectedAccountId?: string;
 }
 
-/**
- * Cached search session, tagged with the API key that created it. A session is
- * only valid for the key it was created under, so changing the key in Settings
- * must not reuse the old one.
- */
-let searchSession: { key: string; id: string } | null = null;
+/** The session access policy derived from the app's enabled toolkits. */
+export interface SessionPolicy {
+  toolkits: { enable: string[] };
+  tools: Record<string, { enable: string[] }>;
+}
 
-export const createSession = async (userId: string): Promise<string> => {
-  const body = await request<SessionCreateResponse>("/tool_router/session", {
-    method: "POST",
-    body: JSON.stringify({
-      user_id: userId,
-      toolkits: { enable: [...SUPPORTED_TOOLKITS] },
-    }),
-  });
-  return body.session_id;
-};
+let instance: { key: string; composio: ComposioClient } | null = null;
 
-const createSearchSession = async (userId: string): Promise<string> => {
-  const body = await request<SessionCreateResponse>("/tool_router/session", {
-    method: "POST",
-    body: JSON.stringify({
-      user_id: userId,
-      toolkits: { enable: [...SEARCH_TOOLKITS] },
-    }),
-  });
-  return body.session_id;
-};
-
-export const ensureSearchSession = async (): Promise<string> => {
+export const getComposio = async (): Promise<ComposioClient | null> => {
   const apiKey = useSettingsStore.getState().composioApiKey;
-  if (searchSession && searchSession.key === apiKey) return searchSession.id;
+  if (!apiKey) return null;
+  if (instance?.key === apiKey) return instance.composio;
 
-  const userId = useSettingsStore.getState().ensureComposioUserId();
-  const id = await createSearchSession(userId);
-  searchSession = { key: apiKey, id };
-  return id;
+  const composio = new Composio({
+    apiKey,
+    provider: new VercelProvider({}),
+    allowTracking: false,
+    disableVersionCheck: true,
+  });
+  instance = { key: apiKey, composio };
+  return composio;
 };
 
-export const executeTool = async (
-  session: string,
-  slug: string,
-  args: Record<string, unknown>,
-): Promise<ComposioExecuteResult> => {
-  const body = await request<SessionExecuteResponse>(
-    `/tool_router/session/${session}/execute`,
-    {
-      method: "POST",
-      body: JSON.stringify({ tool_slug: slug, arguments: args }),
-    },
-  );
-
-  // Composio can report a failed execution with HTTP 200 and no `error`
-  // string, so `successful === false` must be treated as a failure too.
-  const error =
-    body.error ??
-    (body.successful === false
-      ? `${slug} did not complete successfully.`
-      : null);
+/**
+ * Builds the session policy for a set of enabled toolkits. Only supported
+ * toolkits are considered, and each contributes its read-only allowlist, so
+ * the model can never reach a scope we did not explicitly enable.
+ */
+export const policyFor = (enabled: readonly string[]): SessionPolicy => {
+  const active = SUPPORTED_TOOLKITS.filter((toolkit) => enabled.includes(toolkit));
 
   return {
-    data: body.data ?? {},
-    error,
-    logId: body.log_id ?? "",
+    toolkits: { enable: [...active] },
+    tools: Object.fromEntries(
+      active.map((toolkit) => [
+        toolkit,
+        { enable: [...TOOLKIT_TOOL_ALLOWLIST[toolkit]] },
+      ]),
+    ),
   };
 };
 
-export const authorize = async (
-  session: string,
-  toolkit: string,
-): Promise<string> => {
-  const body = await request<SessionLinkResponse>(
-    `/tool_router/session/${session}/link`,
-    {
-      method: "POST",
-      body: JSON.stringify({ toolkit }),
-    },
-  );
-  return body.redirect_url;
+export const getOrCreateCSession = async (
+  userId: string,
+  sessionId: string | null,
+): Promise<ComposioSession | null> => {
+  const composio = await getComposio();
+  if (!composio) return null;
+
+  if (sessionId) {
+    try {
+      return await composio.sessions.use(sessionId);
+    } catch {
+      // The persisted session is gone (or was created under another key);
+      // fall through and create a fresh one.
+    }
+  }
+
+  return composio.sessions.create(userId, {
+    toolkits: { enable: [...SUPPORTED_TOOLKITS] },
+    tools: Object.fromEntries(
+      SUPPORTED_TOOLKITS.map((toolkit) => [
+        toolkit,
+        { enable: [...TOOLKIT_TOOL_ALLOWLIST[toolkit]] },
+      ]),
+    ),
+    sessionPreset: SessionPreset.DIRECT_TOOLS,
+    manageConnections: { enable: false },
+    sandbox: { enable: false },
+  });
 };
 
+export const getCSession = async (
+  sessionId: string,
+): Promise<ComposioSession | null> => {
+  const composio = await getComposio();
+  if (!composio) return null;
+  try {
+    return await composio.sessions.use(sessionId);
+  } catch {
+    return null;
+  }
+};
+
+const appliedPolicies = new Map<string, string>();
+
+/**
+ * Applies the session policy derived from the app's enabled toolkits. The
+ * update is skipped when the policy already matches what we last sent for this
+ * session, so repeated turns do not churn the remote config.
+ */
+export const applyCSessionPolicy = async (
+  csession: ComposioSession,
+  policy: SessionPolicy,
+): Promise<void> => {
+  const key = JSON.stringify(policy);
+  if (appliedPolicies.get(csession.sessionId) === key) return;
+
+  await csession.update(policy);
+  appliedPolicies.set(csession.sessionId, key);
+};
+
+/**
+ * Returns the session's tools, formatted by the configured Vercel provider.
+ * Each tool carries its own `execute`, so the AI SDK runs calls directly.
+ */
+export const csessionTools = (csession: ComposioSession) => csession.tools();
+
+/**
+ * Reads the connection state of the supported toolkits through the session,
+ * which is the single source of truth for what the agent can actually call.
+ */
 export const listConnections = async (
-  session: string,
+  csession: ComposioSession,
 ): Promise<ToolkitConnection[]> => {
-  const body = await request<SessionToolkitsResponse>(
-    `/tool_router/session/${session}/toolkits`,
-  );
-  return (body.items ?? []).map((item) => ({
-    toolkit: item.slug,
-    status: item.connected_account?.status ?? "NOT_CONNECTED",
-    connectedAccountId: item.connected_account?.id,
-  }));
+  const response = await csession.toolkits({
+    toolkits: [...SUPPORTED_TOOLKITS],
+  });
+
+  return (response.items ?? [])
+    .map((item) => ({
+      toolkit: item.slug,
+      status: item.connection?.isActive
+        ? "ACTIVE"
+        : (item.connection?.connectedAccount?.status ?? "NOT_CONNECTED"),
+      connectedAccountId: item.connection?.connectedAccount?.id,
+    }))
+    .filter((entry) => entry.toolkit);
+};
+
+/**
+ * Starts an authorization flow for a toolkit through the existing session.
+ *
+ * `composio.toolkits.authorize()` is unusable: it ends with the retired
+ * `connectedAccounts.initiate` endpoint. `session.authorize()` uses the
+ * session link endpoint instead, which takes the toolkit slug directly.
+ */
+export const authorizeToolkit = async (
+  sessionId: string,
+  toolkit: string,
+): Promise<string> => {
+  const csession = await getCSession(sessionId);
+  if (!csession) {
+    throw new Error("No Composio session. Add a key in Settings > Chat.");
+  }
+
+  const request = await csession.authorize(toolkit);
+  const url = request.redirectUrl;
+  if (!url) throw new Error("Composio did not return an authorization URL.");
+  return url;
 };
 
 export const disconnect = async (connectedAccountId: string): Promise<void> => {
-  await request(`/connected_accounts/${connectedAccountId}`, {
-    method: "DELETE",
-  });
+  const composio = await getComposio();
+  if (!composio) return;
+  await composio.connectedAccounts.delete(connectedAccountId);
 };

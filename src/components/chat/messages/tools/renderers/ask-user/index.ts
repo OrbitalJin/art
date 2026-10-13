@@ -1,13 +1,20 @@
 import { MessageCircleQuestion } from "lucide-react";
 import type { ToolRenderer } from "../../types";
-import type { AskUserToolName } from "@/lib/ai/tools/ask-user";
+import {
+  ASK_USER_TOOL_NAME,
+  askUserToolSchemas,
+  type AskUserToolName,
+} from "@/lib/ai/tools/ask-user";
 import { AskUserDetail, AskUserSummary } from "./components";
 
 export const askUserRenderers = {
-  ask_user: {
+  [ASK_USER_TOOL_NAME]: {
     icon: MessageCircleQuestion,
     title: "Asked a question",
+    inputSchema: askUserToolSchemas[ASK_USER_TOOL_NAME].input,
+    outputSchema: askUserToolSchemas[ASK_USER_TOOL_NAME].output,
     Summary: AskUserSummary,
     Detail: AskUserDetail,
   },
-} satisfies Record<AskUserToolName, ToolRenderer>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} satisfies Record<AskUserToolName, ToolRenderer<any, any>>;

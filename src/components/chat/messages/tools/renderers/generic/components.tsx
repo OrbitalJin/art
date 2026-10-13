@@ -11,12 +11,26 @@ import {
   SummaryRow,
   SummaryText,
 } from "../../primitives";
-import {
-  asRecord,
-  formatValue,
-  getString,
-  getSummaryText,
-} from "../../helpers";
+import { formatValue, getSummaryText } from "../../helpers";
+
+/**
+ * The generic renderer is the fallback for tools without a declared schema, so
+ * its input/output are genuinely unknown. These local helpers narrow just
+ * enough to present the payload; every schema-backed renderer uses typed data
+ * instead.
+ */
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+
+const getString = (
+  source: Record<string, unknown> | null,
+  key: string,
+): string | null => {
+  const value = source?.[key];
+  return typeof value === "string" && value ? value : null;
+};
 
 const isScalarLike = (value: unknown): boolean => {
   if (value === null) return true;

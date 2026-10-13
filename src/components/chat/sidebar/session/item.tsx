@@ -31,7 +31,6 @@ import { generateSessionTitle } from "@/lib/ai/generate-session-title";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useIsStreaming } from "@/lib/store/use-stream-store";
 import { useSessionAttention } from "@/hooks/use-session-attention";
-import { useTradeSession } from "@/hooks/use-trade-session";
 import type { Session } from "@/lib/store/session/types";
 
 interface Props {
@@ -148,7 +147,6 @@ const SessionMenu: React.FC<{ item: Session; onRename: () => void }> = ({
   const deleteFn = useSessionStore((state) => state.deleteFn);
   const branch = useSessionStore((state) => state.branch);
 
-  const { exportSession } = useTradeSession();
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
@@ -227,9 +225,6 @@ const SessionMenu: React.FC<{ item: Session; onRename: () => void }> = ({
 
           <DropdownMenuGroup>
             <DropdownMenuItem onSelect={handleBranch}>Branch</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => exportSession(item.id)}>
-              Export
-            </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => toggleArchived(item.id)}>
               {item.archived ? "Unarchive" : "Archive"}
             </DropdownMenuItem>

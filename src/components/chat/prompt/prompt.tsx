@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import { ModeSelect } from "./mode-select";
+import { PersonaSelect } from "./persona-select";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
 import { JumpSelect } from "./jump-select";
 import { useSessionStore } from "@/lib/store/use-session-store";
@@ -216,7 +216,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
             <div className="flex flex-row items-center gap-1.5">
               <JumpSelect />
               <ModelSelect />
-              {!isAgent && <ModeSelect />}
+              {!isAgent && <PersonaSelect />}
               <Attach />
               {isAgent && <StashSaveButton />}
               {isAgent && <StashSelect textAreaRef={textAreaRef} />}

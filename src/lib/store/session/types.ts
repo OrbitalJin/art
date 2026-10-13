@@ -1,5 +1,5 @@
 import type { ModelId } from "@/lib/ai/models";
-import type { ModeId } from "@/lib/ai/prompts/modes";
+import type { PersonaId } from "@/lib/ai/prompts/personas";
 import type { AccessMode } from "@/lib/ai/tools/registry";
 import type { FsRoot } from "@/lib/fs";
 
@@ -86,7 +86,7 @@ export interface Session {
   toolkits: SessionToolkits;
   messages: Message[];
   modelId: ModelId;
-  mode: ModeId;
+  persona: PersonaId;
   branchOf?: string;
   archived?: boolean;
   pinned?: boolean;

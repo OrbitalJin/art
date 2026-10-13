@@ -3,7 +3,7 @@ import { settingsStorage } from "@/lib/store/settings/adapter";
 import { create } from "zustand";
 import type { ModelId } from "../ai/models";
 import type { AccessMode } from "../ai/tools/registry";
-import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
+import { DEFAULT_PERSONA, type PersonaId } from "../ai/prompts/personas";
 import { DEFAULT_TRANSCRIPT_PROVIDER_ID } from "../ai/tools/transcript/providers";
 
 export type FontSize = "small" | "medium" | "large";
@@ -34,7 +34,7 @@ interface SettingsState {
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
   defaultAgentModel: ModelId;
-  defaultMode: ModeId;
+  defaultPersona: PersonaId;
   defaultAccessMode: AccessMode;
   enterKeySends: boolean;
   reducedMotion: boolean;
@@ -50,7 +50,7 @@ interface SettingsState {
   setCornerRadius: (radius: CornerRadius) => void;
   setDefaultModel: (model: ModelId) => void;
   setDefaultAgentModel: (model: ModelId) => void;
-  setDefaultMode: (mode: ModeId) => void;
+  setDefaultPersona: (persona: PersonaId) => void;
   setDefaultAccessMode: (mode: AccessMode) => void;
   setEnterKeySends: (value: boolean) => void;
   setReducedMotion: (value: boolean) => void;
@@ -87,7 +87,7 @@ const initialState = {
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
   defaultAgentModel: "model-1" as ModelId,
-  defaultMode: DEFAULT_MODE,
+  defaultPersona: DEFAULT_PERSONA,
   defaultAccessMode: "confirm" as AccessMode,
   enterKeySends: true,
   reducedMotion: false,
@@ -114,7 +114,8 @@ export const useSettingsStore = create<SettingsState>()(
       setCornerRadius: (radius: CornerRadius) => set({ cornerRadius: radius }),
       setDefaultModel: (model: ModelId) => set({ defaultModel: model }),
       setDefaultAgentModel: (model: ModelId) => set({ defaultAgentModel: model }),
-      setDefaultMode: (mode: ModeId) => set({ defaultMode: mode }),
+      setDefaultPersona: (persona: PersonaId) =>
+        set({ defaultPersona: persona }),
       setDefaultAccessMode: (mode: AccessMode) =>
         set({ defaultAccessMode: mode }),
       setEnterKeySends: (value: boolean) => set({ enterKeySends: value }),
@@ -131,7 +132,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 8,
+      version: 9,
       storage: createJSONStorage(() => settingsStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -171,12 +172,13 @@ export const useSettingsStore = create<SettingsState>()(
         }
         if (version < 5) {
           const state = persistedState as {
-            defaultMode?: ModeId;
+            defaultPersona?: PersonaId;
             defaultAccessMode?: AccessMode;
             defaultAgentModel?: ModelId;
           };
           if (state) {
-            if (state.defaultMode === undefined) state.defaultMode = DEFAULT_MODE;
+            if (state.defaultPersona === undefined)
+              state.defaultPersona = DEFAULT_PERSONA;
             if (state.defaultAccessMode === undefined)
               state.defaultAccessMode = "confirm";
             if (state.defaultAgentModel === undefined)
@@ -207,6 +209,17 @@ export const useSettingsStore = create<SettingsState>()(
         if (version < 8) {
           const state = persistedState as { searchApiKey?: string };
           if (state) delete state.searchApiKey;
+        }
+        if (version < 9) {
+          const state = persistedState as {
+            defaultMode?: PersonaId;
+            defaultPersona?: PersonaId;
+          };
+          if (state) {
+            state.defaultPersona =
+              state.defaultPersona ?? state.defaultMode ?? DEFAULT_PERSONA;
+            delete state.defaultMode;
+          }
         }
         return persistedState as SettingsState;
       },

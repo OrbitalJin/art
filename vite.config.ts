@@ -50,9 +50,9 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       "@composio/core",
-      "@composio/vercel",
       "@composio/client",
       "@composio/json-schema-to-zod",
+      "@composio/vercel",
       "zod-to-json-schema",
       "@cfworker/json-schema",
       "dequal",

@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import type { IconType } from "react-icons";
-import { TbBrandGmail, TbBrandGoogle, TbBrandSlack } from "react-icons/tb";
+import { TbBrandGmail } from "react-icons/tb";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import {
   SUPPORTED_TOOLKITS,
@@ -17,8 +17,6 @@ type ConnectionState = "active" | "pending" | "idle";
 
 const TOOLKIT_ICONS: Record<SupportedToolkit, IconType> = {
   gmail: TbBrandGmail,
-  slack: TbBrandSlack,
-  googlesheets: TbBrandGoogle,
 };
 
 const ToolkitIcon: React.FC<{ toolkit: SupportedToolkit; active: boolean }> = ({

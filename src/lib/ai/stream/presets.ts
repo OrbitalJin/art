@@ -1,6 +1,6 @@
 import type { Session } from "@/lib/store/session/types";
 import { system, type Profiles } from "../prompts/system";
-import { ambientTools, toolsFor } from "../tools/tools";
+import { toolsFor } from "../tools/tools";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { toolkitEnabled } from "../tools/toolkits";
 import { TOOL_FAMILIES } from "../tools/registry";
@@ -27,7 +27,7 @@ const enabledToolkits = (session: Session): string[] =>
       family.source === "builtin" && toolkitEnabled(session, family.key),
   ).map((family) => family.key);
 
-export const presetFor = (ctx: RequestContext) => {
+export const presetFor = async (ctx: RequestContext) => {
   const { session } = ctx;
 
   if (session.type === "agent") {
@@ -39,7 +39,7 @@ export const presetFor = (ctx: RequestContext) => {
         connections: { toolkits: connectedToolkits(session) },
         toolkits: enabledToolkits(session),
       }),
-      tools: toolsFor({ session }),
+      tools: await toolsFor({ session }),
       stopWhen: [
         hasToolCall(DONE_TOOL_NAME),
         adaptiveStopCondition(),
@@ -49,8 +49,8 @@ export const presetFor = (ctx: RequestContext) => {
   }
 
   return {
-    system: system({ ...ctx, type: session.type, mode: session.mode }),
-    tools: ambientTools(),
+    system: system({ ...ctx, type: session.type, persona: session.persona }),
+    tools: {},
     stopWhen: stepCountIs(5),
   };
 };

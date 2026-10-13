@@ -39,6 +39,27 @@ const questionSchema = z.object({
     .describe("Allow selecting more than one option. Defaults to false."),
 });
 
+const answerSchema = z.object({
+  question: z.string(),
+  selected: z.array(z.string()),
+  custom: z.string().optional(),
+});
+
+const askUserInputSchema = z.object({
+  questions: z.array(questionSchema).min(1).max(5),
+});
+const askUserOutputSchema = z.object({
+  skipped: z.boolean(),
+  answers: z.array(answerSchema),
+});
+
+export type AskUserQuestion = z.infer<typeof questionSchema>;
+export type AskUserAnswer = z.infer<typeof answerSchema>;
+
+export const askUserToolSchemas = {
+  [ASK_USER_TOOL_NAME]: { input: askUserInputSchema, output: askUserOutputSchema },
+} as const;
+
 export const askUserTools = (sessionId: string) => ({
   [ASK_USER_TOOL_NAME]: tool({
     title: "Ask User",
@@ -46,9 +67,8 @@ export const askUserTools = (sessionId: string) => ({
       "Ask the user one or more multiple-choice questions when requirements " +
       "are ambiguous or a decision is needed. Prefer this over guessing. " +
       "The user may also type a custom answer. Returns their selections.",
-    inputSchema: z.object({
-      questions: z.array(questionSchema).min(1).max(5),
-    }),
+    inputSchema: askUserInputSchema,
+    outputSchema: askUserOutputSchema,
     execute: async ({ questions }, { toolCallId, abortSignal }) => {
       const answers = await useQuestionStore.getState().requestAnswers({
         toolCallId,

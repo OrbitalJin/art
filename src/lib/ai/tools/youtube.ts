@@ -3,10 +3,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { extractVideoId } from "./transcript/parse";
 import { getTranscriptProvider } from "./transcript/providers";
-import {
-  getCachedTranscript,
-  setCachedTranscript,
-} from "./transcript/cache";
+import { getCachedTranscript, setCachedTranscript } from "./transcript/cache";
 
 export const transcriptSegmentSchema = z.object({
   timestamp: z.string().describe("Timestamp marker, e.g. 4:12"),
@@ -29,6 +26,17 @@ export const youtubeTranscriptOutput = z.object({
 
 export type YoutubeTranscriptSegment = z.infer<typeof transcriptSegmentSchema>;
 export type YoutubeTranscriptOutput = z.infer<typeof youtubeTranscriptOutput>;
+
+export const youtubeTranscriptInput = z.object({
+  video: z.string().describe("A YouTube URL or an 11-character video ID"),
+  lang: z
+    .string()
+    .optional()
+    .describe(
+      "Optional YouTube language code, e.g. en, es, zh-Hant. Falls back to an available track.",
+    ),
+});
+export type YoutubeTranscriptInput = z.infer<typeof youtubeTranscriptInput>;
 
 const NO_KEY_ERROR =
   "YouTube transcript API key is not configured. Ask the user to add one in Settings > Chat.";
@@ -64,17 +72,7 @@ export const youtubeTools = () => {
         "`[1:21](https://www.youtube.com/watch?v=7E6GjGx0tc8&t=81s)`). " +
         "This is the only tool for transcripts: always pass the video URL or " +
         "ID here and never try to fetch a transcript URL with `fetch_url`.",
-      inputSchema: z.object({
-        video: z
-          .string()
-          .describe("A YouTube URL or an 11-character video ID"),
-        lang: z
-          .string()
-          .optional()
-          .describe(
-            "Optional YouTube language code, e.g. en, es, zh-Hant. Falls back to an available track.",
-          ),
-      }),
+      inputSchema: youtubeTranscriptInput,
       outputSchema: youtubeTranscriptOutput,
       execute: async ({ video, lang }) => {
         const videoId = extractVideoId(video);

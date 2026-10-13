@@ -1,14 +1,14 @@
-export type ModeId = "reflective" | "socratic" | "research";
-export const DEFAULT_MODE: ModeId = "reflective";
+export type PersonaId = "reflective" | "socratic" | "research";
+export const DEFAULT_PERSONA: PersonaId = "reflective";
 
-export interface ModeDefinition {
-  id: ModeId;
+export interface PersonaDefinition {
+  id: PersonaId;
   label: string;
   description: string;
   prompt: string;
 }
 
-export const MODES: Record<ModeId, ModeDefinition> = {
+export const PERSONAS: Record<PersonaId, PersonaDefinition> = {
   reflective: {
     id: "reflective",
     label: "Reflective",

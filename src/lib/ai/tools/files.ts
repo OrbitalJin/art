@@ -36,6 +36,97 @@ const entrySchema = z.object({
   isSymlink: z.boolean(),
 });
 
+const mediaOutputSchema = z.object({
+  name: z.string(),
+  mediaType: z.string(),
+  size: z.number(),
+  base64: z.string(),
+});
+
+const successOutputSchema = z.object({ success: z.literal(true) });
+
+const listFoldersInputSchema = z.object({});
+const listFoldersOutputSchema = z.array(
+  z.object({ name: z.string(), path: z.string() }),
+);
+const listFolderInputSchema = z.object({
+  folder: folderSchema,
+  path: z
+    .string()
+    .optional()
+    .describe("Relative path to a directory. Defaults to the folder root."),
+});
+const listFolderOutputSchema = z.array(entrySchema);
+const readFileInputSchema = z.object({
+  folder: folderSchema,
+  path: z.string().describe("Relative path to the file."),
+});
+const readFileOutputSchema = z.string();
+const readMediaInputSchema = z.object({
+  folder: folderSchema,
+  path: z.string().describe("Relative path to the file."),
+});
+const statInputSchema = z.object({
+  folder: folderSchema,
+  path: z
+    .string()
+    .optional()
+    .describe("Relative path. Defaults to the folder root."),
+});
+const statOutputSchema = z.object({
+  isFile: z.boolean(),
+  isDirectory: z.boolean(),
+  isSymlink: z.boolean(),
+  size: z.number(),
+  mtime: z.number().nullable(),
+  readonly: z.boolean(),
+});
+const writeFileInputSchema = z.object({
+  folder: folderSchema,
+  path: z.string().describe("Relative path to the file."),
+  content: z.string(),
+  append: z.boolean().optional(),
+});
+const editFileInputSchema = z.object({
+  folder: folderSchema,
+  path: z.string().describe("Relative path to the file."),
+  old: z.string().describe("Exact text to find."),
+  new: z.string().describe("Replacement text."),
+  replaceAll: z.boolean().optional(),
+});
+const editFileOutputSchema = z.object({
+  success: z.literal(true),
+  replacements: z.number(),
+});
+const makeDirInputSchema = z.object({
+  folder: folderSchema,
+  path: z.string().describe("Relative path of the directory to create."),
+});
+const removePathInputSchema = z.object({
+  folder: folderSchema,
+  path: z.string().describe("Relative path to remove."),
+});
+const movePathInputSchema = z.object({
+  folder: folderSchema,
+  from: z.string().describe("Relative source path."),
+  to: z.string().describe("Relative destination path."),
+});
+
+export const fileToolSchemas = {
+  list_folders: { input: listFoldersInputSchema, output: listFoldersOutputSchema },
+  list_folder: { input: listFolderInputSchema, output: listFolderOutputSchema },
+  read_file: { input: readFileInputSchema, output: readFileOutputSchema },
+  read_image: { input: readMediaInputSchema, output: mediaOutputSchema },
+  read_pdf: { input: readMediaInputSchema, output: mediaOutputSchema },
+  stat: { input: statInputSchema, output: statOutputSchema },
+  write_file: { input: writeFileInputSchema, output: successOutputSchema },
+  edit_file: { input: editFileInputSchema, output: editFileOutputSchema },
+  make_dir: { input: makeDirInputSchema, output: successOutputSchema },
+  remove_path: { input: removePathInputSchema, output: successOutputSchema },
+  move_path: { input: movePathInputSchema, output: successOutputSchema },
+  copy_path: { input: movePathInputSchema, output: successOutputSchema },
+} as const;
+
 const findRoot = (roots: FsRoot[], folder: string): FsRoot => {
   const root = roots.find((r) => r.name === folder || r.id === folder);
 
@@ -95,35 +186,20 @@ export const fileTools = ({ roots }: Opts) => {
     };
   };
 
-  const mediaOutputSchema = z.object({
-    name: z.string(),
-    mediaType: z.string(),
-    size: z.number(),
-    base64: z.string(),
-  });
-
   return {
     list_folders: tool({
       title: "List Folders",
       description: "List the folders the user has connected to this session.",
-      inputSchema: z.object({}),
-      outputSchema: z.array(z.object({ name: z.string(), path: z.string() })),
+      inputSchema: listFoldersInputSchema,
+      outputSchema: listFoldersOutputSchema,
       execute: async () => roots.map((r) => ({ name: r.name, path: r.path })),
     }),
 
     list_folder: tool({
       title: "List Directory",
       description: `List the immediate contents of a directory, including hidden dotfiles. Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        path: z
-          .string()
-          .optional()
-          .describe(
-            "Relative path to a directory. Defaults to the folder root.",
-          ),
-      }),
-      outputSchema: z.array(entrySchema),
+      inputSchema: listFolderInputSchema,
+      outputSchema: listFolderOutputSchema,
       execute: async ({ folder, path }) => {
         const entries = await readDir(await resolve(folder, path));
         return entries.map((entry) => ({
@@ -138,11 +214,8 @@ export const fileTools = ({ roots }: Opts) => {
     read_file: tool({
       title: "Read File",
       description: `Read a UTF-8 text file. Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        path: z.string().describe("Relative path to the file."),
-      }),
-      outputSchema: z.string(),
+      inputSchema: readFileInputSchema,
+      outputSchema: readFileOutputSchema,
       execute: async ({ folder, path }) =>
         readTextFile(await resolve(folder, path)),
     }),
@@ -150,10 +223,7 @@ export const fileTools = ({ roots }: Opts) => {
     read_image: tool({
       title: "Read Image",
       description: `Read an image file so you can see it. Use this instead of read_file for images (png, jpeg, gif, webp, svg). Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        path: z.string().describe("Relative path to the image."),
-      }),
+      inputSchema: readMediaInputSchema,
       outputSchema: mediaOutputSchema,
       execute: async ({ folder, path }) => readMedia(folder, path, "image"),
       toModelOutput: ({ output }) => ({
@@ -175,10 +245,7 @@ export const fileTools = ({ roots }: Opts) => {
     read_pdf: tool({
       title: "Read PDF",
       description: `Read a PDF file so you can see its contents. Use this instead of read_file for PDFs. Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        path: z.string().describe("Relative path to the PDF."),
-      }),
+      inputSchema: readMediaInputSchema,
       outputSchema: mediaOutputSchema,
       execute: async ({ folder, path }) => readMedia(folder, path, "pdf"),
       toModelOutput: ({ output }) => ({
@@ -201,21 +268,8 @@ export const fileTools = ({ roots }: Opts) => {
     stat: tool({
       title: "Stat Path",
       description: `Get metadata for a file or directory. Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        path: z
-          .string()
-          .optional()
-          .describe("Relative path. Defaults to the folder root."),
-      }),
-      outputSchema: z.object({
-        isFile: z.boolean(),
-        isDirectory: z.boolean(),
-        isSymlink: z.boolean(),
-        size: z.number(),
-        mtime: z.number().nullable(),
-        readonly: z.boolean(),
-      }),
+      inputSchema: statInputSchema,
+      outputSchema: statOutputSchema,
       execute: async ({ folder, path }) => {
         const info = await stat(await resolve(folder, path));
         return {
@@ -232,13 +286,8 @@ export const fileTools = ({ roots }: Opts) => {
     write_file: writeTool({
       title: "Write File",
       description: `Write text to a file, creating it if needed. Overwrites unless append is true. Parent directories must exist (use make_dir). Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        path: z.string().describe("Relative path to the file."),
-        content: z.string(),
-        append: z.boolean().optional(),
-      }),
-      outputSchema: z.object({ success: z.literal(true) }),
+      inputSchema: writeFileInputSchema,
+      outputSchema: successOutputSchema,
       execute: async ({ folder, path, content, append }) => {
         await writeTextFile(await resolve(folder, path), content, {
           append: !!append,
@@ -250,17 +299,8 @@ export const fileTools = ({ roots }: Opts) => {
     edit_file: writeTool({
       title: "Edit File",
       description: `Replace an exact string in a text file. Fails if old is absent, or appears more than once unless replaceAll is true. Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        path: z.string().describe("Relative path to the file."),
-        old: z.string().describe("Exact text to find."),
-        new: z.string().describe("Replacement text."),
-        replaceAll: z.boolean().optional(),
-      }),
-      outputSchema: z.object({
-        success: z.literal(true),
-        replacements: z.number(),
-      }),
+      inputSchema: editFileInputSchema,
+      outputSchema: editFileOutputSchema,
       execute: async ({ folder, path, old, new: replacement, replaceAll }) => {
         if (!old) throw new Error("`old` must not be empty.");
 
@@ -290,11 +330,8 @@ export const fileTools = ({ roots }: Opts) => {
     make_dir: writeTool({
       title: "Make Directory",
       description: `Create a directory, including any missing parents. Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        path: z.string().describe("Relative path of the directory to create."),
-      }),
-      outputSchema: z.object({ success: z.literal(true) }),
+      inputSchema: makeDirInputSchema,
+      outputSchema: successOutputSchema,
       execute: async ({ folder, path }) => {
         await mkdir(await resolve(folder, path), { recursive: true });
         return { success: true };
@@ -304,11 +341,8 @@ export const fileTools = ({ roots }: Opts) => {
     remove_path: writeTool({
       title: "Remove Path",
       description: `Delete a file or directory (directories are removed recursively). Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        path: z.string().describe("Relative path to remove."),
-      }),
-      outputSchema: z.object({ success: z.literal(true) }),
+      inputSchema: removePathInputSchema,
+      outputSchema: successOutputSchema,
       execute: async ({ folder, path }) => {
         await remove(await resolve(folder, path), { recursive: true });
         return { success: true };
@@ -318,12 +352,8 @@ export const fileTools = ({ roots }: Opts) => {
     move_path: writeTool({
       title: "Move Path",
       description: `Rename or move a file or directory within the same folder. Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        from: z.string().describe("Relative source path."),
-        to: z.string().describe("Relative destination path."),
-      }),
-      outputSchema: z.object({ success: z.literal(true) }),
+      inputSchema: movePathInputSchema,
+      outputSchema: successOutputSchema,
       execute: async ({ folder, from, to }) => {
         await rename(await resolve(folder, from), await resolve(folder, to));
         return { success: true };
@@ -333,12 +363,8 @@ export const fileTools = ({ roots }: Opts) => {
     copy_path: writeTool({
       title: "Copy Path",
       description: `Copy a file to a new location within the same folder. Connected folders: ${folders}.`,
-      inputSchema: z.object({
-        folder: folderSchema,
-        from: z.string().describe("Relative source path."),
-        to: z.string().describe("Relative destination path."),
-      }),
-      outputSchema: z.object({ success: z.literal(true) }),
+      inputSchema: movePathInputSchema,
+      outputSchema: successOutputSchema,
       execute: async ({ folder, from, to }) => {
         await copyFile(await resolve(folder, from), await resolve(folder, to));
         return { success: true };

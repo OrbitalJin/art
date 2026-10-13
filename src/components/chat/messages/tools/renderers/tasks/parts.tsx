@@ -1,6 +1,6 @@
 import type { FC, ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import type { ToolCallBlock } from "@/lib/store/session/types";
+import type { Project, Task } from "@/lib/ai/tools/tasks";
 import {
   DoneNote,
   EmptyNote,
@@ -9,8 +9,11 @@ import {
   MetaLine,
   RowList,
 } from "../../primitives";
-import { asArray, asRecord, getNumber, getString } from "../../helpers";
-import { inputRecord, statusLabelOf } from "./helpers";
+import type { RendererProps } from "../../types";
+import {
+  statusLabelOf,
+  type TaskFieldsInput,
+} from "./helpers";
 
 export const StatusDot: FC<{ status: string | null }> = ({ status }) => {
   const tone =
@@ -28,22 +31,16 @@ export const StatusDot: FC<{ status: string | null }> = ({ status }) => {
   );
 };
 
-export const TaskRow: FC<{ task: Record<string, unknown> }> = ({ task }) => {
-  const title = getString(task, "title") ?? "Untitled task";
-  const description = getString(task, "description");
-  const status = getString(task, "status");
-  const urgency = getString(task, "urgency");
-  const energy = getNumber(task, "energy");
-  const due = getString(task, "due");
-
-  const done = status === "completed";
-  const urgent = urgency === "high";
-
-  const urgencyLabel = urgent ? (
-    <span className="text-red-600/90 dark:text-red-400/90">high urgency</span>
-  ) : urgency ? (
-    `${urgency} urgency`
-  ) : null;
+export const TaskRow: FC<{ task: Task }> = ({ task }) => {
+  const done = task.status === "completed";
+  const urgencyLabel =
+    task.urgency === "high" ? (
+      <span className="text-red-600/90 dark:text-red-400/90">
+        high urgency
+      </span>
+    ) : task.urgency ? (
+      `${task.urgency} urgency`
+    ) : null;
 
   const titleClasses = cn(
     "min-w-0 truncate text-[12px] font-medium",
@@ -53,20 +50,20 @@ export const TaskRow: FC<{ task: Record<string, unknown> }> = ({ task }) => {
   return (
     <ListRow>
       <div className="flex min-w-0 items-start gap-2">
-        <StatusDot status={status} />
+        <StatusDot status={task.status} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className={titleClasses}>{title}</span>
-          {description ? (
+          <span className={titleClasses}>{task.title}</span>
+          {task.description ? (
             <p className="line-clamp-2 text-[11px] leading-snug text-muted-foreground/70">
-              {description}
+              {task.description}
             </p>
           ) : null}
           <MetaLine
             items={[
-              statusLabelOf(status),
+              statusLabelOf(task.status),
               urgencyLabel,
-              energy !== null ? `Energy ${energy}/5` : null,
-              due ? `Due ${due}` : null,
+              `Energy ${task.energy}/5`,
+              task.due ? `Due ${task.due}` : null,
             ]}
           />
         </div>
@@ -75,48 +72,50 @@ export const TaskRow: FC<{ task: Record<string, unknown> }> = ({ task }) => {
   );
 };
 
-export const TaskListDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const TaskListDetail: FC<
+  RendererProps<{ status?: string; projectId?: string }, Task[]>
+> = ({ block, output }) => {
   if (block.state === "executing") return <EmptyNote>Loading…</EmptyNote>;
 
-  const tasks = asArray(block.output);
+  const tasks = output ?? [];
   if (tasks.length === 0) return <EmptyNote>No tasks.</EmptyNote>;
 
   return (
     <RowList maxHeightClass="max-h-64">
-      {tasks.map((item, index) => (
-        <TaskRow key={index} task={asRecord(item) ?? {}} />
+      {tasks.map((task, index) => (
+        <TaskRow key={task.id ?? index} task={task} />
       ))}
     </RowList>
   );
 };
 
-export const SingleTaskDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const SingleTaskDetail: FC<RendererProps<{ id: string }, Task | null>> = ({
+  block,
+  output,
+}) => {
   if (block.state === "executing") return <EmptyNote>Loading…</EmptyNote>;
-
-  const task = asRecord(block.output);
-  if (!task) return <EmptyNote>Task not found.</EmptyNote>;
+  if (!output) return <EmptyNote>Task not found.</EmptyNote>;
 
   return (
     <RowList>
-      <TaskRow task={task} />
+      <TaskRow task={output} />
     </RowList>
   );
 };
 
-export const TaskFields: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const input = inputRecord(block);
-  const description = getString(input, "description");
-  const status = getString(input, "status");
-  const urgency = getString(input, "urgency");
-  const energy = getNumber(input, "energy");
-  const due = getString(input, "due");
-
+export const TaskFields: FC<RendererProps<TaskFieldsInput, unknown>> = ({
+  block,
+  input,
+}) => {
   const entries: { label: string; value: ReactNode }[] = [];
-  if (description) entries.push({ label: "Description", value: description });
-  if (status) entries.push({ label: "Status", value: statusLabelOf(status) });
-  if (urgency) entries.push({ label: "Urgency", value: urgency });
-  if (energy !== null) entries.push({ label: "Energy", value: `${energy}/5` });
-  if (due) entries.push({ label: "Due", value: due });
+  if (input?.description)
+    entries.push({ label: "Description", value: input.description });
+  if (input?.status)
+    entries.push({ label: "Status", value: statusLabelOf(input.status) });
+  if (input?.urgency) entries.push({ label: "Urgency", value: input.urgency });
+  if (input?.energy !== undefined)
+    entries.push({ label: "Energy", value: `${input.energy}/5` });
+  if (input?.due) entries.push({ label: "Due", value: input.due });
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -126,27 +125,31 @@ export const TaskFields: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const MoveTaskDetail: FC<{ block: ToolCallBlock }> = ({ block }) =>
+export const MoveTaskDetail: FC<RendererProps<unknown, unknown>> = ({
+  block,
+}) =>
   block.state === "result" ? (
     <DoneNote block={block} />
   ) : (
     <EmptyNote>Moving…</EmptyNote>
   );
 
-export const DeletedDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
+export const DeletedDetail: FC<RendererProps<unknown, unknown>> = ({ block }) => (
   <DoneNote block={block} label="Deleted" />
 );
 
-export const ProjectListDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const projects = asArray(block.output);
+export const ProjectListDetail: FC<
+  RendererProps<Record<string, never>, Project[]>
+> = ({ output }) => {
+  const projects = output ?? [];
   if (projects.length === 0) return <EmptyNote>No projects.</EmptyNote>;
 
   return (
     <RowList maxHeightClass="max-h-56">
-      {projects.map((item, index) => (
-        <ListRow key={index}>
+      {projects.map((project) => (
+        <ListRow key={project.id}>
           <span className="truncate text-[12px] text-foreground/85">
-            {getString(asRecord(item), "name") ?? "Project"}
+            {project.name}
           </span>
         </ListRow>
       ))}
@@ -154,14 +157,18 @@ export const ProjectListDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const ProjectWithTasksDetail: FC<{ block: ToolCallBlock }> = ({
-  block,
-}) => {
-  const input = inputRecord(block);
-  const name = getString(asRecord(input?.project), "name");
-  const titles = asArray(input?.tasks)
-    .map((task) => getString(asRecord(task), "title"))
-    .filter((title): title is string => title !== null);
+interface ProjectWithTasksInput {
+  project: { name: string; color?: string };
+  tasks: TaskFieldsInput[];
+}
+
+export const ProjectWithTasksDetail: FC<
+  RendererProps<ProjectWithTasksInput, unknown>
+> = ({ block, input }) => {
+  const name = input?.project.name ?? null;
+  const titles = (input?.tasks ?? [])
+    .map((task) => task.title)
+    .filter((title): title is string => Boolean(title));
 
   return (
     <div className="flex flex-col gap-2.5">

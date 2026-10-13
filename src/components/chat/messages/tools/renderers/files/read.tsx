@@ -1,13 +1,20 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
 import { EmptyNote, ResultBadge, SummaryRow } from "../../primitives";
 import { countLines, formatCount } from "../../helpers";
+import type { RendererProps } from "../../types";
 import { pathOf } from "./helpers";
 import { FileContent, FileName, FilePath } from "./parts";
 
-export const ReadFileSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const { path } = pathOf(block.input);
-  const output = typeof block.output === "string" ? block.output : null;
+interface ReadFileInput {
+  folder: string;
+  path: string;
+}
+
+export const ReadFileSummary: FC<RendererProps<ReadFileInput, string>> = ({
+  input,
+  output,
+}) => {
+  const { path } = pathOf(input);
 
   return (
     <SummaryRow>
@@ -19,9 +26,11 @@ export const ReadFileSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const ReadFileDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const { folder, path } = pathOf(block.input);
-  const output = typeof block.output === "string" ? block.output : null;
+export const ReadFileDetail: FC<RendererProps<ReadFileInput, string>> = ({
+  input,
+  output,
+}) => {
+  const { folder, path } = pathOf(input);
 
   return (
     <div className="flex flex-col gap-2.5">

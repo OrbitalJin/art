@@ -18,6 +18,19 @@ const todoSchema = z.object({
     ),
 });
 
+const todoInputSchema = z.object({
+  todos: z.array(todoSchema).min(1).max(20),
+});
+const todoOutputSchema = z.object({
+  total: z.number(),
+  completed: z.number(),
+  in_progress: z.number(),
+});
+
+export const todoToolSchemas = {
+  [TODO_TOOL_NAME]: { input: todoInputSchema, output: todoOutputSchema },
+} as const;
+
 export const todoTools = (sessionId: string) => ({
   [TODO_TOOL_NAME]: tool({
     title: "Write Todos",
@@ -26,14 +39,8 @@ export const todoTools = (sessionId: string) => ({
       "Always send the FULL list with every call; the new list replaces " +
       "the previous one. Use it to plan before starting multi-step work, " +
       "and re-send the list whenever statuses change or steps are added.",
-    inputSchema: z.object({
-      todos: z.array(todoSchema).min(1).max(20),
-    }),
-    outputSchema: z.object({
-      total: z.number(),
-      completed: z.number(),
-      in_progress: z.number(),
-    }),
+    inputSchema: todoInputSchema,
+    outputSchema: todoOutputSchema,
     execute: async ({ todos }) => {
       const plan = useTodoStore.getState().write(sessionId, todos);
 

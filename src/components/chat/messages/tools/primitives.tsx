@@ -2,7 +2,12 @@ import { Fragment, useState, type FC, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
-import { asRecord, blockErrorOf, formatCount, formatValue } from "./helpers";
+import { blockErrorOf, formatCount, formatValue } from "./helpers";
+
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 
 /* Summary */
 

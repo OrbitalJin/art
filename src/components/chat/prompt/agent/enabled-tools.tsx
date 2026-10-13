@@ -1,4 +1,5 @@
 import { TOOL_FAMILIES } from "@/lib/ai/tools/registry";
+import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,7 @@ export const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
   for (const family of TOOL_FAMILIES) {
     if (family.source === "folders") {
       const folders = session.folders ?? [];
-      if (folders.length) {
+      if (folders.length && toolkitEnabled(session, family.key)) {
         tags.push({
           label: family.label,
           value:

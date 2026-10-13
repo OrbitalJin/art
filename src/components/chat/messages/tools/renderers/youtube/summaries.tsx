@@ -1,5 +1,8 @@
 import type { FC } from "react";
-import type { YoutubeTranscriptOutput } from "@/lib/ai/tools/youtube";
+import type {
+  YoutubeTranscriptInput,
+  YoutubeTranscriptOutput,
+} from "@/lib/ai/tools/youtube";
 import type { RendererProps } from "../../types";
 import {
   ResultBadge,
@@ -7,14 +10,13 @@ import {
   SummaryStatus,
   SummaryText,
 } from "../../primitives";
-import { asRecord, formatCount, getString } from "../../helpers";
+import { formatCount } from "../../helpers";
 import { toTranscript } from "./helpers";
 
-export const YoutubeSummary: FC<RendererProps<YoutubeTranscriptOutput>> = ({
-  block,
-  output,
-}) => {
-  const video = getString(asRecord(block.input), "video");
+export const YoutubeSummary: FC<
+  RendererProps<YoutubeTranscriptInput, YoutubeTranscriptOutput>
+> = ({ block, input, output }) => {
+  const video = input?.video ?? null;
   const transcript = toTranscript(output);
   const words =
     transcript.words !== null ? formatCount(transcript.words, "word") : null;

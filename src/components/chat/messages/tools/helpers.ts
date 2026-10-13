@@ -22,23 +22,14 @@ export const formatCount = (
   plural = pluralOf(singular),
 ): string => `${value.toLocaleString()} ${value === 1 ? singular : plural}`;
 
-export {
-  asArray,
-  asBoolean,
-  asNumber,
-  asRecord,
-  asString,
-  getBoolean,
-  getNumber,
-  getString,
-  recordsOf,
-  stringsOf,
-} from "@/lib/utils/coerce";
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
-import { asRecord, getString } from "@/lib/utils/coerce";
-
-export const errorOf = (output: unknown): string | null =>
-  getString(asRecord(output), "error");
+export const errorOf = (output: unknown): string | null => {
+  if (!isRecord(output)) return null;
+  const error = output.error;
+  return typeof error === "string" && error ? error : null;
+};
 
 /**
  * The error to show for a block: an `error` field on the output, or a plain
@@ -70,8 +61,8 @@ export const formatValue = (value: unknown): string => {
 };
 
 export const getSummaryText = (input: unknown): string | null => {
-  const record = asRecord(input);
-  if (!record) return null;
+  if (!isRecord(input)) return null;
+  const record = input;
 
   const candidateKeys = [
     "summary",

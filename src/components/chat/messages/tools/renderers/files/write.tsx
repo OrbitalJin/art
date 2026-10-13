@@ -1,15 +1,22 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
 import { DiffPanel, EmptyNote, ResultBadge, SummaryRow } from "../../primitives";
-import { asRecord, countLines, getBoolean, getString } from "../../helpers";
+import { countLines } from "../../helpers";
+import type { RendererProps } from "../../types";
 import { pathOf } from "./helpers";
 import { FileName, FilePath } from "./parts";
 
-export const WriteFileSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const record = asRecord(block.input);
-  const path = getString(record, "path");
-  const content = getString(record, "content");
-  const append = getBoolean(record, "append");
+interface WriteFileInput {
+  folder: string;
+  path: string;
+  content: string;
+  append?: boolean;
+}
+
+export const WriteFileSummary: FC<RendererProps<WriteFileInput, unknown>> = ({
+  input,
+}) => {
+  const { path } = pathOf(input);
+  const content = input?.content ?? null;
 
   return (
     <SummaryRow>
@@ -17,15 +24,16 @@ export const WriteFileSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
       {content ? (
         <ResultBadge tone="success">+{countLines(content)}</ResultBadge>
       ) : null}
-      {append ? <ResultBadge>append</ResultBadge> : null}
+      {input?.append ? <ResultBadge>append</ResultBadge> : null}
     </SummaryRow>
   );
 };
 
-export const WriteFileDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const record = asRecord(block.input);
-  const { folder, path } = pathOf(block.input);
-  const content = getString(record, "content");
+export const WriteFileDetail: FC<RendererProps<WriteFileInput, unknown>> = ({
+  input,
+}) => {
+  const { folder, path } = pathOf(input);
+  const content = input?.content ?? null;
 
   return (
     <div className="flex flex-col gap-2.5">

@@ -1,42 +1,46 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
+import type { Task } from "@/lib/ai/tools/tasks";
+import { Arrow, ResultBadge, SummaryRow, SummaryText } from "../../primitives";
+import { formatCount } from "../../helpers";
+import type { RendererProps } from "../../types";
 import {
-  Arrow,
-  ResultBadge,
-  SummaryRow,
-  SummaryText,
-} from "../../primitives";
-import { asArray, asRecord, formatCount, getString } from "../../helpers";
-import { inputRecord, shortId, statusLabelOf } from "./helpers";
+  shortId,
+  statusLabelOf,
+  type TaskFieldsInput,
+  type TaskTargetInput,
+} from "./helpers";
 
-export const GetTasksSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const tasks = asArray(block.output);
-  const status = statusLabelOf(getString(inputRecord(block), "status"));
+export const GetTasksSummary: FC<
+  RendererProps<{ status?: string; projectId?: string }, Task[]>
+> = ({ block, input, output }) => {
+  const status = statusLabelOf(input?.status ?? null);
 
   return (
     <SummaryRow>
       {status ? <SummaryText>{status}</SummaryText> : null}
       {block.state !== "executing" ? (
-        <ResultBadge>{formatCount(tasks.length, "task")}</ResultBadge>
+        <ResultBadge>{formatCount(output?.length ?? 0, "task")}</ResultBadge>
       ) : null}
     </SummaryRow>
   );
 };
 
-export const TaskTargetSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const title =
-    getString(asRecord(block.output), "title") ??
-    getString(inputRecord(block), "title");
+export const TaskTargetSummary: FC<
+  RendererProps<TaskTargetInput, Task | null>
+> = ({ input, output }) => {
+  const title = output?.title ?? input?.title;
   if (title) return <SummaryText title={title}>{title}</SummaryText>;
 
-  const id = getString(inputRecord(block), "id");
-  return id ? <SummaryText mono>{shortId(id)}</SummaryText> : null;
+  return input?.id ? (
+    <SummaryText mono>{shortId(input.id)}</SummaryText>
+  ) : null;
 };
 
-export const CreateTaskSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const input = inputRecord(block);
-  const title = getString(input, "title");
-  const status = statusLabelOf(getString(input, "status"));
+export const CreateTaskSummary: FC<
+  RendererProps<TaskFieldsInput, unknown>
+> = ({ input }) => {
+  const title = input?.title;
+  const status = statusLabelOf(input?.status ?? null);
 
   return (
     <SummaryRow>
@@ -46,10 +50,11 @@ export const CreateTaskSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const MoveTaskSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const input = inputRecord(block);
-  const id = getString(input, "id");
-  const status = statusLabelOf(getString(input, "status"));
+export const MoveTaskSummary: FC<
+  RendererProps<{ id: string; status: string }, unknown>
+> = ({ input }) => {
+  const id = input?.id ?? null;
+  const status = statusLabelOf(input?.status ?? null);
 
   return (
     <SummaryRow>
@@ -60,28 +65,34 @@ export const MoveTaskSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const ProjectNameSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const name = getString(inputRecord(block), "name");
-  return name ? <SummaryText title={name}>{name}</SummaryText> : null;
+export const ProjectNameSummary: FC<
+  RendererProps<{ name: string; color?: string }, unknown>
+> = ({ input }) =>
+  input?.name ? (
+    <SummaryText title={input.name}>{input.name}</SummaryText>
+  ) : null;
+
+export const ProjectTargetSummary: FC<
+  RendererProps<{ id: string; name?: string }, unknown>
+> = ({ input }) => {
+  if (input?.name)
+    return <SummaryText title={input.name}>{input.name}</SummaryText>;
+
+  return input?.id ? (
+    <SummaryText mono>{shortId(input.id)}</SummaryText>
+  ) : null;
 };
 
-export const ProjectTargetSummary: FC<{ block: ToolCallBlock }> = ({
-  block,
-}) => {
-  const input = inputRecord(block);
-  const name = getString(input, "name");
-  if (name) return <SummaryText title={name}>{name}</SummaryText>;
+interface ProjectWithTasksInput {
+  project: { name: string; color?: string };
+  tasks: TaskFieldsInput[];
+}
 
-  const id = getString(input, "id");
-  return id ? <SummaryText mono>{shortId(id)}</SummaryText> : null;
-};
-
-export const ProjectWithTasksSummary: FC<{ block: ToolCallBlock }> = ({
-  block,
-}) => {
-  const input = inputRecord(block);
-  const name = getString(asRecord(input?.project), "name");
-  const tasks = asArray(input?.tasks);
+export const ProjectWithTasksSummary: FC<
+  RendererProps<ProjectWithTasksInput, unknown>
+> = ({ input }) => {
+  const name = input?.project.name ?? null;
+  const tasks = input?.tasks ?? [];
 
   return (
     <SummaryRow>

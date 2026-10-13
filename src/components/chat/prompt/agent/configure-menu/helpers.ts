@@ -1,6 +1,5 @@
 import type { Session } from "@/lib/store/session/types";
 import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
-import { composioToolCount } from "@/lib/ai/tools/composio";
 import {
   TOOL_FAMILIES,
   type ToolCategory,
@@ -35,10 +34,7 @@ export const familyActive = (
   session: Session,
   family: ToolFamily,
   toolkits: Toolkits,
-): boolean => {
-  if (family.source === "folders") return (session.folders ?? []).length > 0;
-  return familyEnabled(session, family, toolkits);
-};
+): boolean => familyEnabled(session, family, toolkits);
 
 export const familiesInCategory = (category: ToolCategory): ToolFamily[] =>
   TOOL_FAMILIES.filter((family) => family.category === category);
@@ -47,6 +43,3 @@ export const basename = (path: string): string => {
   const parts = path.split(/[\\/]/).filter(Boolean);
   return parts[parts.length - 1] ?? path;
 };
-
-export const toolkitToolCount = (toolkit: string): number =>
-  composioToolCount(toolkit);

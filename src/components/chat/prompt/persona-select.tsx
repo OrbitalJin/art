@@ -1,4 +1,4 @@
-import { MODES, type ModeId } from "@/lib/ai/prompts/modes";
+import { PERSONAS, type PersonaId } from "@/lib/ai/prompts/personas";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,15 +16,15 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useChatStream } from "@/hooks/use-chat-stream";
 
-export const ModeSelect = () => {
+export const PersonaSelect = () => {
   const { isSending: disabled } = useChatStream();
 
-  const setMode = useSessionStore((store) => store.setMode);
+  const setPersona = useSessionStore((store) => store.setPersona);
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
 
-  const currentMode = MODES[session?.mode as ModeId];
+  const currentPersona = PERSONAS[session?.persona as PersonaId];
   const [open, setOpen] = useState<boolean>(false);
 
   if (!session) {
@@ -46,10 +46,10 @@ export const ModeSelect = () => {
                 )}
               >
                 <VenetianMask className={cn("h-4 w-4 text-muted-foreground")} />
-                <span className="sr-only">{currentMode?.label}</span>
+                <span className="sr-only">{currentPersona?.label}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Mode</TooltipContent>
+            <TooltipContent>Persona</TooltipContent>
           </Tooltip>
         </div>
       </DropdownMenuTrigger>
@@ -61,22 +61,23 @@ export const ModeSelect = () => {
         className="w-72 p-0 shadow-xl border-muted-foreground/20"
       >
         <div className="flex flex-col gap-1 border-b bg-muted/30 p-3">
-          <p className="text-sm font-medium">Modes</p>
+          <p className="text-sm font-medium">Personas</p>
           <p className="text-[11px] text-muted-foreground leading-tight">
-            Select a mode for the current session.
+            Select a persona for the current session.
           </p>
         </div>
 
         <div className="flex flex-col p-2 gap-1">
-          {Object.values(MODES).map((mode) => {
-            const isSelected = mode.id === session.mode;
+          {Object.values(PERSONAS).map((persona) => {
+            const isSelected = persona.id === session.persona;
 
             return (
               <div
-                key={mode.id}
+                key={persona.id}
                 onClick={() => {
                   setOpen(false);
-                  if (!disabled) setMode(session.id, mode.id as ModeId);
+                  if (!disabled)
+                    setPersona(session.id, persona.id as PersonaId);
                 }}
                 className={cn(
                   "flex flex-col p-2.5 gap-0.5 cursor-pointer rounded-md transition-all duration-200 group",
@@ -92,11 +93,11 @@ export const ModeSelect = () => {
                       isSelected ? "text-primary" : "text-foreground",
                     )}
                   >
-                    {mode.label}
+                    {persona.label}
                   </span>
                 </div>
                 <p className="text-[11px] text-muted-foreground/80 leading-normal">
-                  {mode.description}
+                  {persona.description}
                 </p>
               </div>
             );

@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { cn } from "@/lib/utils";
+import type { ToolCallBlock } from "@/lib/store/session/types";
 import type { YoutubeTranscriptOutput } from "@/lib/ai/tools/youtube";
 import type { RendererProps } from "../../types";
 import { DetailGate, DetailTitle, EmptyNote, MetaLine } from "../../primitives";
@@ -88,9 +89,10 @@ const TranscriptList: FC<{
   </ul>
 );
 
-const YoutubeBody: FC<RendererProps<YoutubeTranscriptOutput>> = ({
-  output,
-}) => {
+const YoutubeBody: FC<{
+  block: ToolCallBlock;
+  output: YoutubeTranscriptOutput | null;
+}> = ({ output }) => {
   const transcript = toTranscript(output);
   const words =
     transcript.words !== null ? formatCount(transcript.words, "word") : null;
@@ -114,10 +116,9 @@ const YoutubeBody: FC<RendererProps<YoutubeTranscriptOutput>> = ({
   );
 };
 
-export const YoutubeDetail: FC<RendererProps<YoutubeTranscriptOutput>> = ({
-  block,
-  output,
-}) => (
+export const YoutubeDetail: FC<
+  RendererProps<unknown, YoutubeTranscriptOutput>
+> = ({ block, output }) => (
   <DetailGate block={block} executingLabel="Fetching transcript…">
     <YoutubeBody block={block} output={output} />
   </DetailGate>

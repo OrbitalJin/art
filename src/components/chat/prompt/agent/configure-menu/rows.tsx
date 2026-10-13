@@ -3,6 +3,10 @@ import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session } from "@/lib/store/session/types";
 import { toolkitEnabled } from "@/lib/ai/tools/toolkits";
 import {
+  TOOLKIT_TOOL_ALLOWLIST,
+  type SupportedToolkit,
+} from "@/lib/services/toolkits";
+import {
   CATEGORY_LABELS,
   type ToolCategory,
   type ToolFamily,
@@ -13,7 +17,6 @@ import {
   familyActive,
   isConnected,
   selectableRowClasses,
-  toolkitToolCount,
 } from "./helpers";
 
 const RowText: React.FC<{
@@ -84,19 +87,19 @@ const LinkRow: React.FC<{
 
 const FilesLink: React.FC<{
   folderCount: number;
+  enabled: boolean;
   onOpen: () => void;
-}> = ({ folderCount, onOpen }) => {
-  const active = folderCount > 0;
-
-  const summary = active
-    ? `${folderCount} ${folderCount === 1 ? "folder" : "folders"}`
-    : "Connect";
+}> = ({ folderCount, enabled, onOpen }) => {
+  const summary =
+    folderCount > 0
+      ? `${folderCount} ${folderCount === 1 ? "folder" : "folders"}`
+      : "Connect";
 
   return (
     <LinkRow
       label="Files"
       subtitle="Read & write local folders"
-      active={active}
+      active={enabled}
       trailing={summary}
       onOpen={onOpen}
     />
@@ -109,7 +112,8 @@ const ConnectionRow: React.FC<{
   onToggle: (key: string, value: boolean) => void;
 }> = ({ family, session, onToggle }) => {
   const toolkits = useConnectionsStore((state) => state.toolkits);
-  const toolCount = toolkitToolCount(family.key);
+  const toolCount =
+    TOOLKIT_TOOL_ALLOWLIST[family.key as SupportedToolkit]?.length ?? 0;
 
   const connected = isConnected(toolkits, family.key);
   const enabled = connected && toolkitEnabled(session, family.key);
@@ -144,7 +148,13 @@ export const FamilyRow: React.FC<{
 }> = ({ family, session, onOpenFiles, onToggle }) => {
   if (family.source === "folders") {
     const folderCount = (session.folders ?? []).length;
-    return <FilesLink folderCount={folderCount} onOpen={onOpenFiles} />;
+    return (
+      <FilesLink
+        folderCount={folderCount}
+        enabled={toolkitEnabled(session, family.key)}
+        onOpen={onOpenFiles}
+      />
+    );
   }
 
   if (family.source === "composio") {

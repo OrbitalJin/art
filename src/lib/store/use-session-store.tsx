@@ -13,7 +13,7 @@ import type {
 import { SUPPORTED_TOOLKITS } from "@/lib/services/toolkits";
 import { sessionStorage } from "@/lib/store/session/adapter";
 import type { FsRoot } from "@/lib/fs";
-import { DEFAULT_MODE, type ModeId } from "../ai/prompts/modes";
+import { DEFAULT_PERSONA, type PersonaId } from "../ai/prompts/personas";
 import type { AccessMode } from "@/lib/ai/tools/registry";
 import { TOOL_FAMILIES } from "@/lib/ai/tools/registry";
 import { useSettingsStore } from "./use-settings-store";
@@ -25,6 +25,19 @@ interface CreateSessionOpts {
   defaultModelId?: ModelId;
   type?: SessionType;
 }
+
+/**
+ * The default toolkit state for a new session. This is the single source of
+ * truth for defaults; `toolkitEnabled` only reads the stored map.
+ */
+export const defaultToolkits = (type: SessionType): SessionToolkits => ({
+  tasks: false,
+  todo: type === "agent",
+  askUser: type === "agent",
+  youtube: false,
+  files: false,
+  ...Object.fromEntries(SUPPORTED_TOOLKITS.map((toolkit) => [toolkit, false])),
+});
 
 const createNewSession = ({
   title,
@@ -50,56 +63,234 @@ const createNewSession = ({
     type: sessionType,
     title: title ?? "New Session",
     accessMode: settings.defaultAccessMode,
-    toolkits: {
-      tasks: false,
-      askUser: sessionType === "agent",
-      todo: sessionType === "agent",
-    },
+    toolkits: defaultToolkits(sessionType),
     messages: [],
-    mode: settings.defaultMode,
+    persona: settings.defaultPersona,
     modelId,
     createdAt: date,
     updatedAt: date,
   };
 };
 
-type LegacyMessage = Message & {
-  content?: string;
-  parts?: MessagePart[];
-  toolCalls?: ToolCallBlock[];
-};
+export const SESSION_STORAGE_VERSION = 30;
 
-const normalizeMessage = (message: LegacyMessage): Message => {
-  if (Array.isArray(message.parts)) return message;
+/**
+ * Brings persisted sessions up to the current shape. This is the single place
+ * that owns data-shape evolution: any change to the stored session structure
+ * (including the tool registry) must bump `SESSION_STORAGE_VERSION` and add a
+ * block here instead of normalizing at runtime.
+ */
+const migrateState = (
+  persistedState: unknown,
+  version: number,
+): SessionState => {
+  const state = persistedState as {
+    sessions?: Array<{
+      type?: SessionType;
+      mode?: PersonaId;
+      persona?: PersonaId;
+      accessMode?: AccessMode;
+      disableApproval?: boolean;
+      knowledgeBase?: string;
+      folders?: FsRoot[];
+      capabilities?: Record<string, boolean>;
+      toolkits?: SessionToolkits;
+      messages?: Array<
+        Message & {
+          role: string;
+          content?: string | Array<{ type: string } & Record<string, unknown>>;
+          parts?: MessagePart[];
+          toolCalls?: ToolCallBlock[];
+        }
+      >;
+    }>;
+  };
 
-  const parts: MessagePart[] = [];
-  if (typeof message.content === "string" && message.content) {
-    parts.push({ type: "text", text: message.content });
+  if (version < 20) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => ({
+        ...session,
+        type: session.type ?? "chat",
+        persona: session.persona ?? session.mode ?? DEFAULT_PERSONA,
+      }));
+    }
   }
-  for (const call of message.toolCalls ?? []) {
-    parts.push({ type: "tool-call", ...call });
+
+  if (version < 21) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => ({
+        ...session,
+        capabilities: session.capabilities ?? {
+          journal: false,
+          tasks: false,
+          askUser: false,
+        },
+      }));
+    }
   }
 
-  const { content: _content, ...rest } = message;
-  void _content;
-  return { ...rest, parts };
-};
+  if (version < 22) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => ({
+        ...session,
+        messages: (session.messages ?? []).map((message) => {
+          if (Array.isArray(message.parts)) return message;
+          const parts: MessagePart[] = [];
+          if (typeof message.content === "string" && message.content) {
+            parts.push({ type: "text", text: message.content });
+          }
+          for (const call of message.toolCalls ?? []) {
+            parts.push({ type: "tool-call", ...call });
+          }
+          const { content: _content, ...rest } = message;
+          void _content;
+          return { ...rest, parts };
+        }),
+      }));
+    }
+  }
 
-const normalizeSession = (session: Session): Session => ({
-  ...session,
-  type: session.type ?? "chat",
-  mode: session.mode ?? DEFAULT_MODE,
-  accessMode: session.accessMode ?? "confirm",
-  folders: session.folders ?? [],
-  toolkits: session.toolkits ?? {},
-  messages: (session.messages ?? []).map((message) =>
-    normalizeMessage(message as LegacyMessage),
-  ),
-});
+  if (version < 23) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => ({
+        ...session,
+        capabilities: {
+          journal: false,
+          tasks: false,
+          ...(session.capabilities ?? {}),
+          askUser: false,
+        },
+      }));
+    }
+  }
 
-const legacyFolderName = (path: string): string => {
-  const parts = path.split(/[\\/]/).filter(Boolean);
-  return parts[parts.length - 1] ?? path;
+  if (version < 24) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => {
+        const { disableApproval, ...rest } = session;
+        return {
+          ...rest,
+          accessMode: disableApproval ? "autonomous" : "confirm",
+        };
+      });
+    }
+  }
+
+  if (version < 25) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => {
+        const { knowledgeBase, ...rest } = session;
+        const segments = (knowledgeBase ?? "").split(/[\\/]/).filter(Boolean);
+        return {
+          ...rest,
+          folders: knowledgeBase
+            ? [
+                {
+                  id: crypto.randomUUID(),
+                  name: segments[segments.length - 1] ?? knowledgeBase,
+                  path: knowledgeBase,
+                },
+              ]
+            : [],
+        };
+      });
+    }
+  }
+
+  if (version < 26) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => {
+        const type = session.type ?? "chat";
+        return {
+          ...session,
+          capabilities: {
+            ...(session.capabilities ?? {
+              journal: false,
+              tasks: false,
+              askUser: false,
+            }),
+            connections: session.capabilities?.connections ?? type === "agent",
+          },
+        };
+      });
+    }
+  }
+
+  if (version < 27) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => {
+        const { toolPolicy, ...rest } = session as { toolPolicy?: unknown };
+        void toolPolicy;
+        return rest;
+      });
+    }
+  }
+
+  if (version < 28) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => {
+        const type = session.type ?? "chat";
+        const { capabilities, ...rest } = session;
+        if (session.toolkits) return rest;
+        const connections = capabilities?.connections ?? type === "agent";
+        return {
+          ...rest,
+          toolkits: {
+            journal: capabilities?.journal ?? false,
+            tasks: capabilities?.tasks ?? false,
+            askUser: capabilities?.askUser ?? type === "agent",
+            ...Object.fromEntries(
+              SUPPORTED_TOOLKITS.map((toolkit) => [toolkit, connections]),
+            ),
+          },
+        };
+      });
+    }
+  }
+
+  if (version < 29) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => {
+        const type = session.type ?? "chat";
+        const folders = session.folders ?? [];
+        const stored = session.toolkits ?? {};
+        const defaults = defaultToolkits(type);
+        const toolkits: SessionToolkits = {};
+        for (const family of TOOL_FAMILIES) {
+          const value = stored[family.key];
+          if (value !== undefined) {
+            toolkits[family.key] = value;
+          } else if (family.source === "folders") {
+            toolkits[family.key] = folders.length > 0;
+          } else {
+            toolkits[family.key] = defaults[family.key] ?? false;
+          }
+        }
+        return {
+          ...session,
+          type,
+          persona: session.persona ?? session.mode ?? DEFAULT_PERSONA,
+          accessMode: session.accessMode ?? "confirm",
+          folders,
+          toolkits,
+        };
+      });
+    }
+  }
+
+  if (version < 30) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => {
+        const { mode, ...rest } = session;
+        return {
+          ...rest,
+          persona: session.persona ?? mode ?? DEFAULT_PERSONA,
+        };
+      });
+    }
+  }
+
+  return state as SessionState;
 };
 
 export interface SessionState {
@@ -108,7 +299,7 @@ export interface SessionState {
   hydrated: boolean;
   titleGeneratingIds: string[];
 
-  setMode: (id: string, mode: ModeId) => void;
+  setPersona: (id: string, persona: PersonaId) => void;
   branch: (id: string) => boolean;
   toggleArchived: (id: string) => void;
   togglePinned: (id: string) => boolean;
@@ -119,7 +310,6 @@ export interface SessionState {
   setToolkit: (id: string, key: string, value: boolean) => void;
   disableAllToolkits: (id: string) => void;
   setActive: (id: string) => void;
-  importFn: (s: Session) => boolean;
   deleteFn: (id: string) => void;
   create: (type: SessionType, title?: string) => string;
   getFn: (id: string) => Session | undefined;
@@ -158,7 +348,11 @@ export const useSessionStore = create<SessionState>()(
         set((state) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
-              ? { ...session, folders: [...(session.folders ?? []), root] }
+              ? {
+                  ...session,
+                  folders: [...(session.folders ?? []), root],
+                  toolkits: { ...session.toolkits, files: true },
+                }
               : session,
           ),
         }));
@@ -166,16 +360,17 @@ export const useSessionStore = create<SessionState>()(
 
       removeFolder: (id: string, folderId: string) => {
         set((state) => ({
-          sessions: state.sessions.map((session) =>
-            session.id === id
-              ? {
-                  ...session,
-                  folders: (session.folders ?? []).filter(
-                    (root) => root.id !== folderId,
-                  ),
-                }
-              : session,
-          ),
+          sessions: state.sessions.map((session) => {
+            if (session.id !== id) return session;
+            const folders = (session.folders ?? []).filter(
+              (root) => root.id !== folderId,
+            );
+            return {
+              ...session,
+              folders,
+              toolkits: { ...session.toolkits, files: folders.length > 0 },
+            };
+          }),
         }));
       },
 
@@ -199,9 +394,7 @@ export const useSessionStore = create<SessionState>()(
               ? {
                   ...session,
                   toolkits: Object.fromEntries(
-                    TOOL_FAMILIES.filter(
-                      (family) => family.source !== "folders",
-                    ).map((family) => [family.key, false]),
+                    TOOL_FAMILIES.map((family) => [family.key, false]),
                   ),
                 }
               : session,
@@ -253,13 +446,13 @@ export const useSessionStore = create<SessionState>()(
         }));
       },
 
-      setMode: (id: string, modeId: ModeId) => {
+      setPersona: (id: string, personaId: PersonaId) => {
         set((state) => ({
           sessions: state.sessions.map((session) =>
             session.id === id
               ? {
                   ...session,
-                  mode: modeId,
+                  persona: personaId,
                 }
               : session,
           ),
@@ -324,18 +517,6 @@ export const useSessionStore = create<SessionState>()(
         session.pinned = !session.pinned;
         set({ sessions: [...state.sessions] });
         return true;
-      },
-
-      importFn: (orphan: Session): boolean => {
-        const state = get();
-        const duplicate = state.sessions.find((s) => s.id === orphan.id);
-        if (duplicate) {
-          orphan.id = crypto.randomUUID();
-        }
-        set({
-          sessions: [...state.sessions, normalizeSession(orphan)],
-        });
-        return !!duplicate;
       },
 
       getFn: (id: string) => {
@@ -448,171 +629,9 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: "session-storage",
-      version: 28,
+      version: SESSION_STORAGE_VERSION,
       storage: createJSONStorage(() => sessionStorage),
-      migrate: (persistedState: unknown, version: number) => {
-        const state = persistedState as {
-          sessions?: Array<{
-            accessMode?: AccessMode;
-            disableApproval?: boolean;
-            knowledgeBase?: string;
-            folders?: FsRoot[];
-            capabilities?: Record<string, boolean>;
-            toolkits?: SessionToolkits;
-            messages?: Array<
-              Message & {
-                role: string;
-                content?:
-                  string | Array<{ type: string } & Record<string, unknown>>;
-                parts?: MessagePart[];
-                toolCalls?: ToolCallBlock[];
-              }
-            >;
-          }>;
-        };
-
-        if (version < 20) {
-          if (Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => {
-              const legacy = session as {
-                type?: SessionType;
-                mode?: ModeId;
-              };
-              return {
-                ...session,
-                type: legacy.type ?? "chat",
-                mode: legacy.mode ?? DEFAULT_MODE,
-              };
-            });
-          }
-        }
-
-        if (version < 21) {
-          if (Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => ({
-              ...session,
-              capabilities: session.capabilities ?? {
-                journal: false,
-                tasks: false,
-                askUser: false,
-              },
-            }));
-          }
-        }
-
-        if (version < 22) {
-          if (Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => ({
-              ...session,
-              messages: (session.messages ?? []).map((message) =>
-                normalizeMessage(message as LegacyMessage),
-              ),
-            }));
-          }
-        }
-
-        if (version < 23) {
-          if (Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => ({
-              ...session,
-              capabilities: {
-                journal: false,
-                tasks: false,
-                ...(session.capabilities ?? {}),
-                askUser: false,
-              },
-            }));
-          }
-        }
-
-        if (version < 24) {
-          if (Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => {
-              const { disableApproval, ...rest } = session;
-              return {
-                ...rest,
-                accessMode: disableApproval ? "autonomous" : "confirm",
-              };
-            });
-          }
-        }
-
-        if (version < 25) {
-          if (Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => {
-              const { knowledgeBase, ...rest } = session;
-              return {
-                ...rest,
-                folders: knowledgeBase
-                  ? [
-                      {
-                        id: crypto.randomUUID(),
-                        name: legacyFolderName(knowledgeBase),
-                        path: knowledgeBase,
-                      },
-                    ]
-                  : [],
-              };
-            });
-          }
-        }
-
-        if (version < 26) {
-          if (Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => {
-              const type = (session as { type?: SessionType }).type ?? "chat";
-              return {
-                ...session,
-                capabilities: {
-                  ...(session.capabilities ?? {
-                    journal: false,
-                    tasks: false,
-                    askUser: false,
-                  }),
-                  connections:
-                    session.capabilities?.connections ?? type === "agent",
-                },
-              };
-            });
-          }
-        }
-
-        if (version < 27) {
-          if (Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => {
-              const { toolPolicy, ...rest } = session as {
-                toolPolicy?: unknown;
-              };
-              void toolPolicy;
-              return rest;
-            });
-          }
-        }
-
-        if (version < 28) {
-          if (Array.isArray(state.sessions)) {
-            state.sessions = state.sessions.map((session) => {
-              const type = (session as { type?: SessionType }).type ?? "chat";
-              const { capabilities, ...rest } = session;
-              if (session.toolkits) return rest;
-              const connections = capabilities?.connections ?? type === "agent";
-              return {
-                ...rest,
-                toolkits: {
-                  journal: capabilities?.journal ?? false,
-                  tasks: capabilities?.tasks ?? false,
-                  askUser: capabilities?.askUser ?? type === "agent",
-                  ...Object.fromEntries(
-                    SUPPORTED_TOOLKITS.map((toolkit) => [toolkit, connections]),
-                  ),
-                },
-              };
-            });
-          }
-        }
-
-        return state as SessionState;
-      },
+      migrate: migrateState,
       onRehydrateStorage: () => (state, error) => {
         if (error) {
           console.error("Failed to rehydrate session storage", error);
@@ -620,7 +639,7 @@ export const useSessionStore = create<SessionState>()(
           return;
         }
         if (!state) return;
-        state.sessions = (state.sessions ?? []).map(normalizeSession);
+        state.sessions = state.sessions ?? [];
         if (state.sessions.length === 0) {
           const newSession = createNewSession({});
           state.sessions = [newSession];

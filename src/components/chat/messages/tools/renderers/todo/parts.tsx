@@ -1,6 +1,5 @@
 import type { FC } from "react";
 import { cn } from "@/lib/utils";
-import type { ToolCallBlock } from "@/lib/store/session/types";
 import {
   EmptyNote,
   ErrorNote,
@@ -8,7 +7,18 @@ import {
   SummaryRow,
   SummaryText,
 } from "../../primitives";
-import { parseTodos, type ParsedTodo, type TodoStatus } from "./helpers";
+import type { RendererProps } from "../../types";
+import type { ParsedTodo, TodoStatus } from "./helpers";
+
+interface TodoInput {
+  todos: ParsedTodo[];
+}
+
+interface TodoOutput {
+  total: number;
+  completed: number;
+  in_progress: number;
+}
 
 const STATUS_LABEL: Record<TodoStatus, string> = {
   pending: "Pending",
@@ -91,12 +101,15 @@ const ProgressBar: FC<{ completed: number; total: number }> = ({
   );
 };
 
-export const TodoListDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
+export const TodoListDetail: FC<RendererProps<TodoInput, TodoOutput>> = ({
+  block,
+  input,
+}) => {
   if (block.state === "error") {
     return <ErrorNote>Couldn't update the plan.</ErrorNote>;
   }
 
-  const todos = parseTodos(block);
+  const todos = input?.todos ?? [];
 
   if (todos.length === 0) {
     return (
@@ -130,8 +143,11 @@ export const TodoListDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const TodoSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const todos = parseTodos(block);
+export const TodoSummary: FC<RendererProps<TodoInput, TodoOutput>> = ({
+  block,
+  input,
+}) => {
+  const todos = input?.todos ?? [];
   const failed = block.state === "error";
 
   if (todos.length === 0 && !failed) return null;

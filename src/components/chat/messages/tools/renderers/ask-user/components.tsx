@@ -1,6 +1,10 @@
 import type { FC } from "react";
 import { cn } from "@/lib/utils";
 import type { ToolCallBlock } from "@/lib/store/session/types";
+import type {
+  AskUserAnswer,
+  AskUserQuestion,
+} from "@/lib/ai/tools/ask-user";
 import {
   EmptyNote,
   ErrorNote,
@@ -10,44 +14,22 @@ import {
   SummaryRow,
   SummaryText,
 } from "../../primitives";
-import { asArray, asRecord, formatCount, getString } from "../../helpers";
+import { formatCount } from "../../helpers";
+import type { RendererProps } from "../../types";
 
-interface AnswerView {
-  selected: string[];
-  custom: string | null;
+interface AskUserInput {
+  questions: AskUserQuestion[];
 }
 
-const questionsOf = (input: unknown) =>
-  asArray(asRecord(input)?.questions).map((item) => asRecord(item) ?? {});
+interface AskUserOutput {
+  skipped: boolean;
+  answers: AskUserAnswer[];
+}
 
-const optionsOf = (question: Record<string, unknown>) =>
-  asArray(question.options).map((item) => asRecord(item) ?? {});
+const hasAnswer = (answer: AskUserAnswer): boolean =>
+  answer.selected.length > 0 || Boolean(answer.custom);
 
-const errorOf = (output: unknown): string | null =>
-  getString(asRecord(output), "error");
-
-// Assumes the tool result is the submitted answers: an array of
-// { question, selected, custom } (or { answers: [...] }), in question order.
-// Anything else parses to [] and the options render neutral.
-const answersOf = (output: unknown): AnswerView[] => {
-  const direct = asArray(output);
-  const list = direct.length > 0 ? direct : asArray(asRecord(output)?.answers);
-
-  return list.map((item) => {
-    const entry = asRecord(item);
-    return {
-      selected: asArray(entry?.selected).filter(
-        (value): value is string => typeof value === "string",
-      ),
-      custom: getString(entry, "custom"),
-    };
-  });
-};
-
-const hasAnswer = (answer: AnswerView): boolean =>
-  answer.selected.length > 0 || answer.custom !== null;
-
-const givenOf = (answer: AnswerView): string =>
+const givenOf = (answer: AskUserAnswer): string =>
   [...answer.selected, answer.custom].filter(Boolean).join(", ");
 
 export const OptionMarker: FC<{ chosen: boolean }> = ({ chosen }) => {
@@ -97,42 +79,33 @@ export const OptionRow: FC<{
 };
 
 export const QuestionView: FC<{
-  question: Record<string, unknown>;
-  answer: AnswerView | undefined;
+  question: AskUserQuestion;
+  answer: AskUserAnswer | undefined;
 }> = ({ question, answer }) => {
-  const header = getString(question, "header");
-  const text = getString(question, "question");
-  const options = optionsOf(question);
+  const options = question.options ?? [];
   const answered = answer !== undefined && hasAnswer(answer);
 
   return (
     <ListRow>
-      {header ? (
-        <span className="text-[11px] font-medium text-muted-foreground/60">
-          {header}
-        </span>
-      ) : null}
+      <span className="text-[11px] font-medium text-muted-foreground/60">
+        {question.header}
+      </span>
 
-      {text ? (
-        <p className="text-[12px] leading-snug text-foreground/85">{text}</p>
-      ) : null}
+      <p className="text-[12px] leading-snug text-foreground/85">
+        {question.question}
+      </p>
 
       {options.length > 0 || answer?.custom ? (
         <ul className="mt-1 flex flex-col gap-1.5">
-          {options.map((option, index) => {
-            const label = getString(option, "label");
-            if (!label) return null;
-
-            return (
-              <OptionRow
-                key={index}
-                label={label}
-                description={getString(option, "description")}
-                chosen={answer?.selected.includes(label) ?? false}
-                answered={answered}
-              />
-            );
-          })}
+          {options.map((option, index) => (
+            <OptionRow
+              key={index}
+              label={option.label}
+              description={option.description ?? null}
+              chosen={answer?.selected.includes(option.label) ?? false}
+              answered={answered}
+            />
+          ))}
 
           {answer?.custom ? (
             <OptionRow
@@ -150,15 +123,16 @@ export const QuestionView: FC<{
 
 export const AnswerBadge: FC<{
   block: ToolCallBlock;
+  output: AskUserOutput | null;
   questionCount: number;
-}> = ({ block, questionCount }) => {
-  if (errorOf(block.output)) {
+}> = ({ block, output, questionCount }) => {
+  if (block.state === "error") {
     return <ResultBadge tone="error">failed</ResultBadge>;
   }
 
   if (block.state === "executing") return <ResultBadge>waiting</ResultBadge>;
 
-  const answered = answersOf(block.output).filter(hasAnswer);
+  const answered = (output?.answers ?? []).filter(hasAnswer);
   if (answered.length === 0) return null;
 
   if (questionCount > 1) {
@@ -172,27 +146,36 @@ export const AnswerBadge: FC<{
   return <ResultBadge tone="success">{givenOf(answered[0])}</ResultBadge>;
 };
 
-export const AskUserSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const questions = questionsOf(block.input);
+export const AskUserSummary: FC<RendererProps<AskUserInput, AskUserOutput>> = ({
+  block,
+  input,
+  output,
+}) => {
+  const questions = input?.questions ?? [];
   const first = questions[0];
-  const text = getString(first, "header") ?? getString(first, "question");
+  const text = first?.header ?? first?.question ?? null;
 
   return (
     <SummaryRow>
       {text ? <SummaryText title={text}>{text}</SummaryText> : null}
-      <AnswerBadge block={block} questionCount={questions.length} />
+      <AnswerBadge block={block} output={output} questionCount={questions.length} />
     </SummaryRow>
   );
 };
 
-export const AskUserDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const error = errorOf(block.output);
-  if (error) return <ErrorNote>{error}</ErrorNote>;
+export const AskUserDetail: FC<RendererProps<AskUserInput, AskUserOutput>> = ({
+  block,
+  input,
+  output,
+}) => {
+  if (block.state === "error") {
+    return <ErrorNote>Couldn't get an answer.</ErrorNote>;
+  }
 
-  const questions = questionsOf(block.input);
+  const questions = input?.questions ?? [];
   if (questions.length === 0) return null;
 
-  const answers = answersOf(block.output);
+  const answers = output?.answers ?? [];
   const waiting = block.state === "executing";
 
   return (

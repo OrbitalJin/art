@@ -135,10 +135,10 @@ export async function sendToSession(
         delayInMs: 5,
         chunking: "word",
       }),
-      ...presetFor({
+      ...(await presetFor({
         session,
         profiles,
-      }),
+      })),
     });
 
     for await (const event of stream.fullStream) {

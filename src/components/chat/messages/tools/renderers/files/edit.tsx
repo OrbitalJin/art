@@ -1,56 +1,61 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
 import { DiffPanel, EmptyNote, ResultBadge, SummaryRow } from "../../primitives";
-import {
-  asRecord,
-  countLines,
-  formatCount,
-  getBoolean,
-  getNumber,
-  getString,
-} from "../../helpers";
+import { countLines, formatCount } from "../../helpers";
+import type { RendererProps } from "../../types";
 import { pathOf } from "./helpers";
 import { FileName, FilePath } from "./parts";
 
-export const EditFileSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const record = asRecord(block.input);
-  const path = getString(record, "path");
-  const oldText = getString(record, "old");
-  const newText = getString(record, "new");
-  const removed = oldText ? countLines(oldText) : 0;
-  const added = newText ? countLines(newText) : 0;
+interface EditFileInput {
+  folder: string;
+  path: string;
+  old: string;
+  new: string;
+  replaceAll?: boolean;
+}
 
-  return (
-    <SummaryRow>
-      <FileName path={path} />
-      {removed > 0 ? <ResultBadge tone="error">−{removed}</ResultBadge> : null}
-      {added > 0 ? <ResultBadge tone="success">+{added}</ResultBadge> : null}
-    </SummaryRow>
-  );
-};
+interface EditFileOutput {
+  success: true;
+  replacements: number;
+}
 
-export const EditFileDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const record = asRecord(block.input);
-  const { folder, path } = pathOf(block.input);
-  const oldText = getString(record, "old");
-  const newText = getString(record, "new");
-  const replacements = getNumber(asRecord(block.output), "replacements");
-  const replaceAll = getBoolean(record, "replaceAll");
+export const EditFileSummary: FC<RendererProps<EditFileInput, EditFileOutput>> =
+  ({ input }) => {
+    const { path } = pathOf(input);
+    const removed = input?.old ? countLines(input.old) : 0;
+    const added = input?.new ? countLines(input.new) : 0;
 
-  return (
-    <div className="flex flex-col gap-2.5">
-      <FilePath folder={folder} path={path} />
-      {oldText || newText ? (
-        <DiffPanel removed={oldText} added={newText} />
-      ) : (
-        <EmptyNote>Waiting…</EmptyNote>
-      )}
-      {replacements !== null ? (
-        <EmptyNote>
-          {formatCount(replacements, "replacement")}
-          {replaceAll ? " (all)" : ""}
-        </EmptyNote>
-      ) : null}
-    </div>
-  );
-};
+    return (
+      <SummaryRow>
+        <FileName path={path} />
+        {removed > 0 ? (
+          <ResultBadge tone="error">−{removed}</ResultBadge>
+        ) : null}
+        {added > 0 ? <ResultBadge tone="success">+{added}</ResultBadge> : null}
+      </SummaryRow>
+    );
+  };
+
+export const EditFileDetail: FC<RendererProps<EditFileInput, EditFileOutput>> =
+  ({ input, output }) => {
+    const { folder, path } = pathOf(input);
+    const oldText = input?.old ?? null;
+    const newText = input?.new ?? null;
+    const replacements = output?.replacements ?? null;
+
+    return (
+      <div className="flex flex-col gap-2.5">
+        <FilePath folder={folder} path={path} />
+        {oldText || newText ? (
+          <DiffPanel removed={oldText} added={newText} />
+        ) : (
+          <EmptyNote>Waiting…</EmptyNote>
+        )}
+        {replacements !== null ? (
+          <EmptyNote>
+            {formatCount(replacements, "replacement")}
+            {input?.replaceAll ? " (all)" : ""}
+          </EmptyNote>
+        ) : null}
+      </div>
+    );
+  };

@@ -19,9 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useTradeSession } from "@/hooks/use-trade-session";
 import { MODELS, type ModelId } from "@/lib/ai/models";
-import { MODES, type ModeId } from "@/lib/ai/prompts/modes";
+import { PERSONAS, type PersonaId } from "@/lib/ai/prompts/personas";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { cn } from "@/lib/utils";
@@ -283,8 +282,10 @@ export const ChatSettingsTab: React.FC = () => {
   const setDefaultAgentModel = useSettingsStore(
     (state) => state.setDefaultAgentModel,
   );
-  const defaultMode = useSettingsStore((state) => state.defaultMode);
-  const setDefaultMode = useSettingsStore((state) => state.setDefaultMode);
+  const defaultPersona = useSettingsStore((state) => state.defaultPersona);
+  const setDefaultPersona = useSettingsStore(
+    (state) => state.setDefaultPersona,
+  );
   const defaultAccessMode = useSettingsStore(
     (state) => state.defaultAccessMode,
   );
@@ -294,8 +295,6 @@ export const ChatSettingsTab: React.FC = () => {
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const setEnterKeySends = useSettingsStore((state) => state.setEnterKeySends);
   const purgeSessions = useSessionStore((state) => state.purge);
-  const { sortedSessions, exportAllSessions, importSessions } =
-    useTradeSession();
 
   const handleClearHistory = () => {
     purgeSessions();
@@ -308,9 +307,9 @@ export const ChatSettingsTab: React.FC = () => {
     </SelectItem>
   ));
 
-  const modeItems = Object.values(MODES).map((mode) => (
-    <SelectItem key={mode.id} value={mode.id}>
-      {mode.label}
+  const personaItems = Object.values(PERSONAS).map((persona) => (
+    <SelectItem key={persona.id} value={persona.id}>
+      {persona.label}
     </SelectItem>
   ));
 
@@ -371,20 +370,20 @@ export const ChatSettingsTab: React.FC = () => {
           </SettingRow>
 
           <SettingRow
-            title="Default chat mode"
-            description="Behavior mode used for new chat sessions."
+            title="Default chat persona"
+            description="Persona used for new chat sessions."
           >
             <Select
-              value={defaultMode}
-              onValueChange={(value: ModeId) => setDefaultMode(value)}
+              value={defaultPersona}
+              onValueChange={(value: PersonaId) => setDefaultPersona(value)}
             >
               <SelectTrigger
                 className={SELECT_TRIGGER_CLASSES}
-                aria-label="Default chat mode"
+                aria-label="Default chat persona"
               >
-                <SelectValue placeholder="Select a mode" />
+                <SelectValue placeholder="Select a persona" />
               </SelectTrigger>
-              <SelectContent position="item-aligned">{modeItems}</SelectContent>
+              <SelectContent position="item-aligned">{personaItems}</SelectContent>
             </Select>
           </SettingRow>
 
@@ -467,33 +466,6 @@ export const ChatSettingsTab: React.FC = () => {
 
       <SettingsSection title="Data">
         <SettingsCard>
-          <SettingRow
-            title="Sessions"
-            description="Export all sessions, or import them from a file."
-          >
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-8 text-xs shadow-none"
-                onClick={exportAllSessions}
-                disabled={sortedSessions.length === 0}
-              >
-                Export all
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-8 text-xs shadow-none"
-                onClick={importSessions}
-              >
-                Import
-              </Button>
-            </div>
-          </SettingRow>
-
           <SettingRow
             title="Delete chat history"
             description="Permanently delete all conversations."

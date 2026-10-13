@@ -4,9 +4,10 @@ import { connectionsStorage } from "@/lib/store/connections/adapter";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { showConnectionErrorToast } from "@/lib/utils/error-toast";
 import {
-  authorize,
-  createSession,
+  authorizeToolkit,
   disconnect as disconnectAccount,
+  getOrCreateCSession,
+  getCSession,
   listConnections,
 } from "@/lib/services/composio";
 
@@ -93,14 +94,21 @@ export const useConnectionsStore = create<ConnectionsState>()(
         const existing = get().sessionId;
         // A session is only valid for the key that created it, so a key change
         // (e.g. from Settings) must not reuse the previous session.
+        const reusable = !force && get().sessionKey === key ? existing : null;
         if (existing && !force && get().sessionKey === key) return existing;
         if (inFlightSession) return inFlightSession;
 
         inFlightSession = (async () => {
           try {
-            const sessionId = await createSession(userId());
-            set({ sessionId, sessionKey: key, synced: false, error: null });
-            return sessionId;
+            const csession = await getOrCreateCSession(userId(), reusable);
+            if (!csession) return null;
+            set({
+              sessionId: csession.sessionId,
+              sessionKey: key,
+              synced: false,
+              error: null,
+            });
+            return csession.sessionId;
           } catch (err) {
             reportError(set, err);
             return null;
@@ -118,9 +126,11 @@ export const useConnectionsStore = create<ConnectionsState>()(
 
         const sessionId = await get().ensureSession();
         if (!sessionId) return;
+        const csession = await getCSession(sessionId);
+        if (!csession) return;
 
         try {
-          const connections = await listConnections(sessionId);
+          const connections = await listConnections(csession);
           const toolkits: Record<string, ToolkitConnection> = {};
           for (const item of connections) {
             const current = toolkits[item.toolkit];
@@ -143,7 +153,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
         if (!sessionId) return null;
 
         try {
-          const redirectUrl = await authorize(sessionId, toolkit);
+          const redirectUrl = await authorizeToolkit(sessionId, toolkit);
           set((state) => ({
             toolkits: {
               ...state.toolkits,

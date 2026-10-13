@@ -3,17 +3,21 @@ import type { LucideIcon } from "lucide-react";
 import type { z } from "zod";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 
-export interface RendererProps<O = unknown> {
+export interface RendererProps<I = unknown, O = unknown> {
   block: ToolCallBlock;
-  /** The block's output parsed against the tool's schema, or `null`. */
+  /** The block's input parsed against the tool's input schema, or `null`. */
+  input: I | null;
+  /** The block's output parsed against the tool's output schema, or `null`. */
   output: O | null;
 }
 
-export interface ToolRenderer<O = unknown> {
+export interface ToolRenderer<I = unknown, O = unknown> {
   icon: LucideIcon;
   title: string;
+  /** The tool's input schema, used to parse the block once before rendering. */
+  inputSchema?: z.ZodType<I>;
   /** The tool's output schema, used to parse the block once before rendering. */
-  schema?: z.ZodType<O>;
-  Summary?: FC<RendererProps<O>>;
-  Detail?: FC<RendererProps<O>>;
+  outputSchema?: z.ZodType<O>;
+  Summary?: FC<RendererProps<I, O>>;
+  Detail?: FC<RendererProps<I, O>>;
 }

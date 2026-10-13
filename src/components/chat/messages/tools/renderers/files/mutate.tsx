@@ -1,12 +1,22 @@
 import type { FC } from "react";
-import type { ToolCallBlock } from "@/lib/store/session/types";
 import { Arrow, DoneNote, KeyValueList, SummaryRow } from "../../primitives";
-import { asRecord, getString } from "../../helpers";
+import type { RendererProps } from "../../types";
 import { pathOf } from "./helpers";
 import { FileName, FilePath } from "./parts";
 
-export const PathSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const { path } = pathOf(block.input);
+interface PathInput {
+  folder: string;
+  path: string;
+}
+
+interface MoveInput {
+  folder: string;
+  from: string;
+  to: string;
+}
+
+export const PathSummary: FC<RendererProps<PathInput, unknown>> = ({ input }) => {
+  const { path } = pathOf(input);
   return (
     <SummaryRow>
       <FileName path={path} />
@@ -14,8 +24,11 @@ export const PathSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const PathDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const { folder, path } = pathOf(block.input);
+export const PathDetail: FC<RendererProps<PathInput, unknown>> = ({
+  input,
+  block,
+}) => {
+  const { folder, path } = pathOf(input);
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -25,10 +38,9 @@ export const PathDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const MoveSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const record = asRecord(block.input);
-  const from = getString(record, "from");
-  const to = getString(record, "to");
+export const MoveSummary: FC<RendererProps<MoveInput, unknown>> = ({ input }) => {
+  const from = input?.from ?? null;
+  const to = input?.to ?? null;
 
   return (
     <SummaryRow>
@@ -39,11 +51,13 @@ export const MoveSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-export const MoveDetail: FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const record = asRecord(block.input);
-  const folder = getString(record, "folder");
-  const from = getString(record, "from");
-  const to = getString(record, "to");
+export const MoveDetail: FC<RendererProps<MoveInput, unknown>> = ({
+  input,
+  block,
+}) => {
+  const folder = input?.folder ?? null;
+  const from = input?.from ?? null;
+  const to = input?.to ?? null;
 
   return (
     <div className="flex flex-col gap-2.5">
