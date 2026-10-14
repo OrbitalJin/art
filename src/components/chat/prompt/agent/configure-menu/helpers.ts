@@ -18,9 +18,8 @@ export const selectableRowClasses = (active: boolean): string =>
 export const isConnected = (connections: Connections, service: string): boolean =>
   connections[service]?.isActive === true;
 
-/** The `session.groups` keys that back a group (children for service groups). */
-export const groupToolKeys = (group: ToolGroup): string[] =>
-  group.children?.length ? group.children.map((child) => child.key) : [group.key];
+/** The `session.groups` key that backs a group. */
+export const groupToolKeys = (group: ToolGroup): string[] => [group.key];
 
 export const serviceConnected = (
   group: ToolGroup,
@@ -50,18 +49,6 @@ export const groupAnyEnabled = (
 ): boolean => {
   if (!serviceConnected(group, connections)) return false;
   return groupToolKeys(group).some((key) => session.groups?.[key] === true);
-};
-
-/** True when some but not all tools of the group are enabled. */
-export const groupPartiallyEnabled = (
-  session: Session,
-  group: ToolGroup,
-  connections: Connections,
-): boolean => {
-  if (!serviceConnected(group, connections)) return false;
-  const keys = groupToolKeys(group);
-  const on = keys.filter((key) => session.groups?.[key] === true).length;
-  return on > 0 && on < keys.length;
 };
 
 export const groupActive = (

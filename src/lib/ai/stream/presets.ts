@@ -3,7 +3,7 @@ import { system, type Profiles } from "../prompts/system";
 import { toolsFor } from "../tools/tools";
 import { DONE_TOOL_NAME } from "../tools/done";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
-import { CONNECTED_SERVICES, serviceById } from "@/lib/services/catalog";
+import { CONNECTED_SERVICES } from "@/lib/services/catalog";
 import { stepCountIs, hasToolCall } from "ai";
 import { adaptiveStopCondition, BACKSTOP_STEPS } from "./stop-conditions";
 
@@ -15,12 +15,7 @@ export interface RequestContext {
 const connectedServices = (session: Session): string[] =>
   CONNECTED_SERVICES.map((service) => service.id).filter((id) => {
     if (!useConnectionsStore.getState().connections[id]?.isActive) return false;
-    const service = serviceById(id);
-    return service
-      ? Object.values(service.tools).some(
-          (toolId) => session.groups?.[toolId] === true,
-        )
-      : false;
+    return session.groups?.[id] === true;
   });
 
 export const presetFor = async (ctx: RequestContext) => {

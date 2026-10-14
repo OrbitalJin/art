@@ -14,7 +14,7 @@ import type {
 import {
   CONNECTED_SERVICES,
   GmailTools,
-  GoogleSheetsTools,
+  SERVICES,
   SearchTools,
 } from "@/lib/services/catalog";
 import { sessionStorage } from "@/lib/store/session/adapter";
@@ -46,16 +46,8 @@ export const defaultGroups = (type: SessionType): SessionGroups => ({
   [SearchTools.flights]: false,
   [SearchTools.hotels]: false,
   [SearchTools.maps]: false,
-  [GmailTools.fetchEmails]: false,
-  [GmailTools.listMessages]: false,
-  [GmailTools.fetchMessageById]: false,
-  [GmailTools.listLabels]: false,
-  [GoogleSheetsTools.search]: false,
-  [GoogleSheetsTools.getSpreadsheetInfo]: false,
-  [GoogleSheetsTools.getSheetNames]: false,
-  [GoogleSheetsTools.valuesGet]: false,
-  [GoogleSheetsTools.batchGet]: false,
-  [GoogleSheetsTools.lookupRow]: false,
+  [SERVICES.gmail.id]: false,
+  [SERVICES.sheets.id]: false,
 });
 
 const createNewSession = ({

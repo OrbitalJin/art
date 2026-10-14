@@ -6,6 +6,41 @@ export type SessionType = "chat" | "agent";
 
 export type AccessMode = "readonly" | "confirm" | "autonomous";
 
+export interface AccessModeTone {
+  text: string;
+  fill: string;
+  ring: string;
+  dot: string;
+}
+
+export const ACCESS_MODE_TONES: Record<AccessMode, AccessModeTone> = {
+  readonly: {
+    text: "text-emerald-600 dark:text-emerald-400",
+    fill: "bg-emerald-500/10",
+    ring: "ring-emerald-500/30",
+    dot: "border-emerald-500 bg-emerald-500",
+  },
+  confirm: {
+    text: "text-amber-600 dark:text-amber-400",
+    fill: "bg-amber-500/10",
+    ring: "ring-amber-500/30",
+    dot: "border-amber-500 bg-amber-500",
+  },
+  autonomous: {
+    text: "text-red-600 dark:text-red-400",
+    fill: "bg-red-500/10",
+    ring: "ring-red-500/30",
+    dot: "border-red-500 bg-red-500",
+  },
+};
+
+export const accessModeLabel = (mode: AccessMode): string =>
+  mode === "readonly"
+    ? "Read only"
+    : mode === "autonomous"
+      ? "Autonomous"
+      : "Ask to write";
+
 export type SessionGroups = Record<string, boolean>;
 
 export type MessageStatus =

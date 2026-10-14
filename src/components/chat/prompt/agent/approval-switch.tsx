@@ -6,24 +6,25 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import type { AccessMode } from "@/lib/store/session/types";
-
-const SAFE_TONE = "text-emerald-500";
-const WARN_TONE = "text-amber-500";
-const RISKY_TONE = "text-red-500";
+import {
+  ACCESS_MODE_TONES,
+  accessModeLabel,
+  type AccessMode,
+  type AccessModeTone,
+} from "@/lib/store/session/types";
 
 const ModeOption: React.FC<{
   label: string;
   selected: boolean;
-  toneClasses: string;
+  tone: AccessModeTone;
   onSelect: () => void;
   children: React.ReactNode;
-}> = ({ label, selected, toneClasses, onSelect, children }) => {
+}> = ({ label, selected, tone, onSelect, children }) => {
   const optionClasses = cn(
     "flex cursor-pointer items-center rounded-md border px-2 py-1 outline-none",
     "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
     selected
-      ? cn("border-foreground/15 bg-muted/50", toneClasses)
+      ? cn("border-foreground/15", tone.fill, tone.text)
       : "border-transparent text-muted-foreground hover:text-foreground",
   );
 
@@ -46,19 +47,17 @@ const ModeDescription: React.FC<{
   label: string;
   description: string;
   selected: boolean;
-  toneClasses: string;
+  tone: AccessModeTone;
   children: React.ReactNode;
-}> = ({ label, description, selected, toneClasses, children }) => {
+}> = ({ label, description, selected, tone, children }) => {
   const rowClasses = cn(
     "flex items-start gap-2.5 rounded-lg border px-2.5 py-2",
-    selected
-      ? "border-foreground/15 bg-muted/50"
-      : "border-transparent opacity-60",
+    selected ? cn("border-foreground/15", tone.fill) : "border-transparent opacity-60",
   );
 
   const iconClasses = cn(
     "mt-0.5 shrink-0",
-    selected ? toneClasses : "text-muted-foreground",
+    selected ? tone.text : "text-muted-foreground",
   );
 
   return (
@@ -75,12 +74,7 @@ const ModeDescription: React.FC<{
 };
 
 const ApprovalDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
-  const currentLabel =
-    mode === "readonly"
-      ? "Read only"
-      : mode === "autonomous"
-        ? "Autonomous"
-        : "Ask to write";
+  const currentLabel = accessModeLabel(mode);
 
   return (
     <>
@@ -96,7 +90,7 @@ const ApprovalDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
           label="Read only"
           description="The agent can read, search, and ask questions, but cannot create, edit, or delete anything."
           selected={mode === "readonly"}
-          toneClasses={SAFE_TONE}
+          tone={ACCESS_MODE_TONES.readonly}
         >
           <Eye size={13} aria-hidden />
         </ModeDescription>
@@ -105,7 +99,7 @@ const ApprovalDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
           label="Ask to write"
           description="Reads run freely; every create, edit, or delete pauses for your approval first."
           selected={mode === "confirm"}
-          toneClasses={WARN_TONE}
+          tone={ACCESS_MODE_TONES.confirm}
         >
           <ShieldAlert size={13} aria-hidden />
         </ModeDescription>
@@ -114,7 +108,7 @@ const ApprovalDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
           label="Autonomous"
           description="The agent runs tools immediately, including writes, without waiting for you."
           selected={mode === "autonomous"}
-          toneClasses={RISKY_TONE}
+          tone={ACCESS_MODE_TONES.autonomous}
         >
           <LockOpen size={13} aria-hidden />
         </ModeDescription>
@@ -135,10 +129,12 @@ export const ApprovalSwitch: React.FC<{ disabled: boolean }> = ({
   if (!activeId || !session) return null;
 
   const mode = session.accessMode ?? "confirm";
+  const tone = ACCESS_MODE_TONES[mode];
 
   const groupClasses = cn(
     "flex shrink-0 items-center gap-0.5 rounded-lg p-0.5 h-7",
-    "ring-1 ring-border/60 transition-colors duration-150",
+    "ring-1 transition-colors duration-150",
+    tone.ring,
     disabled && "pointer-events-none opacity-60",
   );
 
@@ -157,7 +153,7 @@ export const ApprovalSwitch: React.FC<{ disabled: boolean }> = ({
           <ModeOption
             label="Read only"
             selected={mode === "readonly"}
-            toneClasses={SAFE_TONE}
+            tone={ACCESS_MODE_TONES.readonly}
             onSelect={() => setAccessMode(activeId, "readonly")}
           >
             <Eye size={12} aria-hidden />
@@ -166,7 +162,7 @@ export const ApprovalSwitch: React.FC<{ disabled: boolean }> = ({
           <ModeOption
             label="Ask to write"
             selected={mode === "confirm"}
-            toneClasses={WARN_TONE}
+            tone={ACCESS_MODE_TONES.confirm}
             onSelect={() => setAccessMode(activeId, "confirm")}
           >
             <ShieldAlert size={12} aria-hidden />
@@ -175,7 +171,7 @@ export const ApprovalSwitch: React.FC<{ disabled: boolean }> = ({
           <ModeOption
             label="Autonomous"
             selected={mode === "autonomous"}
-            toneClasses={RISKY_TONE}
+            tone={ACCESS_MODE_TONES.autonomous}
             onSelect={() => setAccessMode(activeId, "autonomous")}
           >
             <LockOpen size={12} aria-hidden />

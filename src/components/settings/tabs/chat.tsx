@@ -23,6 +23,10 @@ import { MODELS, type ModelId } from "@/lib/ai/models";
 import { PERSONAS, type PersonaId } from "@/lib/ai/prompts/personas";
 import { useSessionStore } from "@/lib/store/use-session-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
+import {
+  ACCESS_MODE_TONES,
+  type AccessMode,
+} from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import type { IconType } from "react-icons";
@@ -220,6 +224,7 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
 };
 
 interface AccessModeOptionProps {
+  mode: AccessMode;
   label: string;
   description: string;
   selected: boolean;
@@ -227,22 +232,25 @@ interface AccessModeOptionProps {
 }
 
 const AccessModeOption: React.FC<AccessModeOptionProps> = ({
+  mode,
   label,
   description,
   selected,
   onSelect,
 }) => {
+  const tone = ACCESS_MODE_TONES[mode];
+
   const optionClasses = cn(
     "flex w-full cursor-pointer items-start gap-3 px-4 py-3.5 text-left",
     "outline-none transition-colors duration-150",
     "hover:bg-muted/40 focus-visible:bg-muted/40",
-    selected && "bg-muted/50",
+    selected && tone.fill,
   );
 
   const indicatorClasses = cn(
     "mt-0.5 flex size-3.5 shrink-0 items-center justify-center rounded-full border",
     "transition-colors duration-150",
-    selected ? "border-foreground" : "border-muted-foreground/40",
+    selected ? tone.dot : "border-muted-foreground/40",
   );
 
   const labelClasses = cn(
@@ -259,7 +267,7 @@ const AccessModeOption: React.FC<AccessModeOptionProps> = ({
       className={optionClasses}
     >
       <span className={indicatorClasses}>
-        {selected && <span className="size-1.5 rounded-full bg-foreground" />}
+        {selected && <span className="size-1.5 rounded-full bg-background" />}
       </span>
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className={labelClasses}>{label}</span>
@@ -443,18 +451,21 @@ export const ChatSettingsTab: React.FC = () => {
           className={CARD_CLASSES}
         >
           <AccessModeOption
+            mode="readonly"
             label="Read only"
             description="The agent can read, search, and ask questions, but cannot create, edit, or delete anything."
             selected={defaultAccessMode === "readonly"}
             onSelect={() => setDefaultAccessMode("readonly")}
           />
           <AccessModeOption
+            mode="confirm"
             label="Ask to write"
             description="Reads run freely; every create, edit, or delete pauses for your approval first."
             selected={defaultAccessMode === "confirm"}
             onSelect={() => setDefaultAccessMode("confirm")}
           />
           <AccessModeOption
+            mode="autonomous"
             label="Autonomous"
             description="The agent runs tools immediately, including writes, without waiting for you."
             selected={defaultAccessMode === "autonomous"}

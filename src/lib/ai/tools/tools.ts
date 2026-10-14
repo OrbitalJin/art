@@ -1,6 +1,11 @@
 import type { Session } from "@/lib/store/session/types";
 import type { ToolSet } from "ai";
-import { GmailTools, GoogleSheetsTools, SearchTools } from "@/lib/services/catalog";
+import {
+  GmailTools,
+  GoogleSheetsTools,
+  SERVICES,
+  SearchTools,
+} from "@/lib/services/catalog";
 import { tasksTools } from "./tasks";
 import { fileTools } from "./files";
 import { askUserTools } from "./ask-user";
@@ -60,35 +65,23 @@ const servicesFor = async (session: Session): Promise<ToolSet> => {
   const services = await composioTools();
 
   return {
-    ...(on[GmailTools.fetchEmails]
-      ? cherryPick(services, GmailTools.fetchEmails)
+    ...(on[SERVICES.gmail.id]
+      ? {
+          ...cherryPick(services, GmailTools.fetchEmails),
+          ...cherryPick(services, GmailTools.listMessages),
+          ...cherryPick(services, GmailTools.fetchMessageById),
+          ...cherryPick(services, GmailTools.listLabels),
+        }
       : {}),
-    ...(on[GmailTools.listMessages]
-      ? cherryPick(services, GmailTools.listMessages)
-      : {}),
-    ...(on[GmailTools.fetchMessageById]
-      ? cherryPick(services, GmailTools.fetchMessageById)
-      : {}),
-    ...(on[GmailTools.listLabels]
-      ? cherryPick(services, GmailTools.listLabels)
-      : {}),
-    ...(on[GoogleSheetsTools.search]
-      ? cherryPick(services, GoogleSheetsTools.search)
-      : {}),
-    ...(on[GoogleSheetsTools.getSpreadsheetInfo]
-      ? cherryPick(services, GoogleSheetsTools.getSpreadsheetInfo)
-      : {}),
-    ...(on[GoogleSheetsTools.getSheetNames]
-      ? cherryPick(services, GoogleSheetsTools.getSheetNames)
-      : {}),
-    ...(on[GoogleSheetsTools.valuesGet]
-      ? cherryPick(services, GoogleSheetsTools.valuesGet)
-      : {}),
-    ...(on[GoogleSheetsTools.batchGet]
-      ? cherryPick(services, GoogleSheetsTools.batchGet)
-      : {}),
-    ...(on[GoogleSheetsTools.lookupRow]
-      ? cherryPick(services, GoogleSheetsTools.lookupRow)
+    ...(on[SERVICES.sheets.id]
+      ? {
+          ...cherryPick(services, GoogleSheetsTools.search),
+          ...cherryPick(services, GoogleSheetsTools.getSpreadsheetInfo),
+          ...cherryPick(services, GoogleSheetsTools.getSheetNames),
+          ...cherryPick(services, GoogleSheetsTools.valuesGet),
+          ...cherryPick(services, GoogleSheetsTools.batchGet),
+          ...cherryPick(services, GoogleSheetsTools.lookupRow),
+        }
       : {}),
   };
 };

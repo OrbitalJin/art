@@ -1,9 +1,4 @@
-import {
-  GmailTools,
-  GoogleSheetsTools,
-  SERVICES,
-  SearchTools,
-} from "@/lib/services/catalog";
+import { SERVICES, SearchTools } from "@/lib/services/catalog";
 import type { KeyType } from "@/lib/store/use-settings-store";
 
 export type Category = "art" | "device" | "interaction" | "integrations" | "web";
@@ -20,12 +15,6 @@ export interface ToolGroup {
   service?: string;
   /** Setting key required for this group's tools to work. */
   requiresKey?: KeyType;
-  /**
-   * Child tool groups. When set, this group is a collapsed service whose state
-   * is derived from its children: it is on only when every child is on. The
-   * parent key itself is never stored in `session.groups`.
-   */
-  children?: ToolGroup[];
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
@@ -101,49 +90,6 @@ export const SEARCH_GROUPS: ToolGroup[] = [
   },
 ];
 
-export const GMAIL_TOOL_GROUPS: ToolGroup[] = [
-  {
-    key: GmailTools.fetchEmails,
-    service: SERVICES.gmail.id,
-    label: "Fetch Emails",
-    description: "Search emails",
-    category: "integrations",
-    source: "service",
-    requiresKey: "composio",
-  },
-  {
-    key: GmailTools.listMessages,
-    service: SERVICES.gmail.id,
-    label: "List Messages",
-    description: "List message ids",
-    category: "integrations",
-    source: "service",
-    requiresKey: "composio",
-  },
-  {
-    key: GmailTools.fetchMessageById,
-    service: SERVICES.gmail.id,
-    label: "Read Email",
-    description: "Read one email",
-    category: "integrations",
-    source: "service",
-    requiresKey: "composio",
-  },
-  {
-    key: GmailTools.listLabels,
-    service: SERVICES.gmail.id,
-    label: "List Labels",
-    description: "List Gmail labels",
-    category: "integrations",
-    source: "service",
-    requiresKey: "composio",
-  },
-];
-
-/**
- * Collapsed Gmail service row. Its enabled state is derived from
- * `GMAIL_TOOL_GROUPS`; the parent key (`gmail`) is never persisted.
- */
 export const GMAIL_GROUP: ToolGroup = {
   key: SERVICES.gmail.id,
   service: SERVICES.gmail.id,
@@ -152,70 +98,8 @@ export const GMAIL_GROUP: ToolGroup = {
   category: "integrations",
   source: "service",
   requiresKey: "composio",
-  children: GMAIL_TOOL_GROUPS,
 };
 
-export const SHEETS_TOOL_GROUPS: ToolGroup[] = [
-  {
-    key: GoogleSheetsTools.search,
-    service: SERVICES.sheets.id,
-    label: "Search Sheets",
-    description: "Find spreadsheets",
-    category: "integrations",
-    source: "service",
-    requiresKey: "composio",
-  },
-  {
-    key: GoogleSheetsTools.getSpreadsheetInfo,
-    service: SERVICES.sheets.id,
-    label: "Spreadsheet Info",
-    description: "Read spreadsheet metadata",
-    category: "integrations",
-    source: "service",
-    requiresKey: "composio",
-  },
-  {
-    key: GoogleSheetsTools.getSheetNames,
-    service: SERVICES.sheets.id,
-    label: "List Sheets",
-    description: "List tab names",
-    category: "integrations",
-    source: "service",
-    requiresKey: "composio",
-  },
-  {
-    key: GoogleSheetsTools.valuesGet,
-    service: SERVICES.sheets.id,
-    label: "Read Range",
-    description: "Read a range of values",
-    category: "integrations",
-    source: "service",
-    requiresKey: "composio",
-  },
-  {
-    key: GoogleSheetsTools.batchGet,
-    service: SERVICES.sheets.id,
-    label: "Read Ranges",
-    description: "Read multiple ranges",
-    category: "integrations",
-    source: "service",
-    requiresKey: "composio",
-  },
-  {
-    key: GoogleSheetsTools.lookupRow,
-    service: SERVICES.sheets.id,
-    label: "Lookup Row",
-    description: "Find a row by value",
-    category: "integrations",
-    source: "service",
-    requiresKey: "composio",
-  },
-];
-
-/**
- * Collapsed Google Sheets service row. Its enabled state is derived from
- * `SHEETS_TOOL_GROUPS`; the parent key (`googlesheets`) is never persisted.
- */
 export const SHEETS_GROUP: ToolGroup = {
   key: SERVICES.sheets.id,
   service: SERVICES.sheets.id,
@@ -224,7 +108,6 @@ export const SHEETS_GROUP: ToolGroup = {
   category: "integrations",
   source: "service",
   requiresKey: "composio",
-  children: SHEETS_TOOL_GROUPS,
 };
 
 export const TOOL_GROUPS: ToolGroup[] = [

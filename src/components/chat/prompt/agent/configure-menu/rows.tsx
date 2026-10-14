@@ -6,14 +6,9 @@ import { serviceById } from "@/lib/services/catalog";
 import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
 import {
   groupActive,
-  groupAnyEnabled,
-  groupEnabled,
-  groupPartiallyEnabled,
-  groupToolKeys,
   groupsInCategory,
   isConnected,
   selectableRowClasses,
-  serviceConnected,
 } from "./helpers";
 import { cn } from "@/lib/utils";
 
@@ -136,96 +131,13 @@ const ConnectionRow: React.FC<{
   );
 };
 
-const ServiceGroupRow: React.FC<{
-  group: ToolGroup;
-  session: Session;
-  onOpenTools: () => void;
-  onToggle: (key: string, value: boolean) => void;
-}> = ({ group, session, onOpenTools, onToggle }) => {
-  const connections = useConnectionsStore((state) => state.connections);
-  const connected = serviceConnected(group, connections);
-  const keys = groupToolKeys(group);
-  const allOn = groupEnabled(session, group, connections);
-  const anyOn = groupAnyEnabled(session, group, connections);
-  const partial = groupPartiallyEnabled(session, group, connections);
-  const onCount = keys.filter((key) => session.groups?.[key] === true).length;
-
-  const service = group.service ? serviceById(group.service) : undefined;
-  const subtitle = connected
-    ? group.description
-    : `${service?.label ?? "Service"} not connected — configure in Settings`;
-
-  const rowClasses = cn(
-    selectableRowClasses(anyOn),
-    "gap-1 pr-1",
-    !connected && "opacity-60",
-  );
-
-  const toggleButtonClasses = cn(
-    "flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left outline-none",
-    "disabled:pointer-events-none",
-  );
-
-  const moreButtonClasses = cn(
-    "flex shrink-0 cursor-pointer items-center justify-center rounded-md p-1",
-    "text-muted-foreground/60 transition-colors hover:bg-muted/60 hover:text-foreground",
-    "outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-  );
-
-  const handleToggle = () => {
-    if (!connected) return;
-    const value = !allOn;
-    for (const key of keys) onToggle(key, value);
-  };
-
-  return (
-    <div className={rowClasses}>
-      <button
-        type="button"
-        disabled={!connected}
-        aria-pressed={allOn}
-        onClick={handleToggle}
-        className={toggleButtonClasses}
-      >
-        <RowText label={group.label} subtitle={subtitle} active={anyOn} />
-        {partial && (
-          <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-            {onCount}/{keys.length}
-          </span>
-        )}
-      </button>
-
-      <button
-        type="button"
-        aria-label={`${group.label} tools`}
-        onClick={onOpenTools}
-        className={moreButtonClasses}
-      >
-        <ChevronRight size={14} aria-hidden />
-      </button>
-    </div>
-  );
-};
-
 export const GroupRow: React.FC<{
   group: ToolGroup;
   session: Session;
   onOpenFiles: () => void;
-  onOpenTools: () => void;
   onToggle: (key: string, value: boolean) => void;
-}> = ({ group, session, onOpenFiles, onOpenTools, onToggle }) => {
+}> = ({ group, session, onOpenFiles, onToggle }) => {
   const hasKey = useHasKey(group.requiresKey);
-
-  if (group.children?.length) {
-    return (
-      <ServiceGroupRow
-        group={group}
-        session={session}
-        onOpenTools={onOpenTools}
-        onToggle={onToggle}
-      />
-    );
-  }
 
   if (group.source === "files") {
     const folderCount = (session.folders ?? []).length;

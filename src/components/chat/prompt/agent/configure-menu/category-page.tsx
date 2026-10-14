@@ -1,6 +1,6 @@
 import { ChevronLeft } from "lucide-react";
 import type { Session } from "@/lib/store/session/types";
-import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
+import { CATEGORY_LABELS, type Category } from "./groups";
 import { GroupRow } from "./rows";
 import { groupsInCategory } from "./helpers";
 
@@ -28,16 +28,8 @@ export const CategoryPage: React.FC<{
   session: Session;
   onBack: () => void;
   onOpenFiles: () => void;
-  onOpenGroupTools: (group: ToolGroup) => void;
   onToggle: (key: string, value: boolean) => void;
-}> = ({
-  category,
-  session,
-  onBack,
-  onOpenFiles,
-  onOpenGroupTools,
-  onToggle,
-}) => {
+}> = ({ category, session, onBack, onOpenFiles, onToggle }) => {
   const groups = groupsInCategory(category);
 
   return (
@@ -51,7 +43,6 @@ export const CategoryPage: React.FC<{
             group={group}
             session={session}
             onOpenFiles={onOpenFiles}
-            onOpenTools={() => onOpenGroupTools(group)}
             onToggle={onToggle}
           />
         ))}

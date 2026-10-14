@@ -11,7 +11,7 @@ import {
   type KeyType,
 } from "@/lib/store/use-settings-store";
 import type { Session } from "@/lib/store/session/types";
-import type { Category, ToolGroup } from "./groups";
+import type { Category } from "./groups";
 import { TOOL_GROUPS } from "./groups";
 import { groupsInCategory } from "./helpers";
 import { cn } from "@/lib/utils";
@@ -19,13 +19,11 @@ import { KeyNotice } from "../../key-notice";
 import { CategoryPage } from "./category-page";
 import { FilesPage } from "./files-page";
 import { MainPage } from "./main-page";
-import { ServiceToolsPage } from "./service-tools-page";
 
 type MenuPage =
   | { name: "main" }
   | { name: "category"; category: Category }
-  | { name: "files"; category: Category }
-  | { name: "service"; category: Category; group: ToolGroup };
+  | { name: "files"; category: Category };
 
 const MAIN_PAGE: MenuPage = { name: "main" };
 
@@ -88,20 +86,6 @@ export const ConfigureMenu: React.FC<{
           session={session}
           onBack={() => setPage(MAIN_PAGE)}
           onOpenFiles={() => setPage({ name: "files", category })}
-          onOpenGroupTools={(group) =>
-            setPage({ name: "service", category, group })
-          }
-          onToggle={onToggle}
-        />
-      );
-    }
-
-    if (page.name === "service") {
-      return (
-        <ServiceToolsPage
-          group={page.group}
-          session={session}
-          onBack={() => setPage({ name: "category", category: page.category })}
           onToggle={onToggle}
         />
       );
@@ -133,9 +117,7 @@ export const ConfigureMenu: React.FC<{
       ? TOOL_GROUPS
       : page.name === "category"
         ? groupsInCategory(page.category)
-        : page.name === "service"
-          ? (page.group.children ?? [page.group])
-          : [];
+        : [];
 
   const missingKeys: KeyType[] = [];
   if (visibleGroups.some((g) => g.requiresKey === "composio") && !hasComposio)
