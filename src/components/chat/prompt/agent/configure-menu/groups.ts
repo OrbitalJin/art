@@ -16,6 +16,7 @@ import {
 import { SERVICES, SearchTools } from "@/lib/services/catalog";
 import type { KeyType } from "@/lib/store/use-settings-store";
 import { TbBrandYoutube } from "react-icons/tb";
+import type { IconType } from "react-icons";
 
 export type Category =
   "art" | "device" | "interaction" | "integrations" | "web";
@@ -28,7 +29,7 @@ export interface ToolGroup {
   description: string;
   category: Category;
   source: Source;
-  icon: LucideIcon;
+  icon: LucideIcon | IconType;
   /** Composio service id; set for `source: "service"` groups. */
   service?: string;
   /** Setting key required for this group's tools to work. */
