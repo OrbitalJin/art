@@ -58,7 +58,10 @@ export async function sendToSession(
   attachments?: MessageAttachment[],
 ): Promise<void> {
   const apiKey = useSettingsStore.getState().apiKey;
-  if (!apiKey) return;
+  if (!apiKey) {
+    toast.error("Add a gateway key in Settings to send messages.");
+    return;
+  }
 
   const session = useSessionStore
     .getState()

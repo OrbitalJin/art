@@ -195,15 +195,16 @@ Bento-style task board with drag-and-drop organization.
 - [x] Ask user tool
 - [x] Todo tool for agent planning
 - [x] Make sure the todo roadmap remains visible even when asking for approval
+- [x] More local primitives
 - [x] Add google sheets toolkit
 - [x] Add external connections
+- [x] better api key gating
 
 ### Planned
 
-- [ ] better api key gating
+- [ ] Add support for skills
 - [ ] Custom renderer per tool for write approval (similar to tool calls)
 - [ ] Make ui more consistent
 - [ ] Make todo expandable in agent bar
-- [ ] More local primitives
 - [ ] remember & recall tools, that lets the agent store and retrieve relevant context from past conversations
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

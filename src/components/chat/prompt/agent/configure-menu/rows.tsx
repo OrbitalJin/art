@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
+import { KEY_LABELS, useHasKey } from "@/lib/store/use-settings-store";
 import type { Session } from "@/lib/store/session/types";
 import { serviceById } from "@/lib/services/catalog";
 import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
@@ -41,11 +42,13 @@ export const ToolRow: React.FC<{
   subtitle: string;
   enabled: boolean;
   onToggle: () => void;
-}> = ({ label, subtitle, enabled, onToggle }) => (
+  disabled?: boolean;
+}> = ({ label, subtitle, enabled, onToggle, disabled }) => (
   <button
     type="button"
     onClick={onToggle}
-    className={selectableRowClasses(enabled)}
+    disabled={disabled}
+    className={cn(selectableRowClasses(enabled), disabled && "opacity-60")}
   >
     <RowText label={label} subtitle={subtitle} active={enabled} />
   </button>
@@ -211,6 +214,8 @@ export const GroupRow: React.FC<{
   onOpenTools: () => void;
   onToggle: (key: string, value: boolean) => void;
 }> = ({ group, session, onOpenFiles, onOpenTools, onToggle }) => {
+  const hasKey = useHasKey(group.requiresKey);
+
   if (group.children?.length) {
     return (
       <ServiceGroupRow
@@ -242,13 +247,18 @@ export const GroupRow: React.FC<{
     }
   }
 
-  const enabled = session.groups?.[group.key] === true;
+  const enabled = hasKey && session.groups?.[group.key] === true;
 
   return (
     <ToolRow
       label={group.label}
-      subtitle={group.description}
+      subtitle={
+        hasKey || !group.requiresKey
+          ? group.description
+          : `Add a ${KEY_LABELS[group.requiresKey]} key in Settings`
+      }
       enabled={enabled}
+      disabled={!hasKey}
       onToggle={() => onToggle(group.key, !enabled)}
     />
   );

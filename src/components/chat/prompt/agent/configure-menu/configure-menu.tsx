@@ -5,9 +5,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
+import {
+  KEY_LABELS,
+  useHasKey,
+  type KeyType,
+} from "@/lib/store/use-settings-store";
 import type { Session } from "@/lib/store/session/types";
 import type { Category, ToolGroup } from "./groups";
+import { TOOL_GROUPS } from "./groups";
+import { groupsInCategory } from "./helpers";
 import { cn } from "@/lib/utils";
+import { KeyNotice } from "../../key-notice";
 import { CategoryPage } from "./category-page";
 import { FilesPage } from "./files-page";
 import { MainPage } from "./main-page";
@@ -37,6 +45,8 @@ export const ConfigureMenu: React.FC<{
   onRevokeAll,
 }) => {
   const syncConnections = useConnectionsStore((state) => state.syncConnections);
+  const hasComposio = useHasKey("composio");
+  const hasYoutube = useHasKey("youtube");
   const contentRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState<MenuPage>(MAIN_PAGE);
@@ -118,6 +128,21 @@ export const ConfigureMenu: React.FC<{
     );
   };
 
+  const visibleGroups =
+    page.name === "main"
+      ? TOOL_GROUPS
+      : page.name === "category"
+        ? groupsInCategory(page.category)
+        : page.name === "service"
+          ? (page.group.children ?? [page.group])
+          : [];
+
+  const missingKeys: KeyType[] = [];
+  if (visibleGroups.some((g) => g.requiresKey === "composio") && !hasComposio)
+    missingKeys.push("composio");
+  if (visibleGroups.some((g) => g.requiresKey === "youtube") && !hasYoutube)
+    missingKeys.push("youtube");
+
   return (
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild disabled={disabled}>
@@ -134,6 +159,15 @@ export const ConfigureMenu: React.FC<{
         className={contentClasses}
       >
         {renderPage()}
+
+        {missingKeys.map((type) => (
+          <KeyNotice
+            key={type}
+            className="border-t border-border/50 px-3.5 py-2.5"
+          >
+            Add a {KEY_LABELS[type]} key in Settings.
+          </KeyNotice>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

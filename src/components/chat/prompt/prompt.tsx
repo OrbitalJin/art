@@ -3,7 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, Square, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { useHasKey, useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { PersonaSelect } from "./persona-select";
@@ -27,6 +27,7 @@ import { StashSelect } from "./stash/stash-select";
 import { StashSaveButton } from "./stash/stash-save-button";
 import { AgentBar } from "./agent/bar";
 import { AgentAttention } from "./agent/attention";
+import { KeyNotice } from "./key-notice";
 import { useImportImage } from "@/hooks/use-import-image";
 
 interface Props {
@@ -118,13 +119,14 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   const { abortStream, isSending } = useChatStream();
   const { importClipboardImage } = useImportImage();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
+  const hasKey = useHasKey("gateway");
   const session = useSessionStore((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
 
   const isAgent = session?.type === "agent";
   const hasAttachments = attachments.length > 0;
-  const canSend = Boolean(prompt.trim()) || hasAttachments;
+  const canSend = hasKey && (Boolean(prompt.trim()) || hasAttachments);
   const stopping = isSending;
   const showSendButton = isSending || canSend;
 
@@ -139,6 +141,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   }, [prompt, textAreaRef]);
 
   const handleSend = () => {
+    if (!hasKey) return;
     sendMessage(prompt, attachments);
   };
 
@@ -184,6 +187,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
     "bg-card/50 shadow-sm transition-colors duration-200",
     "hover:border-border",
     "focus-within:border-ring/40 focus-within:ring-4 focus-within:ring-ring/10",
+    !hasKey && "opacity-60",
   );
 
   const textareaClasses = cn(
@@ -197,6 +201,12 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
     <footer className="z-20">
       <div className="mx-auto flex max-w-3xl flex-col">
         <AgentAttention />
+
+        {!hasKey && (
+          <KeyNotice className="mb-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs">
+            Add a gateway key in Settings to start chatting.
+          </KeyNotice>
+        )}
 
         <div className={containerClasses}>
           {isAgent && <AgentBar />}
@@ -217,6 +227,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
             className={textareaClasses}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
+            disabled={!hasKey}
           />
 
           <div className="flex items-center justify-between px-2 pb-2">

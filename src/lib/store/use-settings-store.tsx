@@ -8,6 +8,14 @@ import { DEFAULT_PERSONA, type PersonaId } from "../ai/prompts/personas";
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
 
+export type KeyType = "gateway" | "composio" | "youtube";
+
+export const KEY_LABELS: Record<KeyType, string> = {
+  gateway: "Gateway",
+  composio: "Connections",
+  youtube: "YouTube",
+};
+
 export interface UserProfile {
   name: string;
   occupation: string;
@@ -222,3 +230,14 @@ export const useSettingsStore = create<SettingsState>()(
     },
   ),
 );
+
+export const useHasKey = (type?: KeyType): boolean =>
+  useSettingsStore((state) =>
+    type === "gateway"
+      ? state.apiKey.length > 0
+      : type === "composio"
+        ? state.composioApiKey.length > 0
+        : type === "youtube"
+          ? state.youtubeApiKey.length > 0
+          : true,
+  );

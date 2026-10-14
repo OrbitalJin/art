@@ -17,6 +17,7 @@ import { Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SEARCH_GROUPS } from "./agent/configure-menu/groups";
 import { ToolRow } from "./agent/configure-menu/rows";
+import { KeyNotice } from "./key-notice";
 
 /**
  * Chat-mode control for the search toolset. Only the tools declared in
@@ -56,6 +57,7 @@ export const WebMenu: React.FC = () => {
   const triggerClasses = cn(
     "h-9 w-9 bg-card/50 border-border/50 transition-all relative",
     "hover:bg-accent/20 group",
+    !hasKey && "opacity-60",
   );
 
   const contentClasses = cn(
@@ -136,9 +138,9 @@ export const WebMenu: React.FC = () => {
         </div>
 
         {!hasKey && (
-          <p className="border-t border-border/50 px-3.5 py-2.5 text-[11px] leading-snug text-muted-foreground">
-            Add a Composio key in Settings → Chat &amp; Agent to use web tools.
-          </p>
+          <KeyNotice className="border-t border-border/50 px-3.5 py-2.5">
+            Add a Connections key in Settings to use web tools.
+          </KeyNotice>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

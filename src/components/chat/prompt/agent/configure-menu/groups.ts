@@ -1,4 +1,5 @@
 import { GmailTools, SERVICES, SearchTools } from "@/lib/services/catalog";
+import type { KeyType } from "@/lib/store/use-settings-store";
 
 export type Category = "art" | "device" | "interaction" | "integrations" | "web";
 
@@ -12,6 +13,8 @@ export interface ToolGroup {
   source: Source;
   /** Composio service id; set for `source: "service"` groups. */
   service?: string;
+  /** Setting key required for this group's tools to work. */
+  requiresKey?: KeyType;
   /**
    * Child tool groups. When set, this group is a collapsed service whose state
    * is derived from its children: it is on only when every child is on. The
@@ -44,6 +47,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Search the web for current information",
     category: "web",
     source: "service",
+    requiresKey: "composio",
   },
   {
     key: SearchTools.fetch,
@@ -52,6 +56,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Read the contents of a URL",
     category: "web",
     source: "service",
+    requiresKey: "composio",
   },
   {
     key: SearchTools.news,
@@ -60,6 +65,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Search recent news articles",
     category: "web",
     source: "service",
+    requiresKey: "composio",
   },
   {
     key: SearchTools.flights,
@@ -68,6 +74,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Search flights, schedules, and pricing",
     category: "web",
     source: "service",
+    requiresKey: "composio",
   },
   {
     key: SearchTools.hotels,
@@ -76,6 +83,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Search hotels and rentals with prices",
     category: "web",
     source: "service",
+    requiresKey: "composio",
   },
   {
     key: SearchTools.maps,
@@ -84,6 +92,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Search places, businesses, and locations",
     category: "web",
     source: "service",
+    requiresKey: "composio",
   },
 ];
 
@@ -95,6 +104,7 @@ export const GMAIL_TOOL_GROUPS: ToolGroup[] = [
     description: "Search emails",
     category: "integrations",
     source: "service",
+    requiresKey: "composio",
   },
   {
     key: GmailTools.listMessages,
@@ -103,6 +113,7 @@ export const GMAIL_TOOL_GROUPS: ToolGroup[] = [
     description: "List message ids",
     category: "integrations",
     source: "service",
+    requiresKey: "composio",
   },
   {
     key: GmailTools.fetchMessageById,
@@ -111,6 +122,7 @@ export const GMAIL_TOOL_GROUPS: ToolGroup[] = [
     description: "Read one email",
     category: "integrations",
     source: "service",
+    requiresKey: "composio",
   },
   {
     key: GmailTools.listLabels,
@@ -119,6 +131,7 @@ export const GMAIL_TOOL_GROUPS: ToolGroup[] = [
     description: "List Gmail labels",
     category: "integrations",
     source: "service",
+    requiresKey: "composio",
   },
 ];
 
@@ -133,6 +146,7 @@ export const GMAIL_GROUP: ToolGroup = {
   description: SERVICES.gmail.description,
   category: "integrations",
   source: "service",
+  requiresKey: "composio",
   children: GMAIL_TOOL_GROUPS,
 };
 
@@ -173,5 +187,6 @@ export const TOOL_GROUPS: ToolGroup[] = [
     description: "Pull video transcripts",
     category: "integrations",
     source: "local",
+    requiresKey: "youtube",
   },
 ];

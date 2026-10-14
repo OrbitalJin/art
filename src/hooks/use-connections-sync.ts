@@ -8,12 +8,16 @@ export const useConnectionsSync = (): void => {
   const syncedRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!apiKey || !hydrated) return;
+    if (!hydrated) return;
     if (syncedRef.current === apiKey) return;
     syncedRef.current = apiKey;
 
+    const store = useConnectionsStore.getState();
+    store.clear();
+
+    if (!apiKey) return;
+
     void (async () => {
-      const store = useConnectionsStore.getState();
       await store.ensureSession();
       await store.syncConnections(true);
     })();
