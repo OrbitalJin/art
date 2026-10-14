@@ -13,7 +13,7 @@ import {
   type AccessModeTone,
 } from "@/lib/store/session/types";
 
-const ModeOption: React.FC<{
+const AccessOption: React.FC<{
   label: string;
   selected: boolean;
   tone: AccessModeTone;
@@ -43,7 +43,7 @@ const ModeOption: React.FC<{
   );
 };
 
-const ModeDescription: React.FC<{
+const AccessDescription: React.FC<{
   label: string;
   description: string;
   selected: boolean;
@@ -73,51 +73,51 @@ const ModeDescription: React.FC<{
   );
 };
 
-const ApprovalDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
+const AccessDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
   const currentLabel = accessModeLabel(mode);
 
   return (
     <>
       <div className="flex items-center justify-between gap-2 border-b border-border/50 py-2 pr-2.5 pl-3.5">
-        <p className="text-[13px] font-medium text-foreground">Tool access</p>
+        <p className="text-[13px] font-medium text-foreground">Access control</p>
         <span className="rounded-md bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground ring-1 ring-border/60">
           {currentLabel}
         </span>
       </div>
 
       <div className="flex flex-col gap-0.5 p-1.5">
-        <ModeDescription
+        <AccessDescription
           label="Read only"
           description="The agent can read, search, and ask questions, but cannot create, edit, or delete anything."
           selected={mode === "readonly"}
           tone={ACCESS_MODE_TONES.readonly}
         >
           <Eye size={13} aria-hidden />
-        </ModeDescription>
+        </AccessDescription>
 
-        <ModeDescription
+        <AccessDescription
           label="Ask to write"
           description="Reads run freely; every create, edit, or delete pauses for your approval first."
           selected={mode === "confirm"}
           tone={ACCESS_MODE_TONES.confirm}
         >
           <ShieldAlert size={13} aria-hidden />
-        </ModeDescription>
+        </AccessDescription>
 
-        <ModeDescription
+        <AccessDescription
           label="Autonomous"
           description="The agent runs tools immediately, including writes, without waiting for you."
           selected={mode === "autonomous"}
           tone={ACCESS_MODE_TONES.autonomous}
         >
           <LockOpen size={13} aria-hidden />
-        </ModeDescription>
+        </AccessDescription>
       </div>
     </>
   );
 };
 
-export const ApprovalSwitch: React.FC<{ disabled: boolean }> = ({
+export const AccessControl: React.FC<{ disabled: boolean }> = ({
   disabled,
 }) => {
   const activeId = useSessionStore((store) => store.activeId);
@@ -147,40 +147,40 @@ export const ApprovalSwitch: React.FC<{ disabled: boolean }> = ({
       <HoverCardTrigger asChild>
         <div
           role="radiogroup"
-          aria-label="Tool access"
+          aria-label="Access control"
           className={groupClasses}
         >
-          <ModeOption
+          <AccessOption
             label="Read only"
             selected={mode === "readonly"}
             tone={ACCESS_MODE_TONES.readonly}
             onSelect={() => setAccessMode(activeId, "readonly")}
           >
             <Eye size={12} aria-hidden />
-          </ModeOption>
+          </AccessOption>
 
-          <ModeOption
+          <AccessOption
             label="Ask to write"
             selected={mode === "confirm"}
             tone={ACCESS_MODE_TONES.confirm}
             onSelect={() => setAccessMode(activeId, "confirm")}
           >
             <ShieldAlert size={12} aria-hidden />
-          </ModeOption>
+          </AccessOption>
 
-          <ModeOption
+          <AccessOption
             label="Autonomous"
             selected={mode === "autonomous"}
             tone={ACCESS_MODE_TONES.autonomous}
             onSelect={() => setAccessMode(activeId, "autonomous")}
           >
             <LockOpen size={12} aria-hidden />
-          </ModeOption>
+          </AccessOption>
         </div>
       </HoverCardTrigger>
 
       <HoverCardContent align="end" side="top" className={contentClasses}>
-        <ApprovalDetails mode={mode} />
+        <AccessDetails mode={mode} />
       </HoverCardContent>
     </HoverCard>
   );

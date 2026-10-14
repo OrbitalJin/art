@@ -1,7 +1,24 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  BedDouble,
+  FolderClosed,
+  Globe,
+  Link,
+  ListChecks,
+  ListTodo,
+  Mail,
+  MapPin,
+  MessageCircleQuestion,
+  Newspaper,
+  Plane,
+  Sheet,
+} from "lucide-react";
 import { SERVICES, SearchTools } from "@/lib/services/catalog";
 import type { KeyType } from "@/lib/store/use-settings-store";
+import { TbBrandYoutube } from "react-icons/tb";
 
-export type Category = "art" | "device" | "interaction" | "integrations" | "web";
+export type Category =
+  "art" | "device" | "interaction" | "integrations" | "web";
 
 export type Source = "local" | "files" | "service";
 
@@ -11,6 +28,7 @@ export interface ToolGroup {
   description: string;
   category: Category;
   source: Source;
+  icon: LucideIcon;
   /** Composio service id; set for `source: "service"` groups. */
   service?: string;
   /** Setting key required for this group's tools to work. */
@@ -41,6 +59,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Search the web for current information",
     category: "web",
     source: "service",
+    icon: Globe,
     requiresKey: "composio",
   },
   {
@@ -50,6 +69,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Read the contents of a URL",
     category: "web",
     source: "service",
+    icon: Link,
     requiresKey: "composio",
   },
   {
@@ -59,6 +79,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Search recent news articles",
     category: "web",
     source: "service",
+    icon: Newspaper,
     requiresKey: "composio",
   },
   {
@@ -68,6 +89,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Search flights, schedules, and pricing",
     category: "web",
     source: "service",
+    icon: Plane,
     requiresKey: "composio",
   },
   {
@@ -77,6 +99,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Search hotels and rentals with prices",
     category: "web",
     source: "service",
+    icon: BedDouble,
     requiresKey: "composio",
   },
   {
@@ -86,6 +109,7 @@ export const SEARCH_GROUPS: ToolGroup[] = [
     description: "Search places, businesses, and locations",
     category: "web",
     source: "service",
+    icon: MapPin,
     requiresKey: "composio",
   },
 ];
@@ -97,6 +121,7 @@ export const GMAIL_GROUP: ToolGroup = {
   description: SERVICES.gmail.description,
   category: "integrations",
   source: "service",
+  icon: Mail,
   requiresKey: "composio",
 };
 
@@ -107,6 +132,7 @@ export const SHEETS_GROUP: ToolGroup = {
   description: SERVICES.sheets.description,
   category: "integrations",
   source: "service",
+  icon: Sheet,
   requiresKey: "composio",
 };
 
@@ -120,6 +146,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
     description: "Create and manage tasks",
     category: "art",
     source: "local",
+    icon: ListChecks,
   },
   {
     key: "todo",
@@ -127,6 +154,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
     description: "Plan multi-step work",
     category: "interaction",
     source: "local",
+    icon: ListTodo,
   },
   {
     key: "files",
@@ -134,6 +162,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
     description: "Read & write local folders",
     category: "device",
     source: "files",
+    icon: FolderClosed,
   },
   {
     key: "askUser",
@@ -141,6 +170,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
     description: "Ask clarifying questions with choices",
     category: "interaction",
     source: "local",
+    icon: MessageCircleQuestion,
   },
   {
     key: "youtube",
@@ -148,6 +178,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
     description: "Pull video transcripts",
     category: "integrations",
     source: "local",
+    icon: TbBrandYoutube,
     requiresKey: "youtube",
   },
 ];

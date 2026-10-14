@@ -1,22 +1,28 @@
+import type { LucideIcon } from "lucide-react";
 import { TOOL_GROUPS } from "./configure-menu/groups";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session } from "@/lib/store/session/types";
-import { cn } from "@/lib/utils";
 import { basename, groupAnyEnabled } from "./configure-menu/helpers";
+import type { IconType } from "react-icons";
 
-const ToolTag: React.FC<{ label: string; value?: string }> = ({
-  label,
-  value,
-}) => {
-  const tagClasses = cn(
-    "flex shrink-0 items-center gap-1.5 rounded-md px-2 py-0.5",
-    "bg-muted/50 text-xs whitespace-nowrap text-foreground/80 ring-1 ring-border/60",
-  );
+const MAX_VISIBLE = 5;
+
+interface ToolEntry {
+  key: string;
+  label: string;
+  title: string;
+  icon: LucideIcon | IconType;
+}
+
+const ToolChip: React.FC<{ entry: ToolEntry }> = ({ entry }) => {
+  const Icon = entry.icon;
 
   return (
-    <span className={tagClasses}>
-      <span className={value ? "text-muted-foreground" : ""}>{label}</span>
-      {value ? <span className="font-medium">{value}</span> : null}
+    <span
+      title={entry.title}
+      className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground/70 transition-colors duration-150 hover:bg-muted/60 hover:text-foreground"
+    >
+      <Icon size={13} aria-hidden />
     </span>
   );
 };
@@ -24,28 +30,35 @@ const ToolTag: React.FC<{ label: string; value?: string }> = ({
 export const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
   const connections = useConnectionsStore((state) => state.connections);
 
-  const tags: { label: string; value?: string }[] = [];
+  const entries: ToolEntry[] = [];
   for (const group of TOOL_GROUPS) {
     if (group.source === "files") {
       const folders = session.folders ?? [];
-      if (folders.length && session.groups?.[group.key] === true) {
-        tags.push({
-          label: group.label,
-          value:
-            folders.length === 1
-              ? basename(folders[0].path)
-              : `${folders.length} folders`,
-        });
-      }
+      if (!folders.length || session.groups?.[group.key] !== true) continue;
+      const summary =
+        folders.length === 1
+          ? basename(folders[0].path)
+          : `${folders.length} folders`;
+      entries.push({
+        key: group.key,
+        label: group.label,
+        title: `${group.label} · ${summary}`,
+        icon: group.icon,
+      });
       continue;
     }
 
     if (groupAnyEnabled(session, group, connections)) {
-      tags.push({ label: group.label });
+      entries.push({
+        key: group.key,
+        label: group.label,
+        title: group.label,
+        icon: group.icon,
+      });
     }
   }
 
-  if (tags.length === 0) {
+  if (entries.length === 0) {
     return (
       <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground/50">
         No tools enabled
@@ -53,11 +66,28 @@ export const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
     );
   }
 
+  const visible = entries.slice(0, MAX_VISIBLE);
+  const hidden = entries.slice(MAX_VISIBLE);
+
   return (
-    <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scroll-fade-x">
-      {tags.map((tag) => (
-        <ToolTag key={tag.label} label={tag.label} value={tag.value} />
-      ))}
+    <span className="flex min-w-0 flex-1 items-center">
+      <span
+        className="flex items-center gap-0.5"
+        aria-label={`${entries.length} ${entries.length === 1 ? "tool" : "tools"} enabled`}
+      >
+        {visible.map((entry) => (
+          <ToolChip key={entry.key} entry={entry} />
+        ))}
+
+        {hidden.length > 0 && (
+          <span
+            title={hidden.map((entry) => entry.label).join(", ")}
+            className="px-1 text-[11px] tabular-nums text-muted-foreground/70"
+          >
+            +{hidden.length}
+          </span>
+        )}
+      </span>
     </span>
   );
 };

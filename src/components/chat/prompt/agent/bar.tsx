@@ -12,8 +12,11 @@ import {
   type PendingQuestion,
 } from "@/lib/store/use-question-store";
 import { useTodoStore, type TodoPlan } from "@/lib/store/use-todo-store";
-import { AgentTools } from "./agent-tools";
-import { ApprovalSwitch } from "./approval-switch";
+import { AccessControl } from "./access-control";
+import { ConfigureMenu } from "./configure-menu";
+import { EnabledTools } from "./enabled-tools";
+import { ToolActivity } from "./tool-activity";
+import { useAgentTools } from "./use-agent-tools";
 import { ToolApprovalCard } from "./tool-approval-card";
 import { AskUserCard } from "./ask-user-card";
 import { cn } from "@/lib/utils";
@@ -65,7 +68,7 @@ const StatusLabel: React.FC<{ active: boolean }> = ({ active }) => (
   <span
     className={cn(
       "shrink-0 text-xs font-medium",
-      active ? "shimmer text-amber-500/40" : "text-foreground/80",
+      active ? "shimmer text-amber-500/40" : "text-foreground/70",
     )}
   >
     {active ? "Working" : "Agent"}
@@ -265,6 +268,7 @@ export const AgentBar = () => {
   const plan = useTodoStore((state) =>
     sessionId ? state.bySession[sessionId] : undefined,
   );
+  const tools = useAgentTools(session, toolCalls);
 
   if (!session || session.type !== "agent") return null;
 
@@ -276,7 +280,7 @@ export const AgentBar = () => {
   const showPlan = streaming && !hasPending && !!plan && plan.todos.length > 0;
 
   const barClasses = cn(
-    "relative flex items-center gap-2.5",
+    "relative flex items-center gap-2",
     "bg-linear-to-r to-transparent transition-colors duration-300",
     streaming ? "from-amber-500/3" : "",
     hasPending ? "items-stretch px-0" : "h-10 px-3",
@@ -294,8 +298,20 @@ export const AgentBar = () => {
             <StateDot active={streaming} />
             <StatusLabel active={streaming} />
             <Divider />
-            <AgentTools active={active} />
-            <ApprovalSwitch disabled={streaming} />
+            {active ? (
+              <ToolActivity toolCalls={toolCalls} running={tools.running} />
+            ) : (
+              <EnabledTools session={session} />
+            )}
+            <AccessControl disabled={streaming} />
+            <ConfigureMenu
+              disabled={isSending}
+              session={session}
+              onAddFolder={tools.onAddFolder}
+              onRemoveFolder={tools.onRemoveFolder}
+              onToggle={tools.onToggle}
+              onRevokeAll={tools.onRevokeAll}
+            />
           </>
         )}
       </div>

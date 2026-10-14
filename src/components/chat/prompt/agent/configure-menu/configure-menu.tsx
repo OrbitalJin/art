@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Wrench } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,8 +64,8 @@ export const ConfigureMenu: React.FC<{
   };
 
   const triggerClasses = cn(
-    "flex shrink-0 cursor-pointer items-center rounded-md px-2 py-0.5 h-7",
-    "text-xs whitespace-nowrap text-muted-foreground ring-1 ring-border/60 outline-none",
+    "flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg",
+    "text-muted-foreground ring-1 ring-border/60 outline-none",
     "transition-colors duration-150 hover:bg-muted/60 hover:text-foreground",
     "focus-visible:ring-2 focus-visible:ring-ring/50",
     "data-[state=open]:bg-muted/60 data-[state=open]:text-foreground",
@@ -128,8 +129,13 @@ export const ConfigureMenu: React.FC<{
   return (
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild disabled={disabled}>
-        <button type="button" className={triggerClasses}>
-          Configure
+        <button
+          type="button"
+          aria-label="Configure tools"
+          title="Configure tools"
+          className={triggerClasses}
+        >
+          <Wrench size={13} aria-hidden />
         </button>
       </DropdownMenuTrigger>
 
