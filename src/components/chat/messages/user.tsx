@@ -1,4 +1,3 @@
-// user-message.tsx
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
@@ -30,21 +29,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
+import { branchFromSession, revertMessage } from "@/lib/store/session/commands";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
 import { useChatMessages } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import {
-  Attachment,
-  AttachmentContent,
-  AttachmentDescription,
-  AttachmentGroup,
-  AttachmentMedia,
-  AttachmentTitle,
-} from "@/components/ui/attachment";
 import {
   Dialog,
   DialogContent,
@@ -78,54 +70,33 @@ const formatAttachment = (attachment: MessageAttachment): string => {
 
 const Hint: React.FC<{ keys: string; label: string }> = ({ keys, label }) => (
   <span className="flex items-center gap-1.5">
-    <kbd className="rounded border border-border/60 bg-muted/30 px-1 py-px font-mono text-[10px] text-muted-foreground/70">
+    <kbd className="rounded-md border border-border/50 bg-muted/40 px-1.5 py-px font-mono text-[10px] text-muted-foreground/70">
       {keys}
     </kbd>
     <span>{label}</span>
   </span>
 );
 
-const SingleAttachment: React.FC<{ attachment: MessageAttachment }> = ({
-  attachment,
-}) => {
+/* ------------------------------ Attachments ------------------------------ */
+
+const ImageLightbox: React.FC<{
+  attachment: MessageAttachment;
+  children: React.ReactNode;
+}> = ({ attachment, children }) => {
   const name = attachment.name ?? "image";
   const details = formatAttachment(attachment);
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Attachment
-          className="cursor-pointer rounded-lg text-left transition-colors hover:bg-muted/60"
-          orientation="horizontal"
-          size="sm"
-        >
-          <AttachmentMedia variant="image">
-            <img
-              className="scale-110 transition-transform duration-300 group-hover:scale-100"
-              src={previewUrl(attachment)}
-              alt={name}
-            />
-          </AttachmentMedia>
-          <AttachmentContent className="min-w-0 text-left">
-            <AttachmentTitle className="truncate text-left">
-              {name}
-            </AttachmentTitle>
-            <AttachmentDescription className="text-left">
-              {details}
-            </AttachmentDescription>
-          </AttachmentContent>
-        </Attachment>
-      </DialogTrigger>
-
-      <DialogContent className="max-w-4xl overflow-hidden p-0 sm:rounded-xl">
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="max-w-4xl overflow-hidden p-0 sm:rounded-2xl">
         <DialogHeader className="border-b px-6 py-4 pr-12 text-left">
           <DialogTitle className="truncate text-left">{name}</DialogTitle>
           <DialogDescription className="text-left">{details}</DialogDescription>
         </DialogHeader>
-
-        <div className="flex max-h-[75vh] min-h-48 items-center justify-center p-4">
+        <div className="flex max-h-[75vh] min-h-48 items-center justify-center bg-muted/20 p-4">
           <img
-            className="max-h-[70vh] max-w-full rounded-md object-contain"
+            className="max-h-[70vh] max-w-full rounded-lg object-contain"
             src={previewUrl(attachment)}
             alt={name}
           />
@@ -135,27 +106,81 @@ const SingleAttachment: React.FC<{ attachment: MessageAttachment }> = ({
   );
 };
 
-const AttachmentChip: React.FC<{ attachment: MessageAttachment }> = ({
+const HoverCaption: React.FC<{ name: string; details: string }> = ({
+  name,
+  details,
+}) => (
+  <div
+    className={cn(
+      "pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-0.5",
+      "bg-gradient-to-t from-black/60 via-black/25 to-transparent",
+      "px-3 pt-8 pb-2.5 text-left text-white opacity-0",
+      "transition-opacity duration-200 group-hover/att:opacity-100",
+    )}
+  >
+    <span className="truncate text-xs font-medium">{name}</span>
+    {details && <span className="text-[10px] text-white/70">{details}</span>}
+  </div>
+);
+
+const SingleAttachment: React.FC<{ attachment: MessageAttachment }> = ({
   attachment,
 }) => {
   const name = attachment.name ?? "image";
+  const details = formatAttachment(attachment);
 
   return (
-    <Attachment className="rounded-lg" orientation="horizontal">
-      <AttachmentMedia className="group" variant="image">
+    <ImageLightbox attachment={attachment}>
+      <button
+        type="button"
+        aria-label={`Open ${name}`}
+        className={cn(
+          "group/att relative block max-w-[min(85%,420px)] cursor-zoom-in",
+          "overflow-hidden rounded-2xl bg-muted/40 ring-1 ring-border/50",
+          "shadow-sm transition-all duration-200 hover:shadow-md",
+          "hover:ring-border focus-visible:ring-2 focus-visible:ring-ring",
+        )}
+      >
         <img
-          className="scale-110 blur-[1px] transition-all group-hover:scale-100 group-hover:blur-none"
           src={previewUrl(attachment)}
           alt={name}
+          className={cn(
+            "block max-h-[360px] min-h-24 w-full object-cover",
+            "transition-transform duration-500 group-hover/att:scale-[1.02]",
+          )}
         />
-      </AttachmentMedia>
-      <AttachmentContent>
-        <AttachmentTitle>{name}</AttachmentTitle>
-        <AttachmentDescription>
-          {formatAttachment(attachment)}
-        </AttachmentDescription>
-      </AttachmentContent>
-    </Attachment>
+        <HoverCaption name={name} details={details} />
+      </button>
+    </ImageLightbox>
+  );
+};
+
+const AttachmentThumb: React.FC<{ attachment: MessageAttachment }> = ({
+  attachment,
+}) => {
+  const name = attachment.name ?? "image";
+  const details = formatAttachment(attachment);
+
+  return (
+    <ImageLightbox attachment={attachment}>
+      <button
+        type="button"
+        aria-label={`Open ${name}`}
+        className={cn(
+          "group/att relative block aspect-square cursor-zoom-in overflow-hidden",
+          "rounded-xl bg-muted/40 ring-1 ring-border/50 transition-all",
+          "duration-200 hover:ring-border focus-visible:ring-2",
+          "focus-visible:ring-ring",
+        )}
+      >
+        <img
+          src={previewUrl(attachment)}
+          alt={name}
+          className="size-full object-cover transition-transform duration-500 group-hover/att:scale-105"
+        />
+        <HoverCaption name={name} details={details} />
+      </button>
+    </ImageLightbox>
   );
 };
 
@@ -168,14 +193,23 @@ const MessageAttachments: React.FC<{ attachments: MessageAttachment[] }> = ({
     return <SingleAttachment attachment={attachments[0]} />;
   }
 
+  const twoCols = attachments.length === 2 || attachments.length === 4;
+
   return (
-    <AttachmentGroup>
+    <div
+      className={cn(
+        "grid w-full gap-1.5",
+        twoCols ? "max-w-[320px] grid-cols-2" : "max-w-[420px] grid-cols-3",
+      )}
+    >
       {attachments.map((attachment, index) => (
-        <AttachmentChip key={index} attachment={attachment} />
+        <AttachmentThumb key={index} attachment={attachment} />
       ))}
-    </AttachmentGroup>
+    </div>
   );
 };
+
+/* -------------------------------- Edit box -------------------------------- */
 
 const EditBox: React.FC<{
   draft: string;
@@ -195,14 +229,14 @@ const EditBox: React.FC<{
   onSave,
 }) => {
   const containerClasses = cn(
-    "flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card/50",
-    "shadow-sm transition-colors duration-200 hover:border-border",
+    "flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/60",
+    "shadow-sm transition-all duration-200 hover:border-border",
     "focus-within:border-ring/40 focus-within:ring-4 focus-within:ring-ring/10",
   );
 
   const textareaClasses = cn(
     "max-h-[250px] min-h-[80px] resize-none border-0 bg-transparent! shadow-none lg:max-h-[400px]",
-    "px-3.5 pt-3.5 pb-1 text-[15px] text-foreground/90",
+    "px-4 pt-3.5 pb-1 text-[15px] leading-relaxed text-foreground/90",
     "placeholder:text-muted-foreground/50 focus-visible:ring-0",
   );
 
@@ -225,7 +259,7 @@ const EditBox: React.FC<{
           onFocus={handleFocus}
         />
 
-        <div className="flex items-center justify-between gap-3 px-3 pb-2.5">
+        <div className="flex items-center justify-between gap-3 px-3 pt-1 pb-2.5">
           <div className="flex items-center gap-3 text-[11px] text-muted-foreground/60">
             <Hint keys="Esc" label="cancel" />
             <Hint
@@ -240,7 +274,7 @@ const EditBox: React.FC<{
               size="sm"
               variant="ghost"
               onClick={onCancel}
-              className="h-7 text-xs text-muted-foreground hover:text-foreground"
+              className="h-7 rounded-lg text-xs text-muted-foreground hover:text-foreground"
             >
               Cancel
             </Button>
@@ -249,7 +283,7 @@ const EditBox: React.FC<{
               size="sm"
               onClick={onSave}
               disabled={!draft.trim()}
-              className="h-7 text-xs"
+              className="h-7 rounded-lg text-xs"
             >
               Save
             </Button>
@@ -259,6 +293,8 @@ const EditBox: React.FC<{
     </div>
   );
 };
+
+/* ------------------------------ User message ------------------------------ */
 
 export const UserMessage: React.FC<Message> = (message) => {
   const content = messageText(message);
@@ -335,13 +371,19 @@ export const UserMessage: React.FC<Message> = (message) => {
         />
       ) : (
         <>
+          <MessageAttachments attachments={attachments} />
+
           {content && (
-            <div className="max-w-[85%] min-w-0 rounded-2xl rounded-tr-sm bg-muted/50 px-3.5 py-2.5 text-foreground/90">
+            <div
+              className={cn(
+                "max-w-[85%] min-w-0 rounded-2xl rounded-tr-md px-4 py-2.5",
+                "bg-muted/60 text-[15px] leading-relaxed text-foreground/90",
+                "ring-1 ring-border/30",
+              )}
+            >
               <Renderer content={content} />
             </div>
           )}
-
-          <MessageAttachments attachments={attachments} />
         </>
       )}
 
@@ -354,6 +396,8 @@ export const UserMessage: React.FC<Message> = (message) => {
     </div>
   );
 };
+
+/* --------------------------------- Footer --------------------------------- */
 
 const FooterAction: React.FC<{
   label: string;
@@ -435,27 +479,25 @@ const MessageFooter: React.FC<FooterProps> = ({
   setDraft,
   setIsEditing,
 }) => {
-  const activeId = useSessionStore((state) => state.activeId);
-  const branchFrom = useSessionStore((state) => state.branchFrom);
-  const revertMessage = useSessionStore((state) => state.revertMessage);
+  const activeId = useSessionIndex((state) => state.activeId);
 
   const { isSending: disabled } = useChatStream();
   const { editMessage } = useChatMessages();
   const { copied, copy } = useCopy(content);
 
-  const handleRevert = () => {
+  const handleRevert = async () => {
     if (!activeId) return;
 
-    const success = revertMessage(activeId, messageId);
+    const success = await revertMessage(activeId, messageId);
     if (success) {
       toast.success("Message reverted successfully");
     }
   };
 
-  const handleBranch = () => {
+  const handleBranch = async () => {
     if (!activeId || disabled) return;
 
-    const success = branchFrom(activeId, messageId, false);
+    const success = await branchFromSession(activeId, messageId, false);
     if (success) {
       toast.info("Session branched successfully");
     } else {

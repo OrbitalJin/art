@@ -1,4 +1,4 @@
-import type { Session } from "@/lib/store/session/types";
+import type { SessionMeta } from "@/lib/store/session/types";
 import { serviceById } from "@/lib/services/catalog";
 import { TOOL_GROUPS, type Category, type ToolGroup } from "./groups";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ export const serviceConnected = (
 };
 
 export const groupEnabled = (
-  session: Session,
+  session: SessionMeta,
   group: ToolGroup,
   connections: Connections,
 ): boolean => {
@@ -43,7 +43,7 @@ export const groupEnabled = (
 
 /** True when at least one tool of the group is enabled. */
 export const groupAnyEnabled = (
-  session: Session,
+  session: SessionMeta,
   group: ToolGroup,
   connections: Connections,
 ): boolean => {
@@ -52,7 +52,7 @@ export const groupAnyEnabled = (
 };
 
 export const groupActive = (
-  session: Session,
+  session: SessionMeta,
   group: ToolGroup,
   connections: Connections,
 ): boolean => groupEnabled(session, group, connections);

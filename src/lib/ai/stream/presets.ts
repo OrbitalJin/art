@@ -1,4 +1,4 @@
-import type { Session } from "@/lib/store/session/types";
+import type { SessionMeta } from "@/lib/store/session/types";
 import { system, type Profiles } from "../prompts/system";
 import { toolsFor } from "../tools/tools";
 import { DONE_TOOL_NAME } from "../tools/done";
@@ -8,11 +8,11 @@ import { stepCountIs, hasToolCall } from "ai";
 import { adaptiveStopCondition, BACKSTOP_STEPS } from "./stop-conditions";
 
 export interface RequestContext {
-  session: Session;
+  session: SessionMeta;
   profiles: Profiles;
 }
 
-const connectedServices = (session: Session): string[] =>
+const connectedServices = (session: SessionMeta): string[] =>
   CONNECTED_SERVICES.map((service) => service.id).filter((id) => {
     if (!useConnectionsStore.getState().connections[id]?.isActive) return false;
     return session.groups?.[id] === true;

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import type { ToolCallBlock } from "@/lib/store/session/types";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import {
   STREAMING_MESSAGE_ID,
   useStreamStore,
@@ -17,7 +17,7 @@ export interface ChatStreamValues {
 const EMPTY_TOOL_CALLS: ToolCallBlock[] = [];
 
 export const useChatStream = (sessionId?: string): ChatStreamValues => {
-  const activeId = useSessionStore((state) => state.activeId);
+  const activeId = useSessionIndex((state) => state.activeId);
   const id = sessionId ?? activeId ?? null;
 
   const streamingId = useStreamStore((state) =>

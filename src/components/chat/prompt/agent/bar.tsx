@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import {
   useApprovalStore,
   type PendingApproval,
@@ -258,7 +258,7 @@ const PlanStrip: React.FC<{ plan: TodoPlan }> = ({ plan }) => {
 };
 
 export const AgentBar = () => {
-  const session = useSessionStore((state) =>
+  const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
   const { isSending, toolCalls, streamingSessionId } = useChatStream();

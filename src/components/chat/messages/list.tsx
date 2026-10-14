@@ -11,7 +11,7 @@ import WelcomeMessage from "../welcome";
 import { MessageBroker } from "./broker";
 import { BranchOriginMarker } from "./markers/branch-origin";
 import type { Message } from "@/lib/store/session/types";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
 
@@ -21,7 +21,7 @@ interface Props {
 }
 
 const SessionScrollSync: React.FC = () => {
-  const activeId = useSessionStore((s) => s.activeId);
+  const activeId = useSessionIndex((s) => s.activeId);
   const { scrollToEnd } = useMessageScroller();
   const prevActiveIdRef = useRef(activeId);
 

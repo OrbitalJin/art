@@ -1,4 +1,4 @@
-import type { Session } from "@/lib/store/session/types";
+import type { SessionMeta } from "@/lib/store/session/types";
 import type { ToolSet } from "ai";
 import {
   GmailTools,
@@ -21,7 +21,7 @@ const cherryPick = (all: ToolSet, id: string): ToolSet => {
   return entry ? { [id]: entry } : {};
 };
 
-export const toolsFor = async (session: Session): Promise<ToolSet> => {
+export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
   const on = session.groups;
 
   if (session.type === "chat") {
@@ -47,7 +47,7 @@ export const toolsFor = async (session: Session): Promise<ToolSet> => {
   return applyPolicy(tools, session.accessMode, session.id);
 };
 
-const searchFor = async (session: Session): Promise<ToolSet> => {
+const searchFor = async (session: SessionMeta): Promise<ToolSet> => {
   const on = session.groups;
   const search = await searchTools();
   return {
@@ -60,7 +60,7 @@ const searchFor = async (session: Session): Promise<ToolSet> => {
   };
 };
 
-const servicesFor = async (session: Session): Promise<ToolSet> => {
+const servicesFor = async (session: SessionMeta): Promise<ToolSet> => {
   const on = session.groups;
   const services = await composioTools();
 

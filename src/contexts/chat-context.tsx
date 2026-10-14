@@ -1,6 +1,11 @@
 import React, { createContext, useCallback, useContext, useMemo } from "react";
 import { toast } from "sonner";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
+import { useSession, sessionDataStore } from "@/lib/store/session/data-store";
+import {
+  appendMessage,
+  revertMessage,
+} from "@/lib/store/session/commands";
 import type {
   Message,
   MessageAttachment,
@@ -36,12 +41,11 @@ const ChatMessagesContext = createContext<ChatMessagesValues | null>(null);
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const activeId = useSessionStore((state) => state.activeId);
-  const addMessage = useSessionStore((state) => state.addMessage);
-  const revertMessage = useSessionStore((state) => state.revertMessage);
-  const activeSession = useSessionStore((state) =>
+  const activeId = useSessionIndex((state) => state.activeId);
+  const activeMeta = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
+  const sessionData = useSession(activeId);
 
   const draft = useDraft(activeId);
   const prompt = draft.prompt;
@@ -89,7 +93,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       const messageAttachments =
         sendAttachments && sendAttachments.length ? sendAttachments : undefined;
-      addMessage(activeId, {
+      await appendMessage(activeId, {
         id: crypto.randomUUID(),
         role: "user",
         parts: [{ type: "text", text }],
@@ -100,7 +104,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       const { sendToSession } = await loadSendToSession();
       await sendToSession(activeId, text, messageAttachments);
     },
-    [activeId, addMessage],
+    [activeId],
   );
 
   const editMessage = useCallback(
@@ -112,15 +116,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
 
-      const existing = useSessionStore
-        .getState()
-        .sessions.find((s) => s.id === activeId)
-        ?.messages.find((m) => m.id === messageId);
+      const data = sessionDataStore.getState().cache[activeId];
+      const existing = data?.messages.find((m) => m.id === messageId);
       const existingAttachments = existing?.attachments;
 
-      revertMessage(activeId, messageId);
+      await revertMessage(activeId, messageId);
 
-      addMessage(activeId, {
+      await appendMessage(activeId, {
         id: crypto.randomUUID(),
         role: "user",
         parts: [{ type: "text", text }],
@@ -131,11 +133,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       const { sendToSession } = await loadSendToSession();
       await sendToSession(activeId, text, existingAttachments);
     },
-    [addMessage, activeId, revertMessage],
+    [activeId],
   );
 
   const messages = useMemo(() => {
-    const base = activeSession?.messages ?? [];
+    const base = sessionData?.messages ?? [];
 
     if (!streamSnapshot) return base;
 
@@ -144,7 +146,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       {
         id: STREAMING_MESSAGE_ID,
         role: "assistant" as const,
-        modelId: activeSession?.modelId,
+        modelId: activeMeta?.modelId,
         parts: streamSnapshot.parts,
         toolCalls: streamSnapshot.toolCalls,
         status: streamSnapshot.status,
@@ -152,7 +154,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         reasoning: streamSnapshot.reasoningText || undefined,
       } satisfies Message,
     ];
-  }, [activeSession, streamSnapshot]);
+  }, [sessionData, activeMeta, streamSnapshot]);
 
   const inputValue = useMemo(
     () => ({

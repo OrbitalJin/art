@@ -10,7 +10,7 @@ import { PersonaSelect } from "./persona-select";
 import { WebMenu } from "./web-menu";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
 import { JumpSelect } from "./jump-select";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import { previewUrl } from "@/lib/utils/images";
 import {
   Attachment,
@@ -120,7 +120,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   const { importClipboardImage } = useImportImage();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const hasKey = useHasKey("gateway");
-  const session = useSessionStore((state) =>
+  const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
 

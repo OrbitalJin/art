@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { TOOL_GROUPS } from "./configure-menu/groups";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
-import type { Session } from "@/lib/store/session/types";
+import type { SessionMeta } from "@/lib/store/session/types";
 import { basename, groupAnyEnabled } from "./configure-menu/helpers";
 import type { IconType } from "react-icons";
 
@@ -27,7 +27,7 @@ const ToolChip: React.FC<{ entry: ToolEntry }> = ({ entry }) => {
   );
 };
 
-export const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
+export const EnabledTools: React.FC<{ session: SessionMeta }> = ({ session }) => {
   const connections = useConnectionsStore((state) => state.connections);
 
   const entries: ToolEntry[] = [];

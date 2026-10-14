@@ -6,7 +6,8 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
+import { useSession } from "@/lib/store/session/data-store";
 import { modelById } from "@/lib/ai/models";
 import type { Session } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
@@ -51,8 +52,6 @@ const getUsage = (messages: Session["messages"]) => {
   return { input, output, total: input + output, context };
 };
 
-const EMPTY_USAGE = { input: 0, output: 0, total: 0, context: 0 };
-
 const getLevel = (pct: number): Level => {
   if (pct >= CRITICAL_AT) return "critical";
   if (pct >= WARN_AT) return "warn";
@@ -70,13 +69,15 @@ const UsageRow: React.FC<{ label: string; value: string }> = ({
 );
 
 export const SidebarFooter = () => {
-  const activeSession = useSessionStore((state) =>
+  const activeId = useSessionIndex((state) => state.activeId);
+  const activeSession = useSessionIndex((state) =>
     state.sessions.find((session) => session.id === state.activeId),
   );
+  const sessionData = useSession(activeId);
 
   const usage = useMemo(
-    () => (activeSession ? getUsage(activeSession.messages) : EMPTY_USAGE),
-    [activeSession],
+    () => getUsage(sessionData?.messages ?? []),
+    [sessionData],
   );
 
   const model = activeSession ? modelById(activeSession.modelId) : null;

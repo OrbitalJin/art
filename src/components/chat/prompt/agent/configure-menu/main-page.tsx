@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
-import type { Session } from "@/lib/store/session/types";
+import type { SessionMeta } from "@/lib/store/session/types";
 import { CATEGORY_ORDER, TOOL_GROUPS, type Category } from "./groups";
 import { CategoryLink } from "./rows";
 import { groupEnabled, groupsInCategory } from "./helpers";
@@ -24,7 +24,7 @@ const MainHeader: React.FC<{
 );
 
 export const MainPage: React.FC<{
-  session: Session;
+  session: SessionMeta;
   onOpenCategory: (category: Category) => void;
   onRevokeAll: () => void;
 }> = ({ session, onOpenCategory, onRevokeAll }) => {

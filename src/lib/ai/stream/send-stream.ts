@@ -6,7 +6,9 @@ import type {
   MessageStatus,
 } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
+import { sessionDataStore } from "@/lib/store/session/data-store";
+import { appendMessage } from "@/lib/store/session/commands";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { modelTypeById } from "@/lib/ai/models";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
@@ -63,9 +65,7 @@ export async function sendToSession(
     return;
   }
 
-  const session = useSessionStore
-    .getState()
-    .sessions.find((s) => s.id === sessionId);
+  const session = useSessionIndex.getState().getMeta(sessionId);
   if (!session) return;
 
   const { userProfile, agentProfile } = useSettingsStore.getState();
@@ -110,9 +110,9 @@ export async function sendToSession(
   };
 
   try {
+    await sessionDataStore.getState().ensure(sessionId);
     const history =
-      useSessionStore.getState().sessions.find((s) => s.id === sessionId)
-        ?.messages ?? [];
+      sessionDataStore.getState().cache[sessionId]?.messages ?? [];
     const trailing =
       history.length > 0 && history[history.length - 1].role === "user"
         ? history.slice(0, -1)
@@ -169,9 +169,7 @@ export async function sendToSession(
     useTodoStore.getState().clear(sessionId);
     useStreamStore.getState().end(sessionId);
 
-    const stillExists = useSessionStore
-      .getState()
-      .sessions.find((s) => s.id === sessionId);
+    const stillExists = useSessionIndex.getState().getMeta(sessionId);
     if (stillExists) {
       const label = stillExists.title ? ` in “${stillExists.title}”` : "";
       if (status === "error") toast.error(`Something went wrong${label}`);
@@ -187,7 +185,7 @@ export async function sendToSession(
       }
     }
 
-    useSessionStore.getState().addMessage(sessionId, {
+    await appendMessage(sessionId, {
       id: crypto.randomUUID(),
       role: "assistant",
       parts: acc.parts.length
@@ -204,10 +202,9 @@ export async function sendToSession(
     });
 
     if (status === "streaming") {
-      const ss = useSessionStore
-        .getState()
-        .sessions.find((s) => s.id === sessionId);
-      if (ss && !ss.titleGenerated && ss.messages.length === 2) {
+      const ss = useSessionIndex.getState().getMeta(sessionId);
+      const messages = sessionDataStore.getState().cache[sessionId]?.messages;
+      if (ss && !ss.titleGenerated && messages?.length === 2) {
         generateSessionTitle(sessionId);
       }
     }

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import { Command } from "../command";
 
 export interface NavigationItem {
@@ -52,7 +52,7 @@ const NavItem = ({ item, selected }: NavItemProps) => {
 export const Navigation = () => {
   const { pathname } = useLocation();
 
-  const activeType = useSessionStore((state) => {
+  const activeType = useSessionIndex((state) => {
     const active = state.sessions.find((s) => s.id === state.activeId);
     return active?.type ?? "chat";
   });

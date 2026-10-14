@@ -1,6 +1,6 @@
 import { Eye, LockOpen, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import {
   HoverCard,
   HoverCardContent,
@@ -120,11 +120,11 @@ const AccessDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
 export const AccessControl: React.FC<{ disabled: boolean }> = ({
   disabled,
 }) => {
-  const activeId = useSessionStore((store) => store.activeId);
-  const session = useSessionStore((state) =>
+  const activeId = useSessionIndex((store) => store.activeId);
+  const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === activeId),
   );
-  const setAccessMode = useSessionStore((store) => store.setAccessMode);
+  const setAccessMode = useSessionIndex((store) => store.setAccessMode);
 
   if (!activeId || !session) return null;
 

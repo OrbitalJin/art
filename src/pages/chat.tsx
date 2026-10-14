@@ -8,7 +8,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 import { useChatMessages } from "@/contexts/chat-context";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
+import { createSession } from "@/lib/store/session/commands";
 import { useConnectionsSync } from "@/hooks/use-connections-sync";
 import type { SessionType } from "@/lib/store/session/types";
 
@@ -27,11 +28,11 @@ export const Chat = () => {
   const setChatState = useUIStateStore((state) => state.setChatState);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const didSyncRef = useRef<string | null>(null);
-  const hydrated = useSessionStore((s) => s.hydrated);
+  const hydrated = useSessionIndex((s) => s.hydrated);
 
   useEffect(() => {
     if (!hydrated) return;
-    const store = useSessionStore.getState();
+    const store = useSessionIndex.getState();
     const routeType = isSessionType(type) ? type : "chat";
     const syncKey = `${type ?? "chat"}:${sessionId ?? ""}`;
     if (didSyncRef.current === syncKey) return;
@@ -43,7 +44,7 @@ export const Chat = () => {
     }
 
     if (sessionId) {
-      const session = store.getFn(sessionId);
+      const session = store.getMeta(sessionId);
       if (!session) {
         navigate(`/session/${routeType}`, { replace: true });
         return;
@@ -56,7 +57,7 @@ export const Chat = () => {
       return;
     }
 
-    const active = store.activeId ? store.getFn(store.activeId) : undefined;
+    const active = store.activeId ? store.getMeta(store.activeId) : undefined;
     if (active && active.type === routeType) {
       store.setActive(active.id);
       return;
@@ -70,7 +71,7 @@ export const Chat = () => {
       return;
     }
 
-    const id = store.create(routeType);
+    const id = createSession(routeType);
     store.setActive(id);
   }, [type, sessionId, navigate, hydrated]);
 

@@ -5,16 +5,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { MODELS } from "@/lib/ai/models";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import { cn } from "@/lib/utils";
 import { ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { selectableRowClasses } from "./agent/configure-menu/helpers";
 
 export const ModelSelect = () => {
-  const activeId = useSessionStore((state) => state.activeId);
-  const setSessionModel = useSessionStore((store) => store.setModel);
-  const session = useSessionStore((state) =>
+  const activeId = useSessionIndex((state) => state.activeId);
+  const setSessionModel = useSessionIndex((store) => store.setModel);
+  const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
   const model = MODELS.find((m) => m.id === session?.modelId);

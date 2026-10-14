@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { grantFolder } from "@/lib/fs";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 
 export const useRestoreFolderScope = () => {
-  const hydrated = useSessionStore((state) => state.hydrated);
-  const folderPaths = useSessionStore((state) =>
+  const hydrated = useSessionIndex((state) => state.hydrated);
+  const folderPaths = useSessionIndex((state) =>
     state.sessions
       .flatMap((session) =>
         (session.folders ?? []).map((folder) => folder.path),
@@ -16,7 +16,7 @@ export const useRestoreFolderScope = () => {
   useEffect(() => {
     if (!hydrated || !folderPaths) return;
 
-    const { sessions, removeFolder } = useSessionStore.getState();
+    const { sessions, removeFolder } = useSessionIndex.getState();
 
     for (const session of sessions) {
       for (const folder of session.folders ?? []) {

@@ -7,7 +7,7 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { createSession } from "@/lib/store/session/commands";
 import { cn } from "@/lib/utils";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -29,22 +29,21 @@ export const SidebarHeader: React.FC<Props> = ({
   query,
   setQuery,
 }) => {
-  const create = useSessionStore((state) => state.create);
   const navigate = useNavigate();
   const { type } = useParams<{ type: string }>();
   const routeType = isSessionType(type) ? type : "chat";
 
   const handleCreate = useCallback(() => {
-    const id = create(
+    const id = createSession(
       routeType,
       `New ${routeType === "chat" ? "Chat" : "Agent"}`,
     );
     navigate(`/session/${routeType}/${id}`);
-  }, [create, navigate, routeType]);
+  }, [navigate, routeType]);
 
   return (
     <div className="flex flex-col">
-      <div className="flex border-b p-2 gap-2">
+      <div className="flex border-b border-border/50 p-2 gap-2">
         <Button
           variant="outline"
           className="flex-1 items-center"
@@ -59,7 +58,7 @@ export const SidebarHeader: React.FC<Props> = ({
           </Button>
         )}
       </div>
-      <div className="flex p-2 px-3 border-b bg-card/30">
+      <div className="flex p-2 px-3 border-b border-border/50 bg-card/30">
         <div
           className={cn(
             "flex-1 flex flex-row gap-2 items-center",
@@ -82,13 +81,13 @@ export const SidebarHeader: React.FC<Props> = ({
           )}
         </div>
       </div>
-      <div className="flex p-2 border-b bg-card/50">
+      <div className="flex p-2 border-b border-border/50 bg-card/50">
         <Tabs
           className="flex-1"
           value={routeType}
           onValueChange={(v) => navigate(`/session/${v}`)}
         >
-          <TabsList className="flex-1 w-full bg-transparent! p-0">
+          <TabsList className="flex-1 w-full bg-transparent! p-0 gap-2">
             <TabsTrigger value="chat">
               <MessageCircle />
             </TabsTrigger>

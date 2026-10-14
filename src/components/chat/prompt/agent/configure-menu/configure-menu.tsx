@@ -11,7 +11,7 @@ import {
   useHasKey,
   type KeyType,
 } from "@/lib/store/use-settings-store";
-import type { Session } from "@/lib/store/session/types";
+import type { SessionMeta } from "@/lib/store/session/types";
 import type { Category } from "./groups";
 import { TOOL_GROUPS } from "./groups";
 import { groupsInCategory } from "./helpers";
@@ -30,7 +30,7 @@ const MAIN_PAGE: MenuPage = { name: "main" };
 
 export const ConfigureMenu: React.FC<{
   disabled: boolean;
-  session: Session;
+  session: SessionMeta;
   onAddFolder: () => void;
   onRemoveFolder: (folderId: string) => void;
   onToggle: (key: string, value: boolean) => void;

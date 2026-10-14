@@ -1,18 +1,18 @@
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
 import { grantFolder, makeRoot, selectDirectory } from "@/lib/fs";
-import type { Session, ToolCallBlock } from "@/lib/store/session/types";
+import type { SessionMeta, ToolCallBlock } from "@/lib/store/session/types";
 
 export const useAgentTools = (
-  session: Session | undefined,
+  session: SessionMeta | undefined,
   toolCalls: ToolCallBlock[],
 ) => {
-  const addFolder = useSessionStore((state) => state.addFolder);
-  const removeFolder = useSessionStore((state) => state.removeFolder);
-  const setGroup = useSessionStore((state) => state.setGroup);
-  const disableAllGroups = useSessionStore((state) => state.disableAllGroups);
+  const addFolder = useSessionIndex((state) => state.addFolder);
+  const removeFolder = useSessionIndex((state) => state.removeFolder);
+  const setGroup = useSessionIndex((state) => state.setGroup);
+  const disableAllGroups = useSessionIndex((state) => state.disableAllGroups);
 
   const onAddFolder = useCallback(async () => {
     if (!session) return;

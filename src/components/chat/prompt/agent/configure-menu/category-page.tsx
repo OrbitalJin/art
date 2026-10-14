@@ -1,5 +1,5 @@
 import { ChevronLeft } from "lucide-react";
-import type { Session } from "@/lib/store/session/types";
+import type { SessionMeta } from "@/lib/store/session/types";
 import { CATEGORY_LABELS, type Category } from "./groups";
 import { GroupRow } from "./rows";
 import { groupsInCategory } from "./helpers";
@@ -25,7 +25,7 @@ export const SubPageHeader: React.FC<{
 
 export const CategoryPage: React.FC<{
   category: Category;
-  session: Session;
+  session: SessionMeta;
   onBack: () => void;
   onOpenFiles: () => void;
   onToggle: (key: string, value: boolean) => void;

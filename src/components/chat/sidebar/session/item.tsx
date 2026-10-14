@@ -28,13 +28,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
+import { branchSession, deleteSession } from "@/lib/store/session/commands";
 import { useIsStreaming } from "@/lib/store/use-stream-store";
 import { useSessionAttention } from "@/hooks/use-session-attention";
-import type { Session } from "@/lib/store/session/types";
+import type { SessionMeta } from "@/lib/store/session/types";
 
 interface Props {
-  item: Session;
+  item: SessionMeta;
   active: boolean;
   onSwitch?: () => void;
 }
@@ -138,14 +139,12 @@ const DeleteDialog: React.FC<{
   </AlertDialog>
 );
 
-const SessionMenu: React.FC<{ item: Session; onRename: () => void }> = ({
+const SessionMenu: React.FC<{ item: SessionMeta; onRename: () => void }> = ({
   item,
   onRename,
 }) => {
-  const togglePinned = useSessionStore((state) => state.togglePinned);
-  const toggleArchived = useSessionStore((state) => state.toggleArchived);
-  const deleteFn = useSessionStore((state) => state.deleteFn);
-  const branch = useSessionStore((state) => state.branch);
+  const togglePinned = useSessionIndex((state) => state.togglePinned);
+  const toggleArchived = useSessionIndex((state) => state.toggleArchived);
 
   const navigate = useNavigate();
 
@@ -156,8 +155,8 @@ const SessionMenu: React.FC<{ item: Session; onRename: () => void }> = ({
     void generateSessionTitle(item.id);
   };
 
-  const handleBranch = () => {
-    const success = branch(item.id);
+  const handleBranch = async () => {
+    const success = await branchSession(item.id);
     if (success) {
       toast.success("Session branched successfully");
     } else {
@@ -173,10 +172,10 @@ const SessionMenu: React.FC<{ item: Session; onRename: () => void }> = ({
 
   const handleDelete = () => {
     setConfirmOpen(false);
-    if (item.id === useSessionStore.getState().activeId) {
+    if (item.id === useSessionIndex.getState().activeId) {
       navigate(`/session/${item.type ?? "chat"}`, { replace: true });
     }
-    deleteFn(item.id);
+    deleteSession(item.id);
     toast.success("Session deleted successfully.");
   };
 
@@ -258,11 +257,11 @@ export const SessionListItem: React.FC<Props> = ({
 }) => {
   const { title, id, branchOf } = item;
 
-  const isTitleGenerating = useSessionStore((state) =>
+  const isTitleGenerating = useSessionIndex((state) =>
     state.titleGeneratingIds.includes(id),
   );
-  const updateTitle = useSessionStore((state) => state.updateTitle);
-  const getFn = useSessionStore((state) => state.getFn);
+  const updateTitle = useSessionIndex((state) => state.updateTitle);
+  const getMeta = useSessionIndex((state) => state.getMeta);
   const navigate = useNavigate();
 
   const isStreaming = useIsStreaming(id);
@@ -271,7 +270,7 @@ export const SessionListItem: React.FC<Props> = ({
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
 
-  const parentSession = branchOf ? getFn(branchOf) : undefined;
+  const parentSession = branchOf ? getMeta(branchOf) : undefined;
   const canOpen = !editing && !isTitleGenerating;
   const showStatus = isStreaming || needsAttention;
   const showMenu = !editing && !isTitleGenerating && !isStreaming;

@@ -18,7 +18,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { createSession } from "@/lib/store/session/commands";
 import type { NavigationItem } from "@/components/layout/navigation";
 import { useJournalStore } from "@/lib/store/use-journal-store";
 import { Kbd } from "./ui/kbd";
@@ -28,7 +28,6 @@ interface Props {
 }
 
 export const Command: React.FC<Props> = ({ items }) => {
-  const { create: createSession } = useSessionStore();
   const { create: createNote } = useJournalStore();
   const setSettingsDialogOpen = useUIStateStore(
     (state) => state.setSettingsDialogOpen,

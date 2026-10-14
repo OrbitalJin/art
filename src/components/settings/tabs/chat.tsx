@@ -21,7 +21,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { MODELS, type ModelId } from "@/lib/ai/models";
 import { PERSONAS, type PersonaId } from "@/lib/ai/prompts/personas";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { purgeSessions } from "@/lib/store/session/commands";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import {
   ACCESS_MODE_TONES,
@@ -306,7 +306,6 @@ export const ChatSettingsTab: React.FC = () => {
   );
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const setEnterKeySends = useSettingsStore((state) => state.setEnterKeySends);
-  const purgeSessions = useSessionStore((state) => state.purge);
 
   const handleClearHistory = () => {
     purgeSessions();

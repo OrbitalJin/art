@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import { useQuestionStore } from "@/lib/store/use-question-store";
 import { useAttentionOwners } from "@/hooks/use-session-attention";
@@ -84,8 +84,8 @@ const AttentionRowButton: React.FC<{
 };
 
 export const AgentAttention: React.FC = () => {
-  const activeId = useSessionStore((state) => state.activeId);
-  const sessions = useSessionStore((state) => state.sessions);
+  const activeId = useSessionIndex((state) => state.activeId);
+  const sessions = useSessionIndex((state) => state.sessions);
   const approvals = useApprovalStore((state) => state.pending);
   const questions = useQuestionStore((state) => state.pending);
   const owners = useAttentionOwners(activeId);

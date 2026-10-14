@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { KEY_LABELS, useHasKey } from "@/lib/store/use-settings-store";
-import type { Session } from "@/lib/store/session/types";
+import type { SessionMeta } from "@/lib/store/session/types";
 import { serviceById } from "@/lib/services/catalog";
 import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
 import {
@@ -101,7 +101,7 @@ const FilesLink: React.FC<{
 
 const ConnectionRow: React.FC<{
   group: ToolGroup;
-  session: Session;
+  session: SessionMeta;
   onToggle: (key: string, value: boolean) => void;
 }> = ({ group, session, onToggle }) => {
   const connections = useConnectionsStore((state) => state.connections);
@@ -133,7 +133,7 @@ const ConnectionRow: React.FC<{
 
 export const GroupRow: React.FC<{
   group: ToolGroup;
-  session: Session;
+  session: SessionMeta;
   onOpenFiles: () => void;
   onToggle: (key: string, value: boolean) => void;
 }> = ({ group, session, onOpenFiles, onToggle }) => {
@@ -178,7 +178,7 @@ export const GroupRow: React.FC<{
 
 export const CategoryLink: React.FC<{
   category: Category;
-  session: Session;
+  session: SessionMeta;
   onOpen: () => void;
 }> = ({ category, session, onOpen }) => {
   const connections = useConnectionsStore((state) => state.connections);

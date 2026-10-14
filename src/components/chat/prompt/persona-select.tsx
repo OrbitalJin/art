@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import { VenetianMask } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -19,8 +19,8 @@ import { useChatStream } from "@/hooks/use-chat-stream";
 export const PersonaSelect = () => {
   const { isSending: disabled } = useChatStream();
 
-  const setPersona = useSessionStore((store) => store.setPersona);
-  const session = useSessionStore((state) =>
+  const setPersona = useSessionIndex((store) => store.setPersona);
+  const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
 

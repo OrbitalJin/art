@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import { SessionListItem } from "./item";
 import { SessionSection } from "./section";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,8 +29,8 @@ interface Props {
 }
 
 export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
-  const activeId = useSessionStore((s) => s.activeId);
-  const sessions = useSessionStore((s) => s.sessions);
+  const activeId = useSessionIndex((s) => s.activeId);
+  const sessions = useSessionIndex((s) => s.sessions);
   const { type } = useParams<{ type: string }>();
   const typeFilter = type === "agent" ? "agent" : "chat";
   const chatState = useUIStateStore((s) => s.chatState);

@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { Globe } from "lucide-react";
@@ -25,11 +25,11 @@ import { KeyNotice } from "./key-notice";
  * chat session through this menu.
  */
 export const WebMenu: React.FC = () => {
-  const session = useSessionStore((state) =>
+  const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
-  const setGroup = useSessionStore((state) => state.setGroup);
-  const setGroups = useSessionStore((state) => state.setGroups);
+  const setGroup = useSessionIndex((state) => state.setGroup);
+  const setGroups = useSessionIndex((state) => state.setGroups);
   const hasKey = useSettingsStore((state) => state.composioApiKey.length > 0);
   const { isSending: disabled } = useChatStream();
   const [open, setOpen] = useState(false);

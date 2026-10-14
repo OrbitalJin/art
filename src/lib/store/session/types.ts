@@ -113,14 +113,13 @@ export const toolCallsOf = (parts: MessagePart[]): ToolCallBlock[] =>
     output: part.output,
   }));
 
-export interface Session {
+export interface SessionMeta {
   id: string;
   type: SessionType;
   title: string;
   accessMode: AccessMode;
   folders?: FsRoot[];
   groups: SessionGroups;
-  messages: Message[];
   modelId: ModelId;
   persona: PersonaId;
   branchOf?: string;
@@ -130,4 +129,12 @@ export interface Session {
   updatedAt: number;
   titleGenerated?: boolean;
   readOnly?: boolean;
+}
+
+export interface SessionData {
+  messages: Message[];
+}
+
+export interface Session extends SessionMeta {
+  messages: Message[];
 }

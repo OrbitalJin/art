@@ -1,16 +1,16 @@
 import { GitBranch } from "lucide-react";
 import { Marker, MarkerContent, MarkerIcon } from "@/components/ui/marker";
 import { MessageScrollerItem } from "@/components/ui/message-scroller";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 
 const BRANCH_ORIGIN_MARKER_ID = "branch-origin";
 
 export const BranchOriginMarker: React.FC = () => {
-  const branchOf = useSessionStore((s) =>
-    s.activeId ? s.getFn(s.activeId)?.branchOf : undefined,
+  const branchOf = useSessionIndex((s) =>
+    s.activeId ? s.getMeta(s.activeId)?.branchOf : undefined,
   );
-  const parentTitle = useSessionStore((s) =>
-    branchOf ? s.getFn(branchOf)?.title : undefined,
+  const parentTitle = useSessionIndex((s) =>
+    branchOf ? s.getMeta(branchOf)?.title : undefined,
   );
 
   if (!branchOf) return null;

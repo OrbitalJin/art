@@ -12,7 +12,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
+import { branchFromSession } from "@/lib/store/session/commands";
 import { toast } from "sonner";
 import { ThinkingSection } from "./thinking-section";
 import { useChatStream } from "@/hooks/use-chat-stream";
@@ -63,8 +64,7 @@ export const AssistantMessage: React.FC<Message> = (message) => {
   const { parts, modelId, id: messageId, tokenUsage, reasoning } = message;
   const { output } = tokenUsage;
 
-  const activeId = useSessionStore((state) => state.activeId);
-  const branchFrom = useSessionStore((state) => state.branchFrom);
+  const activeId = useSessionIndex((state) => state.activeId);
   const { isSending, streamingMessageId } = useChatStream();
 
   const content = messageText(message);
@@ -77,10 +77,10 @@ export const AssistantMessage: React.FC<Message> = (message) => {
   const isStreamingMessage = messageId === streamingMessageId;
   const shouldRenderFooter = hasContent && !isStreamingMessage;
 
-  const handleBranch = () => {
+  const handleBranch = async () => {
     if (!activeId || isSending) return;
 
-    const success = branchFrom(activeId, messageId, true);
+    const success = await branchFromSession(activeId, messageId, true);
     if (success) {
       toast.info("Session branched successfully");
     } else {

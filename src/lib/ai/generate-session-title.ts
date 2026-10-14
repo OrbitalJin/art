@@ -1,7 +1,8 @@
 import { createGateway, generateText, Output } from "ai";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
+import { sessionDataStore } from "@/lib/store/session/data-store";
 import { messageText } from "@/lib/store/session/types";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { type ModelType } from "@/lib/ai/models";
@@ -10,18 +11,19 @@ import { nativeFetch } from "@/lib/native-fetch";
 export async function generateSessionTitle(
   sessionId: string,
 ): Promise<string | undefined> {
-  const store = useSessionStore.getState();
+  const store = useSessionIndex.getState();
   if (store.titleGeneratingIds.includes(sessionId)) return;
   store.startTitleGeneration(sessionId);
 
   try {
-    const session = store.sessions.find((s) => s.id === sessionId);
-    if (!session?.messages.length) return;
+    await sessionDataStore.getState().ensure(sessionId);
+    const messages = sessionDataStore.getState().cache[sessionId]?.messages;
+    if (!messages?.length) return;
 
     const apiKey = useSettingsStore.getState().apiKey;
     if (!apiKey) return;
 
-    const conversationText = session.messages
+    const conversationText = messages
       .filter((m) => m.role === "user" || m.role === "assistant")
       .slice(0, 4)
       .map(
@@ -53,14 +55,14 @@ export async function generateSessionTitle(
 
     const title = genOutput.title;
     if (title?.trim()) {
-      useSessionStore.getState().updateTitle(sessionId, title.trim());
-      useSessionStore.getState().setTitleGenerated(sessionId, true);
+      useSessionIndex.getState().updateTitle(sessionId, title.trim());
+      useSessionIndex.getState().setTitleGenerated(sessionId, true);
       return title.trim();
     }
   } catch (err) {
     console.error("Title generation failed", err);
     toast.error("Failed to generate title");
   } finally {
-    useSessionStore.getState().endTitleGeneration(sessionId);
+    useSessionIndex.getState().endTitleGeneration(sessionId);
   }
 }

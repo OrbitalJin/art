@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Command,
   CommandDialog,
@@ -20,7 +20,8 @@ import {
   useMessageScroller,
   useMessageScrollerVisibility,
 } from "@/components/ui/message-scroller";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
+import { useSession } from "@/lib/store/session/data-store";
 import type { Message } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
@@ -107,16 +108,13 @@ const MessageResultItem = ({
 };
 
 export const JumpSelect = () => {
-  const activeId = useSessionStore((state) => state.activeId);
-  const sessions = useSessionStore((state) => state.sessions);
+  const activeId = useSessionIndex((state) => state.activeId);
+  const sessionData = useSession(activeId);
   const { scrollToMessage } = useMessageScroller();
   const { currentAnchorId } = useMessageScrollerVisibility();
   const [open, setOpen] = useState(false);
 
-  const messages = useMemo(() => {
-    const session = sessions.find((s) => s.id === activeId);
-    return session ? session.messages : [];
-  }, [sessions, activeId]);
+  const messages = sessionData?.messages ?? [];
 
   useHotkey("Mod+F", (e) => {
     e.preventDefault();

@@ -3,7 +3,7 @@ import React, { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import { useSessionStore } from "@/lib/store/use-session-store";
+import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { modelById } from "@/lib/ai/models";
 import { TOOL_GROUPS } from "./prompt/agent/configure-menu/groups";
@@ -164,8 +164,8 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
 
   const userProfile = useSettingsStore((state) => state.userProfile);
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
-  const sessions = useSessionStore((state) => state.sessions);
-  const activeId = useSessionStore((state) => state.activeId);
+  const sessions = useSessionIndex((state) => state.sessions);
+  const activeId = useSessionIndex((state) => state.activeId);
   const connections = useConnectionsStore((state) => state.connections);
 
   const greeting = useMemo(() => greetingFor(new Date()), []);
@@ -195,7 +195,6 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
           (session.type ?? "chat") === routeType &&
           !session.archived &&
           session.id !== activeId &&
-          session.messages.length > 0 &&
           !session.readOnly,
       )
       .sort((a, b) => b.updatedAt - a.updatedAt)
