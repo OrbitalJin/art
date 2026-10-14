@@ -1,6 +1,6 @@
 import type { Session } from "@/lib/store/session/types";
 import type { ToolSet } from "ai";
-import { GmailTools, SearchTools } from "@/lib/services/catalog";
+import { GmailTools, GoogleSheetsTools, SearchTools } from "@/lib/services/catalog";
 import { tasksTools } from "./tasks";
 import { fileTools } from "./files";
 import { askUserTools } from "./ask-user";
@@ -71,6 +71,24 @@ const servicesFor = async (session: Session): Promise<ToolSet> => {
       : {}),
     ...(on[GmailTools.listLabels]
       ? cherryPick(services, GmailTools.listLabels)
+      : {}),
+    ...(on[GoogleSheetsTools.search]
+      ? cherryPick(services, GoogleSheetsTools.search)
+      : {}),
+    ...(on[GoogleSheetsTools.getSpreadsheetInfo]
+      ? cherryPick(services, GoogleSheetsTools.getSpreadsheetInfo)
+      : {}),
+    ...(on[GoogleSheetsTools.getSheetNames]
+      ? cherryPick(services, GoogleSheetsTools.getSheetNames)
+      : {}),
+    ...(on[GoogleSheetsTools.valuesGet]
+      ? cherryPick(services, GoogleSheetsTools.valuesGet)
+      : {}),
+    ...(on[GoogleSheetsTools.batchGet]
+      ? cherryPick(services, GoogleSheetsTools.batchGet)
+      : {}),
+    ...(on[GoogleSheetsTools.lookupRow]
+      ? cherryPick(services, GoogleSheetsTools.lookupRow)
       : {}),
   };
 };

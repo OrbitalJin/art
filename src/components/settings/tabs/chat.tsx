@@ -26,7 +26,11 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import type { IconType } from "react-icons";
-import { TbBrandVercel, TbBrandYoutube, TbPlugConnected } from "react-icons/tb";
+import {
+  TbBrandVercelFilled,
+  TbBrandYoutube,
+  TbPlugConnected,
+} from "react-icons/tb";
 import { toast } from "sonner";
 import { ConnectionsSettings } from "./connections";
 import {
@@ -42,8 +46,7 @@ import {
 const KeyIcon: React.FC<{
   icon: IconType;
   active: boolean;
-  fill?: boolean;
-}> = ({ icon: Icon, active, fill }) => {
+}> = ({ icon: Icon, active }) => {
   const iconClasses = cn(
     "flex size-9 shrink-0 items-center justify-center rounded-lg border",
     "transition-colors duration-150",
@@ -54,12 +57,7 @@ const KeyIcon: React.FC<{
 
   return (
     <span className={iconClasses}>
-      <Icon
-        size={24}
-        strokeWidth={1}
-        aria-hidden
-        className={fill ? "fill-primary" : ""}
-      />
+      <Icon size={24} strokeWidth={1} aria-hidden />
     </span>
   );
 };
@@ -152,7 +150,6 @@ const KeyEditor: React.FC<KeyEditorProps> = ({
 
 interface SecretKeyFieldProps {
   icon: IconType;
-  fillIcon?: boolean;
   label: string;
   description: string;
   placeholder: string;
@@ -167,7 +164,6 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
   placeholder,
   value,
   onSave,
-  fillIcon,
 }) => {
   const [editing, setEditing] = useState(false);
 
@@ -190,7 +186,7 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
     <div className="flex flex-col">
       <div className="flex items-center justify-between gap-4 px-4 py-3.5">
         <div className="flex min-w-0 items-center gap-3">
-          <KeyIcon fill={fillIcon} icon={icon} active={configured} />
+          <KeyIcon icon={icon} active={configured} />
           <div className="flex min-w-0 flex-col gap-0.5">
             <span className="text-[13px] font-medium text-foreground">
               {label}
@@ -329,8 +325,7 @@ export const ChatSettingsTab: React.FC = () => {
       <SettingsSection title="Keys" description="Stored on this device.">
         <SettingsCard>
           <SecretKeyField
-            fillIcon
-            icon={TbBrandVercel}
+            icon={TbBrandVercelFilled}
             label="Gateway"
             description="Vercel AI gateway key."
             placeholder="secret key"

@@ -1,4 +1,9 @@
-import { GmailTools, SERVICES, SearchTools } from "@/lib/services/catalog";
+import {
+  GmailTools,
+  GoogleSheetsTools,
+  SERVICES,
+  SearchTools,
+} from "@/lib/services/catalog";
 import type { KeyType } from "@/lib/store/use-settings-store";
 
 export type Category = "art" | "device" | "interaction" | "integrations" | "web";
@@ -150,9 +155,82 @@ export const GMAIL_GROUP: ToolGroup = {
   children: GMAIL_TOOL_GROUPS,
 };
 
+export const SHEETS_TOOL_GROUPS: ToolGroup[] = [
+  {
+    key: GoogleSheetsTools.search,
+    service: SERVICES.sheets.id,
+    label: "Search Sheets",
+    description: "Find spreadsheets",
+    category: "integrations",
+    source: "service",
+    requiresKey: "composio",
+  },
+  {
+    key: GoogleSheetsTools.getSpreadsheetInfo,
+    service: SERVICES.sheets.id,
+    label: "Spreadsheet Info",
+    description: "Read spreadsheet metadata",
+    category: "integrations",
+    source: "service",
+    requiresKey: "composio",
+  },
+  {
+    key: GoogleSheetsTools.getSheetNames,
+    service: SERVICES.sheets.id,
+    label: "List Sheets",
+    description: "List tab names",
+    category: "integrations",
+    source: "service",
+    requiresKey: "composio",
+  },
+  {
+    key: GoogleSheetsTools.valuesGet,
+    service: SERVICES.sheets.id,
+    label: "Read Range",
+    description: "Read a range of values",
+    category: "integrations",
+    source: "service",
+    requiresKey: "composio",
+  },
+  {
+    key: GoogleSheetsTools.batchGet,
+    service: SERVICES.sheets.id,
+    label: "Read Ranges",
+    description: "Read multiple ranges",
+    category: "integrations",
+    source: "service",
+    requiresKey: "composio",
+  },
+  {
+    key: GoogleSheetsTools.lookupRow,
+    service: SERVICES.sheets.id,
+    label: "Lookup Row",
+    description: "Find a row by value",
+    category: "integrations",
+    source: "service",
+    requiresKey: "composio",
+  },
+];
+
+/**
+ * Collapsed Google Sheets service row. Its enabled state is derived from
+ * `SHEETS_TOOL_GROUPS`; the parent key (`googlesheets`) is never persisted.
+ */
+export const SHEETS_GROUP: ToolGroup = {
+  key: SERVICES.sheets.id,
+  service: SERVICES.sheets.id,
+  label: SERVICES.sheets.label,
+  description: SERVICES.sheets.description,
+  category: "integrations",
+  source: "service",
+  requiresKey: "composio",
+  children: SHEETS_TOOL_GROUPS,
+};
+
 export const TOOL_GROUPS: ToolGroup[] = [
   ...SEARCH_GROUPS,
   GMAIL_GROUP,
+  SHEETS_GROUP,
   {
     key: "tasks",
     label: "Tasks",

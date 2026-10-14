@@ -5,6 +5,7 @@ import { taskRenderers } from "./renderers/tasks";
 import { askUserRenderers } from "./renderers/ask-user";
 import { todoRenderers } from "./renderers/todo";
 import { emailRenderers } from "./renderers/email";
+import { googlesheetsRenderers } from "./renderers/googlesheets";
 import { youtubeRenderers } from "./renderers/youtube";
 import { genericRenderer } from "./renderers/generic";
 
@@ -18,6 +19,7 @@ const TOOL_RENDERERS: Record<string, AnyRenderer> = {
   ...askUserRenderers,
   ...todoRenderers,
   ...emailRenderers,
+  ...googlesheetsRenderers,
   ...youtubeRenderers,
 };
 

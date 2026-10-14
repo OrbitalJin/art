@@ -14,6 +14,15 @@ export const GmailTools = {
   listLabels: "GMAIL_LIST_LABELS",
 } as const;
 
+export const GoogleSheetsTools = {
+  search: "GOOGLESHEETS_SEARCH_SPREADSHEETS",
+  getSpreadsheetInfo: "GOOGLESHEETS_GET_SPREADSHEET_INFO",
+  getSheetNames: "GOOGLESHEETS_GET_SHEET_NAMES",
+  valuesGet: "GOOGLESHEETS_VALUES_GET",
+  batchGet: "GOOGLESHEETS_BATCH_GET",
+  lookupRow: "GOOGLESHEETS_LOOKUP_SPREADSHEET_ROW",
+} as const;
+
 /** A Composio tool id, e.g. `GMAIL_FETCH_EMAILS`. */
 export type ToolId = string;
 
@@ -45,6 +54,13 @@ export const SERVICES: Record<string, Service> = {
     noAuth: false,
     tools: GmailTools,
   },
+  sheets: {
+    id: "googlesheets",
+    label: "Google Sheets",
+    description: "Read-only access to Google Sheets",
+    noAuth: false,
+    tools: GoogleSheetsTools,
+  },
 };
 
 /** Services that require a connection (everything except the no-auth ones). */
@@ -52,7 +68,10 @@ export const CONNECTED_SERVICES: Service[] = Object.values(SERVICES).filter(
   (service) => !service.noAuth,
 );
 
-export const SERVICE_TOOL_IDS: ToolId[] = Object.values(GmailTools);
+export const SERVICE_TOOL_IDS: ToolId[] = [
+  ...Object.values(GmailTools),
+  ...Object.values(GoogleSheetsTools),
+];
 
 export const serviceById = (id: string): Service | undefined =>
   Object.values(SERVICES).find((service) => service.id === id);

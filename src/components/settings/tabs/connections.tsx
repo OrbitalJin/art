@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import type { IconType } from "react-icons";
-import { TbBrandGmail } from "react-icons/tb";
+import { TbBrandGmail, TbFileSpreadsheet } from "react-icons/tb";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { CONNECTED_SERVICES } from "@/lib/services/catalog";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ type ConnectionState = "active" | "pending" | "idle";
 
 const SERVICE_ICONS: Record<string, IconType> = {
   gmail: TbBrandGmail,
+  googlesheets: TbFileSpreadsheet,
 };
 
 const ServiceIcon: React.FC<{ service: string; active: boolean }> = ({
