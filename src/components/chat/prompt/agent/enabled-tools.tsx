@@ -2,7 +2,7 @@ import { TOOL_GROUPS } from "./configure-menu/groups";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
-import { basename, groupEnabled } from "./configure-menu/helpers";
+import { basename, groupAnyEnabled } from "./configure-menu/helpers";
 
 const ToolTag: React.FC<{ label: string; value?: string }> = ({
   label,
@@ -40,7 +40,7 @@ export const EnabledTools: React.FC<{ session: Session }> = ({ session }) => {
       continue;
     }
 
-    if (groupEnabled(session, group, connections)) {
+    if (groupAnyEnabled(session, group, connections)) {
       tags.push({ label: group.label });
     }
   }

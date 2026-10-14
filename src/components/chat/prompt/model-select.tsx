@@ -9,6 +9,7 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { cn } from "@/lib/utils";
 import { ChevronUp } from "lucide-react";
 import { useState } from "react";
+import { selectableRowClasses } from "./agent/configure-menu/helpers";
 
 export const ModelSelect = () => {
   const activeId = useSessionStore((state) => state.activeId);
@@ -28,6 +29,12 @@ export const ModelSelect = () => {
     }
     setOpen(false);
   };
+
+  const contentClasses = cn(
+    "w-80 max-w-[calc(100vw-2rem)] rounded-xl p-0 shadow-lg",
+    "max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto",
+    "border-border/60",
+  );
 
   return (
     <DropdownMenu key={activeId} open={open} onOpenChange={setOpen}>
@@ -51,47 +58,44 @@ export const ModelSelect = () => {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
+        side="top"
         align="start"
-        className="w-80 p-0 shadow-xl border-muted-foreground/20"
+        avoidCollisions={false}
+        className={contentClasses}
       >
-        <div className="flex flex-col gap-1 border-b bg-muted/30 p-3">
-          <p className="text-sm font-medium">Models</p>
-          <p className="text-[11px] text-muted-foreground leading-tight">
+        <div className="flex flex-col border-b border-border/50 py-2 pr-3.5 pl-3.5">
+          <p className="text-[13px] font-medium text-foreground">Models</p>
+          <p className="text-[11px] leading-tight text-muted-foreground">
             Select the best engine for your task.
           </p>
         </div>
 
-        <div className="flex flex-col p-2 gap-1">
+        <div className="flex flex-col gap-0.5 p-1.5">
           {MODELS.map((m) => {
             const isSelected = model?.id === m.id;
 
             return (
-              <div
+              <button
                 key={m.id}
+                type="button"
+                aria-pressed={isSelected}
                 onClick={() => handleSelect(m.id)}
-                className={cn(
-                  "flex flex-col p-2 gap-2 cursor-pointer rounded-sm transition-all duration-200 group",
-                  isSelected
-                    ? "bg-primary/5 ring-1 ring-primary/20"
-                    : "hover:bg-accent/20",
-                )}
+                className={selectableRowClasses(isSelected)}
               >
-                <div className="flex items-center justify-between gap-4">
-                  <p
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+                  <span
                     className={cn(
-                      "text-sm font-medium truncate",
-                      isSelected ? "text-primary" : "text-foreground",
+                      "truncate text-[13px] font-medium",
+                      isSelected ? "text-foreground" : "text-foreground/80",
                     )}
                   >
                     {m.displayName}
-                  </p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] text-muted-foreground/70 leading-snug pr-4">
+                  </span>
+                  <span className="truncate text-[11px] text-muted-foreground">
                     {m.description}
-                  </p>
-                </div>
-              </div>
+                  </span>
+                </span>
+              </button>
             );
           })}
         </div>

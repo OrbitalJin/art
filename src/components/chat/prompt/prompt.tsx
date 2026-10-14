@@ -7,6 +7,7 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { PersonaSelect } from "./persona-select";
+import { WebMenu } from "./web-menu";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
 import { JumpSelect } from "./jump-select";
 import { useSessionStore } from "@/lib/store/use-session-store";
@@ -106,8 +107,14 @@ const SendButton: React.FC<{
 };
 
 export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
-  const { prompt, setPrompt, attachments, addAttachment, removeAttachment, sendMessage } =
-    useChatInput();
+  const {
+    prompt,
+    setPrompt,
+    attachments,
+    addAttachment,
+    removeAttachment,
+    sendMessage,
+  } = useChatInput();
   const { abortStream, isSending } = useChatStream();
   const { importClipboardImage } = useImportImage();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
@@ -214,10 +221,11 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
 
           <div className="flex items-center justify-between px-2 pb-2">
             <div className="flex flex-row items-center gap-1.5">
-              <JumpSelect />
               <ModelSelect />
-              {!isAgent && <PersonaSelect />}
+              <JumpSelect />
               <Attach />
+              {!isAgent && <PersonaSelect />}
+              {!isAgent && <WebMenu />}
               {isAgent && <StashSaveButton />}
               {isAgent && <StashSelect textAreaRef={textAreaRef} />}
             </div>

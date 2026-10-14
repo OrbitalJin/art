@@ -39,10 +39,11 @@ import {
   SettingsSection,
 } from "./settings-layout";
 
-const KeyIcon: React.FC<{ icon: IconType; active: boolean }> = ({
-  icon: Icon,
-  active,
-}) => {
+const KeyIcon: React.FC<{
+  icon: IconType;
+  active: boolean;
+  fill?: boolean;
+}> = ({ icon: Icon, active, fill }) => {
   const iconClasses = cn(
     "flex size-9 shrink-0 items-center justify-center rounded-lg border",
     "transition-colors duration-150",
@@ -53,7 +54,12 @@ const KeyIcon: React.FC<{ icon: IconType; active: boolean }> = ({
 
   return (
     <span className={iconClasses}>
-      <Icon size={24} strokeWidth={1} aria-hidden />
+      <Icon
+        size={24}
+        strokeWidth={1}
+        aria-hidden
+        className={fill ? "fill-primary" : ""}
+      />
     </span>
   );
 };
@@ -146,6 +152,7 @@ const KeyEditor: React.FC<KeyEditorProps> = ({
 
 interface SecretKeyFieldProps {
   icon: IconType;
+  fillIcon?: boolean;
   label: string;
   description: string;
   placeholder: string;
@@ -160,6 +167,7 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
   placeholder,
   value,
   onSave,
+  fillIcon,
 }) => {
   const [editing, setEditing] = useState(false);
 
@@ -182,7 +190,7 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
     <div className="flex flex-col">
       <div className="flex items-center justify-between gap-4 px-4 py-3.5">
         <div className="flex min-w-0 items-center gap-3">
-          <KeyIcon icon={icon} active={configured} />
+          <KeyIcon fill={fillIcon} icon={icon} active={configured} />
           <div className="flex min-w-0 flex-col gap-0.5">
             <span className="text-[13px] font-medium text-foreground">
               {label}
@@ -321,6 +329,7 @@ export const ChatSettingsTab: React.FC = () => {
       <SettingsSection title="Keys" description="Stored on this device.">
         <SettingsCard>
           <SecretKeyField
+            fillIcon
             icon={TbBrandVercel}
             label="Gateway"
             description="Vercel AI gateway key."
@@ -383,7 +392,9 @@ export const ChatSettingsTab: React.FC = () => {
               >
                 <SelectValue placeholder="Select a persona" />
               </SelectTrigger>
-              <SelectContent position="item-aligned">{personaItems}</SelectContent>
+              <SelectContent position="item-aligned">
+                {personaItems}
+              </SelectContent>
             </Select>
           </SettingRow>
 

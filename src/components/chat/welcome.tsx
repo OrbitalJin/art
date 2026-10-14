@@ -7,7 +7,7 @@ import { useSessionStore } from "@/lib/store/use-session-store";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { modelById } from "@/lib/ai/models";
 import { TOOL_GROUPS } from "./prompt/agent/configure-menu/groups";
-import { serviceById } from "@/lib/services/catalog";
+import { groupAnyEnabled } from "./prompt/agent/configure-menu/helpers";
 import { useChatInput } from "@/contexts/chat-context";
 
 interface Props {
@@ -183,14 +183,9 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const tools = useMemo(() => {
     if (!isAgent || !activeSession) return [];
 
-    return TOOL_GROUPS.flatMap((group) => {
-      if (activeSession.groups?.[group.key] !== true) return [];
-      const service = group.service ? serviceById(group.service) : undefined;
-      if (service && !service.noAuth && connections[service.id]?.isActive !== true) {
-        return [];
-      }
-      return [group.label];
-    });
+    return TOOL_GROUPS.flatMap((group) =>
+      groupAnyEnabled(activeSession, group, connections) ? [group.label] : [],
+    );
   }, [isAgent, activeSession, connections]);
 
   const recents = useMemo(() => {

@@ -6,16 +6,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { Session } from "@/lib/store/session/types";
-import type { Category } from "./groups";
+import type { Category, ToolGroup } from "./groups";
 import { cn } from "@/lib/utils";
 import { CategoryPage } from "./category-page";
 import { FilesPage } from "./files-page";
 import { MainPage } from "./main-page";
+import { ServiceToolsPage } from "./service-tools-page";
 
 type MenuPage =
   | { name: "main" }
   | { name: "category"; category: Category }
-  | { name: "files"; category: Category };
+  | { name: "files"; category: Category }
+  | { name: "service"; category: Category; group: ToolGroup };
 
 const MAIN_PAGE: MenuPage = { name: "main" };
 
@@ -76,6 +78,20 @@ export const ConfigureMenu: React.FC<{
           session={session}
           onBack={() => setPage(MAIN_PAGE)}
           onOpenFiles={() => setPage({ name: "files", category })}
+          onOpenGroupTools={(group) =>
+            setPage({ name: "service", category, group })
+          }
+          onToggle={onToggle}
+        />
+      );
+    }
+
+    if (page.name === "service") {
+      return (
+        <ServiceToolsPage
+          group={page.group}
+          session={session}
+          onBack={() => setPage({ name: "category", category: page.category })}
           onToggle={onToggle}
         />
       );

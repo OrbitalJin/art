@@ -20,11 +20,7 @@ export const toolsFor = async (session: Session): Promise<ToolSet> => {
   const on = session.groups;
 
   if (session.type === "chat") {
-    const search = await searchTools();
-    return {
-      ...cherryPick(search, SearchTools.web),
-      ...cherryPick(search, SearchTools.fetch),
-    };
+    return searchFor(session);
   }
 
   const search = await searchFor(session);

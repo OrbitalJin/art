@@ -358,6 +358,7 @@ export interface SessionState {
   addFolder: (id: string, root: FsRoot) => void;
   removeFolder: (id: string, folderId: string) => void;
   setGroup: (id: string, key: string, value: boolean) => void;
+  setGroups: (id: string, groups: SessionGroups) => void;
   disableAllGroups: (id: string) => void;
   setActive: (id: string) => void;
   deleteFn: (id: string) => void;
@@ -432,6 +433,16 @@ export const useSessionStore = create<SessionState>()(
                   ...session,
                   groups: { ...session.groups, [key]: value },
                 }
+              : session,
+          ),
+        }));
+      },
+
+      setGroups: (id: string, groups: SessionGroups) => {
+        set((state) => ({
+          sessions: state.sessions.map((session) =>
+            session.id === id
+              ? { ...session, groups: { ...session.groups, ...groups } }
               : session,
           ),
         }));

@@ -12,6 +12,12 @@ export interface ToolGroup {
   source: Source;
   /** Composio service id; set for `source: "service"` groups. */
   service?: string;
+  /**
+   * Child tool groups. When set, this group is a collapsed service whose state
+   * is derived from its children: it is on only when every child is on. The
+   * parent key itself is never stored in `session.groups`.
+   */
+  children?: ToolGroup[];
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
@@ -30,7 +36,7 @@ export const CATEGORY_ORDER: Category[] = [
   "art",
 ];
 
-const SEARCH_GROUPS: ToolGroup[] = [
+export const SEARCH_GROUPS: ToolGroup[] = [
   {
     key: SearchTools.web,
     service: SERVICES.search.id,
@@ -81,7 +87,7 @@ const SEARCH_GROUPS: ToolGroup[] = [
   },
 ];
 
-const GMAIL_GROUPS: ToolGroup[] = [
+export const GMAIL_TOOL_GROUPS: ToolGroup[] = [
   {
     key: GmailTools.fetchEmails,
     service: SERVICES.gmail.id,
@@ -116,9 +122,23 @@ const GMAIL_GROUPS: ToolGroup[] = [
   },
 ];
 
+/**
+ * Collapsed Gmail service row. Its enabled state is derived from
+ * `GMAIL_TOOL_GROUPS`; the parent key (`gmail`) is never persisted.
+ */
+export const GMAIL_GROUP: ToolGroup = {
+  key: SERVICES.gmail.id,
+  service: SERVICES.gmail.id,
+  label: SERVICES.gmail.label,
+  description: SERVICES.gmail.description,
+  category: "integrations",
+  source: "service",
+  children: GMAIL_TOOL_GROUPS,
+};
+
 export const TOOL_GROUPS: ToolGroup[] = [
   ...SEARCH_GROUPS,
-  ...GMAIL_GROUPS,
+  GMAIL_GROUP,
   {
     key: "tasks",
     label: "Tasks",

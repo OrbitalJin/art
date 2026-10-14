@@ -1,14 +1,15 @@
 import { ChevronLeft } from "lucide-react";
 import type { Session } from "@/lib/store/session/types";
-import { CATEGORY_LABELS, type Category } from "./groups";
+import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
 import { GroupRow } from "./rows";
 import { groupsInCategory } from "./helpers";
 
-export const SubPageHeader: React.FC<{ title: string; onBack: () => void }> = ({
-  title,
-  onBack,
-}) => (
-  <div className="flex items-center gap-1 border-b border-border/50 py-2 pr-3.5 pl-2">
+export const SubPageHeader: React.FC<{
+  title: string;
+  onBack: () => void;
+  trailing?: React.ReactNode;
+}> = ({ title, onBack, trailing }) => (
+  <div className="flex items-center gap-1 border-b border-border/50 py-2 pr-2 pl-2">
     <button
       type="button"
       onClick={onBack}
@@ -18,6 +19,7 @@ export const SubPageHeader: React.FC<{ title: string; onBack: () => void }> = ({
       <ChevronLeft size={16} aria-hidden />
     </button>
     <p className="text-[13px] font-medium text-foreground">{title}</p>
+    {trailing ? <div className="ml-auto flex items-center">{trailing}</div> : null}
   </div>
 );
 
@@ -26,8 +28,16 @@ export const CategoryPage: React.FC<{
   session: Session;
   onBack: () => void;
   onOpenFiles: () => void;
+  onOpenGroupTools: (group: ToolGroup) => void;
   onToggle: (key: string, value: boolean) => void;
-}> = ({ category, session, onBack, onOpenFiles, onToggle }) => {
+}> = ({
+  category,
+  session,
+  onBack,
+  onOpenFiles,
+  onOpenGroupTools,
+  onToggle,
+}) => {
   const groups = groupsInCategory(category);
 
   return (
@@ -41,6 +51,7 @@ export const CategoryPage: React.FC<{
             group={group}
             session={session}
             onOpenFiles={onOpenFiles}
+            onOpenTools={() => onOpenGroupTools(group)}
             onToggle={onToggle}
           />
         ))}

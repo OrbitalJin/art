@@ -18,15 +18,50 @@ export const selectableRowClasses = (active: boolean): string =>
 export const isConnected = (connections: Connections, service: string): boolean =>
   connections[service]?.isActive === true;
 
+/** The `session.groups` keys that back a group (children for service groups). */
+export const groupToolKeys = (group: ToolGroup): string[] =>
+  group.children?.length ? group.children.map((child) => child.key) : [group.key];
+
+export const serviceConnected = (
+  group: ToolGroup,
+  connections: Connections,
+): boolean => {
+  const service = group.service ? serviceById(group.service) : undefined;
+  if (!service || service.noAuth) return true;
+  return isConnected(connections, service.id);
+};
+
 export const groupEnabled = (
   session: Session,
   group: ToolGroup,
   connections: Connections,
 ): boolean => {
-  if (session.groups?.[group.key] !== true) return false;
-  const service = group.service ? serviceById(group.service) : undefined;
-  if (service && !service.noAuth) return isConnected(connections, service.id);
-  return true;
+  if (!serviceConnected(group, connections)) return false;
+  return groupToolKeys(group).every(
+    (key) => session.groups?.[key] === true,
+  );
+};
+
+/** True when at least one tool of the group is enabled. */
+export const groupAnyEnabled = (
+  session: Session,
+  group: ToolGroup,
+  connections: Connections,
+): boolean => {
+  if (!serviceConnected(group, connections)) return false;
+  return groupToolKeys(group).some((key) => session.groups?.[key] === true);
+};
+
+/** True when some but not all tools of the group are enabled. */
+export const groupPartiallyEnabled = (
+  session: Session,
+  group: ToolGroup,
+  connections: Connections,
+): boolean => {
+  if (!serviceConnected(group, connections)) return false;
+  const keys = groupToolKeys(group);
+  const on = keys.filter((key) => session.groups?.[key] === true).length;
+  return on > 0 && on < keys.length;
 };
 
 export const groupActive = (
