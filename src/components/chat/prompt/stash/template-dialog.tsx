@@ -7,6 +7,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -83,20 +93,63 @@ export const TemplateDialog = ({
   open,
   onOpenChange,
   onInsert,
-}: Props) => (
-  <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="sm:max-w-[480px]">
-      {open && entry && (
-        <TemplateFields
-          key={entry.id}
-          entry={entry}
-          onCancel={() => onOpenChange(false)}
-          onInsert={(text) => {
-            onInsert(text);
-            onOpenChange(false);
-          }}
-        />
-      )}
-    </DialogContent>
-  </Dialog>
-);
+}: Props) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const requestClose = () => setConfirmOpen(true);
+
+  const confirmClose = () => {
+    setConfirmOpen(false);
+    onOpenChange(false);
+  };
+
+  return (
+    <>
+      <Dialog
+        open={open}
+        onOpenChange={(value) => {
+          if (!value) {
+            requestClose();
+            return;
+          }
+          onOpenChange(true);
+        }}
+      >
+        <DialogContent
+          className="sm:max-w-[480px]"
+          onPointerDownOutside={(event) => event.preventDefault()}
+          onEscapeKeyDown={(event) => event.preventDefault()}
+        >
+          {open && entry && (
+            <TemplateFields
+              key={entry.id}
+              entry={entry}
+              onCancel={requestClose}
+              onInsert={(text) => {
+                onInsert(text);
+                onOpenChange(false);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close without inserting?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Any values you entered won't be inserted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmClose}>
+              Discard
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};

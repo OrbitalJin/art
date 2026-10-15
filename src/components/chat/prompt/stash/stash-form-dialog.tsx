@@ -159,9 +159,7 @@ const StashFormFields: React.FC<{
         <DialogTitle>
           {entry ? "Edit saved prompt" : "Save to stash"}
         </DialogTitle>
-        <DialogDescription>
-          Reuse prompts in agent mode. Add {"{{placeholders}}"} for templates.
-        </DialogDescription>
+        <DialogDescription>Reuse prompts in agent mode.</DialogDescription>
       </DialogHeader>
 
       <div className="flex flex-col gap-4">
@@ -214,9 +212,7 @@ const StashFormFields: React.FC<{
       </div>
 
       <DialogFooter className="items-center sm:justify-between">
-        <span className="hidden text-[11px] text-muted-foreground sm:block">
-          Ctrl/⌘ ↵ to save
-        </span>
+        <div />
         <div className="flex gap-2">
           <Button variant="outline" onClick={onDone}>
             Cancel
