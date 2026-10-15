@@ -32,7 +32,7 @@ export const UpdaterDialog = () => {
           className="relative h-10 w-10 text-muted-foreground transition-colors hover:text-foreground"
         >
           <CloudDownload
-            className={status === "available" ? "text-green-400" : ""}
+            className={status === "available" ? "text-green-400" : "opacity-70"}
           />
           {status === "available" && (
             <div className="absolute top-0 right-0 h-1 w-1 rounded-full opacity-80 bg-green-400 animate-ping" />

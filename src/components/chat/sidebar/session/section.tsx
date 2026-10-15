@@ -25,8 +25,8 @@ export const SessionSection: React.FC<Props> = ({
       <div
         className={cn(
           "flex items-center justify-between p-2",
-          "hover:text-foreground transition-colors",
-          "text-xs font-medium text-muted-foreground cursor-pointer select-none",
+          "hover:text-foreground transition-colors tracking-wide",
+          "text-xs font-medium text-muted-foreground/50 cursor-pointer select-none",
         )}
         onClick={() => setOpen(!open)}
       >
@@ -37,7 +37,7 @@ export const SessionSection: React.FC<Props> = ({
             <Pin className="h-3 w-3 text-primary" />
           ) : null}
           <span>{title}</span>
-          <span className="text-muted-foreground/60">({count})</span>
+          <span>({count})</span>
         </div>
         <ChevronRight className={cn("h-3 w-3", open && "rotate-90")} />
       </div>

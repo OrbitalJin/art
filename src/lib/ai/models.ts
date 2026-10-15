@@ -2,13 +2,7 @@ export type ModelTier = 1 | 2 | 3;
 export type ModelId = "model-1" | "model-2" | "model-3";
 
 export type ModelType =
-  | "deepseek/deepseek-v4-flash"
-  | "deepseek/deepseek-v4.1-flash"
-  | "deepseek/deepseek-v4-pro"
-  | "zai/glm-5.3-flash"
-  | "anthropic/claude-haiku-5.5"
-  | "alibaba/qwen3.5-flash"
-  | "alibaba/qwen3.7-plus";
+  "deepseek/deepseek-v4.1-flash" | "zai/glm-5.3-flash" | "openai/gpt-6-luna";
 
 export type Model = {
   id: ModelId;
@@ -41,7 +35,7 @@ export const MODELS: readonly Model[] = [
   {
     tier: 3,
     id: "model-3",
-    type: "anthropic/claude-haiku-5.5",
+    type: "openai/gpt-6-luna",
     displayName: "Chopin",
     description:
       "Most capable and deliberate. Best for nuanced reasoning, polished writing, and more demanding tasks.",

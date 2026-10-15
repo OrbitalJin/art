@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Palette,
-  Settings2,
+  Settings,
   UserCircle,
   MessageCircle,
   RotateCcw,
@@ -100,7 +100,7 @@ export const SettingsDialog = () => {
           )}
           aria-label="Settings"
         >
-          <Settings2 size={20} />
+          <Settings className="opacity-70" />
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 scrollbar-none overflow-scroll p-0">

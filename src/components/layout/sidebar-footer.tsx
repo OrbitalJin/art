@@ -16,16 +16,23 @@ const MusicMenu = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Music player"
-          className="size-10 text-muted-foreground hover:text-foreground"
-        >
-          <Music className={cn(playing && "animate-pulse text-primary")} />
-        </Button>
-      </DropdownMenuTrigger>
+      {playing && (
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Music player"
+            className="size-10 text-muted-foreground hover:text-foreground"
+          >
+            <Music
+              className={cn(
+                "opacity-70",
+                playing && "animate-pulse text-primary",
+              )}
+            />
+          </Button>
+        </DropdownMenuTrigger>
+      )}
       <DropdownMenuContent
         side="left"
         className="w-auto border-none bg-card/10 p-0 shadow-none backdrop-blur-xl"

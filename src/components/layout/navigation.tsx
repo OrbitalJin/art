@@ -44,7 +44,7 @@ const NavItem = ({ item, selected }: NavItemProps) => {
         selected && "text-primary",
       )}
     >
-      <Icon size={20} />
+      <Icon className="opacity-70" />
     </Button>
   );
 };
