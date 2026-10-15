@@ -43,69 +43,52 @@ export const extractVideoId = (input: string): string | null => {
   return null;
 };
 
-const SEGMENT_LINE = /^\[(\d{1,2}:\d{2}(?::\d{2})?)\]\s*(.*)$/;
+/** 75 -> `1:15`, 3725 -> `1:02:05`. */
+export const formatTimestamp = (totalSeconds: number): string => {
+  const whole = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(whole / 3600);
+  const minutes = Math.floor((whole % 3600) / 60);
+  const seconds = whole % 60;
+  const paddedSeconds = String(seconds).padStart(2, "0");
 
-const toSeconds = (timestamp: string): number => {
-  const parts = timestamp.split(":").map((part) => Number(part));
-  return parts.reduce((total, part) => total * 60 + part, 0);
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${paddedSeconds}`;
+  }
+
+  return `${minutes}:${paddedSeconds}`;
 };
 
-export interface ParsedTranscript {
-  title?: string;
-  language?: string;
-  duration?: string;
-  words?: number;
-  otherLanguages?: string[];
-  segments: TranscriptSegment[];
+interface Json3Seg {
+  utf8?: string;
+}
+
+interface Json3Event {
+  tStartMs?: number;
+  aAppend?: number;
+  segs?: Json3Seg[];
 }
 
 /**
- * Parses the markdown document returned by youtube-transcript.ai into a
- * metadata header plus timestamped segments.
+ * Turns a `fmt=json3` timedtext payload into timestamped segments. The header
+ * event and `aAppend` line-break events carry no spoken text and are skipped.
+ * The `>>` speaker marker is left in the text for the renderer to split on.
  */
-export const parseTranscript = (markdown: string): ParsedTranscript => {
-  const result: ParsedTranscript = { segments: [] };
+export const parseJson3 = (data: unknown): TranscriptSegment[] => {
+  const events = (data as { events?: Json3Event[] } | null)?.events ?? [];
+  const segments: TranscriptSegment[] = [];
 
-  for (const raw of markdown.split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line) continue;
+  for (const event of events) {
+    if (event.aAppend || !event.segs) continue;
 
-    if (line.startsWith("# Transcript:")) {
-      result.title = line.slice("# Transcript:".length).trim() || undefined;
-      continue;
-    }
+    const text = event.segs
+      .map((seg) => seg.utf8 ?? "")
+      .join("")
+      .trim();
+    if (!text) continue;
 
-    if (line.startsWith("Language:")) {
-      const meta = line.slice("Language:".length);
-      const language = meta.split("·")[0]?.trim();
-      if (language) result.language = language;
-
-      const duration = meta.match(/Duration:\s*([^·]+)/);
-      if (duration) result.duration = duration[1].trim();
-
-      const words = meta.match(/Words:\s*([\d,]+)/);
-      if (words) result.words = Number(words[1].replace(/,/g, ""));
-      continue;
-    }
-
-    if (line.startsWith("Other available languages:")) {
-      result.otherLanguages = line
-        .slice("Other available languages:".length)
-        .split(",")
-        .map((entry) => entry.trim())
-        .filter(Boolean);
-      continue;
-    }
-
-    const segment = SEGMENT_LINE.exec(line);
-    if (segment) {
-      result.segments.push({
-        timestamp: segment[1],
-        seconds: toSeconds(segment[1]),
-        text: segment[2].trim(),
-      });
-    }
+    const seconds = (event.tStartMs ?? 0) / 1000;
+    segments.push({ timestamp: formatTimestamp(seconds), seconds, text });
   }
 
-  return result;
+  return segments;
 };

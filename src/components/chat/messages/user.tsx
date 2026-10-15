@@ -377,8 +377,8 @@ export const UserMessage: React.FC<Message> = (message) => {
             <div
               className={cn(
                 "max-w-[85%] min-w-0 rounded-2xl rounded-tr-md px-4 py-2.5",
-                "bg-muted/60 text-[15px] leading-relaxed text-foreground/90",
-                "ring-1 ring-border/30",
+                "bg-card/50 text-[15px] leading-relaxed text-foreground/90",
+                "border border-border/40",
               )}
             >
               <Renderer content={content} />

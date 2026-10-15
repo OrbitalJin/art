@@ -5,5 +5,5 @@ export const nativeFetch: typeof globalThis.fetch = async (input, init) => {
   if (!headers.has("User-Agent")) {
     headers.set("User-Agent", "Mozilla/5.0");
   }
-  return tauriFetch(input as string, { ...init, headers });
+  return tauriFetch(input, { ...init, headers });
 };

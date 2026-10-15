@@ -30,11 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import type { IconType } from "react-icons";
-import {
-  TbBrandVercelFilled,
-  TbBrandYoutube,
-  TbPlugConnected,
-} from "react-icons/tb";
+import { TbBrandVercelFilled, TbPlugConnected } from "react-icons/tb";
 import { toast } from "sonner";
 import { ConnectionsSettings } from "./connections";
 import {
@@ -284,8 +280,6 @@ export const ChatSettingsTab: React.FC = () => {
   const setComposioApiKey = useSettingsStore(
     (state) => state.setComposioApiKey,
   );
-  const youtubeApiKey = useSettingsStore((state) => state.youtubeApiKey);
-  const setYoutubeApiKey = useSettingsStore((state) => state.setYoutubeApiKey);
   const defaultModel = useSettingsStore((state) => state.defaultModel);
   const setDefaultModel = useSettingsStore((state) => state.setDefaultModel);
   const defaultAgentModel = useSettingsStore(
@@ -346,14 +340,6 @@ export const ChatSettingsTab: React.FC = () => {
             placeholder="secret key"
             value={composioApiKey}
             onSave={setComposioApiKey}
-          />
-          <SecretKeyField
-            icon={TbBrandYoutube}
-            label="YouTube"
-            description="Transcript key for youtube-transcript.ai."
-            placeholder="secret key"
-            value={youtubeApiKey}
-            onSave={setYoutubeApiKey}
           />
         </SettingsCard>
       </SettingsSection>

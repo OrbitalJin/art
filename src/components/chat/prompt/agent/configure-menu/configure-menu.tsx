@@ -45,7 +45,6 @@ export const ConfigureMenu: React.FC<{
 }) => {
   const syncConnections = useConnectionsStore((state) => state.syncConnections);
   const hasComposio = useHasKey("composio");
-  const hasYoutube = useHasKey("youtube");
   const contentRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState<MenuPage>(MAIN_PAGE);
@@ -123,8 +122,6 @@ export const ConfigureMenu: React.FC<{
   const missingKeys: KeyType[] = [];
   if (visibleGroups.some((g) => g.requiresKey === "composio") && !hasComposio)
     missingKeys.push("composio");
-  if (visibleGroups.some((g) => g.requiresKey === "youtube") && !hasYoutube)
-    missingKeys.push("youtube");
 
   return (
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>

@@ -8,12 +8,11 @@ import { DEFAULT_PERSONA, type PersonaId } from "../ai/prompts/personas";
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
 
-export type KeyType = "gateway" | "composio" | "youtube";
+export type KeyType = "gateway" | "composio";
 
 export const KEY_LABELS: Record<KeyType, string> = {
   gateway: "Gateway",
   composio: "Connections",
-  youtube: "YouTube",
 };
 
 export interface UserProfile {
@@ -35,7 +34,6 @@ interface SettingsState {
   apiKey: string;
   composioApiKey: string;
   composioUserId: string;
-  youtubeApiKey: string;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
@@ -49,7 +47,6 @@ interface SettingsState {
 
   setApiKey: (key: string) => void;
   setComposioApiKey: (key: string) => void;
-  setYoutubeApiKey: (key: string) => void;
   ensureComposioUserId: () => string;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
@@ -86,7 +83,6 @@ const initialState = {
   apiKey: "",
   composioApiKey: "",
   composioUserId: "",
-  youtubeApiKey: "",
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
@@ -105,7 +101,6 @@ export const useSettingsStore = create<SettingsState>()(
       ...initialState,
       setApiKey: (key: string) => set({ apiKey: key }),
       setComposioApiKey: (key: string) => set({ composioApiKey: key }),
-      setYoutubeApiKey: (key: string) => set({ youtubeApiKey: key }),
       ensureComposioUserId: () => {
         const existing = get().composioUserId;
         if (existing) return existing;
@@ -135,7 +130,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 10,
+      version: 11,
       storage: createJSONStorage(() => settingsStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -198,14 +193,6 @@ export const useSettingsStore = create<SettingsState>()(
             if (state.composioUserId === undefined) state.composioUserId = "";
           }
         }
-        if (version < 7) {
-          const state = persistedState as {
-            youtubeApiKey?: string;
-          };
-          if (state) {
-            if (state.youtubeApiKey === undefined) state.youtubeApiKey = "";
-          }
-        }
         if (version < 8) {
           const state = persistedState as { searchApiKey?: string };
           if (state) delete state.searchApiKey;
@@ -225,6 +212,10 @@ export const useSettingsStore = create<SettingsState>()(
           const state = persistedState as { transcriptProvider?: string };
           if (state) delete state.transcriptProvider;
         }
+        if (version < 11) {
+          const state = persistedState as { youtubeApiKey?: string };
+          if (state) delete state.youtubeApiKey;
+        }
         return persistedState as SettingsState;
       },
     },
@@ -237,7 +228,5 @@ export const useHasKey = (type?: KeyType): boolean =>
       ? state.apiKey.length > 0
       : type === "composio"
         ? state.composioApiKey.length > 0
-        : type === "youtube"
-          ? state.youtubeApiKey.length > 0
-          : true,
+        : true,
   );

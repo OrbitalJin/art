@@ -180,6 +180,5 @@ export const TOOL_GROUPS: ToolGroup[] = [
     category: "integrations",
     source: "local",
     icon: TbBrandYoutube,
-    requiresKey: "youtube",
   },
 ];

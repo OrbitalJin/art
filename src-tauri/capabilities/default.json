@@ -42,8 +42,7 @@
       "allow": [
         { "url": "https://api.exa.ai" },
         { "url": "https://ai-gateway.vercel.sh" },
-        { "url": "https://backend.composio.dev" },
-        { "url": "https://youtube-transcript.ai" }
+        { "url": "https://backend.composio.dev" }
       ]
     }
   ]
