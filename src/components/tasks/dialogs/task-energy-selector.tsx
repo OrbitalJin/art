@@ -14,7 +14,6 @@ export const TaskEnergySelector: React.FC<TaskEnergySelectorProps> = ({
 }) => (
   <div className="space-y-2">
     <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <Zap className="h-3 w-3" />
       Energy Required
     </label>
     <div

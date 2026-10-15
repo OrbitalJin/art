@@ -37,8 +37,7 @@ export const CalendarView: React.FC<Props> = ({
   return (
     <div className="flex h-full flex-col gap-2">
       <div className="flex items-center justify-between bg-card/50 px-2 py-1 rounded-md border border-border/50">
-        <div className="flex items-center">
-          <h2 className="">{format(currentMonth, "MMMM yyyy")}</h2>
+        <div className="flex items-center gap-2">
           <div className="flex items-center">
             <Button
               variant="ghost"
@@ -57,6 +56,7 @@ export const CalendarView: React.FC<Props> = ({
               <ChevronRight className="size-4" />
             </Button>
           </div>
+          <h2 className="">{format(currentMonth, "MMMM yyyy")}</h2>
         </div>
         <Button variant="ghost" onClick={goToToday}>
           Today

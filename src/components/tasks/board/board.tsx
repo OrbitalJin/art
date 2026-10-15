@@ -215,7 +215,7 @@ export const TaskBoard = ({ tasks, onEdit }: TaskBoardProps) => {
     >
       <div className="relative flex h-full flex-col overflow-hidden">
         {isLargeScreen ? (
-          <div className="grid h-full grid-cols-3 gap-3 overflow-hidden">
+          <div className="grid h-full grid-cols-3 gap-2 overflow-hidden">
             {COLUMNS.map((colId) => (
               <BoardColumn
                 key={colId}

@@ -1,4 +1,3 @@
-import { AlignLeft } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
 interface TaskDescriptionFieldProps {
@@ -12,7 +11,6 @@ export const TaskDescriptionField: React.FC<TaskDescriptionFieldProps> = ({
 }) => (
   <div className="w-full min-w-0 space-y-2">
     <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <AlignLeft className="h-3 w-3 shrink-0" />
       <span className="min-w-0">Description</span>
     </label>
 

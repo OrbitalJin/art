@@ -1,4 +1,3 @@
-import { Type } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface TaskTitleFieldProps {
@@ -12,7 +11,6 @@ export const TaskTitleField: React.FC<TaskTitleFieldProps> = ({
 }) => (
   <div className="space-y-2">
     <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <Type className="h-3 w-3" />
       Title
     </label>
     <Input

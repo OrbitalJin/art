@@ -203,6 +203,7 @@ Bento-style task board with drag-and-drop organization.
 ### Planned
 
 - [ ] Add support for skills
+- [ ] Math render tool
 - [ ] Custom renderer per tool for write approval (similar to tool calls)
 - [ ] Make ui more consistent
 - [ ] Make todo expandable in agent bar

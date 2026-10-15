@@ -1,6 +1,6 @@
 import * as React from "react";
 import { format, parseISO } from "date-fns";
-import { Link, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -100,15 +100,15 @@ export function TaskDependenciesPopover({
   return (
     <div className="col-span-2 space-y-2">
       <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Link className="h-3 w-3" />
         Dependencies
       </label>
 
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="relative w-full justify-start">
-            <Link className="mr-2 h-4 w-4" />
-            <span className="truncate text-left">{triggerText}</span>
+            <span className="truncate text-left text-muted-foreground">
+              {triggerText}
+            </span>
 
             {selectedTasks.length > 0 && (
               <span

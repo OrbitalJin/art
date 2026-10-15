@@ -10,7 +10,7 @@ export const TaskFormHeader: React.FC<TaskFormHeaderProps> = ({
   mode,
   children,
 }) => (
-  <DialogHeader className="border-b bg-muted/30 px-6 pt-6 pb-4">
+  <DialogHeader className="border-b border-border/50 px-6 pt-6 pb-4">
     <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
       {mode === "edit" ? "Edit Task" : "New Task"}
     </DialogTitle>

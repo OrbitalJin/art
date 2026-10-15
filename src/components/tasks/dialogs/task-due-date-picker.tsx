@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { CalendarIcon, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -22,7 +22,6 @@ export const TaskDueDatePicker: React.FC<TaskDueDatePickerProps> = ({
 }) => (
   <div className="space-y-2">
     <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <CalendarIcon className="h-3 w-3" />
       Due Date
     </label>
     <div className="flex w-full flex-row gap-1">
@@ -31,7 +30,7 @@ export const TaskDueDatePicker: React.FC<TaskDueDatePickerProps> = ({
           <Button
             variant="outline"
             className={cn(
-              "flex-1 justify-start text-left font-normal",
+              "flex-1 justify-start text-left font-normal h-9",
               !value && "text-muted-foreground",
             )}
           >
@@ -54,6 +53,7 @@ export const TaskDueDatePicker: React.FC<TaskDueDatePickerProps> = ({
         variant="outline"
         onClick={() => onChange(null)}
         type="button"
+        className="h-9 w-9"
       >
         <X />
       </Button>
