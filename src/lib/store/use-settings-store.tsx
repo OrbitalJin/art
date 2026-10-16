@@ -8,11 +8,12 @@ import { DEFAULT_PERSONA, type PersonaId } from "../ai/prompts/personas";
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
 
-export type KeyType = "gateway" | "composio";
+export type KeyType = "gateway" | "composio" | "uploads";
 
 export const KEY_LABELS: Record<KeyType, string> = {
   gateway: "Gateway",
   composio: "Connections",
+  uploads: "Uploads",
 };
 
 export interface UserProfile {
@@ -34,6 +35,7 @@ interface SettingsState {
   apiKey: string;
   composioApiKey: string;
   composioUserId: string;
+  uploadSecret: string;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
@@ -47,6 +49,7 @@ interface SettingsState {
 
   setApiKey: (key: string) => void;
   setComposioApiKey: (key: string) => void;
+  setUploadSecret: (secret: string) => void;
   ensureComposioUserId: () => string;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
@@ -83,6 +86,7 @@ const initialState = {
   apiKey: "",
   composioApiKey: "",
   composioUserId: "",
+  uploadSecret: "",
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
@@ -101,6 +105,7 @@ export const useSettingsStore = create<SettingsState>()(
       ...initialState,
       setApiKey: (key: string) => set({ apiKey: key }),
       setComposioApiKey: (key: string) => set({ composioApiKey: key }),
+      setUploadSecret: (secret: string) => set({ uploadSecret: secret }),
       ensureComposioUserId: () => {
         const existing = get().composioUserId;
         if (existing) return existing;
@@ -228,5 +233,7 @@ export const useHasKey = (type?: KeyType): boolean =>
       ? state.apiKey.length > 0
       : type === "composio"
         ? state.composioApiKey.length > 0
-        : true,
+        : type === "uploads"
+          ? state.uploadSecret.length > 0
+          : true,
   );

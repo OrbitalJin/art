@@ -73,6 +73,29 @@ export interface MessageAttachment {
   file?: File;
 }
 
+/**
+ * A chat attachment whose bytes live in remote storage (PocketBase). Only
+ * lightweight metadata is persisted in the session JSON.
+ *
+ * `status`, `localUrl`, and `localFile` are transient: they exist while the
+ * attachment lives in the draft store and must be stripped before the
+ * attachment is written to a message.
+ *
+ * `url` is absolute while the attachment is in the draft, but is persisted as a
+ * root-relative reference (domain stripped) so it survives a domain change;
+ * resolve it with `resolveAttachmentUrl` before use.
+ */
+export interface ChatAttachment {
+  id: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  status?: "uploading" | "done" | "error";
+  localUrl?: string;
+  localFile?: File;
+}
+
 export interface TokenUsage {
   input: number;
   output: number;
@@ -88,7 +111,7 @@ export interface Message {
   status?: MessageStatus;
   modelId?: ModelId;
   reasoning?: string;
-  attachments?: MessageAttachment[];
+  attachments?: ChatAttachment[];
   tokenUsage: TokenUsage;
 }
 
@@ -129,6 +152,7 @@ export interface SessionMeta {
   updatedAt: number;
   titleGenerated?: boolean;
   readOnly?: boolean;
+  legacyMedia?: boolean;
 }
 
 export interface SessionData {

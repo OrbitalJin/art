@@ -7,9 +7,10 @@ import {
   revertMessage,
 } from "@/lib/store/session/commands";
 import type {
+  ChatAttachment,
   Message,
-  MessageAttachment,
 } from "@/lib/store/session/types";
+import { toPersistedAttachment } from "@/lib/upload/pocketbase";
 const loadSendToSession = () => import("@/lib/ai/stream/send-stream");
 import {
   STREAMING_MESSAGE_ID,
@@ -20,13 +21,12 @@ import { useDraft, useDraftStore } from "@/lib/store/use-draft-store";
 interface ChatInputValues {
   prompt: string;
   setPrompt: (value: string) => void;
-  attachments: MessageAttachment[];
-  addAttachment: (attachment: MessageAttachment) => void;
-  removeAttachment: (index: number) => void;
+  attachments: ChatAttachment[];
+  removeAttachment: (id: string) => void;
   clearAttachments: () => void;
   sendMessage: (
     text: string,
-    attachments?: MessageAttachment[],
+    attachments?: ChatAttachment[],
   ) => Promise<void>;
 }
 
@@ -62,16 +62,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     [activeId],
   );
 
-  const addAttachment = useCallback(
-    (attachment: MessageAttachment) => {
-      if (activeId) useDraftStore.getState().addAttachment(activeId, attachment);
-    },
-    [activeId],
-  );
-
   const removeAttachment = useCallback(
-    (index: number) => {
-      if (activeId) useDraftStore.getState().removeAttachment(activeId, index);
+    (id: string) => {
+      if (activeId) useDraftStore.getState().removeAttachment(activeId, id);
     },
     [activeId],
   );
@@ -81,7 +74,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [activeId]);
 
   const sendMessage = useCallback(
-    async (text: string, sendAttachments?: MessageAttachment[]) => {
+    async (text: string, sendAttachments?: ChatAttachment[]) => {
       if (!activeId) return;
       if (useStreamStore.getState().streams[activeId]) {
         toast.info("This session is already generating");
@@ -91,18 +84,22 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         toast.warning("Please enter a message");
         return;
       }
-      const messageAttachments =
-        sendAttachments && sendAttachments.length ? sendAttachments : undefined;
+      const messageAttachments = sendAttachments
+        ?.filter((a) => a.status === undefined || a.status === "done")
+        .map(toPersistedAttachment);
+      const persistedAttachments = messageAttachments?.length
+        ? messageAttachments
+        : undefined;
       await appendMessage(activeId, {
         id: crypto.randomUUID(),
         role: "user",
         parts: [{ type: "text", text }],
-        attachments: messageAttachments,
+        attachments: persistedAttachments,
         tokenUsage: { input: 0, output: 0 },
       });
       useDraftStore.getState().clear(activeId);
       const { sendToSession } = await loadSendToSession();
-      await sendToSession(activeId, text, messageAttachments);
+      await sendToSession(activeId, text, persistedAttachments);
     },
     [activeId],
   );
@@ -161,7 +158,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       prompt,
       setPrompt,
       attachments,
-      addAttachment,
       removeAttachment,
       clearAttachments,
       sendMessage,
@@ -170,7 +166,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       prompt,
       setPrompt,
       attachments,
-      addAttachment,
       removeAttachment,
       clearAttachments,
       sendMessage,

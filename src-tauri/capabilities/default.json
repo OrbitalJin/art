@@ -42,7 +42,8 @@
       "allow": [
         { "url": "https://api.exa.ai" },
         { "url": "https://ai-gateway.vercel.sh" },
-        { "url": "https://backend.composio.dev" }
+        { "url": "https://backend.composio.dev" },
+        { "url": "https://pb.x1c.dev/*" }
       ]
     }
   ]

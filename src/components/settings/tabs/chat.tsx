@@ -23,14 +23,14 @@ import { MODELS, type ModelId } from "@/lib/ai/models";
 import { PERSONAS, type PersonaId } from "@/lib/ai/prompts/personas";
 import { purgeSessions } from "@/lib/store/session/commands";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
-import {
-  ACCESS_MODE_TONES,
-  type AccessMode,
-} from "@/lib/store/session/types";
+import { ACCESS_MODE_TONES, type AccessMode } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import type { IconType } from "react-icons";
-import { TbBrandVercelFilled, TbPlugConnected } from "react-icons/tb";
+import {
+  TbBrandVercelFilled,
+  TbPlugConnected,
+} from "react-icons/tb";
 import { toast } from "sonner";
 import { ConnectionsSettings } from "./connections";
 import {
@@ -42,6 +42,7 @@ import {
   SettingsPage,
   SettingsSection,
 } from "./settings-layout";
+import { Database } from "lucide-react";
 
 const KeyIcon: React.FC<{
   icon: IconType;
@@ -280,6 +281,8 @@ export const ChatSettingsTab: React.FC = () => {
   const setComposioApiKey = useSettingsStore(
     (state) => state.setComposioApiKey,
   );
+  const uploadSecret = useSettingsStore((state) => state.uploadSecret);
+  const setUploadSecret = useSettingsStore((state) => state.setUploadSecret);
   const defaultModel = useSettingsStore((state) => state.defaultModel);
   const setDefaultModel = useSettingsStore((state) => state.setDefaultModel);
   const defaultAgentModel = useSettingsStore(
@@ -340,6 +343,14 @@ export const ChatSettingsTab: React.FC = () => {
             placeholder="secret key"
             value={composioApiKey}
             onSave={setComposioApiKey}
+          />
+          <SecretKeyField
+            icon={Database}
+            label="Uploads"
+            description="Art key for file uploads."
+            placeholder="secret key"
+            value={uploadSecret}
+            onSave={setUploadSecret}
           />
         </SettingsCard>
       </SettingsSection>

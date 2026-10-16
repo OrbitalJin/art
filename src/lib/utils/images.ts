@@ -4,6 +4,7 @@ import { writeFile, remove, BaseDirectory } from "@tauri-apps/plugin-fs";
 
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 export const MAX_MEDIA_SIZE = 5 * 1024 * 1024;
+export const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
 
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -35,6 +36,55 @@ export function getMimeTypeFromPath(path: string): string {
   };
   return mimeTypes[ext || ""] || "image/png";
 }
+
+/**
+ * Extension → MIME map for the attachment types chat accepts: images and PDFs.
+ * Unlike `getMimeTypeFromPath`, this returns `null` for unknown extensions
+ * rather than silently defaulting to an image type.
+ */
+const ATTACHMENT_MIME_BY_EXT: Record<string, string> = {
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  gif: "image/gif",
+  webp: "image/webp",
+  svg: "image/svg+xml",
+  bmp: "image/bmp",
+  avif: "image/avif",
+  pdf: "application/pdf",
+};
+
+export const getMimeTypeFromExtension = (name: string): string | null => {
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  return ATTACHMENT_MIME_BY_EXT[ext] ?? null;
+};
+
+/**
+ * Resolve the MIME type for an attachment, preferring the browser-provided
+ * `file.type` and falling back to the file extension.
+ */
+export const resolveAttachmentMime = (file: File): string => {
+  if (file.type) return file.type;
+  return getMimeTypeFromExtension(file.name) ?? "application/octet-stream";
+};
+
+/** Whether a file can be attached to a chat message (images and PDFs only). */
+export const isSupportedAttachment = (file: File): boolean => {
+  const mime = resolveAttachmentMime(file);
+  return mime.startsWith("image/") || mime === "application/pdf";
+};
+
+/** File extensions accepted by the attach dialog, grouped by type. */
+export const ATTACHMENT_DIALOG_FILTERS = [
+  {
+    name: `Images & PDFs (max ${Math.round(MAX_ATTACHMENT_SIZE / (1024 * 1024))} MB)`,
+    extensions: [...Object.keys(ATTACHMENT_MIME_BY_EXT)],
+  },
+];
+
+/** Human-readable label for a MIME type (e.g. "image/png" → "PNG"). */
+export const attachmentTypeLabel = (mimeType: string): string =>
+  mimeType.split("/")[1]?.toUpperCase() ?? "FILE";
 
 export const isImageMedia = (mediaType: string): boolean =>
   mediaType.startsWith("image/");

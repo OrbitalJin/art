@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import type { MessageAttachment } from "@/lib/store/session/types";
+import type { ChatAttachment } from "@/lib/store/session/types";
 
 export interface Draft {
   prompt: string;
-  attachments: MessageAttachment[];
+  attachments: ChatAttachment[];
 }
 
 const EMPTY_DRAFT: Draft = { prompt: "", attachments: [] };
@@ -11,8 +11,16 @@ const EMPTY_DRAFT: Draft = { prompt: "", attachments: [] };
 interface DraftState {
   drafts: Record<string, Draft>;
   setPrompt: (sessionId: string, value: string) => void;
-  addAttachment: (sessionId: string, attachment: MessageAttachment) => void;
-  removeAttachment: (sessionId: string, index: number) => void;
+  addAttachment: (sessionId: string, attachment: ChatAttachment) => void;
+  updateAttachment: (
+    sessionId: string,
+    id: string,
+    patch: Partial<ChatAttachment>,
+  ) => void;
+  removeAttachment: (
+    sessionId: string,
+    id: string,
+  ) => ChatAttachment | undefined;
   clearAttachments: (sessionId: string) => void;
   clear: (sessionId: string) => void;
   clearAll: () => void;
@@ -25,7 +33,7 @@ const patch = (state: DraftState, sessionId: string, next: Partial<Draft>) => ({
   },
 });
 
-export const useDraftStore = create<DraftState>()((set) => ({
+export const useDraftStore = create<DraftState>()((set, get) => ({
   drafts: {},
 
   setPrompt: (sessionId, value) =>
@@ -39,13 +47,32 @@ export const useDraftStore = create<DraftState>()((set) => ({
       });
     }),
 
-  removeAttachment: (sessionId, index) =>
+  updateAttachment: (sessionId, id, attachmentPatch) =>
     set((state) => {
       const current = state.drafts[sessionId] ?? EMPTY_DRAFT;
       return patch(state, sessionId, {
-        attachments: current.attachments.filter((_, i) => i !== index),
+        attachments: current.attachments.map((attachment) =>
+          attachment.id === id
+            ? { ...attachment, ...attachmentPatch }
+            : attachment,
+        ),
       });
     }),
+
+  removeAttachment: (sessionId, id) => {
+    const current = get().drafts[sessionId] ?? EMPTY_DRAFT;
+    const removed = current.attachments.find((a) => a.id === id);
+    set((state) => ({
+      drafts: {
+        ...state.drafts,
+        [sessionId]: {
+          ...current,
+          attachments: current.attachments.filter((a) => a.id !== id),
+        },
+      },
+    }));
+    return removed;
+  },
 
   clearAttachments: (sessionId) =>
     set((state) => patch(state, sessionId, { attachments: [] })),

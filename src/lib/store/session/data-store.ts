@@ -6,7 +6,34 @@ import {
   readSessionData,
   writeSessionData,
 } from "./adapter";
+import { useSessionIndex } from "./index-store";
 import type { Message, SessionData } from "./types";
+
+interface LegacyAttachment {
+  base64?: unknown;
+}
+
+/**
+ * Pre-attachment sessions stored image bytes inline as base64. Strip those
+ * attachments (the new renderer only understands remote URLs) so the session
+ * file shrinks; the caller flags the session `legacyMedia` to warn the user.
+ */
+const pruneLegacyMedia = (
+  data: SessionData,
+): { data: SessionData; pruned: boolean } => {
+  let pruned = false;
+
+  const messages = data.messages.map((message) => {
+    const hasLegacy = message.attachments?.some(
+      (attachment) => (attachment as LegacyAttachment).base64 !== undefined,
+    );
+    if (!hasLegacy) return message;
+    pruned = true;
+    return { ...message, attachments: undefined };
+  });
+
+  return { data: pruned ? { messages } : data, pruned };
+};
 
 export interface SessionDataState {
   cache: Record<string, SessionData | undefined>;
@@ -27,10 +54,15 @@ export const sessionDataStore = createStore<SessionDataState>()((set, get) => ({
 
   ensure: async (id) => {
     if (get().cache[id] !== undefined) return;
-    const data = await readSessionData(id);
+    const raw = await readSessionData(id);
+    const { data, pruned } = pruneLegacyMedia(raw ?? { messages: [] });
     set((state) => ({
-      cache: { ...state.cache, [id]: data ?? { messages: [] } },
+      cache: { ...state.cache, [id]: data },
     }));
+    if (pruned) {
+      await writeSessionData(id, data);
+      useSessionIndex.getState().updateMeta(id, { legacyMedia: true });
+    }
   },
 
   addMessage: (id, message) => {

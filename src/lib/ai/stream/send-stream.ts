@@ -1,8 +1,8 @@
 import { toast } from "sonner";
 import { createGateway, smoothStream, streamText } from "ai";
 import type {
+  ChatAttachment,
   Message,
-  MessageAttachment,
   MessageStatus,
 } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
@@ -12,6 +12,7 @@ import { appendMessage } from "@/lib/store/session/commands";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { modelTypeById } from "@/lib/ai/models";
 import { generateSessionTitle } from "@/lib/ai/generate-session-title";
+import { resolveAttachmentUrl } from "@/lib/upload/pocketbase";
 import { nativeFetch } from "@/lib/native-fetch";
 import {
   applyStreamEvent,
@@ -25,11 +26,20 @@ import { useQuestionStore } from "@/lib/store/use-question-store";
 import { useTodoStore } from "@/lib/store/use-todo-store";
 import { useStreamStore } from "@/lib/store/use-stream-store";
 
-function attachmentToImagePart(attachment: MessageAttachment) {
+function attachmentToPart(attachment: ChatAttachment) {
+  const url = new URL(resolveAttachmentUrl(attachment.url));
+  if (attachment.mimeType.startsWith("image/")) {
+    return {
+      type: "image" as const,
+      image: url,
+      mediaType: attachment.mimeType,
+    };
+  }
   return {
-    type: "image" as const,
-    image: attachment.base64,
-    mediaType: attachment.mediaType,
+    type: "file" as const,
+    data: url,
+    mediaType: attachment.mimeType,
+    filename: attachment.name,
   };
 }
 
@@ -43,7 +53,7 @@ function toSDKMessages(messages: Message[]) {
           role: "user" as const,
           content: [
             { type: "text" as const, text },
-            ...m.attachments.map(attachmentToImagePart),
+            ...m.attachments.map(attachmentToPart),
           ],
         };
       }
@@ -57,7 +67,7 @@ function toSDKMessages(messages: Message[]) {
 export async function sendToSession(
   sessionId: string,
   text: string,
-  attachments?: MessageAttachment[],
+  attachments?: ChatAttachment[],
 ): Promise<void> {
   const apiKey = useSettingsStore.getState().apiKey;
   if (!apiKey) {
@@ -121,7 +131,7 @@ export async function sendToSession(
     const currentUserContent = attachments?.length
       ? [
           { type: "text" as const, text },
-          ...attachments.map(attachmentToImagePart),
+          ...attachments.map(attachmentToPart),
         ]
       : text;
 

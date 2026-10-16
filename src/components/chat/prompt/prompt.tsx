@@ -1,6 +1,13 @@
 import { useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowUp, Square, X } from "lucide-react";
+import {
+  ArrowUp,
+  File as FileIcon,
+  FileText,
+  RefreshCw,
+  Square,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useHasKey, useSettingsStore } from "@/lib/store/use-settings-store";
@@ -11,7 +18,7 @@ import { WebMenu } from "./web-menu";
 import { ModelSelect } from "@/components/chat/prompt/model-select";
 import { JumpSelect } from "./jump-select";
 import { useSessionIndex } from "@/lib/store/session/index-store";
-import { previewUrl } from "@/lib/utils/images";
+import { attachmentTypeLabel, isPdfMedia } from "@/lib/utils/images";
 import {
   Attachment,
   AttachmentAction,
@@ -28,32 +35,60 @@ import { StashSaveButton } from "./stash/stash-save-button";
 import { AgentBar } from "./agent/bar";
 import { AgentAttention } from "./agent/attention";
 import { KeyNotice } from "./key-notice";
-import { useImportImage } from "@/hooks/use-import-image";
+import { filesFromDataTransfer, useUpload } from "@/hooks/use-upload";
+import { resolveAttachmentUrl } from "@/lib/upload/pocketbase";
+import type { ChatAttachment } from "@/lib/store/session/types";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
 }
 
-type PromptAttachment = ReturnType<typeof useChatInput>["attachments"][number];
+const AttachmentTypeIcon: React.FC<{ mimeType: string }> = ({ mimeType }) => {
+  if (isPdfMedia(mimeType)) return <FileText className="size-3.5" />;
+  return <FileIcon className="size-3.5" />;
+};
 
 const PromptAttachmentItem: React.FC<{
-  attachment: PromptAttachment;
+  attachment: ChatAttachment;
   onRemove: () => void;
-}> = ({ attachment, onRemove }) => {
-  const name = attachment.name ?? "image";
-  const type = attachment.mediaType?.split("/")[1]?.toUpperCase() ?? "IMAGE";
+  onRetry: () => void;
+}> = ({ attachment, onRemove, onRetry }) => {
+  const isImage = attachment.mimeType.startsWith("image/");
+  const preview = attachment.localUrl ?? resolveAttachmentUrl(attachment.url);
+  const state = attachment.status ?? "done";
+
+  const description =
+    attachment.status === "uploading"
+      ? "Uploading…"
+      : attachment.status === "error"
+        ? "Upload failed"
+        : attachmentTypeLabel(attachment.mimeType);
 
   return (
-    <Attachment className="rounded-md" orientation="horizontal" size="xs">
-      <AttachmentMedia variant="image">
-        <img src={previewUrl(attachment)} alt={name} />
+    <Attachment
+      state={state}
+      className="rounded-md"
+      orientation="horizontal"
+      size="xs"
+    >
+      <AttachmentMedia variant={isImage ? "image" : "icon"}>
+        {isImage && preview ? (
+          <img src={preview} alt={attachment.name} />
+        ) : (
+          <AttachmentTypeIcon mimeType={attachment.mimeType} />
+        )}
       </AttachmentMedia>
       <AttachmentContent>
-        <AttachmentTitle>{name}</AttachmentTitle>
-        <AttachmentDescription>{type}</AttachmentDescription>
+        <AttachmentTitle>{attachment.name}</AttachmentTitle>
+        <AttachmentDescription>{description}</AttachmentDescription>
       </AttachmentContent>
       <AttachmentActions>
-        <AttachmentAction onClick={onRemove}>
+        {attachment.status === "error" && (
+          <AttachmentAction onClick={onRetry} aria-label="Retry upload">
+            <RefreshCw className="size-3" />
+          </AttachmentAction>
+        )}
+        <AttachmentAction onClick={onRemove} aria-label="Remove attachment">
           <X className="size-3" />
         </AttachmentAction>
       </AttachmentActions>
@@ -62,15 +97,17 @@ const PromptAttachmentItem: React.FC<{
 };
 
 const PromptAttachments: React.FC<{
-  attachments: PromptAttachment[];
-  onRemove: (index: number) => void;
-}> = ({ attachments, onRemove }) => (
+  attachments: ChatAttachment[];
+  onRemove: (id: string) => void;
+  onRetry: (id: string) => void;
+}> = ({ attachments, onRemove, onRetry }) => (
   <AttachmentGroup className="gap-1 px-3 pt-3">
-    {attachments.map((attachment, index) => (
+    {attachments.map((attachment) => (
       <PromptAttachmentItem
-        key={index}
+        key={attachment.id}
         attachment={attachment}
-        onRemove={() => onRemove(index)}
+        onRemove={() => onRemove(attachment.id)}
+        onRetry={() => onRetry(attachment.id)}
       />
     ))}
   </AttachmentGroup>
@@ -108,25 +145,23 @@ const SendButton: React.FC<{
 };
 
 export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
-  const {
-    prompt,
-    setPrompt,
-    attachments,
-    addAttachment,
-    removeAttachment,
-    sendMessage,
-  } = useChatInput();
+  const { prompt, setPrompt, attachments, sendMessage } = useChatInput();
+  const { ingest, remove, retry, ingestClipboardImage } = useUpload();
   const { abortStream, isSending } = useChatStream();
-  const { importClipboardImage } = useImportImage();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const hasKey = useHasKey("gateway");
+  const hasUploadKey = useHasKey("uploads");
   const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
 
   const isAgent = session?.type === "agent";
   const hasAttachments = attachments.length > 0;
-  const canSend = hasKey && (Boolean(prompt.trim()) || hasAttachments);
+  const attachmentsPending = attachments.some(
+    (a) => a.status === "uploading" || a.status === "error",
+  );
+  const canSend =
+    hasKey && !attachmentsPending && (Boolean(prompt.trim()) || hasAttachments);
   const stopping = isSending;
   const showSendButton = isSending || canSend;
 
@@ -141,7 +176,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   }, [prompt, textAreaRef]);
 
   const handleSend = () => {
-    if (!hasKey) return;
+    if (!hasKey || attachmentsPending) return;
     sendMessage(prompt, attachments);
   };
 
@@ -160,26 +195,20 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
     const data = e.clipboardData;
     if (!data) return;
 
-    const types = Array.from(data.types);
-    const items = Array.from(data.items);
-
-    const hasImage =
-      items.some((item) => item.type.startsWith("image/")) ||
-      types.includes("Files") ||
-      types.some((type) => type.startsWith("image/"));
-    const hasText = types.includes("text/plain") || types.includes("text/html");
-
-    if (hasImage) {
+    const files = filesFromDataTransfer(data);
+    if (files.length) {
+      if (!hasUploadKey) return;
       e.preventDefault();
-      const imported = await importClipboardImage();
-      if (imported) addAttachment(imported);
+      ingest(files);
       return;
     }
 
-    if (hasText) return;
+    const types = Array.from(data.types);
+    if (types.includes("text/plain") || types.includes("text/html")) return;
+    if (!hasUploadKey) return;
 
-    const imported = await importClipboardImage({ silent: true });
-    if (imported) addAttachment(imported);
+    const handled = await ingestClipboardImage();
+    if (handled) e.preventDefault();
   };
 
   const containerClasses = cn(
@@ -208,13 +237,27 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
           </KeyNotice>
         )}
 
+        {!hasUploadKey && (
+          <KeyNotice className="mb-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs">
+            Add an upload key in Settings to attach files.
+          </KeyNotice>
+        )}
+
+        {session?.legacyMedia && (
+          <div className="mb-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
+            This session predates the attachment system — some media may be
+            missing or broken.
+          </div>
+        )}
+
         <div className={containerClasses}>
           {isAgent && <AgentBar />}
 
           {hasAttachments && (
             <PromptAttachments
               attachments={attachments}
-              onRemove={removeAttachment}
+              onRemove={remove}
+              onRetry={retry}
             />
           )}
 

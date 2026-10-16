@@ -3,22 +3,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import { useImportImage } from "@/hooks/use-import-image";
+import { useUpload } from "@/hooks/use-upload";
+import { useHasKey } from "@/lib/store/use-settings-store";
 import { Button } from "@/components/ui/button";
-import { ImageIcon } from "lucide-react";
+import { MAX_ATTACHMENT_SIZE } from "@/lib/utils/images";
+import { Paperclip } from "lucide-react";
+
+const MAX_MB = Math.round(MAX_ATTACHMENT_SIZE / (1024 * 1024));
 
 export const Attach = () => {
-  const { importFSImage } = useImportImage();
-  const { addAttachment } = useChatInput();
+  const { pickFiles } = useUpload();
   const { isSending: disabled } = useChatStream();
-
-  const handleAttachClick = async () => {
-    const imported = await importFSImage();
-    if (!imported) return;
-    addAttachment(imported);
-  };
+  const hasUploadKey = useHasKey("uploads");
 
   return (
     <Tooltip>
@@ -26,14 +23,18 @@ export const Attach = () => {
         <Button
           variant="outline"
           size="icon"
-          onClick={handleAttachClick}
-          disabled={disabled}
+          onClick={() => void pickFiles()}
+          disabled={disabled || !hasUploadKey}
           className="h-9 w-9 text-muted-foreground hover:text-foreground"
         >
-          <ImageIcon className="h-4 w-4" />
+          <Paperclip className="h-4 w-4" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent>Attach image</TooltipContent>
+      <TooltipContent>
+        {hasUploadKey
+          ? `Attach image or PDF · up to ${MAX_MB} MB`
+          : "Add an upload key in Settings to attach files"}
+      </TooltipContent>
     </Tooltip>
   );
 };

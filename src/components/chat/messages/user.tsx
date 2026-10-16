@@ -4,15 +4,19 @@ import { Button } from "@/components/ui/button";
 import {
   Check,
   Copy,
+  Download,
+  File as FileIcon,
+  FileText,
   Undo2,
   GitBranch,
   Pencil,
   RefreshCcw,
 } from "lucide-react";
 import { Renderer } from "./renderer";
-import type { Message } from "@/lib/store/session/types";
+import type { ChatAttachment, Message } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
-import { previewUrl } from "@/lib/utils/images";
+import { attachmentTypeLabel, isPdfMedia } from "@/lib/utils/images";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +41,7 @@ import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
 import { useChatMessages } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
+import { resolveAttachmentUrl } from "@/lib/upload/pocketbase";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +52,9 @@ import {
 } from "@/components/ui/dialog";
 
 type MessageAttachment = NonNullable<Message["attachments"]>[number];
+
+const isImageAttachment = (attachment: ChatAttachment): boolean =>
+  attachment.mimeType.startsWith("image/");
 
 const formatBytes = (bytes?: number): string => {
   if (bytes === undefined) return "";
@@ -63,7 +71,7 @@ const formatBytes = (bytes?: number): string => {
 };
 
 const formatAttachment = (attachment: MessageAttachment): string => {
-  const type = attachment.mediaType?.split("/")[1]?.toUpperCase() ?? "";
+  const type = attachmentTypeLabel(attachment.mimeType);
   const size = formatBytes(attachment.size);
   return [type, size].filter(Boolean).join(" · ");
 };
@@ -97,7 +105,7 @@ const ImageLightbox: React.FC<{
         <div className="flex max-h-[75vh] min-h-48 items-center justify-center bg-muted/20 p-4">
           <img
             className="max-h-[70vh] max-w-full rounded-lg object-contain"
-            src={previewUrl(attachment)}
+            src={resolveAttachmentUrl(attachment.url)}
             alt={name}
           />
         </div>
@@ -142,7 +150,7 @@ const SingleAttachment: React.FC<{ attachment: MessageAttachment }> = ({
         )}
       >
         <img
-          src={previewUrl(attachment)}
+          src={resolveAttachmentUrl(attachment.url)}
           alt={name}
           className={cn(
             "block max-h-[360px] min-h-24 w-full object-cover",
@@ -174,7 +182,7 @@ const AttachmentThumb: React.FC<{ attachment: MessageAttachment }> = ({
         )}
       >
         <img
-          src={previewUrl(attachment)}
+          src={resolveAttachmentUrl(attachment.url)}
           alt={name}
           className="size-full object-cover transition-transform duration-500 group-hover/att:scale-105"
         />
@@ -184,11 +192,9 @@ const AttachmentThumb: React.FC<{ attachment: MessageAttachment }> = ({
   );
 };
 
-const MessageAttachments: React.FC<{ attachments: MessageAttachment[] }> = ({
+const ImageAttachments: React.FC<{ attachments: MessageAttachment[] }> = ({
   attachments,
 }) => {
-  if (attachments.length === 0) return null;
-
   if (attachments.length === 1) {
     return <SingleAttachment attachment={attachments[0]} />;
   }
@@ -202,9 +208,68 @@ const MessageAttachments: React.FC<{ attachments: MessageAttachment[] }> = ({
         twoCols ? "max-w-[320px] grid-cols-2" : "max-w-[420px] grid-cols-3",
       )}
     >
-      {attachments.map((attachment, index) => (
-        <AttachmentThumb key={index} attachment={attachment} />
+      {attachments.map((attachment) => (
+        <AttachmentThumb key={attachment.id} attachment={attachment} />
       ))}
+    </div>
+  );
+};
+
+const FileCard: React.FC<{ attachment: MessageAttachment }> = ({
+  attachment,
+}) => {
+  const details = formatAttachment(attachment);
+
+  return (
+    <button
+      type="button"
+      onClick={() => void openUrl(resolveAttachmentUrl(attachment.url))}
+      aria-label={`Open ${attachment.name}`}
+      className={cn(
+        "group/file flex w-full items-center gap-3 rounded-xl border border-border/50",
+        "bg-card/50 px-3 py-2.5 text-left transition-colors duration-150",
+        "hover:border-border hover:bg-muted/40 focus-visible:ring-2",
+        "focus-visible:ring-ring",
+      )}
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-muted-foreground">
+        {isPdfMedia(attachment.mimeType) ? (
+          <FileText className="size-4" />
+        ) : (
+          <FileIcon className="size-4" />
+        )}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="truncate text-sm font-medium text-foreground/90">
+          {attachment.name}
+        </span>
+        {details && (
+          <span className="text-[11px] text-muted-foreground">{details}</span>
+        )}
+      </span>
+      <Download className="size-4 shrink-0 text-muted-foreground/60 transition-colors group-hover/file:text-foreground" />
+    </button>
+  );
+};
+
+const MessageAttachments: React.FC<{ attachments: MessageAttachment[] }> = ({
+  attachments,
+}) => {
+  if (attachments.length === 0) return null;
+
+  const images = attachments.filter(isImageAttachment);
+  const files = attachments.filter((attachment) => !isImageAttachment(attachment));
+
+  return (
+    <div className="flex w-full flex-col items-end gap-1.5">
+      {images.length > 0 && <ImageAttachments attachments={images} />}
+      {files.length > 0 && (
+        <div className="flex w-full max-w-[420px] flex-col gap-1.5">
+          {files.map((attachment) => (
+            <FileCard key={attachment.id} attachment={attachment} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
