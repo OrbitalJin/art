@@ -13,27 +13,28 @@ interface ThinkingSectionProps {
   status: "streaming" | "done";
 }
 
-const StreamingCursor: React.FC = () => (
-  <span
-    aria-hidden
-    className="ml-0.5 inline-block h-3.5 w-0.5 animate-pulse bg-amber-500/70 align-middle motion-reduce:animate-none"
-  />
-);
+// Last readable step, whether the model wrote one sentence per line or a
+// paragraph.
+const currentAction = (reasoning: string): string => {
+  const segments = reasoning.split(/\n+|(?<=[.!?])\s+/).filter((s) => s.trim());
+  const last = segments[segments.length - 1] ?? "";
+  return (
+    last
+      .replace(/^[\s>*#\d.-]+/, "")
+      .replace(/[*_`]/g, "")
+      .trim() || "Thinking"
+  );
+};
 
 export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
   reasoning,
   status,
 }) => {
-  const [open, setOpen] = useState<boolean | undefined>(undefined);
-
+  const [open, setOpen] = useState(false);
   const isStreaming = status === "streaming";
-  const hasReasoning = !!reasoning;
 
-  // While reasoning streams, the row opens itself; once the reader clicks,
-  // their choice wins.
-  const isOpen = open ?? isStreaming;
-
-  if (isStreaming && !hasReasoning) {
+  if (!reasoning) {
+    if (!isStreaming) return null;
     return (
       <Trace className="mb-2 gap-0">
         <TraceLine status="running">
@@ -43,16 +44,14 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
     );
   }
 
-  if (!hasReasoning) return null;
-
-  const title = isStreaming ? "Thinking" : "Thought process";
-
   return (
     <Trace className="mb-2 gap-0">
-      <TraceCollapsible open={isOpen} onOpenChange={setOpen}>
+      <TraceCollapsible open={open} onOpenChange={setOpen}>
         <TraceCollapsibleTrigger className="w-full">
           <TraceLine status={isStreaming ? "running" : undefined}>
-            <TraceTitle className="text-[13px]">{title}</TraceTitle>
+            <TraceTitle className="text-[13px]">
+              {isStreaming ? currentAction(reasoning) : "Introspection"}
+            </TraceTitle>
           </TraceLine>
         </TraceCollapsibleTrigger>
 
@@ -60,7 +59,6 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
           <div className="max-h-64 overflow-auto pr-1">
             <p className="text-[13px] leading-relaxed whitespace-pre-wrap text-muted-foreground/80">
               {reasoning}
-              {isStreaming && <StreamingCursor />}
             </p>
           </div>
         </TraceCollapsibleContent>

@@ -144,6 +144,13 @@ export const system = ({
       "BEHAVIOR",
       personaDef?.prompt ?? "Provide standard, helpful assistance.",
     ),
+    section(
+      "THINKING",
+      "When you think or reason, work in short blocks: one sentence per line, " +
+        "each on its own line, in plain prose. Every line must stand on its " +
+        "own as a complete, skimmable step. Never write paragraphs or markdown " +
+        "in your thinking.",
+    ),
     section("MATH", MATH_RULES),
     section(
       "RULES",

@@ -6,7 +6,7 @@ import cn from "cnfast";
 export const Sidebar = () => (
   <aside
     className={cn(
-      "flex h-full w-[60px] flex-col items-center",
+      "flex h-full w-[50px] flex-col items-center",
       "border-l bg-card/30 pt-3 pb-2 backdrop-blur-sm",
       "border-border/50",
     )}

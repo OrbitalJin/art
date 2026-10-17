@@ -159,12 +159,6 @@ const TraceRow: React.FC<{
 
     <TraceTitle className="text-[13px]">{title}</TraceTitle>
 
-    {block.state === "executing" && (
-      <span className="shrink-0 text-xs text-muted-foreground/70">
-        Working…
-      </span>
-    )}
-
     {!isDone && <CompactSummary block={block} />}
   </TraceLine>
 );
@@ -174,7 +168,7 @@ const TraceRow: React.FC<{
  * `MessageParts`, which groups consecutive calls into a single list.
  */
 export const ToolCallRow: React.FC<{ block: ToolCallBlock }> = ({ block }) => {
-  const [open, setOpen] = useState<boolean | undefined>(undefined);
+  const [open, setOpen] = useState(false);
 
   const renderer = resolveRenderer(block.toolName);
 
@@ -198,9 +192,8 @@ export const ToolCallRow: React.FC<{ block: ToolCallBlock }> = ({ block }) => {
 
   const hasDetails = block.input !== undefined || block.output !== undefined;
 
-  // While a call runs, its row opens itself; once the reader clicks, their
-  // choice wins.
-  const isOpen = open ?? isExecuting;
+  // Collapsed until the reader opens it, so streaming never shifts layout.
+  const isOpen = open;
 
   if (!hasDetails) {
     return (

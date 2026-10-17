@@ -12,7 +12,6 @@ export interface StreamAccumulator {
   parts: MessagePart[];
   toolCalls: ToolCallBlock[];
   reasoningText: string;
-  reasoningStatus: "hidden" | "streaming" | "done";
   status: Extract<MessageStatus, "streaming" | "aborted" | "error">;
 }
 
@@ -20,7 +19,6 @@ export const initialAccumulator: StreamAccumulator = {
   parts: [],
   toolCalls: [],
   reasoningText: "",
-  reasoningStatus: "hidden",
   status: "streaming",
 };
 
@@ -99,7 +97,12 @@ export function applyStreamEvent(
     }
 
     case "reasoning-start":
-      return { ...acc, reasoningText: "", reasoningStatus: "streaming" };
+      // A turn can produce several reasoning blocks (one per step), so append
+      // instead of resetting; separate blocks with a blank line.
+      return {
+        ...acc,
+        reasoningText: acc.reasoningText ? `${acc.reasoningText}\n\n` : "",
+      };
 
     case "reasoning-delta":
       return {
@@ -108,7 +111,7 @@ export function applyStreamEvent(
       };
 
     case "reasoning-end":
-      return { ...acc, reasoningStatus: "done" };
+      return { ...acc };
 
     case "abort":
       return { ...acc, status: "aborted" };

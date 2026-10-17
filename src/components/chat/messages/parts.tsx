@@ -20,7 +20,7 @@ import {
 
 // Flip to `true` to collapse consecutive tool calls under one summary row.
 // `false` renders each call as its own flat row.
-const GROUP_TOOL_CALLS = false;
+const GROUP_TOOL_CALLS = true;
 
 // Renders streaming markdown one top-level block at a time so completed blocks
 // are parsed once (and skipped by Renderer's memo) while only the trailing
@@ -57,9 +57,7 @@ const DoneSummary: React.FC<{ input: unknown }> = ({ input }) => {
   );
 };
 
-const runStatus = (
-  run: ToolCallPart[],
-): "running" | "error" | undefined => {
+const runStatus = (run: ToolCallPart[]): "running" | "error" | undefined => {
   if (run.some((part) => part.state === "executing")) return "running";
   if (run.some((part) => part.state === "error")) return "error";
   return undefined;
@@ -74,10 +72,8 @@ const runLabel = (run: ToolCallPart[]): string => {
 // A run of more than one call collapses under a summary row, so consecutive
 // calls read as one unit instead of a stack of look-alike rows.
 const ToolGroup: React.FC<{ run: ToolCallPart[] }> = ({ run }) => {
-  const [open, setOpen] = useState<boolean | undefined>(undefined);
-
-  const running = run.some((part) => part.state === "executing");
-  const isOpen = open ?? running;
+  const [open, setOpen] = useState(false);
+  const isOpen = open;
 
   return (
     <Trace>
