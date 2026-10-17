@@ -1,60 +1,15 @@
-import { Mail, MailOpen, Mails, Tags } from "lucide-react";
-import {
-  emailListOutputSchema,
-  emailOutputSchema,
-  gmailFetchEmailsInput,
-  gmailFetchMessageInput,
-  gmailListLabelsInput,
-  gmailListMessagesInput,
-  labelListOutputSchema,
-  messageIdListOutputSchema,
-} from "./schema";
-import {
-  EmailDetail,
-  EmailListDetail,
-  EmailListSummary,
-  EmailSummary,
-  LabelListDetail,
-  LabelListSummary,
-  MessageIdListDetail,
-  MessageIdListSummary,
-} from "./parts";
+import type { ToolRenderer } from "../../types";
+import { renderer as fetchEmails } from "./fetch-emails";
+import { renderer as fetchMessage } from "./fetch-message";
+import { renderer as listLabels } from "./list-labels";
+import { renderer as listMessages } from "./list-messages";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyRenderer = ToolRenderer<any, any>;
 
 export const emailRenderers = {
-  GMAIL_FETCH_EMAILS: {
-    icon: Mails,
-    title: "Searched emails",
-    executingTitle: "Searching emails",
-    inputSchema: gmailFetchEmailsInput,
-    outputSchema: emailListOutputSchema,
-    Summary: EmailListSummary,
-    Detail: EmailListDetail,
-  },
-  GMAIL_LIST_MESSAGES: {
-    icon: Mail,
-    title: "Listed messages",
-    executingTitle: "Listing messages",
-    inputSchema: gmailListMessagesInput,
-    outputSchema: messageIdListOutputSchema,
-    Summary: MessageIdListSummary,
-    Detail: MessageIdListDetail,
-  },
-  GMAIL_FETCH_MESSAGE_BY_MESSAGE_ID: {
-    icon: MailOpen,
-    title: "Read email",
-    executingTitle: "Reading email",
-    inputSchema: gmailFetchMessageInput,
-    outputSchema: emailOutputSchema,
-    Summary: EmailSummary,
-    Detail: EmailDetail,
-  },
-  GMAIL_LIST_LABELS: {
-    icon: Tags,
-    title: "Listed labels",
-    executingTitle: "Listing labels",
-    inputSchema: gmailListLabelsInput,
-    outputSchema: labelListOutputSchema,
-    Summary: LabelListSummary,
-    Detail: LabelListDetail,
-  },
-};
+  GMAIL_FETCH_EMAILS: fetchEmails,
+  GMAIL_LIST_MESSAGES: listMessages,
+  GMAIL_FETCH_MESSAGE_BY_MESSAGE_ID: fetchMessage,
+  GMAIL_LIST_LABELS: listLabels,
+} satisfies Record<string, AnyRenderer>;

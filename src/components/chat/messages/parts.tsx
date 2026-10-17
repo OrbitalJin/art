@@ -1,12 +1,26 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import type React from "react";
+import { Layers } from "lucide-react";
 import type { MessagePart, ToolCallPart } from "@/lib/store/session/types";
 import { Renderer } from "./renderer";
-import { ToolCallCard } from "./tool-call-card";
+import { ToolCallRow } from "./tool-call";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import { useQuestionStore } from "@/lib/store/use-question-store";
 import { splitMarkdownBlocks } from "@/lib/ai/stream/split-blocks";
+import {
+  Trace,
+  TraceCollapsible,
+  TraceCollapsibleContent,
+  TraceCollapsibleTrigger,
+  TraceIcon,
+  TraceLine,
+  TraceTitle,
+} from "@/components/ui/trace";
+
+// Flip to `true` to collapse consecutive tool calls under one summary row.
+// `false` renders each call as its own flat row.
+const GROUP_TOOL_CALLS = false;
 
 // Renders streaming markdown one top-level block at a time so completed blocks
 // are parsed once (and skipped by Renderer's memo) while only the trailing
@@ -43,21 +57,49 @@ const DoneSummary: React.FC<{ input: unknown }> = ({ input }) => {
   );
 };
 
-const ToolCallPartView: React.FC<{ part: ToolCallPart }> = ({ part }) => {
-  const approval = useApprovalStore((state) => state.pending[part.id]);
-  const question = useQuestionStore((state) => state.pending[part.id]);
-  const hasOutcome = part.state === "result" || part.state === "error";
+const runStatus = (
+  run: ToolCallPart[],
+): "running" | "error" | undefined => {
+  if (run.some((part) => part.state === "executing")) return "running";
+  if (run.some((part) => part.state === "error")) return "error";
+  return undefined;
+};
 
-  if (part.toolName === DONE_TOOL_NAME) {
-    return <DoneSummary input={part.input} />;
-  }
+const runLabel = (run: ToolCallPart[]): string => {
+  const running = run.filter((part) => part.state === "executing").length;
+  if (running > 0) return `Running ${running} of ${run.length} tools…`;
+  return `Used ${run.length} tools`;
+};
+
+// A run of more than one call collapses under a summary row, so consecutive
+// calls read as one unit instead of a stack of look-alike rows.
+const ToolGroup: React.FC<{ run: ToolCallPart[] }> = ({ run }) => {
+  const [open, setOpen] = useState<boolean | undefined>(undefined);
+
+  const running = run.some((part) => part.state === "executing");
+  const isOpen = open ?? running;
 
   return (
-    <div className="space-y-2">
-      {(!question || hasOutcome) && (!approval || hasOutcome) && (
-        <ToolCallCard block={part} />
-      )}
-    </div>
+    <Trace>
+      <TraceCollapsible open={isOpen} onOpenChange={setOpen}>
+        <TraceCollapsibleTrigger>
+          <TraceLine status={runStatus(run)}>
+            <TraceIcon>
+              <Layers />
+            </TraceIcon>
+            <TraceTitle className="text-[13px]">{runLabel(run)}</TraceTitle>
+          </TraceLine>
+        </TraceCollapsibleTrigger>
+
+        <TraceCollapsibleContent>
+          <Trace className="gap-1">
+            {run.map((part) => (
+              <ToolCallRow key={part.id} block={part} />
+            ))}
+          </Trace>
+        </TraceCollapsibleContent>
+      </TraceCollapsible>
+    </Trace>
   );
 };
 
@@ -67,28 +109,67 @@ interface Props {
 }
 
 export const MessageParts: React.FC<Props> = ({ parts, streaming }) => {
+  const approvals = useApprovalStore((state) => state.pending);
+  const questions = useQuestionStore((state) => state.pending);
+
   if (parts.length === 0) return null;
 
   const lastIndex = parts.length - 1;
+  const nodes: React.ReactNode[] = [];
+  let run: ToolCallPart[] = [];
 
-  return (
-    <div className="space-y-2">
-      {parts.map((part, index) => {
-        if (part.type === "text") {
-          if (!part.text.trim()) return null;
-          return (
-            <div key={`text-${index}`} className="opacity-90">
-              {streaming && index === lastIndex ? (
-                <StreamingMarkdown content={part.text} />
-              ) : (
-                <Renderer content={part.text} />
-              )}
-            </div>
-          );
-        }
+  // One block per run of consecutive tool calls: flat rows, or (when
+  // GROUP_TOOL_CALLS is on) a summary row that expands into the group. Text and
+  // the done-tool markdown break the run.
+  const flush = () => {
+    if (run.length === 0) return;
+    if (!GROUP_TOOL_CALLS || run.length === 1) {
+      run.forEach((part) => {
+        nodes.push(<ToolCallRow key={part.id} block={part} />);
+      });
+    } else {
+      nodes.push(<ToolGroup key={`tools-${run[0].id}`} run={run} />);
+    }
+    run = [];
+  };
 
-        return <ToolCallPartView key={part.id} part={part} />;
-      })}
-    </div>
-  );
+  // A call waiting on approval or a question renders nothing yet; skip it
+  // without breaking the run so the surrounding calls stay grouped.
+  const isHidden = (part: ToolCallPart) => {
+    const hasOutcome = part.state === "result" || part.state === "error";
+    if (hasOutcome) return false;
+    return Boolean(approvals[part.id] || questions[part.id]);
+  };
+
+  parts.forEach((part, index) => {
+    if (part.type === "text") {
+      if (!part.text.trim()) return;
+      flush();
+      nodes.push(
+        <div key={`text-${index}`} className="opacity-90">
+          {streaming && index === lastIndex ? (
+            <StreamingMarkdown content={part.text} />
+          ) : (
+            <Renderer content={part.text} />
+          )}
+        </div>,
+      );
+      return;
+    }
+
+    if (part.toolName === DONE_TOOL_NAME) {
+      if (!summaryOf(part.input)) return;
+      flush();
+      nodes.push(<DoneSummary key={`done-${part.id}`} input={part.input} />);
+      return;
+    }
+
+    if (isHidden(part)) return;
+
+    run.push(part);
+  });
+
+  flush();
+
+  return <div className="space-y-2">{nodes}</div>;
 };

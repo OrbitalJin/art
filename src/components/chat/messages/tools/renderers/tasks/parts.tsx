@@ -1,19 +1,28 @@
 import type { FC, ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import type { Project, Task } from "@/lib/ai/tools/tasks";
+import type { Task } from "@/lib/ai/tools/tasks";
 import {
+  Arrow,
   DoneNote,
   EmptyNote,
   KeyValueList,
   ListRow,
   MetaLine,
-  RowList,
-} from "../../primitives";
+  SummaryRow,
+  SummaryText,
+} from "../../shared";
 import type { RendererProps } from "../../types";
-import {
-  statusLabelOf,
-  type TaskFieldsInput,
-} from "./helpers";
+import { shortId, statusLabelOf, type TaskFieldsInput } from "./helpers";
+
+/* Shared presentational pieces */
+
+const titleOf = (value: unknown): string | null => {
+  if (value && typeof value === "object" && "title" in value) {
+    const title = (value as { title?: unknown }).title;
+    return typeof title === "string" ? title : null;
+  }
+  return null;
+};
 
 export const StatusDot: FC<{ status: string | null }> = ({ status }) => {
   const tone =
@@ -72,35 +81,17 @@ export const TaskRow: FC<{ task: Task }> = ({ task }) => {
   );
 };
 
-export const TaskListDetail: FC<
-  RendererProps<{ status?: string; projectId?: string }, Task[]>
-> = ({ block, output }) => {
-  if (block.state === "executing") return <EmptyNote>Loading…</EmptyNote>;
+/* Renderers shared by more than one tool */
 
-  const tasks = output ?? [];
-  if (tasks.length === 0) return <EmptyNote>No tasks.</EmptyNote>;
+export const TaskTargetSummary: FC<
+  RendererProps<{ id?: string; title?: string }, unknown>
+> = ({ input, output }) => {
+  const title = titleOf(output) ?? input?.title;
+  if (title) return <SummaryText title={title}>{title}</SummaryText>;
 
-  return (
-    <RowList maxHeightClass="max-h-64">
-      {tasks.map((task, index) => (
-        <TaskRow key={task.id ?? index} task={task} />
-      ))}
-    </RowList>
-  );
-};
-
-export const SingleTaskDetail: FC<RendererProps<{ id: string }, Task | null>> = ({
-  block,
-  output,
-}) => {
-  if (block.state === "executing") return <EmptyNote>Loading…</EmptyNote>;
-  if (!output) return <EmptyNote>Task not found.</EmptyNote>;
-
-  return (
-    <RowList>
-      <TaskRow task={output} />
-    </RowList>
-  );
+  return input?.id ? (
+    <SummaryText mono>{shortId(input.id)}</SummaryText>
+  ) : null;
 };
 
 export const TaskFields: FC<RendererProps<TaskFieldsInput, unknown>> = ({
@@ -125,6 +116,21 @@ export const TaskFields: FC<RendererProps<TaskFieldsInput, unknown>> = ({
   );
 };
 
+export const MoveTaskSummary: FC<
+  RendererProps<{ id: string; status: string }, unknown>
+> = ({ input }) => {
+  const id = input?.id ?? null;
+  const status = statusLabelOf(input?.status ?? null);
+
+  return (
+    <SummaryRow>
+      {id ? <SummaryText mono>{shortId(id)}</SummaryText> : null}
+      {id && status ? <Arrow /> : null}
+      {status ? <SummaryText>{status}</SummaryText> : null}
+    </SummaryRow>
+  );
+};
+
 export const MoveTaskDetail: FC<RendererProps<unknown, unknown>> = ({
   block,
 }) =>
@@ -138,58 +144,13 @@ export const DeletedDetail: FC<RendererProps<unknown, unknown>> = ({ block }) =>
   <DoneNote block={block} label="Deleted" />
 );
 
-export const ProjectListDetail: FC<
-  RendererProps<Record<string, never>, Project[]>
-> = ({ output }) => {
-  const projects = output ?? [];
-  if (projects.length === 0) return <EmptyNote>No projects.</EmptyNote>;
+export const ProjectTargetSummary: FC<
+  RendererProps<{ id: string; name?: string }, unknown>
+> = ({ input }) => {
+  if (input?.name)
+    return <SummaryText title={input.name}>{input.name}</SummaryText>;
 
-  return (
-    <RowList maxHeightClass="max-h-56">
-      {projects.map((project) => (
-        <ListRow key={project.id}>
-          <span className="truncate text-[12px] text-foreground/85">
-            {project.name}
-          </span>
-        </ListRow>
-      ))}
-    </RowList>
-  );
-};
-
-interface ProjectWithTasksInput {
-  project: { name: string; color?: string };
-  tasks: TaskFieldsInput[];
-}
-
-export const ProjectWithTasksDetail: FC<
-  RendererProps<ProjectWithTasksInput, unknown>
-> = ({ block, input }) => {
-  const name = input?.project.name ?? null;
-  const titles = (input?.tasks ?? [])
-    .map((task) => task.title)
-    .filter((title): title is string => Boolean(title));
-
-  return (
-    <div className="flex flex-col gap-2.5">
-      {name ? (
-        <p className="text-[12px] font-medium text-foreground/85">{name}</p>
-      ) : null}
-
-      {titles.length > 0 ? (
-        <ul className="flex max-h-48 flex-col gap-1 overflow-auto">
-          {titles.map((title, index) => (
-            <li
-              key={index}
-              className="truncate text-[11px] text-muted-foreground"
-            >
-              {title}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      <DoneNote block={block} />
-    </div>
-  );
+  return input?.id ? (
+    <SummaryText mono>{shortId(input.id)}</SummaryText>
+  ) : null;
 };

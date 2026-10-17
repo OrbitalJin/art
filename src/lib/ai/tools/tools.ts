@@ -10,7 +10,7 @@ import { tasksTools } from "./tasks";
 import { fileTools } from "./files";
 import { askUserTools } from "./ask-user";
 import { doneTools } from "./done";
-import { todoTools } from "./todo";
+import { planTools } from "./plan";
 import { composioTools } from "./composio";
 import { searchTools } from "./search";
 import { youtubeTools } from "./youtube";
@@ -35,7 +35,7 @@ export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
     ...search,
     ...services,
     ...doneTools(),
-    ...(on.todo ? todoTools(session.id) : {}),
+    ...(on.plan ? planTools(session.id) : {}),
     ...(on.tasks ? tasksTools() : {}),
     ...(on.askUser ? askUserTools(session.id) : {}),
     ...(on.youtube ? youtubeTools() : {}),

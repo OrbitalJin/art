@@ -131,11 +131,6 @@ body {
 
 @layer base {
 
-  pre.shiki,
-  pre.shiki code {
-    font-family: monospace !important;
-  }
-
   .markdown {
     line-height: 1.6;
   }

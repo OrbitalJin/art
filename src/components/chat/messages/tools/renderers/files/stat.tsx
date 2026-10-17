@@ -1,12 +1,14 @@
 import type { FC } from "react";
+import { Info } from "lucide-react";
+import { fileToolSchemas } from "@/lib/ai/tools/files";
 import {
   EmptyNote,
   KeyValueList,
   ResultBadge,
   SummaryRow,
-} from "../../primitives";
-import { formatBytes } from "../../helpers";
-import type { RendererProps } from "../../types";
+  formatBytes,
+} from "../../shared";
+import type { RendererProps, ToolRenderer } from "../../types";
 import { pathOf } from "./helpers";
 import { FileName, FilePath } from "./parts";
 
@@ -24,7 +26,7 @@ interface StatOutput {
   readonly: boolean;
 }
 
-export const StatSummary: FC<RendererProps<StatInput, StatOutput>> = ({
+const Summary: FC<RendererProps<StatInput, StatOutput>> = ({
   input,
   output,
 }) => {
@@ -38,7 +40,7 @@ export const StatSummary: FC<RendererProps<StatInput, StatOutput>> = ({
   );
 };
 
-export const StatDetail: FC<RendererProps<StatInput, StatOutput>> = ({
+const Detail: FC<RendererProps<StatInput, StatOutput>> = ({
   input,
   output,
 }) => {
@@ -66,4 +68,14 @@ export const StatDetail: FC<RendererProps<StatInput, StatOutput>> = ({
       )}
     </div>
   );
+};
+
+export const renderer: ToolRenderer<StatInput, StatOutput> = {
+  icon: Info,
+  title: "Inspected path",
+  executingTitle: "Inspecting path",
+  inputSchema: fileToolSchemas.stat.input,
+  outputSchema: fileToolSchemas.stat.output,
+  Summary,
+  Detail,
 };

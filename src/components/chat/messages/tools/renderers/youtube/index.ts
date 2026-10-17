@@ -1,22 +1,10 @@
-import { FileVideo } from "lucide-react";
 import type { ToolRenderer } from "../../types";
-import {
-  youtubeTranscriptInput,
-  youtubeTranscriptOutput,
-  type YoutubeToolName,
-} from "@/lib/ai/tools/youtube";
-import { YoutubeDetail } from "./parts";
-import { YoutubeSummary } from "./summaries";
+import type { YoutubeToolName } from "@/lib/ai/tools/youtube";
+import { renderer as transcript } from "./transcript";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyRenderer = ToolRenderer<any, any>;
 
 export const youtubeRenderers = {
-  youtube_transcript: {
-    icon: FileVideo,
-    title: "Read transcript",
-    executingTitle: "Reading transcript",
-    inputSchema: youtubeTranscriptInput,
-    outputSchema: youtubeTranscriptOutput,
-    Summary: YoutubeSummary,
-    Detail: YoutubeDetail,
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} satisfies Record<YoutubeToolName, ToolRenderer<any, any>>;
+  youtube_transcript: transcript,
+} satisfies Record<YoutubeToolName, AnyRenderer>;

@@ -1,9 +1,7 @@
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
-import {
-  CompactSummary,
-  formatToolName,
-} from "@/components/chat/messages/tool-call-card";
+import { CompactSummary } from "@/components/chat/messages/tool-call";
+import { formatToolName } from "@/components/chat/messages/tools/shared";
 
 export const ToolActivity: React.FC<{
   toolCalls: ToolCallBlock[];

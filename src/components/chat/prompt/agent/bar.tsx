@@ -11,7 +11,7 @@ import {
   useQuestionStore,
   type PendingQuestion,
 } from "@/lib/store/use-question-store";
-import { useTodoStore, type TodoPlan } from "@/lib/store/use-todo-store";
+import { usePlanStore, type Plan } from "@/lib/store/use-plan-store";
 import { AccessControl } from "./access-control";
 import { ConfigureMenu } from "./configure-menu";
 import { EnabledTools } from "./enabled-tools";
@@ -219,25 +219,25 @@ const PlanMarker: React.FC<{ active: boolean; done: boolean }> = ({
   );
 };
 
-const PlanStrip: React.FC<{ plan: TodoPlan }> = ({ plan }) => {
-  const total = plan.todos.length;
-  const completed = plan.todos.filter(
-    (todo) => todo.status === "completed",
+const PlanStrip: React.FC<{ plan: Plan }> = ({ plan }) => {
+  const total = plan.steps.length;
+  const completed = plan.steps.filter(
+    (step) => step.status === "completed",
   ).length;
-  const current = plan.todos.find((todo) => todo.status === "in_progress");
-  const next = plan.todos.find((todo) => todo.status !== "completed");
+  const current = plan.steps.find((step) => step.status === "in_progress");
+  const next = plan.steps.find((step) => step.status !== "completed");
   const allDone = completed === total;
   const label = current?.content ?? next?.content ?? "Plan complete";
 
-  const title = plan.todos
-    .map((todo) => {
+  const title = plan.steps
+    .map((step) => {
       const mark =
-        todo.status === "completed"
+        step.status === "completed"
           ? "✓"
-          : todo.status === "in_progress"
+          : step.status === "in_progress"
             ? "●"
             : "○";
-      return `${mark} ${todo.content}`;
+      return `${mark} ${step.content}`;
     })
     .join("\n");
 
@@ -265,7 +265,7 @@ export const AgentBar = () => {
 
   const sessionId = session?.id;
   const prompts = usePendingPrompts(sessionId);
-  const plan = useTodoStore((state) =>
+  const plan = usePlanStore((state) =>
     sessionId ? state.bySession[sessionId] : undefined,
   );
   const tools = useAgentTools(session, toolCalls);
@@ -277,7 +277,7 @@ export const AgentBar = () => {
   const active = streaming && toolCalls.length > 0;
   const hasPending =
     prompts.approvals.length > 0 || prompts.questions.length > 0;
-  const showPlan = streaming && !hasPending && !!plan && plan.todos.length > 0;
+  const showPlan = streaming && !hasPending && !!plan && plan.steps.length > 0;
 
   const barClasses = cn(
     "relative flex items-center gap-2",

@@ -1,4 +1,4 @@
-import { formatDate } from "../../helpers";
+import { formatDate } from "../../shared";
 
 export type {
   FlightOption,

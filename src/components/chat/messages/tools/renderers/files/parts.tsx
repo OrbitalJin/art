@@ -1,8 +1,23 @@
 import type { FC } from "react";
 import { cn } from "@/lib/utils";
-import { SummaryText } from "../../primitives";
-import { basename, formatCount } from "../../helpers";
-import { MAX_FILE_LINES, type FolderEntry } from "./helpers";
+import {
+  CodeBlock,
+  CodeBlockContent,
+  CodeBlockFooter,
+} from "@/components/ui/code-block";
+import {
+  Arrow,
+  DoneNote,
+  KeyValueList,
+  SummaryRow,
+  SummaryText,
+  basename,
+  formatCount,
+} from "../../shared";
+import type { RendererProps } from "../../types";
+import { MAX_FILE_LINES, type FolderEntry, pathOf } from "./helpers";
+
+/* Shared presentational pieces */
 
 export const FilePath: FC<{ folder: string | null; path: string | null }> = ({
   folder,
@@ -34,27 +49,19 @@ export const FileContent: FC<{ text: string }> = ({ text }) => {
   const hidden = lines.length - shown.length;
 
   return (
-    <div className="max-h-72 overflow-auto rounded-md bg-muted/30 py-2 font-mono text-[11px] leading-relaxed">
-      {shown.map((line, index) => (
-        <div key={index} className="flex gap-3 px-2.5">
-          <span
-            aria-hidden
-            className="w-8 shrink-0 text-right text-muted-foreground/35 tabular-nums select-none"
-          >
-            {index + 1}
-          </span>
-          <span className="min-w-0 break-words whitespace-pre-wrap text-foreground/75">
-            {line || " "}
-          </span>
-        </div>
-      ))}
+    <CodeBlock size="sm">
+      <CodeBlockContent lineNumbers wrap className="max-h-72 text-[11px]">
+        {shown.join("\n")}
+      </CodeBlockContent>
 
       {hidden > 0 ? (
-        <p className="px-2.5 pt-2 font-sans text-muted-foreground/50">
-          +{formatCount(hidden, "more line")}
-        </p>
+        <CodeBlockFooter className="pt-0">
+          <span className="text-[11px] text-muted-foreground/50">
+            +{formatCount(hidden, "more line")}
+          </span>
+        </CodeBlockFooter>
       ) : null}
-    </div>
+    </CodeBlock>
   );
 };
 
@@ -76,5 +83,86 @@ export const FolderEntryRow: FC<{ entry: FolderEntry }> = ({ entry }) => {
         </span>
       ) : null}
     </li>
+  );
+};
+
+/* Renderers shared by more than one tool */
+
+interface PathInput {
+  folder: string;
+  path: string;
+}
+
+interface MoveInput {
+  folder: string;
+  from: string;
+  to: string;
+}
+
+export const PathSummary: FC<RendererProps<PathInput, unknown>> = ({
+  input,
+}) => {
+  const { path } = pathOf(input);
+  return (
+    <SummaryRow>
+      <FileName path={path} />
+    </SummaryRow>
+  );
+};
+
+export const PathDetail: FC<RendererProps<PathInput, unknown>> = ({
+  input,
+  block,
+}) => {
+  const { folder, path } = pathOf(input);
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      <FilePath folder={folder} path={path} />
+      <DoneNote block={block} />
+    </div>
+  );
+};
+
+export const MoveSummary: FC<RendererProps<MoveInput, unknown>> = ({
+  input,
+}) => {
+  const from = input?.from ?? null;
+  const to = input?.to ?? null;
+
+  return (
+    <SummaryRow>
+      <FileName path={from} />
+      {from && to ? <Arrow /> : null}
+      <FileName path={to} />
+    </SummaryRow>
+  );
+};
+
+export const MoveDetail: FC<RendererProps<MoveInput, unknown>> = ({
+  input,
+  block,
+}) => {
+  const folder = input?.folder ?? null;
+  const from = input?.from ?? null;
+  const to = input?.to ?? null;
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      <FilePath folder={folder} path={null} />
+      <KeyValueList
+        entries={[
+          {
+            label: "From",
+            value: <span className="font-mono break-all">{from ?? "—"}</span>,
+          },
+          {
+            label: "To",
+            value: <span className="font-mono break-all">{to ?? "—"}</span>,
+          },
+        ]}
+      />
+      <DoneNote block={block} />
+    </div>
   );
 };

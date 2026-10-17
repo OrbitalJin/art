@@ -9,7 +9,7 @@ import type { SessionGroups, SessionMeta, SessionType } from "./types";
  */
 export const defaultGroups = (type: SessionType): SessionGroups => ({
   tasks: false,
-  todo: type === "agent",
+  plan: type === "agent",
   askUser: type === "agent",
   youtube: false,
   files: false,

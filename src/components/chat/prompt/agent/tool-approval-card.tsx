@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatToolName } from "@/components/chat/messages/tool-call-card";
+import { formatToolName } from "@/components/chat/messages/tools/shared";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import type { ApprovalStatus } from "@/lib/store/use-approval-store";
 

@@ -26,9 +26,10 @@ export const pb = new PocketBase(PB_URL);
 
 pb.beforeSend = (url, options) => {
   options.fetch = nativeFetch as typeof fetch;
-  options.headers = Object.assign({}, options.headers, {
-    "X-Upload-Secret": useSettingsStore.getState().uploadSecret,
-  });
+  options.query = {
+    ...options.query,
+    uploadSecret: useSettingsStore.getState().uploadSecret,
+  };
   return { url, options };
 };
 

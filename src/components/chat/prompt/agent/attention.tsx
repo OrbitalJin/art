@@ -4,7 +4,7 @@ import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import { useQuestionStore } from "@/lib/store/use-question-store";
 import { useAttentionOwners } from "@/hooks/use-session-attention";
-import { formatToolName } from "@/components/chat/messages/tool-call-card";
+import { formatToolName } from "@/components/chat/messages/tools/shared";
 import {
   Popover,
   PopoverContent,

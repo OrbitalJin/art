@@ -20,4 +20,13 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Tool renderers are data modules: each exports a `renderer` descriptor
+    // next to the Summary/Detail components it references, so the fast-refresh
+    // "only export components" rule does not apply.
+    files: ['src/components/chat/messages/tools/renderers/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

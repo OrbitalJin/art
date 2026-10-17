@@ -8,7 +8,7 @@ import rehypeKatex from "rehype-katex";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
 
-import { CodeBlock } from "@/components/chat/messages/code/block/block";
+import { CodeBlock } from "@/components/chat/messages/code/block";
 import { InlineCode } from "@/components/chat/messages/code/inline";
 import { cn } from "@/lib/utils";
 
@@ -63,11 +63,7 @@ const MarkdownLink: React.FC<React.ComponentPropsWithoutRef<"a">> = ({
   );
 };
 
-const RendererComponent: React.FC<Props> = ({
-  content,
-  className,
-  streaming,
-}) => {
+const RendererComponent: React.FC<Props> = ({ content, className }) => {
   useEffect(() => {
     if (!katexCssLoaded) {
       katexCssLoaded = true;
@@ -205,9 +201,7 @@ const RendererComponent: React.FC<Props> = ({
 
             return (
               <div className="my-4 grid min-w-0 max-w-full overflow-x-auto first:mt-0 last:mb-0">
-                <CodeBlock className={className} streaming={streaming}>
-                  {text}
-                </CodeBlock>
+                <CodeBlock className={className}>{text}</CodeBlock>
               </div>
             );
           },

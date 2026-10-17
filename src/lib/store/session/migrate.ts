@@ -11,7 +11,7 @@ import type {
 } from "./types";
 import { defaultGroups } from "./meta";
 
-export const SESSION_STORAGE_VERSION = 32;
+export const SESSION_STORAGE_VERSION = 33;
 
 export interface LegacySessionState {
   sessions: Session[];
@@ -269,6 +269,19 @@ export const migrateState = (
         const { toolkits: _toolkits, ...rest } = session;
         void _toolkits;
         return { ...rest, groups };
+      });
+    }
+  }
+
+  if (version < 33) {
+    if (Array.isArray(state.sessions)) {
+      state.sessions = state.sessions.map((session) => {
+        const groups = { ...(session.groups ?? {}) };
+        if (groups.todo !== undefined && groups.plan === undefined) {
+          groups.plan = groups.todo;
+        }
+        delete groups.todo;
+        return { ...session, groups };
       });
     }
   }

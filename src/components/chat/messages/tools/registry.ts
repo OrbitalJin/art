@@ -3,7 +3,7 @@ import { fileRenderers } from "./renderers/files";
 import { searchRenderers } from "./renderers/search";
 import { taskRenderers } from "./renderers/tasks";
 import { askUserRenderers } from "./renderers/ask-user";
-import { todoRenderers } from "./renderers/todo";
+import { planRenderers } from "./renderers/plan";
 import { emailRenderers } from "./renderers/email";
 import { googlesheetsRenderers } from "./renderers/googlesheets";
 import { youtubeRenderers } from "./renderers/youtube";
@@ -17,7 +17,7 @@ const TOOL_RENDERERS: Record<string, AnyRenderer> = {
   ...searchRenderers,
   ...taskRenderers,
   ...askUserRenderers,
-  ...todoRenderers,
+  ...planRenderers,
   ...emailRenderers,
   ...googlesheetsRenderers,
   ...youtubeRenderers,

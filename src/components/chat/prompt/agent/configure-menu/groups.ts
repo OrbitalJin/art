@@ -5,12 +5,12 @@ import {
   Globe,
   Link,
   ListChecks,
-  ListTodo,
   Mail,
   MapPin,
   MessageCircleQuestion,
   Newspaper,
   Plane,
+  Route,
   Sheet,
 } from "lucide-react";
 import { SERVICES, SearchTools } from "@/lib/services/catalog";
@@ -150,12 +150,12 @@ export const TOOL_GROUPS: ToolGroup[] = [
     icon: ListChecks,
   },
   {
-    key: "todo",
-    label: "Todo",
+    key: "plan",
+    label: "Plan",
     description: "Plan multi-step work",
     category: "interaction",
     source: "local",
-    icon: ListTodo,
+    icon: Route,
   },
   {
     key: "files",

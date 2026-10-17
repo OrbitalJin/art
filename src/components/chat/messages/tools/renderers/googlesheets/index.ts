@@ -1,85 +1,19 @@
-import { FileSpreadsheet, List, ListFilter, Search, Table } from "lucide-react";
-import {
-  batchGetOutputSchema,
-  lookupOutputSchema,
-  searchOutputSchema,
-  sheetNamesOutputSchema,
-  sheetsBatchGetInput,
-  sheetsLookupInput,
-  sheetsSearchInput,
-  sheetsSpreadsheetIdInput,
-  sheetsValuesGetInput,
-  spreadsheetInfoOutputSchema,
-  valuesOutputSchema,
-} from "./schema";
-import {
-  BatchGetDetail,
-  BatchGetSummary,
-  LookupDetail,
-  LookupSummary,
-  SearchDetail,
-  SearchSummary,
-  SheetNamesDetail,
-  SheetNamesSummary,
-  SpreadsheetInfoDetail,
-  SpreadsheetInfoSummary,
-  ValuesDetail,
-  ValuesSummary,
-} from "./parts";
+import type { ToolRenderer } from "../../types";
+import { renderer as batchGet } from "./batch-get";
+import { renderer as getSheetNames } from "./get-sheet-names";
+import { renderer as getSpreadsheetInfo } from "./get-spreadsheet-info";
+import { renderer as lookupRow } from "./lookup-row";
+import { renderer as searchSpreadsheets } from "./search-spreadsheets";
+import { renderer as valuesGet } from "./values-get";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyRenderer = ToolRenderer<any, any>;
 
 export const googlesheetsRenderers = {
-  GOOGLESHEETS_GET_SPREADSHEET_INFO: {
-    icon: FileSpreadsheet,
-    title: "Spreadsheet info",
-    executingTitle: "Reading spreadsheet",
-    inputSchema: sheetsSpreadsheetIdInput,
-    outputSchema: spreadsheetInfoOutputSchema,
-    Summary: SpreadsheetInfoSummary,
-    Detail: SpreadsheetInfoDetail,
-  },
-  GOOGLESHEETS_GET_SHEET_NAMES: {
-    icon: List,
-    title: "Listed sheets",
-    executingTitle: "Listing sheets",
-    inputSchema: sheetsSpreadsheetIdInput,
-    outputSchema: sheetNamesOutputSchema,
-    Summary: SheetNamesSummary,
-    Detail: SheetNamesDetail,
-  },
-  GOOGLESHEETS_VALUES_GET: {
-    icon: Table,
-    title: "Read range",
-    executingTitle: "Reading range",
-    inputSchema: sheetsValuesGetInput,
-    outputSchema: valuesOutputSchema,
-    Summary: ValuesSummary,
-    Detail: ValuesDetail,
-  },
-  GOOGLESHEETS_BATCH_GET: {
-    icon: Table,
-    title: "Read ranges",
-    executingTitle: "Reading ranges",
-    inputSchema: sheetsBatchGetInput,
-    outputSchema: batchGetOutputSchema,
-    Summary: BatchGetSummary,
-    Detail: BatchGetDetail,
-  },
-  GOOGLESHEETS_SEARCH_SPREADSHEETS: {
-    icon: Search,
-    title: "Searched Sheets",
-    executingTitle: "Searching Sheets",
-    inputSchema: sheetsSearchInput,
-    outputSchema: searchOutputSchema,
-    Summary: SearchSummary,
-    Detail: SearchDetail,
-  },
-  GOOGLESHEETS_LOOKUP_SPREADSHEET_ROW: {
-    icon: ListFilter,
-    title: "Looked up row",
-    executingTitle: "Looking up row",
-    inputSchema: sheetsLookupInput,
-    outputSchema: lookupOutputSchema,
-    Summary: LookupSummary,
-    Detail: LookupDetail,
-  },
-};
+  GOOGLESHEETS_GET_SPREADSHEET_INFO: getSpreadsheetInfo,
+  GOOGLESHEETS_GET_SHEET_NAMES: getSheetNames,
+  GOOGLESHEETS_VALUES_GET: valuesGet,
+  GOOGLESHEETS_BATCH_GET: batchGet,
+  GOOGLESHEETS_SEARCH_SPREADSHEETS: searchSpreadsheets,
+  GOOGLESHEETS_LOOKUP_SPREADSHEET_ROW: lookupRow,
+} satisfies Record<string, AnyRenderer>;

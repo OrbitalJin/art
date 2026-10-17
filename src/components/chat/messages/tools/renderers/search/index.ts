@@ -1,86 +1,19 @@
-import { Globe, Hotel, MapPin, Newspaper, Plane, Search } from "lucide-react";
-import {
-  fetchUrlInput,
-  fetchUrlOutputSchema,
-  flightSearchInput,
-  flightSearchOutputSchema,
-  hotelSearchInput,
-  hotelSearchOutputSchema,
-  mapsSearchInput,
-  mapsSearchOutputSchema,
-  newsSearchInput,
-  newsSearchOutputSchema,
-  webSearchInput,
-  webSearchOutputSchema,
-} from "./schema";
-import {
-  FetchDetail,
-  FetchSummary,
-  FlightDetail,
-  FlightSummary,
-  HotelDetail,
-  HotelSummary,
-  MapsDetail,
-  MapsSummary,
-  NewsDetail,
-  NewsSummary,
-  WebSearchDetail,
-  WebSearchSummary,
-} from "./parts";
+import type { ToolRenderer } from "../../types";
+import { renderer as fetchUrl } from "./fetch-url";
+import { renderer as flightSearch } from "./flight-search";
+import { renderer as hotelSearch } from "./hotel-search";
+import { renderer as mapsSearch } from "./maps-search";
+import { renderer as newsSearch } from "./news-search";
+import { renderer as webSearch } from "./web-search";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyRenderer = ToolRenderer<any, any>;
 
 export const searchRenderers = {
-  COMPOSIO_SEARCH_WEB: {
-    icon: Search,
-    title: "Searched the web",
-    executingTitle: "Searching the web",
-    inputSchema: webSearchInput,
-    outputSchema: webSearchOutputSchema,
-    Summary: WebSearchSummary,
-    Detail: WebSearchDetail,
-  },
-  COMPOSIO_SEARCH_FETCH_URL_CONTENT: {
-    icon: Globe,
-    title: "Fetched page",
-    executingTitle: "Fetching page",
-    inputSchema: fetchUrlInput,
-    outputSchema: fetchUrlOutputSchema,
-    Summary: FetchSummary,
-    Detail: FetchDetail,
-  },
-  COMPOSIO_SEARCH_NEWS: {
-    icon: Newspaper,
-    title: "Searched news",
-    executingTitle: "Searching news",
-    inputSchema: newsSearchInput,
-    outputSchema: newsSearchOutputSchema,
-    Summary: NewsSummary,
-    Detail: NewsDetail,
-  },
-  COMPOSIO_SEARCH_FLIGHTS: {
-    icon: Plane,
-    title: "Searched flights",
-    executingTitle: "Searching flights",
-    inputSchema: flightSearchInput,
-    outputSchema: flightSearchOutputSchema,
-    Summary: FlightSummary,
-    Detail: FlightDetail,
-  },
-  COMPOSIO_SEARCH_HOTELS: {
-    icon: Hotel,
-    title: "Searched hotels",
-    executingTitle: "Searching hotels",
-    inputSchema: hotelSearchInput,
-    outputSchema: hotelSearchOutputSchema,
-    Summary: HotelSummary,
-    Detail: HotelDetail,
-  },
-  COMPOSIO_SEARCH_GOOGLE_MAPS: {
-    icon: MapPin,
-    title: "Searched maps",
-    executingTitle: "Searching maps",
-    inputSchema: mapsSearchInput,
-    outputSchema: mapsSearchOutputSchema,
-    Summary: MapsSummary,
-    Detail: MapsDetail,
-  },
-};
+  COMPOSIO_SEARCH_WEB: webSearch,
+  COMPOSIO_SEARCH_FETCH_URL_CONTENT: fetchUrl,
+  COMPOSIO_SEARCH_NEWS: newsSearch,
+  COMPOSIO_SEARCH_FLIGHTS: flightSearch,
+  COMPOSIO_SEARCH_HOTELS: hotelSearch,
+  COMPOSIO_SEARCH_GOOGLE_MAPS: mapsSearch,
+} satisfies Record<string, AnyRenderer>;

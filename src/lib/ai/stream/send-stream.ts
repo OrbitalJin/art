@@ -23,7 +23,7 @@ import {
 import { presetFor } from "@/lib/ai/stream/presets";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import { useQuestionStore } from "@/lib/store/use-question-store";
-import { useTodoStore } from "@/lib/store/use-todo-store";
+import { usePlanStore } from "@/lib/store/use-plan-store";
 import { useStreamStore } from "@/lib/store/use-stream-store";
 
 function attachmentToPart(attachment: ChatAttachment) {
@@ -82,7 +82,7 @@ export async function sendToSession(
   const profiles = { user: userProfile, agent: agentProfile };
 
   const controller = useStreamStore.getState().begin(sessionId);
-  useTodoStore.getState().clear(sessionId);
+  usePlanStore.getState().clear(sessionId);
 
   let acc = initialAccumulator;
   let status: MessageStatus = "streaming";
@@ -176,7 +176,7 @@ export async function sendToSession(
   } finally {
     useApprovalStore.getState().clear(sessionId);
     useQuestionStore.getState().clear(sessionId);
-    useTodoStore.getState().clear(sessionId);
+    usePlanStore.getState().clear(sessionId);
     useStreamStore.getState().end(sessionId);
 
     const stillExists = useSessionIndex.getState().getMeta(sessionId);

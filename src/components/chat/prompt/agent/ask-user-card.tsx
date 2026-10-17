@@ -1,7 +1,15 @@
 import { useState } from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Circle, CircleCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import {
+  Trace,
+  TraceDescription,
+  TraceIcon,
+  TraceLine,
+  TraceTitle,
+} from "@/components/ui/trace";
 import {
   useQuestionStore,
   type AskUserAnswer,
@@ -17,70 +25,47 @@ interface Props {
   trailing?: React.ReactNode;
 }
 
-const OptionIndicator: React.FC<{ selected: boolean; multiple: boolean }> = ({
-  selected,
-  multiple,
-}) => {
-  const ringClasses = cn(
-    "flex size-3.5 items-center justify-center border transition-colors",
-    multiple ? "rounded-[4px]" : "rounded-full",
-    selected ? "border-emerald-500/70" : "border-muted-foreground/30",
-  );
+const chosenIconClasses = "text-emerald-600/90 dark:text-emerald-400/90";
 
-  return (
-    <span
-      aria-hidden
-      className="flex h-[18px] w-4 shrink-0 items-center justify-center"
-    >
-      <span className={ringClasses}>
-        {selected ? (
-          <span className="size-1.5 rounded-full bg-emerald-500" />
-        ) : null}
-      </span>
-    </span>
-  );
+const headerOf = (question: AskUserQuestion): string => {
+  const parts = [question.header];
+  if (question.multiple) parts.push("Select all that apply");
+  return parts.filter(Boolean).join(" · ");
 };
 
-const OptionRow: React.FC<{
+const OptionButton: React.FC<{
   option: { label: string; description?: string };
   selected: boolean;
   multiple: boolean;
   disabled: boolean;
   onSelect: () => void;
-}> = ({ option, selected, multiple, disabled, onSelect }) => {
-  const rowClasses = cn(
-    "flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left",
-    "outline-none transition-colors duration-150",
-    "focus-visible:ring-2 focus-visible:ring-ring/50",
-    selected ? "bg-muted/40" : "hover:bg-muted/30",
-    disabled && "cursor-default hover:bg-transparent",
-    disabled && !selected && "opacity-50",
-  );
-
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onSelect}
-      role={multiple ? "checkbox" : "radio"}
-      aria-checked={selected}
-      className={rowClasses}
-    >
-      <OptionIndicator selected={selected} multiple={multiple} />
-
-      <span className="flex min-w-0 flex-col">
-        <span className="text-[13px] leading-[18px] text-foreground/90">
-          {option.label}
-        </span>
-        {option.description && (
-          <span className="text-xs leading-4 text-muted-foreground/70">
-            {option.description}
-          </span>
+}> = ({ option, selected, multiple, disabled, onSelect }) => (
+  <button
+    type="button"
+    disabled={disabled}
+    onClick={onSelect}
+    role={multiple ? "checkbox" : "radio"}
+    aria-checked={selected}
+    className="select-none disabled:pointer-events-none"
+  >
+    <TraceLine className="pl-6">
+      <TraceIcon>
+        {selected ? <CircleCheck className={chosenIconClasses} /> : <Circle />}
+      </TraceIcon>
+      <TraceTitle
+        className={cn(
+          selected && "text-foreground/90",
+          disabled && !selected && "text-muted-foreground/45",
         )}
-      </span>
-    </button>
-  );
-};
+      >
+        {option.label}
+      </TraceTitle>
+      {option.description ? (
+        <TraceDescription>{option.description}</TraceDescription>
+      ) : null}
+    </TraceLine>
+  </button>
+);
 
 const CardActions: React.FC<{
   isPending: boolean;
@@ -105,7 +90,7 @@ const CardActions: React.FC<{
         size="sm"
         variant="ghost"
         onClick={onSkip}
-        className="h-8 shrink-0 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+        className="text-xs text-muted-foreground hover:text-foreground"
       >
         Skip
       </Button>
@@ -115,7 +100,7 @@ const CardActions: React.FC<{
         size="sm"
         variant={isPending ? "secondary" : "ghost"}
         onClick={onNext}
-        className="h-8 shrink-0 px-3 text-xs"
+        className="text-xs"
       >
         Next
       </Button>
@@ -125,7 +110,7 @@ const CardActions: React.FC<{
         size="sm"
         disabled={!canSubmit}
         onClick={onSubmit}
-        className="h-8 shrink-0 px-3 text-xs"
+        className="text-xs"
       >
         Submit
       </Button>
@@ -151,36 +136,24 @@ const QuestionBlock: React.FC<{
   actions,
 }) => {
   const multiple = Boolean(question.multiple);
-  const hasOptions = Boolean(question.options?.length);
-
-  const inputClasses = cn(
-    "h-8 min-w-0 flex-1 rounded-md bg-muted/30 px-2.5 text-[13px] text-foreground/90",
-    "outline-none transition-colors duration-150",
-    "placeholder:text-muted-foreground/40",
-    "focus-visible:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring/30",
-    "disabled:opacity-50",
-  );
+  const options = question.options ?? [];
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex flex-col">
-        <span className="text-[11px] font-medium text-muted-foreground/60">
-          {question.header}
-          {multiple && " · Select all that apply"}
-        </span>
-        <span className="text-[13px] leading-snug font-medium text-foreground/90">
-          {question.question}
-        </span>
-      </div>
+    <div className="flex flex-col gap-2">
+      <Trace>
+        <TraceLine>
+          <TraceTitle>{question.question}</TraceTitle>
+          <TraceDescription>{headerOf(question)}</TraceDescription>
+        </TraceLine>
+      </Trace>
 
-      {hasOptions && (
-        <div
+      {options.length > 0 ? (
+        <Trace
           role={multiple ? "group" : "radiogroup"}
           aria-label={question.question}
-          className="flex max-h-[40vh] flex-col overflow-y-auto"
         >
-          {question.options?.map((option) => (
-            <OptionRow
+          {options.map((option) => (
+            <OptionButton
               key={option.label}
               option={option}
               selected={selected.includes(option.label)}
@@ -189,18 +162,19 @@ const QuestionBlock: React.FC<{
               onSelect={() => onToggle(option.label)}
             />
           ))}
-        </div>
-      )}
+        </Trace>
+      ) : null}
 
       <div className="flex items-center gap-1.5">
-        <input
-          type="text"
+        <Input
           value={custom}
           disabled={disabled}
           onChange={(event) => onCustomChange(event.target.value)}
-          placeholder={hasOptions ? "Or type your own answer…" : "Your answer…"}
+          placeholder={
+            options.length > 0 ? "Or type your own answer…" : "Your answer…"
+          }
           aria-label={`Custom answer: ${question.question}`}
-          className={inputClasses}
+          className="h-7 text-xs"
         />
         {actions}
       </div>
@@ -216,13 +190,13 @@ const QuestionNav: React.FC<{
   <div className="flex items-center gap-1">
     {onBack && (
       <Button
-        size="icon"
+        size="icon-xs"
         variant="ghost"
         aria-label="Previous question"
         onClick={onBack}
-        className="size-5 text-muted-foreground hover:text-foreground"
+        className="text-muted-foreground hover:text-foreground"
       >
-        <ChevronLeft size={12} aria-hidden />
+        <ChevronLeft aria-hidden />
       </Button>
     )}
     <span
