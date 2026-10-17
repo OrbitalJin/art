@@ -20,8 +20,6 @@ export const createStoreStorage = (file: string): StateStorage => ({
 
 export const sessionIndexStorage = createStoreStorage("sessions/index.json");
 
-export const legacySessionStorage = createStoreStorage("sessions.json");
-
 const sessionFile = (id: string) => `sessions/${id}.json`;
 
 export const readSessionData = async (

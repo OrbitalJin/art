@@ -158,7 +158,3 @@ export interface SessionMeta {
 export interface SessionData {
   messages: Message[];
 }
-
-export interface Session extends SessionMeta {
-  messages: Message[];
-}
