@@ -1,13 +1,9 @@
-// welcome-message.tsx
 import React, { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionIndex } from "@/lib/store/session/index-store";
-import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { modelById } from "@/lib/ai/models";
-import { TOOL_GROUPS } from "./prompt/agent/configure-menu/groups";
-import { groupAnyEnabled } from "./prompt/agent/configure-menu/helpers";
 import { useChatInput } from "@/contexts/chat-context";
 
 interface Props {
@@ -166,7 +162,6 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const sessions = useSessionIndex((state) => state.sessions);
   const activeId = useSessionIndex((state) => state.activeId);
-  const connections = useConnectionsStore((state) => state.connections);
 
   const greeting = useMemo(() => greetingFor(new Date()), []);
 
@@ -179,14 +174,6 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
     () => modelById(activeSession?.modelId).displayName,
     [activeSession],
   );
-
-  const tools = useMemo(() => {
-    if (!isAgent || !activeSession) return [];
-
-    return TOOL_GROUPS.flatMap((group) =>
-      groupAnyEnabled(activeSession, group, connections) ? [group.label] : [],
-    );
-  }, [isAgent, activeSession, connections]);
 
   const recents = useMemo(() => {
     return sessions
@@ -202,37 +189,17 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   }, [sessions, activeId, routeType]);
 
   const firstName = userProfile.name?.trim().split(" ")[0] || "there";
-  const modeLabel = isAgent ? "Agent" : "Chat";
-  const toolsLabel =
-    tools.length > 0 ? tools.join(" · ") : "No tools enabled yet";
-
   const handleStarter = (prompt: string) => {
     setPrompt(prompt);
     textAreaRef.current?.focus();
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-12 px-4 select-none animate-in fade-in duration-300 fill-mode-backwards">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-3xl font-medium tracking-tight text-foreground">
+    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-2 px-4 select-none animate-in fade-in duration-300 fill-mode-backwards">
+      <header className="flex flex-col gap-2">
+        <h1 className="text-2xl font-medium tracking-tight text-foreground">
           {greeting}, {firstName}.
         </h1>
-
-        <div className="flex flex-col gap-1 text-sm text-muted-foreground/60">
-          <p>
-            {modeLabel} · {modelName}
-          </p>
-          {isAgent && (
-            <p
-              className={cn(
-                "text-xs",
-                tools.length === 0 && "text-muted-foreground/40",
-              )}
-            >
-              {toolsLabel}
-            </p>
-          )}
-        </div>
       </header>
 
       <Section label="Try asking">

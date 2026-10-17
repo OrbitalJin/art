@@ -7,6 +7,7 @@ import { ToolCallRow } from "./tool-call";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import { useQuestionStore } from "@/lib/store/use-question-store";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { splitMarkdownBlocks } from "@/lib/ai/stream/split-blocks";
 import {
   Trace,
@@ -17,10 +18,6 @@ import {
   TraceLine,
   TraceTitle,
 } from "@/components/ui/trace";
-
-// Flip to `true` to collapse consecutive tool calls under one summary row.
-// `false` renders each call as its own flat row.
-const GROUP_TOOL_CALLS = true;
 
 // Renders streaming markdown one top-level block at a time so completed blocks
 // are parsed once (and skipped by Renderer's memo) while only the trailing
@@ -107,6 +104,7 @@ interface Props {
 export const MessageParts: React.FC<Props> = ({ parts, streaming }) => {
   const approvals = useApprovalStore((state) => state.pending);
   const questions = useQuestionStore((state) => state.pending);
+  const groupToolCalls = useSettingsStore((state) => state.groupToolCalls);
 
   if (parts.length === 0) return null;
 
@@ -114,12 +112,12 @@ export const MessageParts: React.FC<Props> = ({ parts, streaming }) => {
   const nodes: React.ReactNode[] = [];
   let run: ToolCallPart[] = [];
 
-  // One block per run of consecutive tool calls: flat rows, or (when
-  // GROUP_TOOL_CALLS is on) a summary row that expands into the group. Text and
-  // the done-tool markdown break the run.
+  // One block per run of consecutive tool calls: flat rows, or (when the
+  // "Group tool calls" setting is on) a summary row that expands into the
+  // group. Text and the done-tool markdown break the run.
   const flush = () => {
     if (run.length === 0) return;
-    if (!GROUP_TOOL_CALLS || run.length === 1) {
+    if (!groupToolCalls || run.length === 1) {
       run.forEach((part) => {
         nodes.push(<ToolCallRow key={part.id} block={part} />);
       });

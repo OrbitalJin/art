@@ -303,6 +303,10 @@ export const ChatSettingsTab: React.FC = () => {
   );
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const setEnterKeySends = useSettingsStore((state) => state.setEnterKeySends);
+  const groupToolCalls = useSettingsStore((state) => state.groupToolCalls);
+  const setGroupToolCalls = useSettingsStore(
+    (state) => state.setGroupToolCalls,
+  );
 
   const handleClearHistory = () => {
     purgeSessions();
@@ -405,6 +409,17 @@ export const ChatSettingsTab: React.FC = () => {
               checked={enterKeySends}
               onCheckedChange={setEnterKeySends}
               aria-label="Enter to send"
+            />
+          </SettingRow>
+
+          <SettingRow
+            title="Group tool calls"
+            description="Collapse consecutive tool calls into one expandable summary row."
+          >
+            <Switch
+              checked={groupToolCalls}
+              onCheckedChange={setGroupToolCalls}
+              aria-label="Group tool calls"
             />
           </SettingRow>
         </SettingsCard>

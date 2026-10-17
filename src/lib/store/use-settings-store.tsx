@@ -43,6 +43,7 @@ interface SettingsState {
   defaultPersona: PersonaId;
   defaultAccessMode: AccessMode;
   enterKeySends: boolean;
+  groupToolCalls: boolean;
   reducedMotion: boolean;
   userProfile: UserProfile;
   agentProfile: AgentProfile;
@@ -58,6 +59,7 @@ interface SettingsState {
   setDefaultPersona: (persona: PersonaId) => void;
   setDefaultAccessMode: (mode: AccessMode) => void;
   setEnterKeySends: (value: boolean) => void;
+  setGroupToolCalls: (value: boolean) => void;
   setReducedMotion: (value: boolean) => void;
   setUserProfile: (profile: Partial<UserProfile>) => void;
   setAgentProfile: (profile: Partial<AgentProfile>) => void;
@@ -94,6 +96,7 @@ const initialState = {
   defaultPersona: DEFAULT_PERSONA,
   defaultAccessMode: "confirm" as AccessMode,
   enterKeySends: true,
+  groupToolCalls: false,
   reducedMotion: false,
   userProfile: DEFAULT_USER_PROFILE,
   agentProfile: DEFAULT_AGENT_PROFILE,
@@ -122,6 +125,7 @@ export const useSettingsStore = create<SettingsState>()(
       setDefaultAccessMode: (mode: AccessMode) =>
         set({ defaultAccessMode: mode }),
       setEnterKeySends: (value: boolean) => set({ enterKeySends: value }),
+      setGroupToolCalls: (value: boolean) => set({ groupToolCalls: value }),
       setReducedMotion: (value: boolean) => set({ reducedMotion: value }),
       setUserProfile: (profile: Partial<UserProfile>) =>
         set((state) => ({
@@ -135,7 +139,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 11,
+      version: 12,
       storage: createJSONStorage(() => settingsStorage),
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
@@ -220,6 +224,12 @@ export const useSettingsStore = create<SettingsState>()(
         if (version < 11) {
           const state = persistedState as { youtubeApiKey?: string };
           if (state) delete state.youtubeApiKey;
+        }
+        if (version < 12) {
+          const state = persistedState as { groupToolCalls?: boolean };
+          if (state && state.groupToolCalls === undefined) {
+            state.groupToolCalls = false;
+          }
         }
         return persistedState as SettingsState;
       },

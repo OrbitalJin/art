@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CloudDownload, ScrollText } from "lucide-react";
 
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
@@ -22,6 +22,10 @@ export const UpdaterDialog = () => {
   const setOpen = useUIStateStore((state) => state.setUpdateDialogOpen);
   const [tab, setTab] = useState("update");
   const { status } = useAppUpdater(true);
+
+  useEffect(() => {
+    if (status === "available") setOpen(true);
+  }, [status, setOpen]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
