@@ -5,12 +5,22 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import type { PluggableList } from "unified";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
 
 import { CodeBlock } from "@/components/chat/messages/code/block";
 import { InlineCode } from "@/components/chat/messages/code/inline";
 import { cn } from "@/lib/utils";
+
+import type { Root } from "mdast";
+import type { Plugin } from "unified";
+
+const remarkHoldBackMath: Plugin<[], Root> = () => (tree) => {
+  const lastNode = tree.children.at(-1);
+  if (lastNode?.type === "code" && lastNode.lang === "math")
+    tree.children.pop();
+};
 
 interface Props {
   content: string;
@@ -19,6 +29,21 @@ interface Props {
 }
 
 let katexCssLoaded = false;
+
+const finalRemarkPlugins: PluggableList = [
+  remarkGfm,
+  remarkBreaks,
+  [remarkMath, { singleDollarTextMath: false }],
+];
+
+const streamingRemarkPlugins: PluggableList = [
+  remarkGfm,
+  remarkBreaks,
+  [remarkMath, { singleDollarTextMath: false }],
+  remarkHoldBackMath,
+];
+
+const rehypePlugins: PluggableList = [rehypeKatex];
 
 const rootClasses =
   "max-w-none wrap-break-word text-[15px] leading-[1.7] text-foreground/90";
@@ -63,7 +88,11 @@ const MarkdownLink: React.FC<React.ComponentPropsWithoutRef<"a">> = ({
   );
 };
 
-const RendererComponent: React.FC<Props> = ({ content, className }) => {
+const RendererComponent: React.FC<Props> = ({
+  content,
+  className,
+  streaming,
+}) => {
   useEffect(() => {
     if (!katexCssLoaded) {
       katexCssLoaded = true;
@@ -71,11 +100,13 @@ const RendererComponent: React.FC<Props> = ({ content, className }) => {
     }
   }, []);
 
+  const remarkPlugins = streaming ? streamingRemarkPlugins : finalRemarkPlugins;
+
   return (
     <div className={cn(rootClasses, className)}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
         components={{
           h1({ children }) {
             return <h1 className={h1Classes}>{children}</h1>;

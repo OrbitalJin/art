@@ -77,6 +77,16 @@ const ACCESS_MODE_RULES: Record<AccessMode, string> = {
     "verify results instead of assuming success.",
 };
 
+const MATH_RULES: string = [
+  "- Write all math as fenced code blocks with the language `math`, one " +
+    "formula per block. Never use `$`, `$$`, `\\(...\\)`, or `\\[...\\]` " +
+    "for math.",
+  "- For trivial inline values in prose, use plain text or Unicode " +
+    "(x², α, ≤, 3×10⁸) instead of a fence.",
+  "- Write currency as plain text, e.g. $5 or $100-$200.",
+  "- Never use the `math` fence for anything that is not a formula.",
+].join("\n");
+
 export const system = ({
   persona,
   profiles,
@@ -134,6 +144,7 @@ export const system = ({
       "BEHAVIOR",
       personaDef?.prompt ?? "Provide standard, helpful assistance.",
     ),
+    section("MATH", MATH_RULES),
     section(
       "RULES",
       [
