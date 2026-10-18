@@ -4,7 +4,7 @@ import { migrateEscapedJson } from "@/lib/store/migrate-escaped-json";
 
 const tauriStore = await load("prompts.json");
 
-await migrateEscapedJson(tauriStore, ["stash-storage"]);
+await migrateEscapedJson(tauriStore, ["stash-storage"], "prompts");
 
 export const createStashStorage = <T>() =>
   createPersistedStorage<T>(tauriStore);

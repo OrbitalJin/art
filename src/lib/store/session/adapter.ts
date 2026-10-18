@@ -22,7 +22,7 @@ export const createStoreStorage = (file: string): StateStorage => ({
 
 const sessionIndexStore = await load("sessions/index.json");
 
-await migrateEscapedJson(sessionIndexStore, ["session-index"]);
+await migrateEscapedJson(sessionIndexStore, ["session-index"], "sessions-index");
 
 export const createSessionIndexStorage = <T>() =>
   createPersistedStorage<T>(sessionIndexStore);

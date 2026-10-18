@@ -4,7 +4,11 @@ import { migrateEscapedJson } from "@/lib/store/migrate-escaped-json";
 
 const tauriStore = await load("settings.json");
 
-await migrateEscapedJson(tauriStore, ["settings-storage", "ui-state-storage"]);
+await migrateEscapedJson(
+  tauriStore,
+  ["settings-storage", "ui-state-storage"],
+  "settings",
+);
 
 export const createSettingsStorage = <T>() =>
   createPersistedStorage<T>(tauriStore);

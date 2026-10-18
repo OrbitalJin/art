@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionIndex } from "@/lib/store/session/index-store";
-import { modelById } from "@/lib/ai/models";
 import { useChatInput } from "@/contexts/chat-context";
 
 interface Props {
@@ -164,16 +163,6 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const activeId = useSessionIndex((state) => state.activeId);
 
   const greeting = useMemo(() => greetingFor(new Date()), []);
-
-  const activeSession = useMemo(
-    () => sessions.find((session) => session.id === activeId),
-    [sessions, activeId],
-  );
-
-  const modelName = useMemo(
-    () => modelById(activeSession?.modelId).displayName,
-    [activeSession],
-  );
 
   const recents = useMemo(() => {
     return sessions

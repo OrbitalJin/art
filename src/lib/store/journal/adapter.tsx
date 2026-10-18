@@ -4,7 +4,11 @@ import { migrateEscapedJson } from "@/lib/store/migrate-escaped-json";
 
 const tauriStore = await load("notes.json");
 
-await migrateEscapedJson(tauriStore, ["note-storage", "note-temp-storage"]);
+await migrateEscapedJson(
+  tauriStore,
+  ["note-storage", "note-temp-storage"],
+  "notes",
+);
 
 export const createJournalStorage = <T,>() =>
   createPersistedStorage<T>(tauriStore);
