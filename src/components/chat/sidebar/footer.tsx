@@ -9,7 +9,7 @@ import {
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useSession } from "@/lib/store/session/data-store";
 import { modelById } from "@/lib/ai/models";
-import type { Message } from "@/lib/store/session/types";
+import type { Session } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
 
 const WARN_AT = 70;
@@ -25,7 +25,7 @@ const formatCompact = (value: number): string =>
     maximumFractionDigits: 1,
   }).format(value);
 
-const getUsage = (messages: Message[]) => {
+const getUsage = (messages: Session["messages"]) => {
   let input = 0;
   let output = 0;
 

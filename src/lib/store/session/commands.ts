@@ -1,9 +1,11 @@
 import { useDraftStore } from "@/lib/store/use-draft-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useStreamStore } from "@/lib/store/use-stream-store";
+import { legacySessionStorage, writeSessionData } from "./adapter";
 import { sessionDataStore } from "./data-store";
 import { useSessionIndex } from "./index-store";
 import { createMeta } from "./meta";
+import { migrateState, SESSION_STORAGE_VERSION } from "./migrate";
 import type { Message, SessionMeta, SessionType } from "./types";
 
 export const appendMessage = async (
@@ -103,11 +105,41 @@ export const branchSession = async (id: string): Promise<boolean> => {
 };
 
 /**
- * Boots the session index and message cache.
+ * Boots the session index and message cache. The legacy `sessions.json` store
+ * is read once for migration and intentionally left untouched as a backup.
  */
 export const hydrateSessions = async (): Promise<void> => {
   await useSettingsStore.persist.rehydrate();
   await useSessionIndex.persist.rehydrate();
+
+  if (useSessionIndex.getState().sessions.length === 0) {
+    const legacyRaw = await legacySessionStorage.getItem("session-storage");
+
+    if (legacyRaw) {
+      const legacy = JSON.parse(legacyRaw) as {
+        state: unknown;
+        version?: number;
+      };
+      const migrated = migrateState(
+        legacy.state,
+        legacy.version ?? SESSION_STORAGE_VERSION,
+      );
+      const metas: SessionMeta[] = [];
+
+      for (const session of migrated.sessions) {
+        const { messages, ...meta } = session;
+        metas.push(meta);
+        await writeSessionData(session.id, { messages });
+      }
+
+      useSessionIndex
+        .getState()
+        .replaceAll(metas, migrated.activeId ?? metas[0]?.id ?? null);
+    } else {
+      const meta = createMeta({});
+      useSessionIndex.getState().replaceAll([meta], meta.id);
+    }
+  }
 
   if (useSessionIndex.getState().sessions.length === 0) {
     const meta = createMeta({});
