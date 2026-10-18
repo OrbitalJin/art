@@ -202,10 +202,11 @@ Bento-style task board with drag-and-drop organization.
 
 ### Planned
 
+- [ ] Remove legacy migrations
+- [ ] remember & recall tools, that lets the agent store and retrieve relevant context from past conversations
 - [ ] Add support for skills
 - [ ] Math render tool
 - [ ] Custom renderer per tool for write approval (similar to tool calls)
 - [ ] Make ui more consistent
 - [ ] Make todo expandable in agent bar
-- [ ] remember & recall tools, that lets the agent store and retrieve relevant context from past conversations
 - [ ] Super Prompt: a floating prompt for app-wide questions and agentic actions

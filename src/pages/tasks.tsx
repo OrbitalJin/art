@@ -23,7 +23,7 @@ export const Tasks = () => {
 
   return (
     <div className="flex h-full flex-1 flex-col p-2 gap-2">
-      <div className="flex flex-row items-center gap-2 p-2 bg-card/50 rounded-md border border-border/50">
+      <div className="flex flex-row items-center gap-2 p-1 bg-card/50 rounded-md border border-border/50">
         <TaskFormDialog
           mode="create"
           onSubmit={manager.createTask}

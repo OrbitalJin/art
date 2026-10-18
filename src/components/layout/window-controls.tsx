@@ -15,12 +15,7 @@ const WindowButton = ({ label, color, onClick }: WindowButtonProps) => (
     onClick={onClick}
     className="group flex items-center justify-center"
   >
-    <span
-      className={cn(
-        "size-3 rounded-full transition-transform group-hover:scale-125",
-        color,
-      )}
-    />
+    <span className={cn("size-3 rounded-full transition-transform", color)} />
   </button>
 );
 
@@ -30,8 +25,8 @@ export const WindowControls = () => {
   const close = () => appWindow.close();
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="flex gap-1 px-2">
+    <div className="flex flex-col items-center gap-2">
+      <div className="flex space-x-1 px-2">
         <WindowButton
           label="Minimize"
           color="bg-yellow-300/80"

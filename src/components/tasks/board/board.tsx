@@ -234,13 +234,9 @@ export const TaskBoard = ({ tasks, onEdit }: TaskBoardProps) => {
             onValueChange={(v) => setActiveTab(v as ColumnId)}
             className="flex h-full flex-col"
           >
-            <TabsList className="mx-4 grid w-auto grid-cols-3 rounded-full bg-muted/50">
+            <TabsList className="grid w-auto grid-cols-3 bg-card/50 border border-border/50 rounded-md">
               {COLUMNS.map((colId) => (
-                <TabsTrigger
-                  key={colId}
-                  value={colId}
-                  className="rounded-full text-xs"
-                >
+                <TabsTrigger key={colId} value={colId} className="text-xs">
                   {COLUMN_LABELS[colId]}
                 </TabsTrigger>
               ))}
@@ -250,7 +246,7 @@ export const TaskBoard = ({ tasks, onEdit }: TaskBoardProps) => {
               <TabsContent
                 key={colId}
                 value={colId}
-                className="mt-3 flex-1 overflow-hidden px-4 pb-4"
+                className="flex-1 overflow-hidden"
               >
                 <BoardColumn
                   id={colId}
