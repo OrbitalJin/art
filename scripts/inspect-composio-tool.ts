@@ -16,9 +16,7 @@ async function readComposioKey(): Promise<string | undefined> {
     if (!(await file.exists())) continue;
     const raw = await file.json();
     const persisted = raw["settings-storage"];
-    if (typeof persisted !== "string") continue;
-    const key = JSON.parse(persisted)?.state?.composioApiKey;
-    if (typeof key === "string" && key) return key;
+    return persisted["state"]["composioApiKey"];
   }
   return undefined;
 }
