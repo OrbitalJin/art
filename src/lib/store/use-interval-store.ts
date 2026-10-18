@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import { intervalsStore } from "./interval/adapter";
+import { persist } from "zustand/middleware";
+import { createIntervalsStorage } from "./interval/adapter";
 import { toast } from "sonner";
 import { isYoutubeUrl } from "@/hooks/use-audio-metadata";
 
@@ -228,7 +228,23 @@ export const useIntervalStore = create<IntervalState>()(
     {
       name: "intervals-storage",
       version: 2,
-      storage: createJSONStorage(() => intervalsStore),
+      storage:
+        createIntervalsStorage<
+          Pick<
+            IntervalState,
+            | "sessionCount"
+            | "focusTime"
+            | "shortBreakTime"
+            | "longBreakTime"
+            | "volume"
+            | "currentIndex"
+            | "muted"
+            | "loop"
+            | "playlist"
+            | "memoContent"
+            | "fullscreen"
+          >
+        >(),
       partialize: (state) => ({
         sessionCount: state.sessionCount,
         focusTime: state.focusTime,

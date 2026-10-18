@@ -1,5 +1,5 @@
-import { createJSONStorage, persist } from "zustand/middleware";
-import { settingsStorage } from "@/lib/store/settings/adapter";
+import { persist } from "zustand/middleware";
+import { createSettingsStorage } from "@/lib/store/settings/adapter";
 import { create } from "zustand";
 
 interface ChatState {
@@ -31,6 +31,11 @@ interface SettingsState {
   setSettingsDialogOpen: (open: boolean) => void;
   setUpdateDialogOpen: (open: boolean) => void;
 }
+
+type PersistedUIState = Pick<
+  SettingsState,
+  "chatState" | "journalState" | "settingsDialogOpen" | "updateDialogOpen"
+>;
 
 export const useUIStateStore = create<SettingsState>()(
   persist(
@@ -65,7 +70,13 @@ export const useUIStateStore = create<SettingsState>()(
     {
       name: "ui-state-storage",
       version: 3,
-      storage: createJSONStorage(() => settingsStorage),
+      storage: createSettingsStorage<PersistedUIState>(),
+      partialize: (state): PersistedUIState => ({
+        chatState: state.chatState,
+        journalState: state.journalState,
+        settingsDialogOpen: state.settingsDialogOpen,
+        updateDialogOpen: state.updateDialogOpen,
+      }),
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Partial<SettingsState> & {
           captureState?: unknown;

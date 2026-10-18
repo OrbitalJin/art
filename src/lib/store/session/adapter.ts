@@ -1,5 +1,7 @@
 import type { StateStorage } from "zustand/middleware";
 import { load } from "@tauri-apps/plugin-store";
+import { createPersistedStorage } from "@/lib/store/persisted-storage";
+import { migrateEscapedJson } from "@/lib/store/migrate-escaped-json";
 import type { SessionData } from "./types";
 
 export const createStoreStorage = (file: string): StateStorage => ({
@@ -18,7 +20,12 @@ export const createStoreStorage = (file: string): StateStorage => ({
   },
 });
 
-export const sessionIndexStorage = createStoreStorage("sessions/index.json");
+const sessionIndexStore = await load("sessions/index.json");
+
+await migrateEscapedJson(sessionIndexStore, ["session-index"]);
+
+export const createSessionIndexStorage = <T>() =>
+  createPersistedStorage<T>(sessionIndexStore);
 
 export const legacySessionStorage = createStoreStorage("sessions.json");
 

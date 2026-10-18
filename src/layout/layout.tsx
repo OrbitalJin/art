@@ -24,7 +24,7 @@ export function Layout({ children }: LayoutProps) {
       >
         <main
           className={cn(
-            "flex-1 flex transition-all duration-300 overflow-hidden",
+            "flex-1 min-w-0 flex transition-all duration-300 overflow-hidden",
           )}
         >
           {children}

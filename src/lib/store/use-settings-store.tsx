@@ -1,5 +1,5 @@
-import { createJSONStorage, persist } from "zustand/middleware";
-import { settingsStorage } from "@/lib/store/settings/adapter";
+import { persist } from "zustand/middleware";
+import { createSettingsStorage } from "@/lib/store/settings/adapter";
 import { create } from "zustand";
 import type { ModelId } from "../ai/models";
 import type { AccessMode } from "./session/types";
@@ -102,6 +102,26 @@ const initialState = {
   agentProfile: DEFAULT_AGENT_PROFILE,
 };
 
+type PersistedSettings = typeof initialState;
+
+const partialize = (state: SettingsState): PersistedSettings => ({
+  apiKey: state.apiKey,
+  composioApiKey: state.composioApiKey,
+  composioUserId: state.composioUserId,
+  uploadSecret: state.uploadSecret,
+  fontSize: state.fontSize,
+  cornerRadius: state.cornerRadius,
+  defaultModel: state.defaultModel,
+  defaultAgentModel: state.defaultAgentModel,
+  defaultPersona: state.defaultPersona,
+  defaultAccessMode: state.defaultAccessMode,
+  enterKeySends: state.enterKeySends,
+  groupToolCalls: state.groupToolCalls,
+  reducedMotion: state.reducedMotion,
+  userProfile: state.userProfile,
+  agentProfile: state.agentProfile,
+});
+
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
@@ -140,7 +160,8 @@ export const useSettingsStore = create<SettingsState>()(
     {
       name: "settings-storage",
       version: 12,
-      storage: createJSONStorage(() => settingsStorage),
+      storage: createSettingsStorage<PersistedSettings>(),
+      partialize,
       migrate: (persistedState: unknown, version: number) => {
         if (version < 2) {
           const state = persistedState as { defaultModel: ModelId };

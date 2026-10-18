@@ -17,7 +17,8 @@ Art is built for people who want one personal workspace instead of juggling disc
 - Local-first desktop experience
 - Chat and Agent modes with real tool calling
 - Bring-your-own-key AI gateway
-- Read-only connections to Gmail and Slack
+- Read-only connections to Gmail and Google Sheets
+- Built-in web search, flights, hotels, and maps
 - Journals and notes that can become reusable context
 - Task management and calendar in the same workspace
 - Focus intervals with an integrated audio player
@@ -39,15 +40,21 @@ Multi-session conversations with dedicated workflow modes and an autonomous agen
 - Agent tools for tasks, local files, and read-only service connections
 - Agent todo list for planning multi-step work
 - Read images and PDFs from connected folders
-- Read-only Gmail and Slack connections (bring your own Composio key)
+- Attach images and PDFs directly in chat
+- Paste screenshots from the clipboard
+- Read-only Gmail and Google Sheets connections (bring your own Composio key)
+- Built-in search tools for web, news, URL content, flights, hotels, and maps
+- YouTube transcripts with language selection and persistent caching
 - Connections are linked once in Settings and enabled per session
+- Prompt stash for saved prompts and reusable templates with placeholders (`Ctrl+P`)
 - Tool access policy: read-only, confirm, or autonomous
 - Approval gating for destructive actions
 - Concurrent streaming sessions with per-session drafts
-- Image attachments and paste support
-- Search grounding and model reasoning
+- Search grounding and model reasoning with collapsible thinking traces
 - LaTeX math and syntax highlighting
 - Per-tool renderers for inline tool calls
+- Tool grouping toggle for compact tool activity
+- Incremental markdown rendering during streaming
 - Rename, pin, archive, fork, import, and export sessions
 - Session token usage
 - Notes can be attached as context
@@ -104,7 +111,7 @@ A customizable timer with an integrated audio player, playlist, and memo for foc
 Extra utilities that support the rest of your workflow.
 
 - Shared context between parts of the app
-- External connections (Gmail, Slack) managed in Settings
+- External connections (Gmail, Google Sheets) managed in Settings
 - Command palette navigation (`Mod+K`)
 - Theme colors, text size, and radius customization
 - Customizable user and agent identities
@@ -117,8 +124,7 @@ Grab the latest build from [Releases](https://github.com/orbitaljin/art/releases
 | Platform              | File                          |
 | --------------------- | ----------------------------- |
 | macOS (Apple Silicon) | `.dmg`                        |
-| macOS (Intel)         | `.dmg`                        |
-| Windows               | `.exe`                        |
+| Windows               | `.exe` / `.msi`               |
 | Linux                 | `.deb` / `.rpm` / `.AppImage` |
 
 Updates are handled in-app. Through the built-in updater, you can update to the latest version.

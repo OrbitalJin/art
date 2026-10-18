@@ -86,7 +86,7 @@ export const Chat = () => {
   );
 
   return (
-    <div className="relative flex-1 flex flex-row select-none">
+    <div className="relative flex-1 flex flex-row min-w-0 select-none">
       <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <div className="relative flex-1 flex flex-col selection:bg-primary/50 min-w-0 overflow-x-hidden p-2 pt-0">

@@ -84,7 +84,6 @@ const MATH_RULES: string = [
   "- For trivial inline values in prose, use plain text or Unicode " +
     "(x², α, ≤, 3×10⁸) instead of a fence.",
   "- Write currency as plain text, e.g. $5 or $100-$200.",
-  "- Never use the `math` fence for anything that is not a formula.",
 ].join("\n");
 
 export const system = ({

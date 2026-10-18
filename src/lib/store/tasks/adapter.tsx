@@ -1,20 +1,10 @@
-import type { StateStorage } from "zustand/middleware";
 import { load } from "@tauri-apps/plugin-store";
+import { createPersistedStorage } from "@/lib/store/persisted-storage";
+import { migrateEscapedJson } from "@/lib/store/migrate-escaped-json";
 
 const tasksStore = await load("tasks.json");
 
-export const tasksStorage: StateStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    return (await tasksStore.get(name)) || null;
-  },
+await migrateEscapedJson(tasksStore, ["tasks-storage"]);
 
-  setItem: async (name: string, value: string): Promise<void> => {
-    await tasksStore.set(name, value);
-    await tasksStore.save();
-  },
-
-  removeItem: async (name: string): Promise<void> => {
-    await tasksStore.delete(name);
-    await tasksStore.save();
-  },
-};
+export const createTasksStorage = <T,>() =>
+  createPersistedStorage<T>(tasksStore);

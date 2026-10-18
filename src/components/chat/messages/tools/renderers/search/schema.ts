@@ -197,9 +197,7 @@ const contentResultSchema = z
   .loose();
 
 export const fetchUrlOutputSchema = envelope(
-  z
-    .object({ results: z.array(contentResultSchema).nullish() })
-    .nullish(),
+  z.object({ results: z.array(contentResultSchema).nullish() }).nullish(),
 ).transform(({ data }) => ({
   results: (data?.results ?? []).map<SearchResult>((result) => ({
     title: result.title ?? result.url ?? null,
@@ -226,9 +224,7 @@ const newsArticleSchema = z
   .loose();
 
 export const newsSearchOutputSchema = envelope(
-  z
-    .object({ news_results: z.array(newsArticleSchema).nullish() })
-    .nullish(),
+  z.object({ news_results: z.array(newsArticleSchema).nullish() }).nullish(),
 ).transform(({ data }) => ({
   results: (data?.news_results ?? []).map<SearchResult>((article) => ({
     title: article.title ?? article.link ?? null,

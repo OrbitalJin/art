@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import { connectionsStorage } from "@/lib/store/connections/adapter";
+import { persist } from "zustand/middleware";
+import { createConnectionsStorage } from "@/lib/store/connections/adapter";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { showConnectionErrorToast } from "@/lib/utils/error-toast";
 import {
@@ -182,11 +182,17 @@ export const useConnectionsStore = create<ConnectionsState>()(
     {
       name: "connections-storage",
       version: 4,
-      storage: createJSONStorage(() => connectionsStorage),
-      migrate: (persisted) => ({
-        ...(persisted as object),
-        connections: {},
-      }),
+      storage:
+        createConnectionsStorage<
+          Pick<ConnectionsState, "sessionId" | "sessionKey" | "connections">
+        >(),
+      migrate: (persisted) => {
+        const state = persisted as Pick<
+          ConnectionsState,
+          "sessionId" | "sessionKey" | "connections"
+        >;
+        return { ...state, connections: {} };
+      },
       partialize: (state) => ({
         sessionId: state.sessionId,
         sessionKey: state.sessionKey,

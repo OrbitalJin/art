@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { toast } from "sonner";
 import type { Project, Task, TaskStatus, View } from "./tasks/types";
-import { tasksStorage } from "./tasks/adapter";
+import { createTasksStorage } from "./tasks/adapter";
 
 export interface TasksState {
   tasks: Task[];
@@ -84,6 +84,11 @@ const normalizeColumnPositions = (
     };
   });
 };
+
+type PersistedTasks = Pick<
+  TasksState,
+  "tasks" | "projects" | "currentView" | "activeProjectId" | "inboxName"
+>;
 
 export const useTasksStore = create<TasksState>()(
   persist(
@@ -314,9 +319,16 @@ export const useTasksStore = create<TasksState>()(
     {
       name: "tasks-storage",
       version: 3,
-      storage: createJSONStorage(() => tasksStorage),
+      storage: createTasksStorage<PersistedTasks>(),
+      partialize: (state): PersistedTasks => ({
+        tasks: state.tasks,
+        projects: state.projects,
+        currentView: state.currentView,
+        activeProjectId: state.activeProjectId,
+        inboxName: state.inboxName,
+      }),
       migrate: (persistedState: unknown, version: number) => {
-        const state = persistedState as Partial<TasksState>;
+        const state = persistedState as PersistedTasks;
 
         if (version < 3) {
           const tasks = state.tasks ?? [];

@@ -1,7 +1,7 @@
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { create } from "zustand";
 import type { Page, Workspace } from "./journal/types";
-import { journalStorage } from "./journal/adapter";
+import { createJournalStorage } from "./journal/adapter";
 import mockContent from "@/assets/mock.md?raw";
 
 const createNewPage = (workspace: Workspace, title?: string): Page => {
@@ -42,6 +42,8 @@ export interface State {
   updateViewedAt: (pageId: string) => void;
   setWorkspace: (workspace: Workspace) => void;
 }
+
+type PersistedJournal = Pick<State, "pages" | "activeId" | "currentWorkspace">;
 
 export const useJournalStore = create<State>()(
   persist(
@@ -245,16 +247,22 @@ export const useJournalStore = create<State>()(
     {
       name: "note-storage",
       version: 1,
-      storage: createJSONStorage(() => journalStorage),
-      migrate: (persistedState: any, version: number) => {
-        if (version === 0) {
-          if (persistedState && Array.isArray(persistedState.entries)) {
-            persistedState.pages = persistedState.entries;
-            delete persistedState.entries;
-          }
+      storage: createJournalStorage<PersistedJournal>(),
+      partialize: (state): PersistedJournal => ({
+        pages: state.pages,
+        activeId: state.activeId,
+        currentWorkspace: state.currentWorkspace,
+      }),
+      migrate: (persistedState: unknown, version: number) => {
+        const state = persistedState as PersistedJournal & {
+          entries?: unknown;
+        };
+        if (version === 0 && Array.isArray(state.entries)) {
+          state.pages = state.entries as PersistedJournal["pages"];
+          delete state.entries;
         }
 
-        return persistedState;
+        return state;
       },
       onRehydrateStorage: () => (store) => {
         if (!store) return;

@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import { stashStorage } from "@/lib/store/stash/adapter";
+import { persist } from "zustand/middleware";
+import { createStashStorage } from "@/lib/store/stash/adapter";
 import { hasPlaceholders } from "@/lib/stash/placeholders";
 
 export type StashKind = "snippet" | "template";
@@ -103,7 +103,7 @@ export const useStashStore = create<StashState>()(
     {
       name: "stash-storage",
       version: 1,
-      storage: createJSONStorage(() => stashStorage),
+      storage: createStashStorage<Pick<StashState, "entries">>(),
       partialize: (state) => ({ entries: state.entries }),
       migrate: (persistedState) =>
         persistedState as Pick<StashState, "entries">,

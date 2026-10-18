@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import type { ModelId } from "@/lib/ai/models";
 import type { PersonaId } from "@/lib/ai/prompts/personas";
 import type { FsRoot } from "@/lib/fs";
-import { sessionIndexStorage } from "./adapter";
+import { createSessionIndexStorage } from "./adapter";
 import { createMeta, defaultGroups } from "./meta";
 import type {
   AccessMode,
@@ -222,7 +222,10 @@ export const useSessionIndex = create<SessionIndexState>()(
     {
       name: "session-index",
       version: 1,
-      storage: createJSONStorage(() => sessionIndexStorage),
+      storage:
+        createSessionIndexStorage<
+          Pick<SessionIndexState, "sessions" | "activeId">
+        >(),
       skipHydration: true,
       partialize: (state) => ({
         sessions: state.sessions,
