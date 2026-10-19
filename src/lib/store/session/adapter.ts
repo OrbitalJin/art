@@ -27,8 +27,6 @@ await migrateEscapedJson(sessionIndexStore, ["session-index"], "sessions-index")
 export const createSessionIndexStorage = <T>() =>
   createPersistedStorage<T>(sessionIndexStore);
 
-export const legacySessionStorage = createStoreStorage("sessions.json");
-
 const sessionFile = (id: string) => `sessions/${id}.json`;
 
 export const readSessionData = async (
