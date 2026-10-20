@@ -199,10 +199,10 @@ Bento-style task board with drag-and-drop organization.
 - [x] Add google sheets toolkit
 - [x] Add external connections
 - [x] better api key gating
+- [x] Remove legacy migrations
 
 ### Planned
 
-- [ ] Remove legacy migrations
 - [ ] remember & recall tools, that lets the agent store and retrieve relevant context from past conversations
 - [ ] Add support for skills
 - [ ] Math render tool

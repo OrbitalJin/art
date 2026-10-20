@@ -1,7 +1,10 @@
 import { LayoutGrid, CalendarDays } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectActions } from "@/components/tasks/project-actions";
-import { TaskFormDialog } from "@/components/tasks/dialogs/task";
+import {
+  CreateTaskDialog,
+  EditTaskDialog,
+} from "@/components/tasks/dialogs/task";
 import { CalendarView } from "@/components/tasks/calendar/view";
 import { useTasksStore } from "@/lib/store/use-tasks-store";
 
@@ -24,12 +27,11 @@ export const Tasks = () => {
   return (
     <div className="flex h-full flex-1 flex-col p-2 gap-2">
       <div className="flex flex-row items-center gap-2 p-1 bg-card/50 rounded-md border border-border/50">
-        <TaskFormDialog
-          mode="create"
-          onSubmit={manager.createTask}
-          projects={manager.projects}
+        <CreateTaskDialog
           open={manager.isCreateDialogOpen}
           onOpenChange={manager.setIsCreateDialogOpen}
+          onCreate={manager.createTask}
+          defaultDue={manager.createTaskDate}
         />
         <ProjectActions />
         <div className="flex-1" />
@@ -69,19 +71,17 @@ export const Tasks = () => {
             tasks={manager.tasks}
             onTaskClick={manager.handleEditTask}
             onDeleteTask={deleteTask}
-            onEditTask={manager.handleEditTask}
+            onDayClick={manager.handleCreateTaskForDay}
           />
         )}
       </div>
 
       {manager.editingTask && (
-        <TaskFormDialog
-          mode="edit"
+        <EditTaskDialog
           task={manager.editingTask}
           open={manager.isEditDialogOpen}
           onOpenChange={manager.setIsEditDialogOpen}
-          onSubmit={manager.updateTask}
-          projects={manager.projects}
+          onUpdate={manager.updateTask}
         />
       )}
     </div>

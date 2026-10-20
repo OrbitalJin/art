@@ -11,7 +11,7 @@ interface Props {
   tasks: Task[];
   onTaskClick: (task: Task) => void;
   onDeleteTask: (id: string) => void;
-  onEditTask: (task: Task) => void;
+  onDayClick?: (day: Date) => void;
 }
 
 const WeekdayLabel = ({ label }: { label: string }) => (
@@ -23,7 +23,7 @@ const WeekdayLabel = ({ label }: { label: string }) => (
 export const CalendarView: React.FC<Props> = ({
   tasks,
   onTaskClick,
-  onEditTask,
+  onDayClick,
 }) => {
   const {
     currentMonth,
@@ -82,7 +82,7 @@ export const CalendarView: React.FC<Props> = ({
                 currentMonth={currentMonth}
                 tasks={getTasksForDay(day)}
                 onTaskClick={onTaskClick}
-                onEditTask={onEditTask}
+                onDayClick={onDayClick}
               />
             ))}
           </div>
@@ -97,12 +97,7 @@ export const CalendarView: React.FC<Props> = ({
           </div>
           <div className="flex flex-col gap-1.5 p-2">
             {tasksWithoutDue.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onClick={onTaskClick}
-                onEdit={onEditTask}
-              />
+              <TaskItem key={task.id} task={task} onClick={onTaskClick} />
             ))}
           </div>
         </div>

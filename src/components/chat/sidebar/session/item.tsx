@@ -33,6 +33,7 @@ import { branchSession, deleteSession } from "@/lib/store/session/commands";
 import { useIsStreaming } from "@/lib/store/use-stream-store";
 import { useSessionAttention } from "@/hooks/use-session-attention";
 import type { SessionMeta } from "@/lib/store/session/types";
+import { Spinner } from "@/components/ui/spinner";
 
 interface Props {
   item: SessionMeta;
@@ -44,19 +45,9 @@ const stopPropagation = (event: React.SyntheticEvent) => {
   event.stopPropagation();
 };
 
-const StatusDot: React.FC<{ streaming: boolean }> = ({ streaming }) => (
-  <span className="relative flex size-1.5 shrink-0">
-    <span className="relative inline-flex size-1.5 rounded-full bg-amber-500" />
-    {streaming && (
-      <span
-        aria-hidden
-        className="absolute inline-flex size-full animate-ping rounded-full bg-amber-500/60 motion-reduce:animate-none"
-      />
-    )}
-    <span className="sr-only">{streaming ? "Working" : "Needs attention"}</span>
-  </span>
-);
-
+const StatusDot: React.FC<{ streaming: boolean }> = ({ streaming }) => {
+  return streaming && <Spinner />;
+};
 const BranchLink: React.FC<{
   parentTitle?: string;
   onOpen: () => void;
@@ -338,8 +329,6 @@ export const SessionListItem: React.FC<Props> = ({
       onKeyDown={handleRowKeyDown}
       className={rowClasses}
     >
-      {showStatus && <StatusDot streaming={isStreaming} />}
-
       {branchOf && (
         <BranchLink
           parentTitle={parentSession?.title}
@@ -367,6 +356,8 @@ export const SessionListItem: React.FC<Props> = ({
       >
         {showMenu && <SessionMenu item={item} onRename={handleStartEditing} />}
       </div>
+
+      {showStatus && <StatusDot streaming={isStreaming} />}
     </div>
   );
 };

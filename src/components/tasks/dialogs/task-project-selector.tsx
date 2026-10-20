@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Project } from "@/lib/store/tasks/types";
+import { TaskField } from "./task-field";
 
 interface TaskProjectSelectorProps {
   value: string;
@@ -20,28 +21,19 @@ export const TaskProjectSelector: React.FC<TaskProjectSelectorProps> = ({
   projects,
   inboxName,
 }) => (
-  <div className="space-y-2">
-    <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      Project
-    </label>
+  <TaskField label="Project">
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="w-full">
         <SelectValue placeholder="Select project" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="inbox">
-          <div className="flex items-center gap-2">
-            <span>{inboxName}</span>
-          </div>
-        </SelectItem>
+        <SelectItem value="inbox">{inboxName}</SelectItem>
         {projects.map((project) => (
           <SelectItem key={project.id} value={project.id}>
-            <div className="flex items-center gap-2">
-              <span>{project.name}</span>
-            </div>
+            {project.name}
           </SelectItem>
         ))}
       </SelectContent>
     </Select>
-  </div>
+  </TaskField>
 );

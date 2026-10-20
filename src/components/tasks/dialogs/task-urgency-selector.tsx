@@ -6,23 +6,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { TaskField } from "./task-field";
 
 type Urgency = "low" | "medium" | "high";
 
-const urgencyConfig: Record<Urgency, { label: string; style: string }> = {
-  low: {
-    label: "Low",
-    style: cn("text-green-600/70", "dark:text-green-400/70"),
-  },
-  medium: {
-    label: "Medium",
-    style: cn("text-amber-700/70", "dark:text-amber-400/70"),
-  },
-  high: {
-    label: "High",
-    style: cn("text-red-700", "dark:text-red-400"),
-  },
-};
+const isUrgency = (value: string): value is Urgency =>
+  value === "low" || value === "medium" || value === "high";
+
+interface UrgencyOptionProps {
+  dotClassName: string;
+  label: string;
+}
+
+const UrgencyOption = ({ dotClassName, label }: UrgencyOptionProps) => (
+  <span className="flex items-center gap-2">
+    <span className={cn("size-2 rounded-full", dotClassName)} />
+    {label}
+  </span>
+);
 
 interface TaskUrgencySelectorProps {
   value: Urgency;
@@ -33,33 +34,28 @@ export const TaskUrgencySelector: React.FC<TaskUrgencySelectorProps> = ({
   value,
   onChange,
 }) => {
-  const config = urgencyConfig[value];
+  const handleValueChange = (next: string) => {
+    if (isUrgency(next)) onChange(next);
+  };
 
   return (
-    <div className="space-y-2">
-      <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        Urgency
-      </label>
-      <Select value={value} onValueChange={(v) => onChange(v as Urgency)}>
-        <SelectTrigger className="h-10 w-full">
-          <SelectValue>
-            <div className="flex items-center gap-2">
-              <span className={config.style}>{config.label}</span>
-            </div>
-          </SelectValue>
+    <TaskField label="Urgency">
+      <Select value={value} onValueChange={handleValueChange}>
+        <SelectTrigger className="w-full">
+          <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {Object.entries(urgencyConfig).map(([key, cfg]) => {
-            return (
-              <SelectItem key={key} value={key}>
-                <div className={cn("flex items-center gap-2", cfg.style)}>
-                  <span>{cfg.label}</span>
-                </div>
-              </SelectItem>
-            );
-          })}
+          <SelectItem value="low">
+            <UrgencyOption dotClassName="bg-green-500" label="Low" />
+          </SelectItem>
+          <SelectItem value="medium">
+            <UrgencyOption dotClassName="bg-amber-500" label="Medium" />
+          </SelectItem>
+          <SelectItem value="high">
+            <UrgencyOption dotClassName="bg-red-500" label="High" />
+          </SelectItem>
         </SelectContent>
       </Select>
-    </div>
+    </TaskField>
   );
 };

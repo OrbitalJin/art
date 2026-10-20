@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { X } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { TaskField } from "./task-field";
 
 interface TaskDueDatePickerProps {
   value: Date | null;
@@ -19,44 +20,49 @@ export const TaskDueDatePicker: React.FC<TaskDueDatePickerProps> = ({
   value,
   onChange,
   required,
-}) => (
-  <div className="space-y-2">
-    <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      Due Date
-    </label>
-    <div className="flex w-full flex-row gap-1">
-      <Popover>
-        <PopoverTrigger asChild>
+}) => {
+  const label = value ? format(value, "MMM d, yyyy") : "Pick a date";
+
+  return (
+    <TaskField label="Due Date">
+      <div className="flex w-full gap-1.5">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className={cn(
+                "min-w-0 flex-1 justify-start gap-2 font-normal h-9",
+                !value && "text-muted-foreground",
+              )}
+            >
+              <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">{label}</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-2" align="start">
+            <Calendar
+              mode="single"
+              selected={value ?? undefined}
+              onSelect={(date: Date | undefined) => onChange(date || null)}
+              required={required}
+            />
+          </PopoverContent>
+        </Popover>
+
+        {value && (
           <Button
+            type="button"
+            size="icon"
             variant="outline"
-            className={cn(
-              "flex-1 justify-start text-left font-normal h-9",
-              !value && "text-muted-foreground",
-            )}
+            aria-label="Clear due date"
+            onClick={() => onChange(null)}
+            className="size-9 shrink-0"
           >
-            <span className="truncate">
-              {value ? format(value, "PPP") : "Pick a date"}
-            </span>
+            <X className="size-4" />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-2" align="start">
-          <Calendar
-            mode="single"
-            selected={value ?? undefined}
-            onSelect={(date: Date | undefined) => onChange(date || null)}
-            required={required}
-          />
-        </PopoverContent>
-      </Popover>
-      <Button
-        size="icon"
-        variant="outline"
-        onClick={() => onChange(null)}
-        type="button"
-        className="h-9 w-9"
-      >
-        <X />
-      </Button>
-    </div>
-  </div>
-);
+        )}
+      </div>
+    </TaskField>
+  );
+};

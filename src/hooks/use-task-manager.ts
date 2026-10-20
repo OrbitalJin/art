@@ -16,6 +16,7 @@ export const useTaskManager = () => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [createTaskDate, setCreateTaskDate] = useState<Date | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Keyboard Shortcuts
@@ -32,6 +33,16 @@ export const useTaskManager = () => {
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  const handleCreateDialogOpenChange = (open: boolean) => {
+    setIsCreateDialogOpen(open);
+    if (!open) setCreateTaskDate(null);
+  };
+
+  const handleCreateTaskForDay = (day: Date) => {
+    setCreateTaskDate(day);
+    setIsCreateDialogOpen(true);
+  };
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) =>
@@ -53,7 +64,9 @@ export const useTaskManager = () => {
     isEditDialogOpen,
     setIsEditDialogOpen,
     isCreateDialogOpen,
-    setIsCreateDialogOpen,
+    setIsCreateDialogOpen: handleCreateDialogOpenChange,
+    createTaskDate,
+    handleCreateTaskForDay,
     handleEditTask,
     createTask,
     updateTask,

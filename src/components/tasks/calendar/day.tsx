@@ -8,7 +8,7 @@ interface CalendarDayProps {
   currentMonth: Date;
   tasks: Task[];
   onTaskClick: (task: Task) => void;
-  onEditTask?: (task: Task) => void;
+  onDayClick?: (day: Date) => void;
 }
 
 export const CalendarDay = ({
@@ -16,7 +16,7 @@ export const CalendarDay = ({
   currentMonth,
   tasks,
   onTaskClick,
-  onEditTask,
+  onDayClick,
 }: CalendarDayProps) => {
   const isCurrentMonth = isSameMonth(day, currentMonth);
   const isToday = isSameDay(day, new Date());
@@ -24,8 +24,17 @@ export const CalendarDay = ({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onDayClick?.(day)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onDayClick?.(day);
+        }
+      }}
       className={cn(
-        "relative flex min-h-[80px] flex-col gap-1 rounded-xl bg-muted/20 p-1.5 transition-colors hover:bg-muted/40 md:min-h-[120px] md:p-2",
+        "relative flex min-h-[80px] cursor-pointer flex-col gap-1 rounded-xl bg-muted/20 p-1.5 transition-colors hover:bg-muted/40 md:min-h-[120px] md:p-2",
         !isCurrentMonth && "bg-transparent opacity-40",
         isToday && "bg-primary/5 ring-1 ring-primary/30 hover:bg-primary/10",
       )}
@@ -49,7 +58,6 @@ export const CalendarDay = ({
             key={task.id}
             task={task}
             onClick={onTaskClick}
-            onEdit={onEditTask}
             variant="minimal"
           />
         ))}
@@ -58,12 +66,7 @@ export const CalendarDay = ({
       {/* Desktop: List */}
       <div className="hidden flex-1 flex-col gap-1 overflow-y-auto xl:flex">
         {tasks.slice(0, 3).map((task) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            onClick={onTaskClick}
-            onEdit={onEditTask}
-          />
+          <TaskItem key={task.id} task={task} onClick={onTaskClick} />
         ))}
         {overflowCount > 0 && (
           <div className="text-center text-[11px] text-muted-foreground">

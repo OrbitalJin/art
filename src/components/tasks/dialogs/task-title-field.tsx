@@ -1,24 +1,25 @@
 import { Input } from "@/components/ui/input";
+import { TaskField } from "./task-field";
 
 interface TaskTitleFieldProps {
   value: string;
   onChange: (value: string) => void;
+  "aria-invalid"?: boolean;
 }
 
 export const TaskTitleField: React.FC<TaskTitleFieldProps> = ({
   value,
   onChange,
+  "aria-invalid": ariaInvalid,
 }) => (
-  <div className="space-y-2">
-    <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      Title
-    </label>
+  <TaskField label="Title">
     <Input
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="What needs to be done?"
-      className="h-11 text-base"
+      aria-invalid={ariaInvalid}
+      className="h-10"
       autoFocus
     />
-  </div>
+  </TaskField>
 );

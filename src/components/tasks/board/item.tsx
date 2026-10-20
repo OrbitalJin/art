@@ -18,6 +18,41 @@ import { Energy } from "./item/energy";
 import { DependenciesHoverCard } from "./item/dependencies";
 import { DueBadge } from "./item/due-badge";
 
+interface DescriptionToggleProps {
+  expanded: boolean;
+  onToggle: (event: React.MouseEvent<HTMLButtonElement>) => void;
+}
+
+const DescriptionToggle = ({ expanded, onToggle }: DescriptionToggleProps) => {
+  return (
+    <button
+      type="button"
+      aria-expanded={expanded}
+      className={cn(
+        "rounded text-[11px] font-medium text-muted-foreground/70",
+        "transition-colors hover:text-foreground",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+      )}
+      onPointerDown={(event) => event.stopPropagation()}
+      onClick={onToggle}
+    >
+      {expanded ? "Show less" : "Show more"}
+    </button>
+  );
+};
+
+interface EnergyMeterProps {
+  level: number;
+}
+
+const EnergyMeter = ({ level }: EnergyMeterProps) => {
+  return (
+    <div title={`Energy Level: ${level}/5`}>
+      <Energy level={level} />
+    </div>
+  );
+};
+
 interface Props {
   item: Task;
   onDelete?: (id: string) => void;
@@ -63,13 +98,20 @@ export const BoardItem: React.FC<Props> = ({
     },
   });
 
+  const dependencyIds = item.dependencies ?? [];
+  const hasDependencies = dependencyIds.length > 0;
+  const hasEnergy = item.energy !== undefined;
+  const hasDue = Boolean(item.due);
+
   const isCompleted = item.status === "completed";
   const isCollapsedCompleted = isCompleted && !isOverlay;
-  const hasDependencies = item.dependencies && item.dependencies.length > 0;
   const isBlocked =
     !isOverlay && !isCompleted && hasUnmetDependencies(item, tasks);
   const showDescriptionToggle =
     !isOverlay && canExpand && Boolean(item.description);
+
+  const hasFooter =
+    hasEnergy || showDescriptionToggle || hasDependencies || hasDue;
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
@@ -114,31 +156,41 @@ export const BoardItem: React.FC<Props> = ({
       style={style}
       {...sortableProps}
       className={cn(
-        "group relative overflow-hidden rounded-xl bg-background p-3.5 shadow-sm ring-1 ring-border transition-all duration-300",
-        "hover:shadow-md hover:ring-foreground/15",
+        "group relative overflow-hidden rounded-xl border border-border/70 bg-card p-3.5",
+        "transition-[border-color,box-shadow,background-color] duration-200",
+        "hover:border-foreground/20 hover:shadow-sm",
         disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing",
-        isCompleted && "bg-background/60 shadow-none ring-border/60",
+        isCompleted && "border-border/40 bg-muted/30 hover:shadow-none",
         isOverlay &&
-          "z-50 scale-[1.02] cursor-grabbing shadow-xl ring-primary/40",
+          "z-50 scale-[1.02] cursor-grabbing border-primary/40 shadow-lg",
       )}
     >
       <CollapsibleRow collapsed={isCollapsedCompleted}>
-        <div className="mb-2 flex min-h-7 items-center justify-between gap-2">
+        <div className="mb-2 flex min-h-6 items-center justify-between gap-2">
           <UrgencyIndicator urgency={item.urgency} />
-          <TaskActions
-            item={item}
-            isBlocked={isBlocked}
-            isCompleted={isCompleted}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onToggleComplete={handleToggleComplete}
-          />
+          <div
+            className={cn(
+              "transition-opacity duration-150",
+              "md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100",
+              isOverlay && "md:opacity-100",
+            )}
+          >
+            <TaskActions
+              item={item}
+              isBlocked={isBlocked}
+              isCompleted={isCompleted}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onToggleComplete={handleToggleComplete}
+            />
+          </div>
         </div>
       </CollapsibleRow>
 
       <h4
         className={cn(
-          "text-sm font-medium leading-snug text-foreground transition-all duration-300",
+          "text-sm font-medium leading-snug tracking-tight text-foreground",
+          "transition-colors duration-200",
           isCompleted && "text-muted-foreground line-through",
         )}
       >
@@ -157,40 +209,35 @@ export const BoardItem: React.FC<Props> = ({
         </CollapsibleRow>
       )}
 
-      <CollapsibleRow collapsed={isCollapsedCompleted}>
-        <div className="flex items-center justify-between pt-3">
-          <div className="flex flex-row items-center gap-2">
-            {item.energy !== undefined ? (
-              <div title={`Energy Level: ${item.energy}/5`}>
-                <Energy level={item.energy} />
-              </div>
-            ) : null}
+      {hasFooter && (
+        <CollapsibleRow collapsed={isCollapsedCompleted}>
+          <div className="flex items-center justify-between gap-2 pt-3">
+            <div className="flex items-center gap-2">
+              {hasEnergy && item.energy !== undefined ? (
+                <EnergyMeter level={item.energy} />
+              ) : null}
 
-            {showDescriptionToggle && (
-              <button
-                type="button"
-                aria-expanded={expanded}
-                className="rounded text-[11px] font-medium text-muted-foreground/60 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                onPointerDown={(event) => event.stopPropagation()}
-                onClick={handleToggleDescription}
-              >
-                {expanded ? "Show less" : "Show more"}
-              </button>
-            )}
+              {showDescriptionToggle && (
+                <DescriptionToggle
+                  expanded={expanded}
+                  onToggle={handleToggleDescription}
+                />
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {hasDependencies ? (
+                <DependenciesHoverCard
+                  dependencies={dependencyIds}
+                  tasks={tasks}
+                />
+              ) : null}
+
+              {item.due ? <DueBadge due={item.due} /> : null}
+            </div>
           </div>
-
-          <div className="flex items-center gap-1.5">
-            {hasDependencies && item.dependencies ? (
-              <DependenciesHoverCard
-                dependencies={item.dependencies}
-                tasks={tasks}
-              />
-            ) : null}
-
-            {item.due ? <DueBadge due={item.due} /> : null}
-          </div>
-        </div>
-      </CollapsibleRow>
+        </CollapsibleRow>
+      )}
     </div>
   );
 };

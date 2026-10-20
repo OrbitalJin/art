@@ -1,24 +1,24 @@
 import { Textarea } from "@/components/ui/textarea";
+import { TaskField } from "./task-field";
 
 interface TaskDescriptionFieldProps {
   value: string;
   onChange: (value: string) => void;
+  "aria-invalid"?: boolean;
 }
 
 export const TaskDescriptionField: React.FC<TaskDescriptionFieldProps> = ({
   value,
   onChange,
+  "aria-invalid": ariaInvalid,
 }) => (
-  <div className="w-full min-w-0 space-y-2">
-    <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <span className="min-w-0">Description</span>
-    </label>
-
+  <TaskField label="Description">
     <Textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="Add details, notes, or subtasks..."
-      className="block w-full min-w-0 max-w-full resize-none overflow-x-hidden whitespace-pre-wrap break-words text-sm leading-relaxed"
+      aria-invalid={ariaInvalid}
+      className="min-h-24 w-full min-w-0 resize-none break-words text-sm leading-relaxed"
     />
-  </div>
+  </TaskField>
 );

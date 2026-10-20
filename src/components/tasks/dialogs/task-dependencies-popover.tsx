@@ -1,15 +1,78 @@
 import * as React from "react";
 import { format, parseISO } from "date-fns";
-import { Search, X } from "lucide-react";
+import { Check, ChevronsUpDown, Search, X } from "lucide-react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Task, Project } from "@/lib/store/tasks/types";
+import { TaskField } from "./task-field";
+
+interface DependencyOptionProps {
+  title: string;
+  meta: string;
+  status: string;
+  selected: boolean;
+  onToggle: () => void;
+}
+
+const DependencyOption = ({
+  title,
+  meta,
+  status,
+  selected,
+  onToggle,
+}: DependencyOptionProps) => (
+  <button
+    type="button"
+    onClick={onToggle}
+    className={cn(
+      "flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors",
+      "hover:bg-accent focus-visible:bg-accent focus-visible:outline-none",
+      selected && "bg-accent/50",
+    )}
+  >
+    <span
+      className={cn(
+        "flex size-4 shrink-0 items-center justify-center rounded-sm border",
+        selected
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-input",
+      )}
+    >
+      {selected && <Check className="size-3" />}
+    </span>
+    <span className="min-w-0 flex-1">
+      <span className="block truncate text-sm font-medium">{title}</span>
+      <span className="block truncate text-[11px] text-muted-foreground">
+        {meta}
+      </span>
+    </span>
+    <span className="shrink-0 text-[11px] text-muted-foreground">{status}</span>
+  </button>
+);
+
+interface DependencyChipProps {
+  title: string;
+  onRemove: () => void;
+}
+
+const DependencyChip = ({ title, onRemove }: DependencyChipProps) => (
+  <span className="inline-flex max-w-full items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs">
+    <span className="max-w-[170px] truncate">{title}</span>
+    <button
+      type="button"
+      aria-label={`Remove ${title}`}
+      onClick={onRemove}
+      className="text-muted-foreground transition-colors hover:text-destructive"
+    >
+      <X className="size-3" />
+    </button>
+  </span>
+);
 
 interface TaskDependenciesPopoverProps {
   selectedIds: string[];
@@ -84,12 +147,14 @@ export function TaskDependenciesPopover({
     [projects, inboxName],
   );
 
-  const triggerText = React.useMemo(() => {
-    if (selectedTasks.length === 0) return "Link dependent tasks...";
-    if (selectedTasks.length <= 2)
-      return selectedTasks.map((t) => t.title).join(", ");
-    return `${selectedTasks.length} task(s) linked`;
-  }, [selectedTasks]);
+  const selectedCount = selectedTasks.length;
+  const hasSelection = selectedCount > 0;
+
+  const triggerText = !hasSelection
+    ? "Tasks that must be completed first"
+    : selectedCount === 1
+      ? "1 task linked"
+      : `${selectedCount} tasks linked`;
 
   React.useEffect(() => {
     if (!open) {
@@ -98,59 +163,41 @@ export function TaskDependenciesPopover({
   }, [open]);
 
   return (
-    <div className="col-span-2 space-y-2">
-      <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        Dependencies
-      </label>
-
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="relative w-full justify-start">
-            <span className="truncate text-left text-muted-foreground">
+    <TaskField label="Dependencies">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-between font-normal"
+          >
+            <span
+              className={cn(
+                "truncate text-left",
+                !hasSelection && "text-muted-foreground",
+              )}
+            >
               {triggerText}
             </span>
-
-            {selectedTasks.length > 0 && (
-              <span
-                className="
-                  absolute -top-1 -right-1 flex h-4 min-w-4 items-center
-                  justify-center rounded-full bg-primary px-1
-                  text-[10px] text-primary-foreground
-                "
-              >
-                {selectedTasks.length}
-              </span>
-            )}
+            <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
           </Button>
-        </DropdownMenuTrigger>
+        </PopoverTrigger>
 
-        <DropdownMenuContent
-          className="w-80 border-muted-foreground/20 p-0 shadow-xl"
-          align="start"
-        >
-          <div className="flex flex-col gap-1 border-b bg-muted/30 p-3">
-            <p className="text-sm font-medium">Task dependencies</p>
-            <p className="text-[11px] leading-tight text-muted-foreground">
-              Select tasks that must be completed first.
-            </p>
+        <PopoverContent className="w-80 p-0" align="start">
+          <div className="flex items-center gap-2 border-b px-3">
+            <Search className="size-3.5 shrink-0 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoFocus
+              placeholder="Search tasks..."
+              className="h-10 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
           </div>
 
-          <div className="border-b p-2">
-            <div className="flex items-center gap-2 rounded-md border p-2">
-              <Search className="h-3.5 w-3.5 text-muted-foreground" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                autoFocus
-                placeholder="Search tasks..."
-                className="flex-1 bg-transparent text-sm outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1 p-2">
+          <div className="max-h-64 overflow-y-auto p-1">
             {filtered.length === 0 ? (
-              <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+              <div className="px-3 py-6 text-center text-sm text-muted-foreground">
                 {query ? (
                   <div className="space-y-1">
                     <p>No tasks found</p>
@@ -171,95 +218,57 @@ export function TaskDependenciesPopover({
             ) : (
               filtered.map((task) => {
                 const isSelected = selectedIds.includes(task.id);
+                const projectName = getProjectName(task.projectId);
+                const dueLabel = task.due
+                  ? format(parseISO(task.due), "MMM d")
+                  : null;
+                const meta = dueLabel
+                  ? `${projectName} · ${dueLabel}`
+                  : projectName;
 
                 return (
-                  <div
+                  <DependencyOption
                     key={task.id}
-                    onClick={() => onToggle(task.id)}
-                    className={cn(
-                      "group flex cursor-pointer flex-col gap-2 rounded-sm p-2 transition-all duration-200",
-                      isSelected
-                        ? "bg-primary/5 text-primary-foreground ring-1 ring-primary/20"
-                        : "hover:bg-accent/20 hover:text-accent-foreground",
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <p
-                        className={cn(
-                          "truncate text-sm font-medium",
-                          isSelected ? "text-primary" : "text-foreground",
-                        )}
-                      >
-                        {task.title}
-                      </p>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "h-5 py-0 text-[10px] font-normal opacity-60 transition-opacity group-hover:opacity-100",
-                          isSelected &&
-                            "border-primary/30 text-primary opacity-100",
-                        )}
-                      >
-                        {getStatusLabel(task.status)}
-                      </Badge>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="truncate text-[11px] text-muted-foreground/70">
-                        {getProjectName(task.projectId)}
-                      </p>
-                      {task.due ? (
-                        <p className="shrink-0 text-[11px] text-muted-foreground/70">
-                          {format(parseISO(task.due), "MMM d")}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
+                    title={task.title}
+                    meta={meta}
+                    status={getStatusLabel(task.status)}
+                    selected={isSelected}
+                    onToggle={() => onToggle(task.id)}
+                  />
                 );
               })
             )}
           </div>
 
-          <div className="flex items-center justify-between border-t bg-muted/10 p-2">
+          <div className="flex items-center justify-between border-t px-3 py-1.5">
+            <p className="text-xs text-muted-foreground">
+              {selectedCount} selected
+            </p>
             <Button
               variant="ghost"
               size="sm"
               type="button"
-              className="h-8 text-xs text-muted-foreground hover:text-destructive"
+              className="h-7 text-xs text-muted-foreground hover:text-destructive"
               onClick={onClear}
-              disabled={selectedTasks.length === 0}
+              disabled={!hasSelection}
             >
-              Clear selection
+              Clear
             </Button>
-            <p className="px-2 text-[10px] text-muted-foreground">
-              {selectedTasks.length} selected
-            </p>
           </div>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </PopoverContent>
+      </Popover>
 
-      {selectedTasks.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">
+      {hasSelection && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
           {selectedTasks.map((task) => (
-            <div
+            <DependencyChip
               key={task.id}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors",
-                "border-border/60 bg-muted/40",
-              )}
-            >
-              <span className="max-w-[170px] truncate">{task.title}</span>
-              <button
-                type="button"
-                onClick={() => onToggle(task.id)}
-                className="hover:text-destructive"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
+              title={task.title}
+              onRemove={() => onToggle(task.id)}
+            />
           ))}
         </div>
       )}
-    </div>
+    </TaskField>
   );
 }

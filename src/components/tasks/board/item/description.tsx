@@ -16,20 +16,18 @@ export const BoardItemDescription = ({
   expanded,
   showFade,
 }: Props) => (
-  <div className="relative pt-1">
+  <div className="pt-1">
     <p
       ref={ref}
       className={cn(
         "whitespace-pre-line break-words text-xs leading-relaxed text-muted-foreground",
         completed && "opacity-70 line-through",
         !expanded && "max-h-[3.65625rem] overflow-hidden",
+        showFade &&
+          "[mask-image:linear-gradient(to_bottom,black_55%,transparent)]",
       )}
     >
       {description}
     </p>
-
-    {showFade && (
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[1.21875rem] bg-gradient-to-l from-background via-background/80 to-transparent" />
-    )}
   </div>
 );
