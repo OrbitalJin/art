@@ -42,7 +42,7 @@ import {
   SettingsPage,
   SettingsSection,
 } from "./settings-layout";
-import { Database } from "lucide-react";
+import { Database, Salad } from "lucide-react";
 
 const KeyIcon: React.FC<{
   icon: IconType;
@@ -283,6 +283,8 @@ export const ChatSettingsTab: React.FC = () => {
   );
   const uploadSecret = useSettingsStore((state) => state.uploadSecret);
   const setUploadSecret = useSettingsStore((state) => state.setUploadSecret);
+  const fdcApiKey = useSettingsStore((state) => state.fdcApiKey);
+  const setFdcApiKey = useSettingsStore((state) => state.setFdcApiKey);
   const defaultModel = useSettingsStore((state) => state.defaultModel);
   const setDefaultModel = useSettingsStore((state) => state.setDefaultModel);
   const defaultAgentModel = useSettingsStore(
@@ -355,6 +357,14 @@ export const ChatSettingsTab: React.FC = () => {
             placeholder="secret key"
             value={uploadSecret}
             onSave={setUploadSecret}
+          />
+          <SecretKeyField
+            icon={Salad}
+            label="USDA"
+            description="FoodData Central key for accurate food macros."
+            placeholder="api key"
+            value={fdcApiKey}
+            onSave={setFdcApiKey}
           />
         </SettingsCard>
       </SettingsSection>

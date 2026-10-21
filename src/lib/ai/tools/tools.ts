@@ -14,8 +14,9 @@ import { planTools } from "./plan";
 import { composioTools } from "./composio";
 import { searchTools } from "./search";
 import { youtubeTools } from "./youtube";
-import { nutritionTools } from "./nutrition";
+import { fetchMacrosTools, nutritionTools } from "./nutrition";
 import { applyPolicy } from "./policy";
+import { useSettingsStore } from "@/lib/store/use-settings-store";
 
 const cherryPick = (all: ToolSet, id: string): ToolSet => {
   const entry = all[id];
@@ -25,9 +26,10 @@ const cherryPick = (all: ToolSet, id: string): ToolSet => {
 export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
   const on = session.groups;
   const nutrition = nutritionTools();
+  const macros = useSettingsStore.getState().fdcApiKey ? fetchMacrosTools() : {};
 
   if (session.type === "chat") {
-    return { ...(await searchFor(session)), ...nutrition };
+    return { ...(await searchFor(session)), ...nutrition, ...macros };
   }
 
   const search = await searchFor(session);
@@ -37,6 +39,7 @@ export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
     ...search,
     ...services,
     ...nutrition,
+    ...macros,
     ...doneTools(),
     ...(on.plan ? planTools(session.id) : {}),
     ...(on.tasks ? tasksTools() : {}),

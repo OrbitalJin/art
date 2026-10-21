@@ -43,7 +43,8 @@
         { "url": "https://api.exa.ai" },
         { "url": "https://ai-gateway.vercel.sh" },
         { "url": "https://backend.composio.dev" },
-        { "url": "https://pb.x1c.dev/*" }
+        { "url": "https://pb.x1c.dev/*" },
+        { "url": "https://api.nal.usda.gov/fdc/v1/*" }
       ]
     }
   ]

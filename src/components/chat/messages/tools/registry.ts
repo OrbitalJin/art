@@ -4,10 +4,16 @@ import type { TaskToolName } from "@/lib/ai/tools/tasks";
 import type { AskUserToolName } from "@/lib/ai/tools/ask-user";
 import type { PlanToolName } from "@/lib/ai/tools/plan";
 import type { YoutubeToolName } from "@/lib/ai/tools/youtube";
-import type { NutritionToolName } from "@/lib/ai/tools/nutrition";
+import type {
+  NutritionToolName,
+  FetchMacrosToolName,
+} from "@/lib/ai/tools/nutrition";
 import { ASK_USER_TOOL_NAME } from "@/lib/ai/tools/ask-user";
 import { PLAN_TOOL_NAME } from "@/lib/ai/tools/plan";
-import { NUTRITION_TOOL_NAME } from "@/lib/ai/tools/nutrition";
+import {
+  SHOW_NUTRITION_TOOL_NAME,
+  FETCH_FOOD_MACROS_TOOL_NAME,
+} from "@/lib/ai/tools/nutrition";
 import type { ToolRendererEntry } from "./types";
 import { renderer as copyPath } from "./renderers/files/copy-path";
 import { renderer as editFile } from "./renderers/files/edit-file";
@@ -53,6 +59,7 @@ import { renderer as searchSpreadsheets } from "./renderers/googlesheets/search-
 import { renderer as valuesGet } from "./renderers/googlesheets/values-get";
 import { renderer as transcript } from "./renderers/youtube/transcript";
 import { renderer as nutrition } from "./renderers/nutrition/nutrition";
+import { renderer as fetchMacros } from "./renderers/nutrition/fetch-macros";
 import { genericRenderer } from "./renderers/generic";
 
 const fileRenderers = {
@@ -94,8 +101,12 @@ const planRenderers = {
 } satisfies Record<PlanToolName, ToolRendererEntry>;
 
 const nutritionRenderers = {
-  [NUTRITION_TOOL_NAME]: nutrition,
+  [SHOW_NUTRITION_TOOL_NAME]: nutrition,
 } satisfies Record<NutritionToolName, ToolRendererEntry>;
+
+const fetchMacrosRenderers = {
+  [FETCH_FOOD_MACROS_TOOL_NAME]: fetchMacros,
+} satisfies Record<FetchMacrosToolName, ToolRendererEntry>;
 
 const youtubeRenderers = {
   youtube_transcript: transcript,
@@ -140,6 +151,7 @@ const TOOL_RENDERERS = {
   ...googlesheetsRenderers,
   ...youtubeRenderers,
   ...nutritionRenderers,
+  ...fetchMacrosRenderers,
 } satisfies Record<string, ToolRendererEntry>;
 
 const entries: Record<string, ToolRendererEntry> = TOOL_RENDERERS;

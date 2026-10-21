@@ -8,12 +8,13 @@ import { DEFAULT_PERSONA, type PersonaId } from "../ai/prompts/personas";
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
 
-export type KeyType = "gateway" | "composio" | "uploads";
+export type KeyType = "gateway" | "composio" | "uploads" | "usda";
 
 export const KEY_LABELS: Record<KeyType, string> = {
   gateway: "Gateway",
   composio: "Connections",
   uploads: "Uploads",
+  usda: "USDA",
 };
 
 export interface UserProfile {
@@ -36,6 +37,7 @@ interface SettingsState {
   composioApiKey: string;
   composioUserId: string;
   uploadSecret: string;
+  fdcApiKey: string;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
@@ -51,6 +53,7 @@ interface SettingsState {
   setApiKey: (key: string) => void;
   setComposioApiKey: (key: string) => void;
   setUploadSecret: (secret: string) => void;
+  setFdcApiKey: (key: string) => void;
   ensureComposioUserId: () => string;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
@@ -89,6 +92,7 @@ const initialState = {
   composioApiKey: "",
   composioUserId: "",
   uploadSecret: "",
+  fdcApiKey: "",
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
@@ -109,6 +113,7 @@ const partialize = (state: SettingsState): PersistedSettings => ({
   composioApiKey: state.composioApiKey,
   composioUserId: state.composioUserId,
   uploadSecret: state.uploadSecret,
+  fdcApiKey: state.fdcApiKey,
   fontSize: state.fontSize,
   cornerRadius: state.cornerRadius,
   defaultModel: state.defaultModel,
@@ -129,6 +134,7 @@ export const useSettingsStore = create<SettingsState>()(
       setApiKey: (key: string) => set({ apiKey: key }),
       setComposioApiKey: (key: string) => set({ composioApiKey: key }),
       setUploadSecret: (secret: string) => set({ uploadSecret: secret }),
+      setFdcApiKey: (key: string) => set({ fdcApiKey: key }),
       ensureComposioUserId: () => {
         const existing = get().composioUserId;
         if (existing) return existing;
@@ -159,7 +165,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 12,
+      version: 13,
       storage: createSettingsStorage<PersistedSettings>(),
       partialize,
       migrate: (persistedState: unknown, version: number) => {
@@ -252,6 +258,12 @@ export const useSettingsStore = create<SettingsState>()(
             state.groupToolCalls = false;
           }
         }
+        if (version < 13) {
+          const state = persistedState as { fdcApiKey?: string };
+          if (state && state.fdcApiKey === undefined) {
+            state.fdcApiKey = "";
+          }
+        }
         return persistedState as SettingsState;
       },
     },
@@ -266,5 +278,7 @@ export const useHasKey = (type?: KeyType): boolean =>
         ? state.composioApiKey.length > 0
         : type === "uploads"
           ? state.uploadSecret.length > 0
-          : true,
+          : type === "usda"
+            ? state.fdcApiKey.length > 0
+            : true,
   );
