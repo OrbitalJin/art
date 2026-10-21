@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { Circle, CircleCheck, CircleDot, Route } from "lucide-react";
+import type { z } from "zod";
 import { PLAN_TOOL_NAME, planToolSchemas } from "@/lib/ai/tools/plan";
 import { Trace, TraceIcon, TraceLine, TraceTitle } from "@/components/ui/trace";
 import {
@@ -9,19 +10,12 @@ import {
   SummaryRow,
   SummaryText,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import type { ParsedPlanStep, PlanStepStatus } from "./helpers";
 
-interface PlanInput {
-  title?: string;
-  steps: ParsedPlanStep[];
-}
-
-interface PlanOutput {
-  total: number;
-  completed: number;
-  in_progress: number;
-}
+const planSchema = planToolSchemas[PLAN_TOOL_NAME];
+type PlanInput = z.infer<(typeof planSchema)["input"]>;
+type PlanOutput = z.infer<(typeof planSchema)["output"]>;
 
 const countCompleted = (steps: ParsedPlanStep[]): number =>
   steps.filter((step) => step.status === "completed").length;
@@ -99,12 +93,12 @@ const Summary: FC<RendererProps<PlanInput, PlanOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<PlanInput, PlanOutput> = {
+export const renderer = defineRenderer<PlanInput, PlanOutput>({
   icon: Route,
   title: "Updated plan",
   executingTitle: "Updating plan",
-  inputSchema: planToolSchemas[PLAN_TOOL_NAME].input,
-  outputSchema: planToolSchemas[PLAN_TOOL_NAME].output,
+  inputSchema: planSchema.input,
+  outputSchema: planSchema.output,
   Summary,
   Detail,
-};
+});

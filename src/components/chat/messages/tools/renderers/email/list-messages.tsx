@@ -10,7 +10,7 @@ import {
   SummaryText,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { gmailListMessagesInput, messageIdListOutputSchema } from "./schema";
 import type { GmailListMessagesInput, MessageIdListOutput } from "./schema";
 
@@ -54,10 +54,10 @@ const Detail: FC<RendererProps<GmailListMessagesInput, MessageIdListOutput>> =
     );
   };
 
-export const renderer: ToolRenderer<
+export const renderer = defineRenderer<
   GmailListMessagesInput,
   MessageIdListOutput
-> = {
+>({
   icon: Mail,
   title: "Listed messages",
   executingTitle: "Listing messages",
@@ -65,4 +65,4 @@ export const renderer: ToolRenderer<
   outputSchema: messageIdListOutputSchema,
   Summary,
   Detail,
-};
+});

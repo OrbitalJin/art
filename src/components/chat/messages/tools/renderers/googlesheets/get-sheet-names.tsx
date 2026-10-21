@@ -6,7 +6,7 @@ import {
   DetailGate,
   EmptyNote,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { sheetNamesOutputSchema, sheetsSpreadsheetIdInput } from "./schema";
 import type { SheetNamesOutput, SheetsSpreadsheetIdInput } from "./schema";
 
@@ -53,10 +53,10 @@ const Detail: FC<RendererProps<SheetsSpreadsheetIdInput, SheetNamesOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<
+export const renderer = defineRenderer<
   SheetsSpreadsheetIdInput,
   SheetNamesOutput
-> = {
+>({
   icon: List,
   title: "Listed sheets",
   executingTitle: "Listing sheets",
@@ -64,4 +64,4 @@ export const renderer: ToolRenderer<
   outputSchema: sheetNamesOutputSchema,
   Summary,
   Detail,
-};
+});

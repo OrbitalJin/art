@@ -12,7 +12,7 @@ import {
   formatCount,
   hostnameOf,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { wordCountOf } from "./helpers";
 import { fetchUrlInput, fetchUrlOutputSchema } from "./schema";
 import type { FetchUrlInput, FetchUrlOutput } from "./schema";
@@ -76,7 +76,7 @@ const Detail: FC<RendererProps<FetchUrlInput, FetchUrlOutput>> = ({
   </DetailGate>
 );
 
-export const renderer: ToolRenderer<FetchUrlInput, FetchUrlOutput> = {
+export const renderer = defineRenderer<FetchUrlInput, FetchUrlOutput>({
   icon: Globe,
   title: "Fetched page",
   executingTitle: "Fetching page",
@@ -84,4 +84,4 @@ export const renderer: ToolRenderer<FetchUrlInput, FetchUrlOutput> = {
   outputSchema: fetchUrlOutputSchema,
   Summary,
   Detail,
-};
+});

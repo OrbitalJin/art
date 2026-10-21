@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import { Search } from "lucide-react";
 import { CountSummary } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { ResultsDetail } from "./parts";
 import { webSearchInput, webSearchOutputSchema } from "./schema";
 import type { WebSearchInput, WebSearchOutput } from "./schema";
@@ -32,7 +32,7 @@ const Detail: FC<RendererProps<WebSearchInput, WebSearchOutput>> = ({
   </div>
 );
 
-export const renderer: ToolRenderer<WebSearchInput, WebSearchOutput> = {
+export const renderer = defineRenderer<WebSearchInput, WebSearchOutput>({
   icon: Search,
   title: "Searched the web",
   executingTitle: "Searching the web",
@@ -40,4 +40,4 @@ export const renderer: ToolRenderer<WebSearchInput, WebSearchOutput> = {
   outputSchema: webSearchOutputSchema,
   Summary,
   Detail,
-};
+});

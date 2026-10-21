@@ -1,11 +1,15 @@
 import type { FC } from "react";
 import { ListTodo } from "lucide-react";
-import { taskToolSchemas, type Task } from "@/lib/ai/tools/tasks";
+import type { z } from "zod";
+import { taskToolSchemas } from "@/lib/ai/tools/tasks";
 import { EmptyNote, RowList } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { TaskRow, TaskTargetSummary } from "./parts";
 
-const Detail: FC<RendererProps<{ id: string }, Task | null>> = ({
+type GetTaskInput = z.infer<typeof taskToolSchemas.get_task.input>;
+type GetTaskOutput = z.infer<typeof taskToolSchemas.get_task.output>;
+
+const Detail: FC<RendererProps<GetTaskInput, GetTaskOutput>> = ({
   block,
   output,
 }) => {
@@ -19,7 +23,7 @@ const Detail: FC<RendererProps<{ id: string }, Task | null>> = ({
   );
 };
 
-export const renderer: ToolRenderer<{ id: string }, Task | null> = {
+export const renderer = defineRenderer<GetTaskInput, GetTaskOutput>({
   icon: ListTodo,
   title: "Read task",
   executingTitle: "Reading task",
@@ -27,4 +31,4 @@ export const renderer: ToolRenderer<{ id: string }, Task | null> = {
   outputSchema: taskToolSchemas.get_task.output,
   Summary: TaskTargetSummary,
   Detail,
-};
+});

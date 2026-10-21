@@ -1,12 +1,14 @@
 import type { FC } from "react";
 import { FolderTree } from "lucide-react";
+import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
 import { EmptyNote, ListRow, RowList } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 
-type ListFoldersOutput = { name: string; path: string }[];
+type ListFoldersInput = z.infer<typeof fileToolSchemas.list_folders.input>;
+type ListFoldersOutput = z.infer<typeof fileToolSchemas.list_folders.output>;
 
-const Detail: FC<RendererProps<Record<string, never>, ListFoldersOutput>> = ({
+const Detail: FC<RendererProps<ListFoldersInput, ListFoldersOutput>> = ({
   output,
 }) => {
   const folders = output ?? [];
@@ -28,11 +30,11 @@ const Detail: FC<RendererProps<Record<string, never>, ListFoldersOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<Record<string, never>, ListFoldersOutput> = {
+export const renderer = defineRenderer<ListFoldersInput, ListFoldersOutput>({
   icon: FolderTree,
   title: "Listed folders",
   executingTitle: "Listing folders",
   inputSchema: fileToolSchemas.list_folders.input,
   outputSchema: fileToolSchemas.list_folders.output,
   Detail,
-};
+});

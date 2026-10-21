@@ -9,7 +9,7 @@ import {
   SectionLabel,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { formatDimensions } from "./helpers";
 import {
   sheetsSpreadsheetIdInput,
@@ -117,10 +117,10 @@ const Detail: FC<
   </DetailGate>
 );
 
-export const renderer: ToolRenderer<
+export const renderer = defineRenderer<
   SheetsSpreadsheetIdInput,
   SpreadsheetInfoOutput
-> = {
+>({
   icon: FileSpreadsheet,
   title: "Spreadsheet info",
   executingTitle: "Reading spreadsheet",
@@ -128,4 +128,4 @@ export const renderer: ToolRenderer<
   outputSchema: spreadsheetInfoOutputSchema,
   Summary,
   Detail,
-};
+});

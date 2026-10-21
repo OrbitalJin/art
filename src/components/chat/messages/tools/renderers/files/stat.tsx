@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { Info } from "lucide-react";
+import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
 import {
   EmptyNote,
@@ -8,23 +9,12 @@ import {
   SummaryRow,
   formatBytes,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { pathOf } from "./helpers";
 import { FileName, FilePath } from "./parts";
 
-interface StatInput {
-  folder: string;
-  path?: string;
-}
-
-interface StatOutput {
-  isFile: boolean;
-  isDirectory: boolean;
-  isSymlink: boolean;
-  size: number;
-  mtime: number | null;
-  readonly: boolean;
-}
+type StatInput = z.infer<typeof fileToolSchemas.stat.input>;
+type StatOutput = z.infer<typeof fileToolSchemas.stat.output>;
 
 const Summary: FC<RendererProps<StatInput, StatOutput>> = ({
   input,
@@ -70,7 +60,7 @@ const Detail: FC<RendererProps<StatInput, StatOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<StatInput, StatOutput> = {
+export const renderer = defineRenderer<StatInput, StatOutput>({
   icon: Info,
   title: "Inspected path",
   executingTitle: "Inspecting path",
@@ -78,4 +68,4 @@ export const renderer: ToolRenderer<StatInput, StatOutput> = {
   outputSchema: fileToolSchemas.stat.output,
   Summary,
   Detail,
-};
+});

@@ -8,7 +8,7 @@ import {
   SummaryStatus,
   SummaryText,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { senderName } from "./helpers";
 import { emailOutputSchema, gmailFetchMessageInput } from "./schema";
 import type { EmailOutput, GmailFetchMessageInput } from "./schema";
@@ -107,7 +107,7 @@ const Detail: FC<RendererProps<GmailFetchMessageInput, EmailOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<GmailFetchMessageInput, EmailOutput> = {
+export const renderer = defineRenderer<GmailFetchMessageInput, EmailOutput>({
   icon: MailOpen,
   title: "Read email",
   executingTitle: "Reading email",
@@ -115,4 +115,4 @@ export const renderer: ToolRenderer<GmailFetchMessageInput, EmailOutput> = {
   outputSchema: emailOutputSchema,
   Summary,
   Detail,
-};
+});

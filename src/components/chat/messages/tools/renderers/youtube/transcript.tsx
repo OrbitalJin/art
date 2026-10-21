@@ -12,7 +12,7 @@ import {
   SummaryText,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import {
   youtubeTranscriptInput,
   youtubeTranscriptOutput,
@@ -156,10 +156,10 @@ const Detail: FC<RendererProps<YoutubeTranscriptInput, YoutubeTranscriptOutput>>
     );
   };
 
-export const renderer: ToolRenderer<
+export const renderer = defineRenderer<
   YoutubeTranscriptInput,
   YoutubeTranscriptOutput
-> = {
+>({
   icon: FileVideo,
   title: "Read transcript",
   executingTitle: "Reading transcript",
@@ -167,4 +167,4 @@ export const renderer: ToolRenderer<
   outputSchema: youtubeTranscriptOutput,
   Summary,
   Detail,
-};
+});

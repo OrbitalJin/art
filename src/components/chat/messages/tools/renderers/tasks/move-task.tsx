@@ -1,14 +1,13 @@
 import { ArrowRight } from "lucide-react";
+import type { z } from "zod";
 import { taskToolSchemas } from "@/lib/ai/tools/tasks";
-import type { ToolRenderer } from "../../types";
+import { defineRenderer } from "../../types";
 import { MoveTaskDetail, MoveTaskSummary } from "./parts";
 
-interface MoveTaskInput {
-  id: string;
-  status: string;
-}
+type MoveTaskInput = z.infer<typeof taskToolSchemas.move_task.input>;
+type MoveTaskOutput = z.infer<typeof taskToolSchemas.move_task.output>;
 
-export const renderer: ToolRenderer<MoveTaskInput, { success: boolean }> = {
+export const renderer = defineRenderer<MoveTaskInput, MoveTaskOutput>({
   icon: ArrowRight,
   title: "Moved task",
   executingTitle: "Moving task",
@@ -16,4 +15,4 @@ export const renderer: ToolRenderer<MoveTaskInput, { success: boolean }> = {
   outputSchema: taskToolSchemas.move_task.output,
   Summary: MoveTaskSummary,
   Detail: MoveTaskDetail,
-};
+});

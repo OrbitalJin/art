@@ -1,10 +1,14 @@
 import type { FC } from "react";
 import { FolderKanban } from "lucide-react";
-import { taskToolSchemas, type Project } from "@/lib/ai/tools/tasks";
+import type { z } from "zod";
+import { taskToolSchemas } from "@/lib/ai/tools/tasks";
 import { EmptyNote, ListRow, RowList } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 
-const Detail: FC<RendererProps<Record<string, never>, Project[]>> = ({
+type GetProjectsInput = z.infer<typeof taskToolSchemas.get_projects.input>;
+type GetProjectsOutput = z.infer<typeof taskToolSchemas.get_projects.output>;
+
+const Detail: FC<RendererProps<GetProjectsInput, GetProjectsOutput>> = ({
   output,
 }) => {
   const projects = output ?? [];
@@ -23,11 +27,11 @@ const Detail: FC<RendererProps<Record<string, never>, Project[]>> = ({
   );
 };
 
-export const renderer: ToolRenderer<Record<string, never>, Project[]> = {
+export const renderer = defineRenderer<GetProjectsInput, GetProjectsOutput>({
   icon: FolderKanban,
   title: "Read projects",
   executingTitle: "Reading projects",
   inputSchema: taskToolSchemas.get_projects.input,
   outputSchema: taskToolSchemas.get_projects.output,
   Detail,
-};
+});

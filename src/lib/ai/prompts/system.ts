@@ -58,8 +58,9 @@ const SESSION_TYPE_RULES: Record<SessionType, string> = {
     "You have tools and can take real actions. Use them when they help; " +
     "verify results instead of assuming success.",
   chat:
-    "You can only converse and search the web. If a task requires actions " +
-    "you cannot take, say so and offer what you can do instead.",
+    "You can converse, search the web, and render nutrition cards. If a task " +
+    "requires other actions you cannot take, say so and offer what you can do " +
+    "instead.",
 };
 
 const ACCESS_MODE_RULES: Record<AccessMode, string> = {

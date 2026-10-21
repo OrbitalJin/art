@@ -22,7 +22,7 @@ export const formatCount = (
   plural = pluralOf(singular),
 ): string => `${value.toLocaleString()} ${value === 1 ? singular : plural}`;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 export const errorOf = (output: unknown): string | null => {

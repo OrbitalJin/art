@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { FolderTree } from "lucide-react";
+import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
 import {
   EmptyNote,
@@ -7,23 +8,14 @@ import {
   SummaryRow,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { pathOf, type FolderEntry } from "./helpers";
 import { FileName, FilePath, FolderEntryRow } from "./parts";
 
-interface ListFolderInput {
-  folder: string;
-  path?: string;
-}
+type ListFolderInput = z.infer<typeof fileToolSchemas.list_folder.input>;
+type ListFolderOutput = z.infer<typeof fileToolSchemas.list_folder.output>;
 
-interface FolderEntryOutput {
-  name: string;
-  isFile: boolean;
-  isDirectory: boolean;
-  isSymlink: boolean;
-}
-
-const Summary: FC<RendererProps<ListFolderInput, FolderEntryOutput[]>> = ({
+const Summary: FC<RendererProps<ListFolderInput, ListFolderOutput>> = ({
   input,
   output,
   block,
@@ -40,7 +32,7 @@ const Summary: FC<RendererProps<ListFolderInput, FolderEntryOutput[]>> = ({
   );
 };
 
-const Detail: FC<RendererProps<ListFolderInput, FolderEntryOutput[]>> = ({
+const Detail: FC<RendererProps<ListFolderInput, ListFolderOutput>> = ({
   input,
   output,
   block,
@@ -72,7 +64,7 @@ const Detail: FC<RendererProps<ListFolderInput, FolderEntryOutput[]>> = ({
   );
 };
 
-export const renderer: ToolRenderer<ListFolderInput, FolderEntryOutput[]> = {
+export const renderer = defineRenderer<ListFolderInput, ListFolderOutput>({
   icon: FolderTree,
   title: "Listed directory",
   executingTitle: "Listing directory",
@@ -80,4 +72,4 @@ export const renderer: ToolRenderer<ListFolderInput, FolderEntryOutput[]> = {
   outputSchema: fileToolSchemas.list_folder.output,
   Summary,
   Detail,
-};
+});

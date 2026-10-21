@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { FilePlus } from "lucide-react";
+import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
 import {
   DiffPanel,
@@ -8,18 +9,16 @@ import {
   SummaryRow,
   countLines,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { pathOf } from "./helpers";
 import { FileName, FilePath } from "./parts";
 
-interface WriteFileInput {
-  folder: string;
-  path: string;
-  content: string;
-  append?: boolean;
-}
+type WriteFileInput = z.infer<typeof fileToolSchemas.write_file.input>;
+type WriteFileOutput = z.infer<typeof fileToolSchemas.write_file.output>;
 
-const Summary: FC<RendererProps<WriteFileInput, unknown>> = ({ input }) => {
+const Summary: FC<RendererProps<WriteFileInput, WriteFileOutput>> = ({
+  input,
+}) => {
   const { path } = pathOf(input);
   const content = input?.content ?? null;
 
@@ -34,7 +33,9 @@ const Summary: FC<RendererProps<WriteFileInput, unknown>> = ({ input }) => {
   );
 };
 
-const Detail: FC<RendererProps<WriteFileInput, unknown>> = ({ input }) => {
+const Detail: FC<RendererProps<WriteFileInput, WriteFileOutput>> = ({
+  input,
+}) => {
   const { folder, path } = pathOf(input);
   const content = input?.content ?? null;
 
@@ -50,7 +51,7 @@ const Detail: FC<RendererProps<WriteFileInput, unknown>> = ({ input }) => {
   );
 };
 
-export const renderer: ToolRenderer<WriteFileInput, unknown> = {
+export const renderer = defineRenderer<WriteFileInput, WriteFileOutput>({
   icon: FilePlus,
   title: "Wrote file",
   executingTitle: "Writing file",
@@ -58,4 +59,4 @@ export const renderer: ToolRenderer<WriteFileInput, unknown> = {
   outputSchema: fileToolSchemas.write_file.output,
   Summary,
   Detail,
-};
+});

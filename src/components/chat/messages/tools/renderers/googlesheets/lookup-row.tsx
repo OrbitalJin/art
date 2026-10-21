@@ -9,7 +9,7 @@ import {
   SummaryText,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { RangeHeader, ValueGrid } from "./parts";
 import { lookupOutputSchema, sheetsLookupInput } from "./schema";
 import type { LookupOutput, SheetsLookupInput } from "./schema";
@@ -59,12 +59,13 @@ const Detail: FC<RendererProps<SheetsLookupInput, LookupOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<SheetsLookupInput, LookupOutput> = {
+export const renderer = defineRenderer<SheetsLookupInput, LookupOutput>({
   icon: ListFilter,
   title: "Looked up row",
   executingTitle: "Looking up row",
+  surface: "card",
   inputSchema: sheetsLookupInput,
   outputSchema: lookupOutputSchema,
   Summary,
   Detail,
-};
+});

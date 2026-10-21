@@ -9,7 +9,7 @@ import {
   SummaryText,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { RangeHeader, ValueGrid } from "./parts";
 import { batchGetOutputSchema, sheetsBatchGetInput } from "./schema";
 import type {
@@ -71,12 +71,13 @@ const Detail: FC<RendererProps<SheetsBatchGetInput, BatchGetOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<SheetsBatchGetInput, BatchGetOutput> = {
+export const renderer = defineRenderer<SheetsBatchGetInput, BatchGetOutput>({
   icon: Table,
   title: "Read ranges",
   executingTitle: "Reading ranges",
+  surface: "card",
   inputSchema: sheetsBatchGetInput,
   outputSchema: batchGetOutputSchema,
   Summary,
   Detail,
-};
+});

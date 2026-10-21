@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { FileText } from "lucide-react";
+import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
 import {
   EmptyNote,
@@ -8,16 +9,14 @@ import {
   countLines,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { pathOf } from "./helpers";
 import { FileContent, FileName, FilePath } from "./parts";
 
-interface ReadFileInput {
-  folder: string;
-  path: string;
-}
+type ReadFileInput = z.infer<typeof fileToolSchemas.read_file.input>;
+type ReadFileOutput = z.infer<typeof fileToolSchemas.read_file.output>;
 
-const Summary: FC<RendererProps<ReadFileInput, string>> = ({
+const Summary: FC<RendererProps<ReadFileInput, ReadFileOutput>> = ({
   input,
   output,
 }) => {
@@ -33,7 +32,7 @@ const Summary: FC<RendererProps<ReadFileInput, string>> = ({
   );
 };
 
-const Detail: FC<RendererProps<ReadFileInput, string>> = ({
+const Detail: FC<RendererProps<ReadFileInput, ReadFileOutput>> = ({
   input,
   output,
 }) => {
@@ -51,7 +50,7 @@ const Detail: FC<RendererProps<ReadFileInput, string>> = ({
   );
 };
 
-export const renderer: ToolRenderer<ReadFileInput, string> = {
+export const renderer = defineRenderer<ReadFileInput, ReadFileOutput>({
   icon: FileText,
   title: "Read file",
   executingTitle: "Reading file",
@@ -59,4 +58,4 @@ export const renderer: ToolRenderer<ReadFileInput, string> = {
   outputSchema: fileToolSchemas.read_file.output,
   Summary,
   Detail,
-};
+});

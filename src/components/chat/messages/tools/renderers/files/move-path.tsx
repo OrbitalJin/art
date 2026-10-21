@@ -1,15 +1,13 @@
 import { MoveRight } from "lucide-react";
+import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
-import type { ToolRenderer } from "../../types";
+import { defineRenderer } from "../../types";
 import { MoveDetail, MoveSummary } from "./parts";
 
-interface MoveInput {
-  folder: string;
-  from: string;
-  to: string;
-}
+type MoveInput = z.infer<typeof fileToolSchemas.move_path.input>;
+type MoveOutput = z.infer<typeof fileToolSchemas.move_path.output>;
 
-export const renderer: ToolRenderer<MoveInput, unknown> = {
+export const renderer = defineRenderer<MoveInput, MoveOutput>({
   icon: MoveRight,
   title: "Moved path",
   executingTitle: "Moving path",
@@ -17,4 +15,4 @@ export const renderer: ToolRenderer<MoveInput, unknown> = {
   outputSchema: fileToolSchemas.move_path.output,
   Summary: MoveSummary,
   Detail: MoveDetail,
-};
+});

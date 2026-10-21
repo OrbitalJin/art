@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { FileType2 } from "lucide-react";
+import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
 import {
   EmptyNote,
@@ -8,21 +9,12 @@ import {
   SummaryRow,
   formatBytes,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { pathOf } from "./helpers";
 import { FileName, FilePath } from "./parts";
 
-interface ReadMediaInput {
-  folder: string;
-  path: string;
-}
-
-interface MediaOutput {
-  name: string;
-  mediaType: string;
-  size: number;
-  base64: string;
-}
+type ReadMediaInput = z.infer<typeof fileToolSchemas.read_pdf.input>;
+type MediaOutput = z.infer<typeof fileToolSchemas.read_pdf.output>;
 
 const Summary: FC<RendererProps<ReadMediaInput, MediaOutput>> = ({
   input,
@@ -67,7 +59,7 @@ const Detail: FC<RendererProps<ReadMediaInput, MediaOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<ReadMediaInput, MediaOutput> = {
+export const renderer = defineRenderer<ReadMediaInput, MediaOutput>({
   icon: FileType2,
   title: "Read PDF",
   executingTitle: "Reading PDF",
@@ -75,4 +67,4 @@ export const renderer: ToolRenderer<ReadMediaInput, MediaOutput> = {
   outputSchema: fileToolSchemas.read_pdf.output,
   Summary,
   Detail,
-};
+});

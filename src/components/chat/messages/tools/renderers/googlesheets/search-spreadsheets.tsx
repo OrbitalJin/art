@@ -7,7 +7,7 @@ import {
   ListRow,
   RowList,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { searchOutputSchema, sheetsSearchInput } from "./schema";
 import type {
   SearchOutput,
@@ -79,7 +79,7 @@ const Detail: FC<RendererProps<SheetsSearchInput, SearchOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<SheetsSearchInput, SearchOutput> = {
+export const renderer = defineRenderer<SheetsSearchInput, SearchOutput>({
   icon: Search,
   title: "Searched Sheets",
   executingTitle: "Searching Sheets",
@@ -87,4 +87,4 @@ export const renderer: ToolRenderer<SheetsSearchInput, SearchOutput> = {
   outputSchema: searchOutputSchema,
   Summary,
   Detail,
-};
+});

@@ -8,7 +8,7 @@ import {
   SummaryText,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { RangeHeader, ValueGrid } from "./parts";
 import { sheetsValuesGetInput, valuesOutputSchema } from "./schema";
 import type { SheetsValuesGetInput, ValuesOutput } from "./schema";
@@ -57,12 +57,13 @@ const Detail: FC<RendererProps<SheetsValuesGetInput, ValuesOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<SheetsValuesGetInput, ValuesOutput> = {
+export const renderer = defineRenderer<SheetsValuesGetInput, ValuesOutput>({
   icon: Table,
   title: "Read range",
   executingTitle: "Reading range",
+  surface: "card",
   inputSchema: sheetsValuesGetInput,
   outputSchema: valuesOutputSchema,
   Summary,
   Detail,
-};
+});

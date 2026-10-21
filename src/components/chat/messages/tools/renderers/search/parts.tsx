@@ -70,6 +70,37 @@ export const Price: FC<{ value: string; suffix?: string }> = ({
 
 /* Web and news */
 
+const headlineClasses =
+  "line-clamp-2 text-[13px] font-medium leading-snug text-foreground/90 outline-none";
+
+const Headline: FC<{ href: string | null; title: string }> = ({
+  href,
+  title,
+}) => {
+  if (!href) {
+    return (
+      <span title={title} className={headlineClasses}>
+        {title}
+      </span>
+    );
+  }
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      title={title}
+      className={cn(
+        headlineClasses,
+        "hover:text-primary hover:underline focus-visible:underline",
+      )}
+    >
+      {title}
+    </a>
+  );
+};
+
 export const ResultItem: FC<{ result: WebResult }> = ({ result }) => {
   const title = result.title ?? "Untitled";
   const source = result.url ? hostnameOf(result.url) : null;
@@ -77,17 +108,17 @@ export const ResultItem: FC<{ result: WebResult }> = ({ result }) => {
 
   return (
     <ListRow>
-      <div className="flex min-w-0 items-center gap-2">
-        <LinkTitle href={result.url} title={title}>
-          {title}
-        </LinkTitle>
+      <div className="flex min-w-0 items-baseline justify-between gap-3">
+        <div className="min-w-0">
+          <MetaLine items={[source, result.author]} />
+        </div>
         <DateStamp value={date} />
       </div>
 
-      <MetaLine items={[source, result.author]} />
+      <Headline href={result.url} title={title} />
 
       {result.snippet ? (
-        <p className="line-clamp-3 text-[11px] leading-snug text-muted-foreground/70">
+        <p className="line-clamp-2 text-[11px] leading-snug text-muted-foreground/70">
           {result.snippet}
         </p>
       ) : null}

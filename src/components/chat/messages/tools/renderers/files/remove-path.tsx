@@ -1,14 +1,13 @@
 import { Trash2 } from "lucide-react";
+import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
-import type { ToolRenderer } from "../../types";
+import { defineRenderer } from "../../types";
 import { PathDetail, PathSummary } from "./parts";
 
-interface RemovePathInput {
-  folder: string;
-  path: string;
-}
+type RemovePathInput = z.infer<typeof fileToolSchemas.remove_path.input>;
+type RemovePathOutput = z.infer<typeof fileToolSchemas.remove_path.output>;
 
-export const renderer: ToolRenderer<RemovePathInput, unknown> = {
+export const renderer = defineRenderer<RemovePathInput, RemovePathOutput>({
   icon: Trash2,
   title: "Removed path",
   executingTitle: "Removing path",
@@ -16,4 +15,4 @@ export const renderer: ToolRenderer<RemovePathInput, unknown> = {
   outputSchema: fileToolSchemas.remove_path.output,
   Summary: PathSummary,
   Detail: PathDetail,
-};
+});

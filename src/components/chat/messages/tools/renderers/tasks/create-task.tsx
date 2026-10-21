@@ -1,12 +1,18 @@
 import type { FC } from "react";
 import { Plus } from "lucide-react";
+import type { z } from "zod";
 import { taskToolSchemas } from "@/lib/ai/tools/tasks";
 import { ResultBadge, SummaryRow, SummaryText } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
-import { statusLabelOf, type TaskFieldsInput } from "./helpers";
+import { defineRenderer, type RendererProps } from "../../types";
+import { statusLabelOf } from "./helpers";
 import { TaskFields } from "./parts";
 
-const Summary: FC<RendererProps<TaskFieldsInput, unknown>> = ({ input }) => {
+type CreateTaskInput = z.infer<typeof taskToolSchemas.create_task.input>;
+type CreateTaskOutput = z.infer<typeof taskToolSchemas.create_task.output>;
+
+const Summary: FC<RendererProps<CreateTaskInput, CreateTaskOutput>> = ({
+  input,
+}) => {
   const title = input?.title;
   const status = statusLabelOf(input?.status ?? null);
 
@@ -18,7 +24,7 @@ const Summary: FC<RendererProps<TaskFieldsInput, unknown>> = ({ input }) => {
   );
 };
 
-export const renderer: ToolRenderer<TaskFieldsInput, { id: string }> = {
+export const renderer = defineRenderer<CreateTaskInput, CreateTaskOutput>({
   icon: Plus,
   title: "Created task",
   executingTitle: "Creating task",
@@ -26,4 +32,4 @@ export const renderer: ToolRenderer<TaskFieldsInput, { id: string }> = {
   outputSchema: taskToolSchemas.create_task.output,
   Summary,
   Detail: TaskFields,
-};
+});

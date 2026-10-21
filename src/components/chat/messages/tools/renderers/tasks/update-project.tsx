@@ -1,16 +1,14 @@
 import { FolderKanban } from "lucide-react";
+import type { z } from "zod";
 import { taskToolSchemas } from "@/lib/ai/tools/tasks";
 import { DoneNote } from "../../shared";
-import type { ToolRenderer } from "../../types";
+import { defineRenderer } from "../../types";
 import { ProjectTargetSummary } from "./parts";
 
-interface UpdateProjectInput {
-  id: string;
-  name?: string;
-  color?: string;
-}
+type UpdateProjectInput = z.infer<typeof taskToolSchemas.update_project.input>;
+type UpdateProjectOutput = z.infer<typeof taskToolSchemas.update_project.output>;
 
-export const renderer: ToolRenderer<UpdateProjectInput, { success: boolean }> = {
+export const renderer = defineRenderer<UpdateProjectInput, UpdateProjectOutput>({
   icon: FolderKanban,
   title: "Updated project",
   executingTitle: "Updating project",
@@ -18,4 +16,4 @@ export const renderer: ToolRenderer<UpdateProjectInput, { success: boolean }> = 
   outputSchema: taskToolSchemas.update_project.output,
   Summary: ProjectTargetSummary,
   Detail: DoneNote,
-};
+});

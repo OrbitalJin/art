@@ -1,15 +1,13 @@
 import { Copy } from "lucide-react";
+import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
-import type { ToolRenderer } from "../../types";
+import { defineRenderer } from "../../types";
 import { MoveDetail, MoveSummary } from "./parts";
 
-interface CopyInput {
-  folder: string;
-  from: string;
-  to: string;
-}
+type CopyInput = z.infer<typeof fileToolSchemas.copy_path.input>;
+type CopyOutput = z.infer<typeof fileToolSchemas.copy_path.output>;
 
-export const renderer: ToolRenderer<CopyInput, unknown> = {
+export const renderer = defineRenderer<CopyInput, CopyOutput>({
   icon: Copy,
   title: "Copied path",
   executingTitle: "Copying path",
@@ -17,4 +15,4 @@ export const renderer: ToolRenderer<CopyInput, unknown> = {
   outputSchema: fileToolSchemas.copy_path.output,
   Summary: MoveSummary,
   Detail: MoveDetail,
-};
+});

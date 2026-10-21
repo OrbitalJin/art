@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import { Newspaper } from "lucide-react";
 import { CountSummary } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { ResultsDetail } from "./parts";
 import { newsSearchInput, newsSearchOutputSchema } from "./schema";
 import type { NewsSearchInput, NewsSearchOutput } from "./schema";
@@ -26,12 +26,13 @@ const Detail: FC<RendererProps<NewsSearchInput, NewsSearchOutput>> = ({
   <ResultsDetail block={block} output={output} emptyLabel="No articles found." />
 );
 
-export const renderer: ToolRenderer<NewsSearchInput, NewsSearchOutput> = {
+export const renderer = defineRenderer<NewsSearchInput, NewsSearchOutput>({
   icon: Newspaper,
   title: "Searched news",
   executingTitle: "Searching news",
+  surface: "card",
   inputSchema: newsSearchInput,
   outputSchema: newsSearchOutputSchema,
   Summary,
   Detail,
-};
+});

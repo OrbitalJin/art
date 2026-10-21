@@ -1,20 +1,19 @@
 import type { FC } from "react";
 import { Plane } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
-  Arrow,
   DetailGate,
   EmptyNote,
   ListRow,
   MetaLine,
   ResultBadge,
   RowList,
-  SectionLabel,
   SummaryRow,
   SummaryStatus,
   SummaryText,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import {
   formatDuration,
   formatMoney,
@@ -42,12 +41,49 @@ const DayOffset: FC<{ days: number }> = ({ days }) => {
   return (
     <span
       title={`Arrives ${formatCount(days, "day")} later`}
-      className="-ml-1 text-[10px] tabular-nums text-amber-500/80"
+      className="text-[10px] tabular-nums text-amber-500/80"
     >
       +{days}
     </span>
   );
 };
+
+const Endpoint: FC<{
+  time: string | null;
+  code: string | null;
+  dayOffset?: number;
+  className?: string;
+}> = ({ time, code, dayOffset = 0, className }) => (
+  <div className={cn("flex shrink-0 flex-col gap-0.5", className)}>
+    <div className="flex items-baseline gap-1">
+      <span className="text-sm font-medium tabular-nums text-foreground">
+        {time ?? "—"}
+      </span>
+      <DayOffset days={dayOffset} />
+    </div>
+    <AirportCode code={code} />
+  </div>
+);
+
+const RouteLine: FC<{
+  stops: number;
+  stopsLabel: string;
+  duration: string | null;
+}> = ({ stops, stopsLabel, duration }) => (
+  <div className="flex min-w-0 flex-1 flex-col items-center gap-1 px-1">
+    {duration ? (
+      <span className="text-[10px] tabular-nums text-muted-foreground/60">
+        {duration}
+      </span>
+    ) : null}
+    <div className="flex h-px w-full items-center justify-center bg-border">
+      {stops > 0 ? (
+        <span className="size-1.5 rounded-full bg-muted-foreground/50" />
+      ) : null}
+    </div>
+    <span className="text-[10px] text-muted-foreground/60">{stopsLabel}</span>
+  </div>
+);
 
 const layoverLabel = (layover: Layover): string => {
   const place = layover.id ?? layover.name ?? "Layover";
@@ -74,28 +110,33 @@ const FlightCard: FC<{ flight: FlightOption; currency: string | null }> = ({
 
   return (
     <ListRow>
-      <div className="flex min-w-0 items-center gap-2">
-        <span className={rowTitleClasses}>{flight.airline ?? "Flight"}</span>
+      <div className="flex min-w-0 items-baseline justify-between gap-3">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <span className={rowTitleClasses}>{flight.airline ?? "Flight"}</span>
+          {numbers ? (
+            <span className="min-w-0 truncate text-[10px] text-muted-foreground/50">
+              {numbers}
+            </span>
+          ) : null}
+        </div>
         {price ? <Price value={price} /> : null}
       </div>
 
-      <div className="flex min-w-0 items-center gap-2 text-[11px] text-foreground/75">
-        <span className="tabular-nums">{first?.departureTime ?? "—"}</span>
-        <AirportCode code={first?.departureId ?? null} />
-        <Arrow />
-        <span className="tabular-nums">{last?.arrivalTime ?? "—"}</span>
-        <DayOffset days={flight.dayOffset} />
-        <AirportCode code={last?.arrivalId ?? null} />
-        {duration ? (
-          <span className="ml-auto shrink-0 text-[10px] tabular-nums text-muted-foreground/50">
-            {duration}
-          </span>
-        ) : null}
+      <div className="flex items-center gap-3">
+        <Endpoint
+          time={first?.departureTime ?? null}
+          code={first?.departureId ?? null}
+        />
+        <RouteLine stops={stops} stopsLabel={stopsLabel} duration={duration} />
+        <Endpoint
+          time={last?.arrivalTime ?? null}
+          code={last?.arrivalId ?? null}
+          dayOffset={flight.dayOffset}
+          className="items-end"
+        />
       </div>
 
-      <MetaLine
-        items={[stopsLabel, ...layovers, flight.type, numbers || null]}
-      />
+      <MetaLine items={[...layovers, flight.type]} />
     </ListRow>
   );
 };
@@ -125,6 +166,12 @@ const Summary: FC<RendererProps<FlightSearchInput, FlightSearchOutput>> = ({
   );
 };
 
+const GroupLabel: FC<{ label: string; count: number }> = ({ label, count }) => (
+  <p className="px-0.5 text-xs text-muted-foreground/70">
+    {label} · {formatCount(count, "option")}
+  </p>
+);
+
 const FlightGroup: FC<{
   label: string | null;
   flights: FlightOption[];
@@ -134,11 +181,7 @@ const FlightGroup: FC<{
 
   return (
     <div className="flex shrink-0 flex-col gap-1.5">
-      {label ? (
-        <SectionLabel>
-          {label} · {formatCount(flights.length, "option")}
-        </SectionLabel>
-      ) : null}
+      {label ? <GroupLabel label={label} count={flights.length} /> : null}
       <RowList>
         {flights.map((flight, index) => (
           <FlightCard key={index} flight={flight} currency={currency} />
@@ -180,12 +223,13 @@ const Detail: FC<RendererProps<FlightSearchInput, FlightSearchOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<FlightSearchInput, FlightSearchOutput> = {
+export const renderer = defineRenderer<FlightSearchInput, FlightSearchOutput>({
   icon: Plane,
   title: "Searched flights",
   executingTitle: "Searching flights",
+  surface: "card",
   inputSchema: flightSearchInput,
   outputSchema: flightSearchOutputSchema,
   Summary,
   Detail,
-};
+});

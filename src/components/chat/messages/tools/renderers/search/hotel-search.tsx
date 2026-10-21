@@ -12,11 +12,47 @@ import {
   SummaryText,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { formatMoney, lowestOf, type Hotel as HotelResult } from "./helpers";
 import { LinkTitle, Price, Rating } from "./parts";
 import { hotelSearchInput, hotelSearchOutputSchema } from "./schema";
 import type { HotelSearchInput, HotelSearchOutput } from "./schema";
+
+const AmenityChip: FC<{ label: string }> = ({ label }) => (
+  <span className="rounded-full bg-muted/60 px-2 py-0.5 text-[10px] text-muted-foreground">
+    {label}
+  </span>
+);
+
+const AmenityList: FC<{ amenities: string[] }> = ({ amenities }) => {
+  if (amenities.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {amenities.map((amenity, index) => (
+        <AmenityChip key={`${amenity}-${index}`} label={amenity} />
+      ))}
+    </div>
+  );
+};
+
+const NightlyPrice: FC<{
+  nightly?: string | null;
+  total?: string | null;
+}> = ({ nightly, total }) => {
+  if (!nightly && !total) return null;
+
+  return (
+    <div className="flex shrink-0 flex-col items-end gap-0.5">
+      {nightly ? <Price value={nightly} suffix="/night" /> : null}
+      {total ? (
+        <span className="text-[10px] tabular-nums text-muted-foreground/60">
+          {total} total
+        </span>
+      ) : null}
+    </div>
+  );
+};
 
 const HotelCard: FC<{ hotel: HotelResult; currency: string | null }> = ({
   hotel,
@@ -31,17 +67,19 @@ const HotelCard: FC<{ hotel: HotelResult; currency: string | null }> = ({
 
   return (
     <ListRow>
-      <div className="flex min-w-0 items-center gap-2">
-        <LinkTitle href={hotel.link} title={hotel.name ?? undefined}>
-          {hotel.name ?? "Hotel"}
-        </LinkTitle>
-        <Rating rating={hotel.rating} />
-        {nightly ? <Price value={nightly} suffix="/night" /> : null}
-      </div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 items-center gap-2">
+            <LinkTitle href={hotel.link} title={hotel.name ?? undefined}>
+              {hotel.name ?? "Hotel"}
+            </LinkTitle>
+            <Rating rating={hotel.rating} />
+          </div>
+          <MetaLine items={[reviews, hotel.hotelClass]} />
+        </div>
 
-      <MetaLine
-        items={[reviews, hotel.hotelClass, total ? `${total} total` : null]}
-      />
+        <NightlyPrice nightly={nightly} total={total} />
+      </div>
 
       {hotel.description ? (
         <p className="line-clamp-2 text-[11px] leading-snug text-muted-foreground/70">
@@ -49,7 +87,7 @@ const HotelCard: FC<{ hotel: HotelResult; currency: string | null }> = ({
         </p>
       ) : null}
 
-      <MetaLine items={amenities} />
+      <AmenityList amenities={amenities} />
     </ListRow>
   );
 };
@@ -101,12 +139,13 @@ const Detail: FC<RendererProps<HotelSearchInput, HotelSearchOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<HotelSearchInput, HotelSearchOutput> = {
+export const renderer = defineRenderer<HotelSearchInput, HotelSearchOutput>({
   icon: Hotel,
   title: "Searched hotels",
   executingTitle: "Searching hotels",
+  surface: "card",
   inputSchema: hotelSearchInput,
   outputSchema: hotelSearchOutputSchema,
   Summary,
   Detail,
-};
+});

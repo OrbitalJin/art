@@ -8,7 +8,7 @@ import {
   SummaryStatus,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { gmailListLabelsInput, labelListOutputSchema } from "./schema";
 import type { GmailListLabelsInput, LabelListOutput } from "./schema";
 
@@ -47,7 +47,7 @@ const Detail: FC<RendererProps<GmailListLabelsInput, LabelListOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<GmailListLabelsInput, LabelListOutput> = {
+export const renderer = defineRenderer<GmailListLabelsInput, LabelListOutput>({
   icon: Tags,
   title: "Listed labels",
   executingTitle: "Listing labels",
@@ -55,4 +55,4 @@ export const renderer: ToolRenderer<GmailListLabelsInput, LabelListOutput> = {
   outputSchema: labelListOutputSchema,
   Summary,
   Detail,
-};
+});

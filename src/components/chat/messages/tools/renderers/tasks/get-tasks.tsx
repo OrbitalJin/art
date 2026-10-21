@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { ListTodo } from "lucide-react";
-import { taskToolSchemas, type Task } from "@/lib/ai/tools/tasks";
+import type { z } from "zod";
+import { taskToolSchemas } from "@/lib/ai/tools/tasks";
 import {
   EmptyNote,
   ResultBadge,
@@ -9,16 +10,14 @@ import {
   SummaryText,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { statusLabelOf } from "./helpers";
 import { TaskRow } from "./parts";
 
-interface GetTasksInput {
-  status?: string;
-  projectId?: string;
-}
+type GetTasksInput = z.infer<typeof taskToolSchemas.get_tasks.input>;
+type GetTasksOutput = z.infer<typeof taskToolSchemas.get_tasks.output>;
 
-const Summary: FC<RendererProps<GetTasksInput, Task[]>> = ({
+const Summary: FC<RendererProps<GetTasksInput, GetTasksOutput>> = ({
   block,
   input,
   output,
@@ -35,7 +34,10 @@ const Summary: FC<RendererProps<GetTasksInput, Task[]>> = ({
   );
 };
 
-const Detail: FC<RendererProps<GetTasksInput, Task[]>> = ({ block, output }) => {
+const Detail: FC<RendererProps<GetTasksInput, GetTasksOutput>> = ({
+  block,
+  output,
+}) => {
   if (block.state === "executing") return <EmptyNote>Loading…</EmptyNote>;
 
   const tasks = output ?? [];
@@ -50,7 +52,7 @@ const Detail: FC<RendererProps<GetTasksInput, Task[]>> = ({ block, output }) => 
   );
 };
 
-export const renderer: ToolRenderer<GetTasksInput, Task[]> = {
+export const renderer = defineRenderer<GetTasksInput, GetTasksOutput>({
   icon: ListTodo,
   title: "Read tasks",
   executingTitle: "Reading tasks",
@@ -58,4 +60,4 @@ export const renderer: ToolRenderer<GetTasksInput, Task[]> = {
   outputSchema: taskToolSchemas.get_tasks.output,
   Summary,
   Detail,
-};
+});

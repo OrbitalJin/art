@@ -5,6 +5,9 @@ import type { MessagePart, ToolCallPart } from "@/lib/store/session/types";
 import { Renderer } from "./renderer";
 import { ToolCallRow } from "./tool-call";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
+import { resolveTool, type ResolvedTool } from "./tools/registry";
+import { ToolCard } from "./tools/card";
+import { getSummaryText } from "./tools/shared";
 import { useApprovalStore } from "@/lib/store/use-approval-store";
 import { useQuestionStore } from "@/lib/store/use-question-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
@@ -36,16 +39,8 @@ const StreamingMarkdown: React.FC<{ content: string }> = memo(({ content }) => {
 });
 StreamingMarkdown.displayName = "StreamingMarkdown";
 
-const summaryOf = (input: unknown): string | null => {
-  if (input && typeof input === "object" && "summary" in input) {
-    const summary = (input as { summary?: unknown }).summary;
-    if (typeof summary === "string" && summary.trim()) return summary;
-  }
-  return null;
-};
-
 const DoneSummary: React.FC<{ input: unknown }> = ({ input }) => {
-  const summary = summaryOf(input);
+  const summary = getSummaryText(input);
   if (!summary) return null;
   return (
     <div className="opacity-90">
@@ -54,27 +49,28 @@ const DoneSummary: React.FC<{ input: unknown }> = ({ input }) => {
   );
 };
 
-const runStatus = (run: ToolCallPart[]): "running" | "error" | undefined => {
-  if (run.some((part) => part.state === "executing")) return "running";
-  if (run.some((part) => part.state === "error")) return "error";
+const runStatus = (run: ResolvedTool[]): "running" | "error" | undefined => {
+  if (run.some((tool) => tool.block.state === "executing")) return "running";
+  if (run.some((tool) => tool.block.state === "error")) return "error";
   return undefined;
 };
 
-const runLabel = (run: ToolCallPart[]): string => {
-  const running = run.filter((part) => part.state === "executing").length;
+const runLabel = (run: ResolvedTool[]): string => {
+  const running = run.filter(
+    (tool) => tool.block.state === "executing",
+  ).length;
   if (running > 0) return `Running ${running} of ${run.length} tools…`;
   return `Used ${run.length} tools`;
 };
 
 // A run of more than one call collapses under a summary row, so consecutive
 // calls read as one unit instead of a stack of look-alike rows.
-const ToolGroup: React.FC<{ run: ToolCallPart[] }> = ({ run }) => {
+const ToolGroup: React.FC<{ run: ResolvedTool[] }> = ({ run }) => {
   const [open, setOpen] = useState(false);
-  const isOpen = open;
 
   return (
     <Trace>
-      <TraceCollapsible open={isOpen} onOpenChange={setOpen}>
+      <TraceCollapsible open={open} onOpenChange={setOpen}>
         <TraceCollapsibleTrigger>
           <TraceLine status={runStatus(run)}>
             <TraceIcon>
@@ -86,8 +82,8 @@ const ToolGroup: React.FC<{ run: ToolCallPart[] }> = ({ run }) => {
 
         <TraceCollapsibleContent>
           <Trace className="gap-1">
-            {run.map((part) => (
-              <ToolCallRow key={part.id} block={part} />
+            {run.map((tool) => (
+              <ToolCallRow key={tool.block.id} resolved={tool} />
             ))}
           </Trace>
         </TraceCollapsibleContent>
@@ -110,7 +106,7 @@ export const MessageParts: React.FC<Props> = ({ parts, streaming }) => {
 
   const lastIndex = parts.length - 1;
   const nodes: React.ReactNode[] = [];
-  let run: ToolCallPart[] = [];
+  let run: ResolvedTool[] = [];
 
   // One block per run of consecutive tool calls: flat rows, or (when the
   // "Group tool calls" setting is on) a summary row that expands into the
@@ -118,11 +114,11 @@ export const MessageParts: React.FC<Props> = ({ parts, streaming }) => {
   const flush = () => {
     if (run.length === 0) return;
     if (!groupToolCalls || run.length === 1) {
-      run.forEach((part) => {
-        nodes.push(<ToolCallRow key={part.id} block={part} />);
+      run.forEach((tool) => {
+        nodes.push(<ToolCallRow key={tool.block.id} resolved={tool} />);
       });
     } else {
-      nodes.push(<ToolGroup key={`tools-${run[0].id}`} run={run} />);
+      nodes.push(<ToolGroup key={`tools-${run[0].block.id}`} run={run} />);
     }
     run = [];
   };
@@ -152,7 +148,7 @@ export const MessageParts: React.FC<Props> = ({ parts, streaming }) => {
     }
 
     if (part.toolName === DONE_TOOL_NAME) {
-      if (!summaryOf(part.input)) return;
+      if (!getSummaryText(part.input)) return;
       flush();
       nodes.push(<DoneSummary key={`done-${part.id}`} input={part.input} />);
       return;
@@ -160,7 +156,33 @@ export const MessageParts: React.FC<Props> = ({ parts, streaming }) => {
 
     if (isHidden(part)) return;
 
-    run.push(part);
+    // Generative UI: a tool declares its surface. `card` becomes a framed
+    // first-class card in the prose flow; `bare` renders its own self-framed
+    // body. Everything else groups into the collapsed trace.
+    const resolved = resolveTool(part);
+    const { entry } = resolved;
+
+    if (entry.surface === "card") {
+      flush();
+      nodes.push(<ToolCard key={part.id} resolved={resolved} />);
+      return;
+    }
+
+    if (entry.surface === "bare" && entry.Detail) {
+      const Detail = entry.Detail;
+      flush();
+      nodes.push(
+        <Detail
+          key={part.id}
+          block={part}
+          input={resolved.input}
+          output={resolved.output}
+        />,
+      );
+      return;
+    }
+
+    run.push(resolved);
   });
 
   flush();

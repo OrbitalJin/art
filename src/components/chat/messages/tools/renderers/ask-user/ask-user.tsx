@@ -1,5 +1,6 @@
 import { Fragment, type FC } from "react";
 import { Circle, CircleCheck, MessageCircleQuestion } from "lucide-react";
+import type { z } from "zod";
 import { cn } from "@/lib/utils";
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import {
@@ -23,16 +24,11 @@ import {
   SummaryText,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 
-interface AskUserInput {
-  questions: AskUserQuestion[];
-}
-
-interface AskUserOutput {
-  skipped: boolean;
-  answers: AskUserAnswer[];
-}
+const askUserSchema = askUserToolSchemas[ASK_USER_TOOL_NAME];
+type AskUserInput = z.infer<(typeof askUserSchema)["input"]>;
+type AskUserOutput = z.infer<(typeof askUserSchema)["output"]>;
 
 const chosenIconClasses = "text-emerald-600/90 dark:text-emerald-400/90";
 
@@ -175,12 +171,12 @@ const Detail: FC<RendererProps<AskUserInput, AskUserOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<AskUserInput, AskUserOutput> = {
+export const renderer = defineRenderer<AskUserInput, AskUserOutput>({
   icon: MessageCircleQuestion,
   title: "Asked a question",
   executingTitle: "Asking a question",
-  inputSchema: askUserToolSchemas[ASK_USER_TOOL_NAME].input,
-  outputSchema: askUserToolSchemas[ASK_USER_TOOL_NAME].output,
+  inputSchema: askUserSchema.input,
+  outputSchema: askUserSchema.output,
   Summary,
   Detail,
-};
+});

@@ -10,7 +10,7 @@ import {
   SummaryText,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { senderName } from "./helpers";
 import { emailListOutputSchema, gmailFetchEmailsInput } from "./schema";
 import type { EmailListOutput, GmailFetchEmailsInput } from "./schema";
@@ -70,7 +70,7 @@ const Detail: FC<RendererProps<GmailFetchEmailsInput, EmailListOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<GmailFetchEmailsInput, EmailListOutput> = {
+export const renderer = defineRenderer<GmailFetchEmailsInput, EmailListOutput>({
   icon: Mails,
   title: "Searched emails",
   executingTitle: "Searching emails",
@@ -78,4 +78,4 @@ export const renderer: ToolRenderer<GmailFetchEmailsInput, EmailListOutput> = {
   outputSchema: emailListOutputSchema,
   Summary,
   Detail,
-};
+});

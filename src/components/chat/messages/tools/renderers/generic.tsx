@@ -11,29 +11,12 @@ import {
   SectionLabel,
   SummaryRow,
   SummaryText,
+  blockErrorOf,
   formatValue,
   getSummaryText,
+  isRecord,
 } from "../shared";
-import type { ToolRenderer } from "../types";
-
-/**
- * The generic renderer is the fallback for tools without a declared schema, so
- * its input/output are genuinely unknown. These local helpers narrow just
- * enough to present the payload; every schema-backed renderer uses typed data
- * instead.
- */
-const asRecord = (value: unknown): Record<string, unknown> | null =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
-
-const getString = (
-  source: Record<string, unknown> | null,
-  key: string,
-): string | null => {
-  const value = source?.[key];
-  return typeof value === "string" && value ? value : null;
-};
+import type { ToolRendererEntry } from "../types";
 
 const isScalarLike = (value: unknown): boolean => {
   if (value === null) return true;
@@ -50,7 +33,7 @@ const isEmptyValue = (value: unknown): boolean => {
   if (typeof value === "string") return value.trim() === "";
   if (Array.isArray(value)) return value.length === 0;
 
-  const record = asRecord(value);
+  const record = isRecord(value) ? value : null;
   return record !== null && Object.keys(record).length === 0;
 };
 
@@ -59,22 +42,11 @@ const isEmptyValue = (value: unknown): boolean => {
  * when that envelope is present.
  */
 const payloadOf = (output: unknown): unknown => {
-  const record = asRecord(output);
+  const record = isRecord(output) ? output : null;
   if (record && "successful" in record && "data" in record) {
     return record.data;
   }
   return output;
-};
-
-const errorOf = (block: ToolCallBlock): string | null => {
-  const fromOutput = getString(asRecord(block.output), "error");
-  if (fromOutput) return fromOutput;
-
-  if (block.state === "error" && typeof block.output === "string") {
-    return block.output;
-  }
-
-  return null;
 };
 
 const ValueView: FC<{ value: unknown; maxHeightClass: string }> = ({
@@ -85,7 +57,7 @@ const ValueView: FC<{ value: unknown; maxHeightClass: string }> = ({
     return <CodePanel maxHeightClass={maxHeightClass}>{value}</CodePanel>;
   }
 
-  const record = asRecord(value);
+  const record = isRecord(value) ? value : null;
   if (record && isFlat(record)) {
     const entries = Object.entries(record).map(([label, item]) => ({
       label,
@@ -115,7 +87,7 @@ const RequestSection: FC<{ block: ToolCallBlock }> = ({ block }) => {
 const ResponseSection: FC<{ block: ToolCallBlock }> = ({ block }) => {
   if (block.state === "executing") return <EmptyNote>Running…</EmptyNote>;
 
-  const error = errorOf(block);
+  const error = blockErrorOf(block);
   if (error) {
     return (
       <div className="flex flex-col gap-1.5">
@@ -138,9 +110,17 @@ const ResponseSection: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
+/** Request + response body for a tool with no schema-backed renderer. */
+export const RawToolBody: FC<{ block: ToolCallBlock }> = ({ block }) => (
+  <div className="flex flex-col gap-3">
+    <RequestSection block={block} />
+    <ResponseSection block={block} />
+  </div>
+);
+
 const GenericSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   const summary = getSummaryText(block.input);
-  const failed = block.state === "error" || errorOf(block) !== null;
+  const failed = block.state === "error" || blockErrorOf(block) !== null;
 
   if (!summary && !failed) return null;
 
@@ -152,16 +132,9 @@ const GenericSummary: FC<{ block: ToolCallBlock }> = ({ block }) => {
   );
 };
 
-const GenericDetail: FC<{ block: ToolCallBlock }> = ({ block }) => (
-  <div className="flex flex-col gap-3">
-    <RequestSection block={block} />
-    <ResponseSection block={block} />
-  </div>
-);
-
-export const genericRenderer: ToolRenderer = {
+export const genericRenderer: ToolRendererEntry = {
   icon: Wrench,
   title: "",
   Summary: GenericSummary,
-  Detail: GenericDetail,
+  Detail: RawToolBody,
 };

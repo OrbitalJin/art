@@ -203,6 +203,10 @@ Bento-style task board with drag-and-drop organization.
 
 ### Planned
 
+- [ ] Nutrition tools
+- [ ] Inspiration tools
+- [ ] Make agents into instances
+
 - [ ] remember & recall tools, that lets the agent store and retrieve relevant context from past conversations
 - [ ] Add support for skills
 - [ ] Math render tool

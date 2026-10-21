@@ -14,6 +14,7 @@ import { planTools } from "./plan";
 import { composioTools } from "./composio";
 import { searchTools } from "./search";
 import { youtubeTools } from "./youtube";
+import { nutritionTools } from "./nutrition";
 import { applyPolicy } from "./policy";
 
 const cherryPick = (all: ToolSet, id: string): ToolSet => {
@@ -23,9 +24,10 @@ const cherryPick = (all: ToolSet, id: string): ToolSet => {
 
 export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
   const on = session.groups;
+  const nutrition = nutritionTools();
 
   if (session.type === "chat") {
-    return searchFor(session);
+    return { ...(await searchFor(session)), ...nutrition };
   }
 
   const search = await searchFor(session);
@@ -34,6 +36,7 @@ export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
   const tools: ToolSet = {
     ...search,
     ...services,
+    ...nutrition,
     ...doneTools(),
     ...(on.plan ? planTools(session.id) : {}),
     ...(on.tasks ? tasksTools() : {}),

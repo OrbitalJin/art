@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { FilePen } from "lucide-react";
+import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
 import {
   DiffPanel,
@@ -9,22 +10,12 @@ import {
   countLines,
   formatCount,
 } from "../../shared";
-import type { RendererProps, ToolRenderer } from "../../types";
+import { defineRenderer, type RendererProps } from "../../types";
 import { pathOf } from "./helpers";
 import { FileName, FilePath } from "./parts";
 
-interface EditFileInput {
-  folder: string;
-  path: string;
-  old: string;
-  new: string;
-  replaceAll?: boolean;
-}
-
-interface EditFileOutput {
-  success: true;
-  replacements: number;
-}
+type EditFileInput = z.infer<typeof fileToolSchemas.edit_file.input>;
+type EditFileOutput = z.infer<typeof fileToolSchemas.edit_file.output>;
 
 const Summary: FC<RendererProps<EditFileInput, EditFileOutput>> = ({
   input,
@@ -71,7 +62,7 @@ const Detail: FC<RendererProps<EditFileInput, EditFileOutput>> = ({
   );
 };
 
-export const renderer: ToolRenderer<EditFileInput, EditFileOutput> = {
+export const renderer = defineRenderer<EditFileInput, EditFileOutput>({
   icon: FilePen,
   title: "Edited file",
   executingTitle: "Editing file",
@@ -79,4 +70,4 @@ export const renderer: ToolRenderer<EditFileInput, EditFileOutput> = {
   outputSchema: fileToolSchemas.edit_file.output,
   Summary,
   Detail,
-};
+});
