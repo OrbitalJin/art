@@ -10,12 +10,14 @@ export type CornerRadius = "none" | "small" | "medium" | "large";
 
 export type KeyType = "gateway" | "composio" | "uploads" | "usda";
 
-export const KEY_LABELS: Record<KeyType, string> = {
-  gateway: "Gateway",
-  composio: "Connections",
-  uploads: "Uploads",
-  usda: "USDA",
-};
+/** The key set resolved from a single art key via PocketBase. */
+export interface ArtKeys {
+  gateway: string;
+  usda: string;
+  composio: string;
+}
+
+export type KeysStatus = "idle" | "loading" | "ready" | "error";
 
 export interface UserProfile {
   name: string;
@@ -33,11 +35,12 @@ export interface AgentProfile {
 }
 
 interface SettingsState {
-  apiKey: string;
-  composioApiKey: string;
+  artKey: string;
+  /** Resolved from `artKey`; never persisted. */
+  keys: ArtKeys | null;
+  keysStatus: KeysStatus;
+  keysError: string | null;
   composioUserId: string;
-  uploadSecret: string;
-  fdcApiKey: string;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
@@ -50,10 +53,7 @@ interface SettingsState {
   userProfile: UserProfile;
   agentProfile: AgentProfile;
 
-  setApiKey: (key: string) => void;
-  setComposioApiKey: (key: string) => void;
-  setUploadSecret: (secret: string) => void;
-  setFdcApiKey: (key: string) => void;
+  setArtKey: (key: string) => void;
   ensureComposioUserId: () => string;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
@@ -88,11 +88,11 @@ export const DEFAULT_AGENT_PROFILE: AgentProfile = {
 };
 
 const initialState = {
-  apiKey: "",
-  composioApiKey: "",
+  artKey: "",
+  keys: null as ArtKeys | null,
+  keysStatus: "idle" as KeysStatus,
+  keysError: null as string | null,
   composioUserId: "",
-  uploadSecret: "",
-  fdcApiKey: "",
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
@@ -106,14 +106,14 @@ const initialState = {
   agentProfile: DEFAULT_AGENT_PROFILE,
 };
 
-type PersistedSettings = typeof initialState;
+type PersistedSettings = Omit<
+  typeof initialState,
+  "keys" | "keysStatus" | "keysError"
+>;
 
 const partialize = (state: SettingsState): PersistedSettings => ({
-  apiKey: state.apiKey,
-  composioApiKey: state.composioApiKey,
+  artKey: state.artKey,
   composioUserId: state.composioUserId,
-  uploadSecret: state.uploadSecret,
-  fdcApiKey: state.fdcApiKey,
   fontSize: state.fontSize,
   cornerRadius: state.cornerRadius,
   defaultModel: state.defaultModel,
@@ -131,10 +131,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       ...initialState,
-      setApiKey: (key: string) => set({ apiKey: key }),
-      setComposioApiKey: (key: string) => set({ composioApiKey: key }),
-      setUploadSecret: (secret: string) => set({ uploadSecret: secret }),
-      setFdcApiKey: (key: string) => set({ fdcApiKey: key }),
+      setArtKey: (key: string) => set({ artKey: key }),
       ensureComposioUserId: () => {
         const existing = get().composioUserId;
         if (existing) return existing;
@@ -165,7 +162,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 13,
+      version: 14,
       storage: createSettingsStorage<PersistedSettings>(),
       partialize,
       migrate: (persistedState: unknown, version: number) => {
@@ -264,6 +261,22 @@ export const useSettingsStore = create<SettingsState>()(
             state.fdcApiKey = "";
           }
         }
+        if (version < 14) {
+          const state = persistedState as {
+            artKey?: string;
+            apiKey?: string;
+            composioApiKey?: string;
+            uploadSecret?: string;
+            fdcApiKey?: string;
+          };
+          if (state) {
+            if (state.artKey === undefined) state.artKey = "";
+            delete state.apiKey;
+            delete state.composioApiKey;
+            delete state.uploadSecret;
+            delete state.fdcApiKey;
+          }
+        }
         return persistedState as SettingsState;
       },
     },
@@ -271,14 +284,19 @@ export const useSettingsStore = create<SettingsState>()(
 );
 
 export const useHasKey = (type?: KeyType): boolean =>
-  useSettingsStore((state) =>
-    type === "gateway"
-      ? state.apiKey.length > 0
+  useSettingsStore((state) => {
+    if (!type) return true;
+    if (type === "uploads") return state.artKey.length > 0;
+    const keys = state.keys;
+    if (!keys) return false;
+    return type === "gateway"
+      ? keys.gateway.length > 0
       : type === "composio"
-        ? state.composioApiKey.length > 0
-        : type === "uploads"
-          ? state.uploadSecret.length > 0
-          : type === "usda"
-            ? state.fdcApiKey.length > 0
-            : true,
-  );
+        ? keys.composio.length > 0
+        : keys.usda.length > 0;
+  });
+
+/** True while a configured art key is still resolving, so callers can avoid
+ * flashing a "add a key" prompt for keys that may already exist. */
+export const useKeysLoading = (): boolean =>
+  useSettingsStore((state) => state.keysStatus === "loading");

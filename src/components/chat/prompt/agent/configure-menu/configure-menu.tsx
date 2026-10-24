@@ -7,16 +7,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import {
-  KEY_LABELS,
   useHasKey,
-  type KeyType,
+  useKeysLoading,
 } from "@/lib/store/use-settings-store";
 import type { SessionMeta } from "@/lib/store/session/types";
 import type { Category } from "./groups";
 import { TOOL_GROUPS } from "./groups";
 import { groupsInCategory } from "./helpers";
 import { cn } from "@/lib/utils";
-import { KeyNotice } from "../../key-notice";
+import { ART_KEY_NOTICE, KeyNotice } from "../../key-notice";
 import { CategoryPage } from "./category-page";
 import { FilesPage } from "./files-page";
 import { MainPage } from "./main-page";
@@ -45,6 +44,7 @@ export const ConfigureMenu: React.FC<{
 }) => {
   const syncConnections = useConnectionsStore((state) => state.syncConnections);
   const hasComposio = useHasKey("composio");
+  const keysLoading = useKeysLoading();
   const contentRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState<MenuPage>(MAIN_PAGE);
@@ -119,9 +119,10 @@ export const ConfigureMenu: React.FC<{
         ? groupsInCategory(page.category)
         : [];
 
-  const missingKeys: KeyType[] = [];
-  if (visibleGroups.some((g) => g.requiresKey === "composio") && !hasComposio)
-    missingKeys.push("composio");
+  const showComposioKeyNotice =
+    !keysLoading &&
+    !hasComposio &&
+    visibleGroups.some((g) => g.requiresKey === "composio");
 
   return (
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>
@@ -145,14 +146,11 @@ export const ConfigureMenu: React.FC<{
       >
         {renderPage()}
 
-        {missingKeys.map((type) => (
-          <KeyNotice
-            key={type}
-            className="border-t border-border/50 px-3.5 py-2.5"
-          >
-            Add a {KEY_LABELS[type]} key in Settings.
+        {showComposioKeyNotice && (
+          <KeyNotice className="border-t border-border/50 px-3.5 py-2.5">
+            {ART_KEY_NOTICE}.
           </KeyNotice>
-        ))}
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

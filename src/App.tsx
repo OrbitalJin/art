@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/layout/layout";
 import { useAppearanceEffects } from "./hooks/use-appearance-effects";
 import { useRestoreFolderScope } from "./hooks/use-restore-folder-scope";
+import { useArtKeys } from "./hooks/use-art-keys";
 import { Spinner } from "@/components/ui/spinner";
 
 const Chat = lazy(() =>
@@ -21,6 +22,7 @@ const Interval = lazy(() =>
 export default function App() {
   useAppearanceEffects();
   useRestoreFolderScope();
+  useArtKeys();
   return (
     <BrowserRouter>
       <Layout>

@@ -20,7 +20,7 @@ export async function generateSessionTitle(
     const messages = sessionDataStore.getState().cache[sessionId]?.messages;
     if (!messages?.length) return;
 
-    const apiKey = useSettingsStore.getState().apiKey;
+    const apiKey = useSettingsStore.getState().keys?.gateway;
     if (!apiKey) return;
 
     const conversationText = messages

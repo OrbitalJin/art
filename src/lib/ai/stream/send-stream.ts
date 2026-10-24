@@ -69,7 +69,7 @@ export async function sendToSession(
   text: string,
   attachments?: ChatAttachment[],
 ): Promise<void> {
-  const apiKey = useSettingsStore.getState().apiKey;
+  const apiKey = useSettingsStore.getState().keys?.gateway;
   if (!apiKey) {
     toast.error("Add a gateway key in Settings to send messages.");
     return;

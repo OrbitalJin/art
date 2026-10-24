@@ -3,7 +3,7 @@ import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 
 export const useConnectionsSync = (): void => {
-  const apiKey = useSettingsStore((state) => state.composioApiKey);
+  const apiKey = useSettingsStore((state) => state.keys?.composio ?? null);
   const hydrated = useConnectionsStore((state) => state.hydrated);
   const syncedRef = useRef<string | null>(null);
 

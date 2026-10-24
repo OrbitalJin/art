@@ -174,7 +174,7 @@ const fetchFoodMacros = async ({
   grams,
 }: FetchMacrosInput): Promise<FetchMacrosOutput> => {
   const serving = grams ?? 100;
-  const apiKey = useSettingsStore.getState().fdcApiKey;
+  const apiKey = useSettingsStore.getState().keys?.usda;
 
   if (!apiKey) {
     return {

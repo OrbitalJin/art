@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { useConnectionsStore } from "@/lib/store/use-connections-store";
-import { KEY_LABELS, useHasKey } from "@/lib/store/use-settings-store";
+import { useHasKey, useKeysLoading } from "@/lib/store/use-settings-store";
+import { ART_KEY_NOTICE } from "../../key-notice";
 import type { SessionMeta } from "@/lib/store/session/types";
 import { serviceById } from "@/lib/services/catalog";
 import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
@@ -138,6 +139,7 @@ export const GroupRow: React.FC<{
   onToggle: (key: string, value: boolean) => void;
 }> = ({ group, session, onOpenFiles, onToggle }) => {
   const hasKey = useHasKey(group.requiresKey);
+  const keysLoading = useKeysLoading();
 
   if (group.source === "files") {
     const folderCount = (session.folders ?? []).length;
@@ -165,9 +167,9 @@ export const GroupRow: React.FC<{
     <ToolRow
       label={group.label}
       subtitle={
-        hasKey || !group.requiresKey
+        hasKey || !group.requiresKey || keysLoading
           ? group.description
-          : `Add a ${KEY_LABELS[group.requiresKey]} key in Settings`
+          : ART_KEY_NOTICE
       }
       enabled={enabled}
       disabled={!hasKey}

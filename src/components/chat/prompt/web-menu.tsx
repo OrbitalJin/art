@@ -11,13 +11,13 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useSessionIndex } from "@/lib/store/session/index-store";
-import { useSettingsStore } from "@/lib/store/use-settings-store";
+import { useSettingsStore, useKeysLoading } from "@/lib/store/use-settings-store";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SEARCH_GROUPS } from "./agent/configure-menu/groups";
 import { ToolRow } from "./agent/configure-menu/rows";
-import { KeyNotice } from "./key-notice";
+import { ART_KEY_NOTICE, KeyNotice } from "./key-notice";
 
 /**
  * Chat-mode control for the search toolset. Only the tools declared in
@@ -30,7 +30,10 @@ export const WebMenu: React.FC = () => {
   );
   const setGroup = useSessionIndex((state) => state.setGroup);
   const setGroups = useSessionIndex((state) => state.setGroups);
-  const hasKey = useSettingsStore((state) => state.composioApiKey.length > 0);
+  const hasKey = useSettingsStore(
+    (state) => (state.keys?.composio.length ?? 0) > 0,
+  );
+  const keysLoading = useKeysLoading();
   const { isSending: disabled } = useChatStream();
   const [open, setOpen] = useState(false);
 
@@ -137,9 +140,9 @@ export const WebMenu: React.FC = () => {
           })}
         </div>
 
-        {!hasKey && (
+        {!hasKey && !keysLoading && (
           <KeyNotice className="border-t border-border/50 px-3.5 py-2.5">
-            Add a Connections key in Settings to use web tools.
+            {ART_KEY_NOTICE} to use web tools.
           </KeyNotice>
         )}
       </DropdownMenuContent>

@@ -25,12 +25,8 @@ import { purgeSessions } from "@/lib/store/session/commands";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { ACCESS_MODE_TONES, type AccessMode } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
+import { Eye, EyeOff, KeyRound, Loader2, type LucideIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import type { IconType } from "react-icons";
-import {
-  TbBrandVercelFilled,
-  TbPlugConnected,
-} from "react-icons/tb";
 import { toast } from "sonner";
 import { ConnectionsSettings } from "./connections";
 import {
@@ -42,10 +38,16 @@ import {
   SettingsPage,
   SettingsSection,
 } from "./settings-layout";
-import { Database, Salad } from "lucide-react";
+
+type KeysStatus = ReturnType<typeof useSettingsStore.getState>["keysStatus"];
+
+const maskKey = (key: string) => {
+  const tail = key.length > 8 ? key.slice(-4) : "";
+  return `••••••••${tail}`;
+};
 
 const KeyIcon: React.FC<{
-  icon: IconType;
+  icon: LucideIcon;
   active: boolean;
 }> = ({ icon: Icon, active }) => {
   const iconClasses = cn(
@@ -58,9 +60,74 @@ const KeyIcon: React.FC<{
 
   return (
     <span className={iconClasses}>
-      <Icon size={24} strokeWidth={1} aria-hidden />
+      <Icon className="size-4" strokeWidth={1.75} aria-hidden />
     </span>
   );
+};
+
+interface KeyStatusLineProps {
+  configured: boolean;
+  preview: string;
+  status: KeysStatus;
+  error: string | null;
+}
+
+const KeyStatusLine: React.FC<KeyStatusLineProps> = ({
+  configured,
+  preview,
+  status,
+  error,
+}) => {
+  if (!configured) {
+    return <span className="text-xs text-muted-foreground">Not set</span>;
+  }
+
+  const previewText = (
+    <span className="font-mono text-xs text-foreground/70">{preview}</span>
+  );
+
+  if (status === "loading") {
+    return (
+      <span
+        aria-live="polite"
+        className="flex items-center gap-1.5 text-xs text-muted-foreground"
+      >
+        {previewText}
+        <Loader2 className="size-3 animate-spin" aria-hidden />
+        Resolving…
+      </span>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <span
+        aria-live="polite"
+        className="flex min-w-0 items-center gap-1.5 text-xs text-destructive"
+      >
+        {previewText}
+        <span className="size-1.5 shrink-0 rounded-full bg-destructive" />
+        <span className="truncate">
+          {error ?? "Could not resolve the art key."}
+        </span>
+      </span>
+    );
+  }
+
+  if (status === "ready") {
+    return (
+      <span
+        aria-live="polite"
+        className="flex items-center gap-1.5 text-xs text-muted-foreground"
+      >
+        {previewText}
+        <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
+        Active
+      </span>
+    );
+  }
+
+  return previewText;
 };
 
 interface KeyEditorProps {
@@ -69,6 +136,8 @@ interface KeyEditorProps {
   placeholder: string;
   value: string;
   onSave: (value: string) => void;
+  onRemove: () => void;
+  onCancel: () => void;
 }
 
 const KeyEditor: React.FC<KeyEditorProps> = ({
@@ -77,6 +146,8 @@ const KeyEditor: React.FC<KeyEditorProps> = ({
   placeholder,
   value,
   onSave,
+  onRemove,
+  onCancel,
 }) => {
   const [showKey, setShowKey] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -86,31 +157,46 @@ const KeyEditor: React.FC<KeyEditorProps> = ({
     setShowKey(false);
   }, [value]);
 
-  const dirty = draft !== value;
+  const trimmed = draft.trim();
+  const canSave = trimmed.length > 0 && trimmed !== value;
+  const canRemove = value.length > 0;
 
   const handleSave = () => {
-    if (!dirty) return;
-    onSave(draft);
-    toast.success("Settings saved");
+    if (!canSave) return;
+    onSave(trimmed);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.nativeEvent.isComposing) return;
     if (event.key === "Enter") handleSave();
+    if (event.key === "Escape") onCancel();
   };
 
-  const inputClasses = cn(INPUT_CLASSES, "pr-14 font-mono");
+  const wrapperClasses = cn(
+    "flex flex-col gap-2.5 border-t border-border/60 bg-muted/20 px-4 py-3",
+    "animate-in fade-in-0 slide-in-from-top-1 duration-150",
+  );
+
+  const inputClasses = cn(INPUT_CLASSES, "pr-9 font-mono");
 
   const toggleClasses = cn(
-    "absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer rounded-sm",
-    "text-[11px] text-muted-foreground/70 outline-none transition-colors duration-150",
+    "absolute top-1/2 right-1.5 flex size-6 -translate-y-1/2 cursor-pointer",
+    "items-center justify-center rounded-sm text-muted-foreground/70",
+    "outline-none transition-colors duration-150",
     "hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50",
   );
 
-  return (
-    <div className="flex flex-col gap-2.5 bg-muted/20 px-4 py-3">
-      <p className="text-xs text-muted-foreground">{description}</p>
+  const removeClasses = cn(
+    "shrink-0 cursor-pointer rounded-sm text-xs text-muted-foreground",
+    "outline-none transition-colors duration-150",
+    "hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring/50",
+  );
 
+  const ToggleIcon = showKey ? EyeOff : Eye;
+  const toggleLabel = showKey ? "Hide key" : "Show key";
+
+  return (
+    <div className={wrapperClasses}>
       <div className="flex items-center gap-2">
         <div className="relative min-w-0 flex-1">
           <Input
@@ -119,6 +205,8 @@ const KeyEditor: React.FC<KeyEditorProps> = ({
             aria-label={label}
             autoComplete="off"
             spellCheck={false}
+            data-1p-ignore
+            data-lpignore="true"
             autoFocus
             className={inputClasses}
             value={draft}
@@ -128,33 +216,45 @@ const KeyEditor: React.FC<KeyEditorProps> = ({
           <button
             type="button"
             onClick={() => setShowKey((show) => !show)}
+            aria-label={toggleLabel}
             aria-pressed={showKey}
             className={toggleClasses}
           >
-            {showKey ? "Hide" : "Show"}
+            <ToggleIcon className="size-3.5" aria-hidden />
           </button>
         </div>
 
         <Button
           type="button"
           size="sm"
-          disabled={!dirty}
+          disabled={!canSave}
           onClick={handleSave}
           className="h-8 w-16 text-xs shadow-none"
         >
           Save
         </Button>
       </div>
+
+      <div className="flex items-start justify-between gap-4">
+        <p className="text-xs text-muted-foreground">{description}</p>
+        {canRemove && (
+          <button type="button" onClick={onRemove} className={removeClasses}>
+            Remove key
+          </button>
+        )}
+      </div>
     </div>
   );
 };
 
 interface SecretKeyFieldProps {
-  icon: IconType;
+  icon: LucideIcon;
   label: string;
   description: string;
   placeholder: string;
   value: string;
+  status: KeysStatus;
+  error: string | null;
   onSave: (value: string) => void;
 }
 
@@ -164,24 +264,30 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
   description,
   placeholder,
   value,
+  status,
+  error,
   onSave,
 }) => {
   const [editing, setEditing] = useState(false);
 
   const configured = value.length > 0;
-  const statusText = configured ? "Key saved" : "Not set";
+  const preview = maskKey(value);
   const buttonText = editing ? "Cancel" : configured ? "Edit" : "Add";
   const buttonVariant = editing || configured ? "outline" : "default";
-
-  const statusClasses = cn(
-    "text-xs",
-    configured ? "text-foreground/70" : "text-muted-foreground",
-  );
 
   const handleSave = (next: string) => {
     onSave(next);
     setEditing(false);
+    toast.success("Key saved");
   };
+
+  const handleRemove = () => {
+    onSave("");
+    setEditing(false);
+    toast.success("Key removed");
+  };
+
+  const handleCancel = () => setEditing(false);
 
   return (
     <div className="flex flex-col">
@@ -192,7 +298,12 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
             <span className="text-[13px] font-medium text-foreground">
               {label}
             </span>
-            <span className={statusClasses}>{statusText}</span>
+            <KeyStatusLine
+              configured={configured}
+              preview={preview}
+              status={status}
+              error={error}
+            />
           </div>
         </div>
 
@@ -214,6 +325,8 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
           placeholder={placeholder}
           value={value}
           onSave={handleSave}
+          onRemove={handleRemove}
+          onCancel={handleCancel}
         />
       )}
     </div>
@@ -275,16 +388,10 @@ const AccessModeOption: React.FC<AccessModeOptionProps> = ({
 };
 
 export const ChatSettingsTab: React.FC = () => {
-  const apiKey = useSettingsStore((state) => state.apiKey);
-  const setApiKey = useSettingsStore((state) => state.setApiKey);
-  const composioApiKey = useSettingsStore((state) => state.composioApiKey);
-  const setComposioApiKey = useSettingsStore(
-    (state) => state.setComposioApiKey,
-  );
-  const uploadSecret = useSettingsStore((state) => state.uploadSecret);
-  const setUploadSecret = useSettingsStore((state) => state.setUploadSecret);
-  const fdcApiKey = useSettingsStore((state) => state.fdcApiKey);
-  const setFdcApiKey = useSettingsStore((state) => state.setFdcApiKey);
+  const artKey = useSettingsStore((state) => state.artKey);
+  const setArtKey = useSettingsStore((state) => state.setArtKey);
+  const keysStatus = useSettingsStore((state) => state.keysStatus);
+  const keysError = useSettingsStore((state) => state.keysError);
   const defaultModel = useSettingsStore((state) => state.defaultModel);
   const setDefaultModel = useSettingsStore((state) => state.setDefaultModel);
   const defaultAgentModel = useSettingsStore(
@@ -335,36 +442,14 @@ export const ChatSettingsTab: React.FC = () => {
       <SettingsSection title="Keys" description="Stored on this device.">
         <SettingsCard>
           <SecretKeyField
-            icon={TbBrandVercelFilled}
-            label="Gateway"
-            description="Vercel AI gateway key."
-            placeholder="secret key"
-            value={apiKey}
-            onSave={setApiKey}
-          />
-          <SecretKeyField
-            icon={TbPlugConnected}
-            label="Connections"
-            description="Composio key for Gmail, Slack, search & more."
-            placeholder="secret key"
-            value={composioApiKey}
-            onSave={setComposioApiKey}
-          />
-          <SecretKeyField
-            icon={Database}
-            label="Uploads"
-            description="Art key for file uploads."
-            placeholder="secret key"
-            value={uploadSecret}
-            onSave={setUploadSecret}
-          />
-          <SecretKeyField
-            icon={Salad}
-            label="USDA"
-            description="FoodData Central key for accurate food macros."
-            placeholder="api key"
-            value={fdcApiKey}
-            onSave={setFdcApiKey}
+            icon={KeyRound}
+            label="Art key"
+            description="Unlocks your gateway, connections, uploads and USDA keys."
+            placeholder="art key"
+            value={artKey}
+            status={keysStatus}
+            error={keysError}
+            onSave={setArtKey}
           />
         </SettingsCard>
       </SettingsSection>

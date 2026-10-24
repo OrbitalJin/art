@@ -63,7 +63,7 @@ export interface SessionPolicy {
 let instance: { key: string; composio: ComposioClient } | null = null;
 
 export const getComposio = async (): Promise<ComposioClient | null> => {
-  const apiKey = useSettingsStore.getState().composioApiKey;
+  const apiKey = useSettingsStore.getState().keys?.composio;
   if (!apiKey) return null;
   if (instance?.key === apiKey) return instance.composio;
 
@@ -147,7 +147,7 @@ export const resetSearchSession = (): void => {
 };
 
 export const ensureSearchSession = async (): Promise<ComposioSession | null> => {
-  const apiKey = useSettingsStore.getState().composioApiKey;
+  const apiKey = useSettingsStore.getState().keys?.composio;
   if (!apiKey) return null;
   if (searchSession?.key === apiKey) return searchSession.session;
 

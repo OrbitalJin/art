@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useHasKey, useSettingsStore } from "@/lib/store/use-settings-store";
+import { useHasKey, useKeysLoading, useSettingsStore } from "@/lib/store/use-settings-store";
 import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { PersonaSelect } from "./persona-select";
@@ -34,7 +34,7 @@ import { StashSelect } from "./stash/stash-select";
 import { StashSaveButton } from "./stash/stash-save-button";
 import { AgentBar } from "./agent/bar";
 import { AgentAttention } from "./agent/attention";
-import { KeyNotice } from "./key-notice";
+import { ART_KEY_NOTICE, KeyNotice } from "./key-notice";
 import { filesFromDataTransfer, useUpload } from "@/hooks/use-upload";
 import { resolveAttachmentUrl } from "@/lib/upload/pocketbase";
 import type { ChatAttachment } from "@/lib/store/session/types";
@@ -151,6 +151,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const hasKey = useHasKey("gateway");
   const hasUploadKey = useHasKey("uploads");
+  const keysLoading = useKeysLoading();
   const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
@@ -231,15 +232,9 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
       <div className="mx-auto flex max-w-3xl flex-col">
         <AgentAttention />
 
-        {!hasKey && (
+        {(!hasKey || !hasUploadKey) && !keysLoading && (
           <KeyNotice className="mb-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs">
-            Add a gateway key in Settings to start chatting.
-          </KeyNotice>
-        )}
-
-        {!hasUploadKey && (
-          <KeyNotice className="mb-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs">
-            Add an upload key in Settings to attach files.
+            {ART_KEY_NOTICE} to start chatting and attach files.
           </KeyNotice>
         )}
 

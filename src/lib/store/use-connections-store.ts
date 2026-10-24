@@ -65,7 +65,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
       setHydrated: (value: boolean) => set({ hydrated: value }),
 
       ensureSession: async (force = false) => {
-        const key = useSettingsStore.getState().composioApiKey;
+        const key = useSettingsStore.getState().keys?.composio;
         const existing = get().sessionId;
         // A session is only valid for the key that created it, so a key change
         // (e.g. from Settings) must not reuse the previous session.

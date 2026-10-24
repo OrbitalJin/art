@@ -19,7 +19,7 @@ export const useGeneratePageTitle = () => {
       const page = pages.find((p) => p.id === pageId);
       if (!page?.content.trim()) return;
 
-      const apiKey = useSettingsStore.getState().apiKey;
+      const apiKey = useSettingsStore.getState().keys?.gateway;
       if (!apiKey) return;
 
       const contentPreview = page.content.slice(0, 2000).trim();

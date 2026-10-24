@@ -28,7 +28,7 @@ pb.beforeSend = (url, options) => {
   options.fetch = nativeFetch as typeof fetch;
   options.query = {
     ...options.query,
-    uploadSecret: useSettingsStore.getState().uploadSecret,
+    secret: useSettingsStore.getState().artKey,
   };
   return { url, options };
 };

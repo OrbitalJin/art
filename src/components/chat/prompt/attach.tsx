@@ -5,7 +5,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { useUpload } from "@/hooks/use-upload";
-import { useHasKey } from "@/lib/store/use-settings-store";
+import { useHasKey, useKeysLoading } from "@/lib/store/use-settings-store";
+import { ART_KEY_NOTICE } from "./key-notice";
 import { Button } from "@/components/ui/button";
 import { MAX_ATTACHMENT_SIZE } from "@/lib/utils/images";
 import { Paperclip } from "lucide-react";
@@ -16,6 +17,7 @@ export const Attach = () => {
   const { pickFiles } = useUpload();
   const { isSending: disabled } = useChatStream();
   const hasUploadKey = useHasKey("uploads");
+  const keysLoading = useKeysLoading();
 
   return (
     <Tooltip>
@@ -31,9 +33,9 @@ export const Attach = () => {
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        {hasUploadKey
+        {hasUploadKey || keysLoading
           ? `Attach image or PDF · up to ${MAX_MB} MB`
-          : "Add an upload key in Settings to attach files"}
+          : `${ART_KEY_NOTICE} to attach files`}
       </TooltipContent>
     </Tooltip>
   );

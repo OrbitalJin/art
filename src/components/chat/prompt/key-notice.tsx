@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
+export const ART_KEY_NOTICE = "Add your art key in Settings";
+
 export const KeyNotice: React.FC<{
   className?: string;
   children: React.ReactNode;

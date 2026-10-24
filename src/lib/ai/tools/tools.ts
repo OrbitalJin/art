@@ -26,7 +26,7 @@ const cherryPick = (all: ToolSet, id: string): ToolSet => {
 export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
   const on = session.groups;
   const nutrition = nutritionTools();
-  const macros = useSettingsStore.getState().fdcApiKey ? fetchMacrosTools() : {};
+  const macros = useSettingsStore.getState().keys?.usda ? fetchMacrosTools() : {};
 
   if (session.type === "chat") {
     return { ...(await searchFor(session)), ...nutrition, ...macros };

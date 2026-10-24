@@ -1,11 +1,13 @@
 import { Composio } from "@composio/core";
+import PocketBase from "pocketbase";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
 const IDENTIFIER = "com.horijin.dev";
+const PB_URL = "https://pb.x1c.dev";
 
-async function readComposioKey(): Promise<string | undefined> {
-  if (Bun.env.COMPOSIO_API_KEY) return Bun.env.COMPOSIO_API_KEY;
+async function readArtKey(): Promise<string | undefined> {
+  if (Bun.env.ART_KEY) return Bun.env.ART_KEY;
   const candidates = [
     process.env.SETTINGS_STORE_PATH,
     join(homedir(), ".local", "share", IDENTIFIER, "settings.json"), // linux
@@ -16,18 +18,26 @@ async function readComposioKey(): Promise<string | undefined> {
     if (!(await file.exists())) continue;
     const raw = await file.json();
     const persisted = raw["settings-storage"];
-    return persisted["state"]["composioApiKey"];
+    return persisted["state"]["artKey"];
   }
   return undefined;
 }
 
 const slug = Bun.argv[2];
 
-const apiKey = await readComposioKey();
+const artKey = await readArtKey();
 
-if (!apiKey || !slug) {
-  throw new Error("Set COMPOSIO_API_KEY and pass a tool slug.");
+if (!artKey || !slug) {
+  throw new Error("Set ART_KEY and pass a tool slug.");
 }
+
+const apiKey =
+  Bun.env.COMPOSIO_API_KEY ??
+  (
+    await new PocketBase(PB_URL).collection("keys").getOne<{ composio: string }>(
+      artKey,
+    )
+  ).composio;
 
 const composio = new Composio({ apiKey });
 
