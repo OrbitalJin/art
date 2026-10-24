@@ -4,6 +4,7 @@ import { Layout } from "@/layout/layout";
 import { useAppearanceEffects } from "./hooks/use-appearance-effects";
 import { useRestoreFolderScope } from "./hooks/use-restore-folder-scope";
 import { useArtKeys } from "./hooks/use-art-keys";
+import { useMonitorAgent } from "@/monitor-agent";
 import { Spinner } from "@/components/ui/spinner";
 
 const Chat = lazy(() =>
@@ -23,6 +24,7 @@ export default function App() {
   useAppearanceEffects();
   useRestoreFolderScope();
   useArtKeys();
+  useMonitorAgent();
   return (
     <BrowserRouter>
       <Layout>

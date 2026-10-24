@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 use tauri_plugin_fs::FsExt;
 
+mod monitor_agent;
+
 #[tauri::command]
 fn get_env_var(key: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| "".to_string())
@@ -242,7 +244,7 @@ async fn fetch_youtube_captions(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    monitor_agent::configure(tauri::Builder::default())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -251,10 +253,17 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .setup(|app| {
+            monitor_agent::setup(app)?;
+            Ok(())
+        })
+        .on_window_event(monitor_agent::on_window_event)
         .invoke_handler(tauri::generate_handler![
             get_env_var,
             allow_folder,
-            fetch_youtube_captions
+            fetch_youtube_captions,
+            monitor_agent::capture_screens,
+            monitor_agent::screen_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
