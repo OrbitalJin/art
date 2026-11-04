@@ -203,7 +203,7 @@ Bento-style task board with drag-and-drop organization.
 
 ### Planned
 
-- [ ] Nutrition tools
+- [x] Nutrition tools
 - [ ] Inspiration tools
 - [ ] Make agents into instances
 

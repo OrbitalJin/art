@@ -25,7 +25,7 @@ import { purgeSessions } from "@/lib/store/session/commands";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { ACCESS_MODE_TONES, type AccessMode } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
-import { Eye, EyeOff, KeyRound, Loader2, type LucideIcon } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ConnectionsSettings } from "./connections";
@@ -46,93 +46,8 @@ const maskKey = (key: string) => {
   return `••••••••${tail}`;
 };
 
-const KeyIcon: React.FC<{
-  icon: LucideIcon;
-  active: boolean;
-}> = ({ icon: Icon, active }) => {
-  const iconClasses = cn(
-    "flex size-9 shrink-0 items-center justify-center rounded-lg border",
-    "transition-colors duration-150",
-    active
-      ? "border-foreground/15 bg-foreground/[0.04] text-foreground"
-      : "border-border/60 bg-muted/40 text-muted-foreground",
-  );
-
-  return (
-    <span className={iconClasses}>
-      <Icon className="size-4" strokeWidth={1.75} aria-hidden />
-    </span>
-  );
-};
-
-interface KeyStatusLineProps {
-  configured: boolean;
-  preview: string;
-  status: KeysStatus;
-  error: string | null;
-}
-
-const KeyStatusLine: React.FC<KeyStatusLineProps> = ({
-  configured,
-  preview,
-  status,
-  error,
-}) => {
-  if (!configured) {
-    return <span className="text-xs text-muted-foreground">Not set</span>;
-  }
-
-  const previewText = (
-    <span className="font-mono text-xs text-foreground/70">{preview}</span>
-  );
-
-  if (status === "loading") {
-    return (
-      <span
-        aria-live="polite"
-        className="flex items-center gap-1.5 text-xs text-muted-foreground"
-      >
-        {previewText}
-        <Loader2 className="size-3 animate-spin" aria-hidden />
-        Resolving…
-      </span>
-    );
-  }
-
-  if (status === "error") {
-    return (
-      <span
-        aria-live="polite"
-        className="flex min-w-0 items-center gap-1.5 text-xs text-destructive"
-      >
-        {previewText}
-        <span className="size-1.5 shrink-0 rounded-full bg-destructive" />
-        <span className="truncate">
-          {error ?? "Could not resolve the art key."}
-        </span>
-      </span>
-    );
-  }
-
-  if (status === "ready") {
-    return (
-      <span
-        aria-live="polite"
-        className="flex items-center gap-1.5 text-xs text-muted-foreground"
-      >
-        {previewText}
-        <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
-        Active
-      </span>
-    );
-  }
-
-  return previewText;
-};
-
 interface KeyEditorProps {
   label: string;
-  description: string;
   placeholder: string;
   value: string;
   onSave: (value: string) => void;
@@ -142,7 +57,6 @@ interface KeyEditorProps {
 
 const KeyEditor: React.FC<KeyEditorProps> = ({
   label,
-  description,
   placeholder,
   value,
   onSave,
@@ -173,7 +87,7 @@ const KeyEditor: React.FC<KeyEditorProps> = ({
   };
 
   const wrapperClasses = cn(
-    "flex flex-col gap-2.5 border-t border-border/60 bg-muted/20 px-4 py-3",
+    "flex flex-col gap-2 px-4 pb-4",
     "animate-in fade-in-0 slide-in-from-top-1 duration-150",
   );
 
@@ -187,7 +101,7 @@ const KeyEditor: React.FC<KeyEditorProps> = ({
   );
 
   const removeClasses = cn(
-    "shrink-0 cursor-pointer rounded-sm text-xs text-muted-foreground",
+    "cursor-pointer rounded-sm text-xs text-muted-foreground",
     "outline-none transition-colors duration-150",
     "hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring/50",
   );
@@ -235,22 +149,19 @@ const KeyEditor: React.FC<KeyEditorProps> = ({
         </Button>
       </div>
 
-      <div className="flex items-start justify-between gap-4">
-        <p className="text-xs text-muted-foreground">{description}</p>
-        {canRemove && (
+      {canRemove && (
+        <div className="flex justify-end">
           <button type="button" onClick={onRemove} className={removeClasses}>
             Remove key
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
 
 interface SecretKeyFieldProps {
-  icon: LucideIcon;
   label: string;
-  description: string;
   placeholder: string;
   value: string;
   status: KeysStatus;
@@ -259,9 +170,7 @@ interface SecretKeyFieldProps {
 }
 
 const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
-  icon,
   label,
-  description,
   placeholder,
   value,
   status,
@@ -271,9 +180,18 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
   const [editing, setEditing] = useState(false);
 
   const configured = value.length > 0;
+  const loading = configured && status === "loading";
+  const failed = configured && status === "error";
   const preview = maskKey(value);
   const buttonText = editing ? "Cancel" : configured ? "Edit" : "Add";
   const buttonVariant = editing || configured ? "outline" : "default";
+  const errorText = error ?? "Could not resolve the art key.";
+  const description = failed ? errorText : "Stored on this device.";
+
+  const previewClasses = cn(
+    "font-mono text-xs",
+    failed ? "text-destructive" : "text-muted-foreground",
+  );
 
   const handleSave = (next: string) => {
     onSave(next);
@@ -291,37 +209,30 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between gap-4 px-4 py-3.5">
-        <div className="flex min-w-0 items-center gap-3">
-          <KeyIcon icon={icon} active={configured} />
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <span className="text-[13px] font-medium text-foreground">
-              {label}
-            </span>
-            <KeyStatusLine
-              configured={configured}
-              preview={preview}
-              status={status}
-              error={error}
+      <SettingRow title={label} description={description}>
+        <div className="flex items-center gap-3">
+          {loading && (
+            <Loader2
+              className="size-3 animate-spin text-muted-foreground"
+              aria-label="Resolving key"
             />
-          </div>
+          )}
+          {configured && <span className={previewClasses}>{preview}</span>}
+          <Button
+            type="button"
+            size="sm"
+            variant={buttonVariant}
+            className="h-8 text-xs shadow-none"
+            onClick={() => setEditing((open) => !open)}
+          >
+            {buttonText}
+          </Button>
         </div>
-
-        <Button
-          type="button"
-          size="sm"
-          variant={buttonVariant}
-          className="h-8 text-xs shadow-none"
-          onClick={() => setEditing((open) => !open)}
-        >
-          {buttonText}
-        </Button>
-      </div>
+      </SettingRow>
 
       {editing && (
         <KeyEditor
           label={label}
-          description={description}
           placeholder={placeholder}
           value={value}
           onSave={handleSave}
@@ -439,12 +350,10 @@ export const ChatSettingsTab: React.FC = () => {
       title="Chat & Agent"
       description="Configure your chat and agent experience."
     >
-      <SettingsSection title="Keys" description="Stored on this device.">
+      <SettingsSection title="Access">
         <SettingsCard>
           <SecretKeyField
-            icon={KeyRound}
             label="Art key"
-            description="Unlocks your gateway, connections, uploads and USDA keys."
             placeholder="art key"
             value={artKey}
             status={keysStatus}

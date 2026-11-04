@@ -10,7 +10,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useHasKey, useKeysLoading, useSettingsStore } from "@/lib/store/use-settings-store";
+import {
+  useHasKey,
+  useKeysLoading,
+  useSettingsStore,
+} from "@/lib/store/use-settings-store";
 import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { PersonaSelect } from "./persona-select";
@@ -41,6 +45,7 @@ import type { ChatAttachment } from "@/lib/store/session/types";
 
 interface Props {
   textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
+  className?: string;
 }
 
 const AttachmentTypeIcon: React.FC<{ mimeType: string }> = ({ mimeType }) => {
@@ -144,7 +149,7 @@ const SendButton: React.FC<{
   );
 };
 
-export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
+export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
   const { prompt, setPrompt, attachments, sendMessage } = useChatInput();
   const { ingest, remove, retry, ingestClipboardImage } = useUpload();
   const { abortStream, isSending } = useChatStream();
@@ -228,7 +233,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef }) => {
   );
 
   return (
-    <footer className="z-20">
+    <footer className={cn("z-20", className)}>
       <div className="mx-auto flex max-w-3xl flex-col">
         <AgentAttention />
 

@@ -3,7 +3,7 @@ import { fetch as nativeFetch } from "@tauri-apps/plugin-http";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import type { ChatAttachment } from "@/lib/store/session/types";
 
-export const PB_URL = "https://pb.x1c.dev";
+export const PB_URL = "https://pb.art.x1c.dev";
 export const PB_COLLECTION = "attachments";
 
 /**
