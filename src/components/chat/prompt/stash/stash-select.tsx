@@ -33,6 +33,7 @@ import {
 } from "@/lib/store/use-stash-store";
 import { extractPlaceholders } from "@/lib/stash/placeholders";
 import { cn } from "@/lib/utils";
+import { promptControlClasses } from "../toolbar";
 import { useInsertPrompt } from "./use-insert-prompt";
 import { StashFormDialog } from "./stash-form-dialog";
 import { TemplateDialog } from "./template-dialog";
@@ -209,19 +210,22 @@ export const StashSelect = ({ textAreaRef }: Props) => {
     setPendingDelete(entry);
   };
 
-  const triggerClasses = cn("h-9 w-9 transition-colors", open && "bg-muted/60");
+  const triggerClasses = cn(
+    promptControlClasses,
+    open && "bg-accent/60 text-foreground",
+  );
 
   return (
     <>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             className={triggerClasses}
             onClick={() => setOpen(true)}
           >
-            <Bookmark className="h-4 w-4 text-muted-foreground" />
+            <Bookmark className="h-4 w-4" />
             <span className="sr-only">Prompt stash</span>
           </Button>
         </TooltipTrigger>

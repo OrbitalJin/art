@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/message-scroller";
 import WelcomeMessage from "../welcome";
 import { MessageBroker } from "./broker";
+import { MessageRail } from "./rail";
 import { BranchOriginMarker } from "./markers/branch-origin";
 import type { Message } from "@/lib/store/session/types";
 import { useSessionIndex } from "@/lib/store/session/index-store";
@@ -41,20 +42,20 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
 
   if (messages.length === 0 && prompt.length === 0) {
     return (
-      <div className="relative flex flex-1 flex-col overflow-hidden px-4 select-none">
+      <div className="relative flex flex-1 flex-col overflow-hidden px-4 pb-[calc(var(--prompt-height,0px)_+_1rem)] select-none">
         <WelcomeMessage textAreaRef={textAreaRef} />
       </div>
     );
   }
 
   return (
-    <div className="relative flex flex-1 flex-col min-w-0 overflow-x-hidden select-none">
+    <div className="relative flex flex-1 flex-col min-w-0 overflow-x-hidden select-none @container">
       <SessionScrollSync />
       <MessageScroller className="flex-1">
         <MessageScrollerViewport>
           <MessageScrollerContent
             aria-busy={isSending}
-            className="mx-auto w-full min-w-0 max-w-3xl overflow-x-hidden select-text my-8"
+            className="mx-auto w-full min-w-0 max-w-3xl overflow-x-hidden select-text mt-8"
           >
             <BranchOriginMarker />
             {messages.map((msg) => (
@@ -62,9 +63,17 @@ export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
                 <MessageBroker {...msg} />
               </MessageScrollerItem>
             ))}
+            <div
+              aria-hidden
+              className="h-[calc(var(--prompt-height,0px)_+_1rem)] shrink-0"
+            />
           </MessageScrollerContent>
         </MessageScrollerViewport>
-        <MessageScrollerButton variant="outline" />
+        <MessageScrollerButton
+          variant="outline"
+          className="data-[direction=end]:bottom-[calc(var(--prompt-height,0px)_+_1.5rem)]"
+        />
+        <MessageRail messages={messages} />
       </MessageScroller>
     </div>
   );

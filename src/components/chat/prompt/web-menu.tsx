@@ -11,13 +11,17 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useSessionIndex } from "@/lib/store/session/index-store";
-import { useSettingsStore, useKeysLoading } from "@/lib/store/use-settings-store";
+import {
+  useSettingsStore,
+  useKeysLoading,
+} from "@/lib/store/use-settings-store";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SEARCH_GROUPS } from "./agent/configure-menu/groups";
 import { ToolRow } from "./agent/configure-menu/rows";
 import { ART_KEY_NOTICE, KeyNotice } from "./key-notice";
+import { promptControlClasses } from "./toolbar";
 
 /**
  * Chat-mode control for the search toolset. Only the tools declared in
@@ -58,8 +62,8 @@ export const WebMenu: React.FC = () => {
   };
 
   const triggerClasses = cn(
-    "h-9 w-9 bg-card/50 border-border/50 transition-all relative",
-    "hover:bg-accent/20 group",
+    promptControlClasses,
+    "relative",
     !hasKey && "opacity-60",
   );
 
@@ -80,12 +84,8 @@ export const WebMenu: React.FC = () => {
         <div className="relative inline-block">
           <Tooltip>
             <TooltipTrigger asChild disabled={disabled}>
-              <Button
-                variant="outline"
-                size="icon"
-                className={triggerClasses}
-              >
-                <Globe className="h-4 w-4 text-muted-foreground" />
+              <Button variant="ghost" size="icon" className={triggerClasses}>
+                <Globe className="h-4 w-4" />
                 {enabledCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-medium text-primary-foreground tabular-nums">
                     {enabledCount}

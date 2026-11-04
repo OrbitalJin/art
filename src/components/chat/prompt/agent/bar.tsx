@@ -12,6 +12,7 @@ import {
   type PendingQuestion,
 } from "@/lib/store/use-question-store";
 import { usePlanStore, type Plan } from "@/lib/store/use-plan-store";
+import { cn } from "@/lib/utils";
 import { AccessControl } from "./access-control";
 import { ConfigureMenu } from "./configure-menu";
 import { EnabledTools } from "./enabled-tools";
@@ -19,74 +20,44 @@ import { ToolActivity } from "./tool-activity";
 import { useAgentTools } from "./use-agent-tools";
 import { ToolApprovalCard } from "./tool-approval-card";
 import { AskUserCard } from "./ask-user-card";
-import { cn } from "@/lib/utils";
 
-interface PendingPrompts {
-  approvals: [string, PendingApproval][];
-  questions: [string, PendingQuestion][];
-}
+type Pending = { id: string; requestedAt: number } & (
+  | { kind: "approval"; approval: PendingApproval }
+  | { kind: "question"; question: PendingQuestion }
+);
 
-const NO_PROMPTS: PendingPrompts = { approvals: [], questions: [] };
-
-const usePendingPrompts = (sessionId: string | undefined): PendingPrompts => {
+/** Pending approvals and questions for a session, oldest first. */
+const usePendingPrompts = (sessionId: string | undefined): Pending[] => {
   const approvals = useApprovalStore((state) => state.pending);
   const questions = useQuestionStore((state) => state.pending);
 
   return useMemo(() => {
-    if (!sessionId) return NO_PROMPTS;
+    if (!sessionId) return [];
 
-    const pendingApprovals = Object.entries(approvals)
-      .filter(
-        ([, approval]) =>
-          approval.status === "pending" && approval.sessionId === sessionId,
-      )
-      .sort(([, a], [, b]) => a.requestedAt - b.requestedAt);
+    const items: Pending[] = [
+      ...Object.entries(approvals)
+        .filter(([, a]) => a.status === "pending" && a.sessionId === sessionId)
+        .map(([id, approval]) => ({
+          id,
+          requestedAt: approval.requestedAt,
+          kind: "approval" as const,
+          approval,
+        })),
+      ...Object.entries(questions)
+        .filter(([, q]) => q.status === "pending" && q.sessionId === sessionId)
+        .map(([id, question]) => ({
+          id,
+          requestedAt: question.requestedAt,
+          kind: "question" as const,
+          question,
+        })),
+    ];
 
-    const pendingQuestions = Object.entries(questions)
-      .filter(
-        ([, question]) =>
-          question.status === "pending" && question.sessionId === sessionId,
-      )
-      .sort(([, a], [, b]) => a.requestedAt - b.requestedAt);
-
-    return { approvals: pendingApprovals, questions: pendingQuestions };
+    return items.sort((a, b) => a.requestedAt - b.requestedAt);
   }, [approvals, questions, sessionId]);
 };
 
-const StateDot: React.FC<{ active: boolean }> = ({ active }) => {
-  const dotClasses = cn(
-    "size-2 shrink-0 self-center rounded-full",
-    active
-      ? "animate-pulse bg-amber-500 motion-reduce:animate-none"
-      : "bg-emerald-500/70",
-  );
-
-  return <span aria-hidden className={dotClasses} />;
-};
-
-const StatusLabel: React.FC<{ active: boolean }> = ({ active }) => (
-  <span
-    className={cn(
-      "shrink-0 text-xs font-medium",
-      active ? "shimmer text-amber-500/40" : "text-foreground/70",
-    )}
-  >
-    {active ? "Working" : "Agent"}
-  </span>
-);
-
-const Divider: React.FC = () => (
-  <span aria-hidden className="h-3.5 w-px shrink-0 bg-border/60" />
-);
-
-const ProgressLine: React.FC = () => (
-  <span
-    aria-hidden
-    className="pointer-events-none absolute inset-x-0 -bottom-px h-px animate-pulse bg-linear-to-r from-transparent via-amber-500/20 to-transparent motion-reduce:animate-none"
-  />
-);
-
-const PagerControls: React.FC<{
+const Pager: React.FC<{
   noun: string;
   index: number;
   total: number;
@@ -123,101 +94,69 @@ const PagerControls: React.FC<{
   </>
 );
 
-const ApprovalQueue: React.FC<{
-  entries: [string, PendingApproval][];
-}> = ({ entries }) => {
+const PendingQueue: React.FC<{ items: Pending[] }> = ({ items }) => {
   const [index, setIndex] = useState(0);
 
-  const total = entries.length;
-  const activeIndex = Math.min(index, total - 1);
-  const [toolCallId, approval] = entries[activeIndex];
+  const active = Math.min(index, items.length - 1);
+  const item = items[active];
+  const trailing =
+    items.length > 1 ? (
+      <Pager
+        noun={item.kind}
+        index={active}
+        total={items.length}
+        onPrev={() => setIndex(active - 1)}
+        onNext={() => setIndex(active + 1)}
+      />
+    ) : undefined;
 
-  return (
-    <ToolApprovalCard
-      key={toolCallId}
-      variant="embedded"
-      toolCallId={toolCallId}
-      toolName={approval.toolName}
-      input={approval.input}
-      status={approval.status}
-      trailing={
-        total > 1 ? (
-          <PagerControls
-            noun="approval"
-            index={activeIndex}
-            total={total}
-            onPrev={() => setIndex(activeIndex - 1)}
-            onNext={() => setIndex(activeIndex + 1)}
-          />
-        ) : undefined
-      }
-    />
-  );
-};
-
-const QuestionQueue: React.FC<{
-  entries: [string, PendingQuestion][];
-}> = ({ entries }) => {
-  const [index, setIndex] = useState(0);
-
-  const total = entries.length;
-  const activeIndex = Math.min(index, total - 1);
-  const [toolCallId, question] = entries[activeIndex];
+  if (item.kind === "approval") {
+    return (
+      <ToolApprovalCard
+        key={item.id}
+        variant="embedded"
+        toolCallId={item.id}
+        toolName={item.approval.toolName}
+        input={item.approval.input}
+        status={item.approval.status}
+        trailing={trailing}
+      />
+    );
+  }
 
   return (
     <AskUserCard
-      key={toolCallId}
+      key={item.id}
       variant="embedded"
-      toolCallId={toolCallId}
-      questions={question.questions}
-      status={question.status}
-      trailing={
-        total > 1 ? (
-          <PagerControls
-            noun="question"
-            index={activeIndex}
-            total={total}
-            onPrev={() => setIndex(activeIndex - 1)}
-            onNext={() => setIndex(activeIndex + 1)}
-          />
-        ) : undefined
-      }
+      toolCallId={item.id}
+      questions={item.question.questions}
+      status={item.question.status}
+      trailing={trailing}
     />
   );
 };
 
-const PendingPrompt: React.FC<{ prompts: PendingPrompts }> = ({ prompts }) => {
-  if (prompts.approvals.length > 0) {
-    return <ApprovalQueue entries={prompts.approvals} />;
-  }
-
-  if (prompts.questions.length > 0) {
-    return <QuestionQueue entries={prompts.questions} />;
-  }
-
-  return null;
-};
-
-const PlanMarker: React.FC<{ active: boolean; done: boolean }> = ({
-  active,
-  done,
-}) => {
-  const dotClasses = cn(
-    "size-1.5 rounded-full",
-    done && "bg-emerald-500",
-    !done && active && "animate-pulse bg-amber-500 motion-reduce:animate-none",
-    !done && !active && "bg-muted-foreground/25",
-  );
-
-  return (
+const StreamStatus: React.FC<{ streaming: boolean }> = ({ streaming }) => (
+  <>
     <span
       aria-hidden
-      className="flex size-2 shrink-0 items-center justify-center"
+      className={cn(
+        "size-2 shrink-0 rounded-full",
+        streaming
+          ? "animate-pulse bg-amber-500 motion-reduce:animate-none"
+          : "bg-emerald-500/70",
+      )}
+    />
+    <span
+      className={cn(
+        "shrink-0 text-xs font-medium",
+        streaming ? "shimmer text-amber-500/40" : "text-foreground/70",
+      )}
     >
-      <span className={dotClasses} />
+      {streaming ? "Working" : "Agent"}
     </span>
-  );
-};
+  </>
+);
 
 const PlanStrip: React.FC<{ plan: Plan }> = ({ plan }) => {
   const total = plan.steps.length;
@@ -226,7 +165,6 @@ const PlanStrip: React.FC<{ plan: Plan }> = ({ plan }) => {
   ).length;
   const current = plan.steps.find((step) => step.status === "in_progress");
   const next = plan.steps.find((step) => step.status !== "completed");
-  const allDone = completed === total;
   const label = current?.content ?? next?.content ?? "Plan complete";
 
   const title = plan.steps
@@ -246,7 +184,21 @@ const PlanStrip: React.FC<{ plan: Plan }> = ({ plan }) => {
       title={title}
       className="flex h-8 items-center gap-2.5 px-3 animate-in fade-in duration-200 motion-reduce:animate-none"
     >
-      <PlanMarker active={current !== undefined} done={allDone} />
+      <span
+        aria-hidden
+        className="flex size-2 shrink-0 items-center justify-center"
+      >
+        <span
+          className={cn(
+            "size-1.5 rounded-full",
+            completed === total
+              ? "bg-emerald-500"
+              : current
+                ? "animate-pulse bg-amber-500 motion-reduce:animate-none"
+                : "bg-muted-foreground/25",
+          )}
+        />
+      </span>
       <span className="min-w-0 truncate text-[11px] text-foreground/70">
         {label}
       </span>
@@ -272,33 +224,29 @@ export const AgentBar = () => {
 
   if (!session || session.type !== "agent") return null;
 
-  const ownsStream = streamingSessionId === session.id;
-  const streaming = ownsStream && isSending;
-  const active = streaming && toolCalls.length > 0;
-  const hasPending =
-    prompts.approvals.length > 0 || prompts.questions.length > 0;
+  const streaming = streamingSessionId === session.id && isSending;
+  const hasPending = prompts.length > 0;
+  const runningTools = streaming && toolCalls.length > 0;
   const showPlan = streaming && !hasPending && !!plan && plan.steps.length > 0;
-
-  const barClasses = cn(
-    "relative flex items-center gap-2",
-    "bg-linear-to-r to-transparent transition-colors duration-300",
-    streaming ? "from-amber-500/3" : "",
-    hasPending ? "items-stretch px-0" : "h-10 px-3",
-  );
 
   return (
     <div className="relative flex flex-col border-b border-border/40">
-      <div className={barClasses}>
+      <div
+        className={cn(
+          "relative flex select-none items-center gap-2.5 bg-linear-to-r to-transparent transition-colors duration-300",
+          streaming && "from-amber-500/5",
+          hasPending ? "items-stretch px-0" : "h-10 px-3",
+        )}
+      >
         {hasPending ? (
           <div className="w-full animate-in fade-in slide-in-from-top-1 duration-200 motion-reduce:animate-none">
-            <PendingPrompt key={session.id} prompts={prompts} />
+            <PendingQueue key={session.id} items={prompts} />
           </div>
         ) : (
           <>
-            <StateDot active={streaming} />
-            <StatusLabel active={streaming} />
-            <Divider />
-            {active ? (
+            <StreamStatus streaming={streaming} />
+            <span aria-hidden className="h-3.5 w-px shrink-0 bg-border/50" />
+            {runningTools ? (
               <ToolActivity toolCalls={toolCalls} running={tools.running} />
             ) : (
               <EnabledTools session={session} />
@@ -318,7 +266,12 @@ export const AgentBar = () => {
 
       {showPlan ? <PlanStrip plan={plan} /> : null}
 
-      {streaming && <ProgressLine />}
+      {streaming && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -bottom-px h-px animate-pulse bg-linear-to-r from-transparent via-amber-500/20 to-transparent motion-reduce:animate-none"
+        />
+      )}
     </div>
   );
 };

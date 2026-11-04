@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BookmarkPlus } from "lucide-react";
 import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
+import { promptControlClasses } from "../toolbar";
 import { StashFormDialog } from "./stash-form-dialog";
 
 export const StashSaveButton = () => {
@@ -22,11 +23,11 @@ export const StashSaveButton = () => {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             disabled={disabled}
             onClick={() => setOpen(true)}
-            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            className={promptControlClasses}
           >
             <BookmarkPlus className="h-4 w-4" />
             <span className="sr-only">Save to stash</span>

@@ -25,6 +25,7 @@ import { useSession } from "@/lib/store/session/data-store";
 import type { Message } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
+import { promptControlClasses } from "./toolbar";
 
 const previewOf = (msg: Message): string => {
   const text = messageText(msg).trim();
@@ -126,15 +127,15 @@ export const JumpSelect = () => {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             className={cn(
-              "h-9 w-9 transition-colors",
-              open && "border-primary/50 bg-primary/5",
+              promptControlClasses,
+              open && "bg-accent/60 text-foreground",
             )}
             onClick={() => setOpen(true)}
           >
-            <Scroll className="h-4 w-4 text-muted-foreground" />
+            <Scroll className="h-4 w-4" />
             <span className="sr-only">Jump to message</span>
           </Button>
         </TooltipTrigger>

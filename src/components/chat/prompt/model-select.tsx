@@ -40,11 +40,13 @@ export const ModelSelect = () => {
     <DropdownMenu key={activeId} open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         disabled={disabled}
-        className="
-        w-[120px] text-xs border cursor-pointer h-9
-        shadow-none focus:ring-0 transition-colors
-        hover:bg-accent/30 hover:text-primary
-        inline-flex items-center justify-between rounded-md px-3 py-2 disabled:pointer-events-none disabled:opacity-50"
+        className={cn(
+          "inline-flex h-8 max-w-40 cursor-pointer items-center gap-1.5 rounded-md px-2.5",
+          "text-xs text-muted-foreground/80 transition-colors outline-none",
+          "hover:bg-accent/50 hover:text-foreground",
+          "focus-visible:ring-2 focus-visible:ring-ring/50",
+          "disabled:pointer-events-none disabled:opacity-50",
+        )}
       >
         <span className="truncate font-medium">
           {model?.displayName || "Model"}

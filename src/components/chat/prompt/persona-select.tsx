@@ -15,6 +15,7 @@ import { VenetianMask } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useChatStream } from "@/hooks/use-chat-stream";
+import { promptControlClasses } from "./toolbar";
 
 export const PersonaSelect = () => {
   const { isSending: disabled } = useChatStream();
@@ -38,14 +39,11 @@ export const PersonaSelect = () => {
           <Tooltip>
             <TooltipTrigger asChild disabled={disabled}>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
-                className={cn(
-                  "h-9 w-9 bg-card/50 border-border/50 transition-all",
-                  "hover:bg-accent/20 group",
-                )}
+                className={promptControlClasses}
               >
-                <VenetianMask className={cn("h-4 w-4 text-muted-foreground")} />
+                <VenetianMask className="h-4 w-4" />
                 <span className="sr-only">{currentPersona?.label}</span>
               </Button>
             </TooltipTrigger>

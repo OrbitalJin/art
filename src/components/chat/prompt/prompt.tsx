@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowUp,
@@ -160,6 +160,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
   const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
+  const footerRef = useRef<HTMLElement>(null);
 
   const isAgent = session?.type === "agent";
   const hasAttachments = attachments.length > 0;
@@ -180,6 +181,35 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [prompt, textAreaRef]);
+
+  // Publish the composer's measured height to the chat shell so the message
+  // thread can reserve space beneath it and keep every message reachable.
+  useLayoutEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+
+    const host =
+      (footer.closest("[data-chat-thread]") as HTMLElement | null) ??
+      footer.parentElement;
+
+    const sync = () => {
+      host?.style.setProperty("--prompt-height", `${footer.offsetHeight}px`);
+    };
+
+    sync();
+
+    if (typeof ResizeObserver === "undefined") {
+      return () => host?.style.removeProperty("--prompt-height");
+    }
+
+    const observer = new ResizeObserver(sync);
+    observer.observe(footer);
+
+    return () => {
+      observer.disconnect();
+      host?.style.removeProperty("--prompt-height");
+    };
+  }, []);
 
   const handleSend = () => {
     if (!hasKey || attachmentsPending) return;
@@ -219,7 +249,8 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
 
   const containerClasses = cn(
     "relative flex flex-col overflow-hidden rounded-xl border border-border/60",
-    "bg-card/50 shadow-sm transition-colors duration-200",
+    "bg-card/70 backdrop-blur-xl backdrop-saturate-150",
+    "shadow-lg shadow-black/5 transition-colors duration-200",
     "hover:border-border",
     "focus-within:border-ring/40 focus-within:ring-4 focus-within:ring-ring/10",
     !hasKey && "opacity-60",
@@ -227,14 +258,20 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
 
   const textareaClasses = cn(
     "resize-none border-0 bg-transparent! shadow-none focus-visible:ring-0",
-    "min-h-[90px] max-h-[250px] lg:max-h-[400px]",
+    "min-h-[70px] max-h-[250px] lg:max-h-[400px]",
     "px-3.5 pt-3.5 pb-1 text-[15px] text-foreground/90",
-    "placeholder:text-muted-foreground/50",
+    "placeholder:text-muted-foreground/80",
   );
 
   return (
-    <footer className={cn("z-20", className)}>
-      <div className="mx-auto flex max-w-3xl flex-col">
+    <footer
+      ref={footerRef}
+      className={cn(
+        "pointer-events-none absolute inset-x-0 bottom-2 z-20 px-2 pb-2",
+        className,
+      )}
+    >
+      <div className="pointer-events-auto mx-auto flex max-w-3xl flex-col">
         <AgentAttention />
 
         {(!hasKey || !hasUploadKey) && !keysLoading && (
@@ -244,7 +281,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
         )}
 
         {session?.legacyMedia && (
-          <div className="mb-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
+          <div className="mb-2 rounded-lg border border-border/60 bg-muted px-3 py-2 text-[11px] leading-snug text-muted-foreground">
             This session predates the attachment system — some media may be
             missing or broken.
           </div>
