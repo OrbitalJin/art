@@ -312,7 +312,6 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
 
           <div className="flex items-center justify-between px-2 pb-2">
             <div className="flex flex-row items-center gap-1.5">
-              <ModelSelect />
               <JumpSelect />
               <Attach />
               {!isAgent && <PersonaSelect />}
@@ -321,12 +320,15 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
               {isAgent && <StashSelect textAreaRef={textAreaRef} />}
             </div>
 
-            <SendButton
-              visible={showSendButton}
-              stopping={stopping}
-              disabled={!isSending && !canSend}
-              onClick={isSending ? () => abortStream() : handleSend}
-            />
+            <div className="flex flex-row itemc-center gap-1.5">
+              <ModelSelect />
+              <SendButton
+                visible={showSendButton}
+                stopping={stopping}
+                disabled={!isSending && !canSend}
+                onClick={isSending ? () => abortStream() : handleSend}
+              />
+            </div>
           </div>
         </div>
       </div>

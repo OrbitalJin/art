@@ -7,7 +7,7 @@ import { useChatStream } from "@/hooks/use-chat-stream";
 import { MODELS } from "@/lib/ai/models";
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { cn } from "@/lib/utils";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, Cpu } from "lucide-react";
 import { useState } from "react";
 import { selectableRowClasses } from "./agent/configure-menu/helpers";
 
@@ -48,6 +48,7 @@ export const ModelSelect = () => {
           "disabled:pointer-events-none disabled:opacity-50",
         )}
       >
+        <Cpu size={12} />
         <span className="truncate font-medium">
           {model?.displayName || "Model"}
         </span>

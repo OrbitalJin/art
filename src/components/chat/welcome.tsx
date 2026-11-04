@@ -35,30 +35,16 @@ const relativeTime = (timestamp: number): string => {
   return `${Math.floor(days / 30)}mo ago`;
 };
 
-const Kbd: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <kbd className="rounded border border-border/60 bg-muted/30 px-1 py-px font-mono text-[10px] text-muted-foreground/70">
-    {children}
-  </kbd>
-);
-
-const Shortcut: React.FC<{
-  label: string;
-  children: React.ReactNode;
-}> = ({ label, children }) => (
-  <span className="flex items-center gap-1.5">
-    <span className="flex items-center gap-0.5">{children}</span>
-    <span>{label}</span>
+const Shortcut: React.FC<{ label: string; keys: string }> = ({
+  label,
+  keys,
+}) => (
+  <span className="flex items-baseline gap-1.5">
+    <span className="text-[10px] font-medium tracking-wide text-muted-foreground/60">
+      {keys}
+    </span>
+    <span className="text-[10px] text-muted-foreground/45">{label}</span>
   </span>
-);
-
-const Section: React.FC<{
-  label: string;
-  children: React.ReactNode;
-}> = ({ label, children }) => (
-  <section className="flex flex-col gap-3">
-    <h2 className="text-xs font-medium text-muted-foreground/50">{label}</h2>
-    <div className="flex flex-col divide-y divide-border/40">{children}</div>
-  </section>
 );
 
 const Starter: React.FC<{
@@ -67,17 +53,62 @@ const Starter: React.FC<{
   onSelect: (prompt: string) => void;
 }> = ({ label, prompt, onSelect }) => {
   const classes = cn(
-    "w-full cursor-pointer py-2.5 text-left text-[15px] text-foreground/70",
-    "outline-none transition-colors duration-150",
-    "hover:text-foreground focus-visible:text-foreground",
+    "group flex w-full cursor-pointer items-center py-2.5 text-left outline-none",
   );
 
   return (
     <button type="button" onClick={() => onSelect(prompt)} className={classes}>
-      {label}
+      <span
+        className={cn(
+          "relative text-[15.5px] text-foreground/70",
+          "transition-colors duration-200",
+          "group-hover:text-foreground group-focus-visible:text-foreground",
+        )}
+      >
+        {label}
+        <span
+          aria-hidden
+          className={cn(
+            "absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-primary/50",
+            "transition-transform duration-300 ease-out",
+            "group-hover:scale-x-100 group-focus-visible:scale-x-100",
+          )}
+        />
+      </span>
     </button>
   );
 };
+
+const RecentRow: React.FC<{
+  title: string;
+  updatedAt: number;
+  onOpen: () => void;
+}> = ({ title, updatedAt, onOpen }) => (
+  <button
+    type="button"
+    onClick={onOpen}
+    className="group flex w-full cursor-pointer items-baseline gap-4 py-2 text-left outline-none"
+  >
+    <span
+      className={cn(
+        "min-w-0 flex-1 truncate text-[13px] text-muted-foreground/70",
+        "transition-colors duration-150",
+        "group-hover:text-foreground group-focus-visible:text-foreground",
+      )}
+    >
+      {title}
+    </span>
+    <span
+      className={cn(
+        "shrink-0 text-[10.5px] tabular-nums text-muted-foreground/45",
+        "transition-colors duration-150",
+        "group-hover:text-muted-foreground/70 group-focus-visible:text-muted-foreground/70",
+      )}
+    >
+      {relativeTime(updatedAt)}
+    </span>
+  </button>
+);
 
 const ChatStarters: React.FC<{ onSelect: (prompt: string) => void }> = ({
   onSelect,
@@ -123,32 +154,6 @@ const AgentStarters: React.FC<{ onSelect: (prompt: string) => void }> = ({
   </>
 );
 
-const RecentRow: React.FC<{
-  title: string;
-  updatedAt: number;
-  onOpen: () => void;
-}> = ({ title, updatedAt, onOpen }) => {
-  const classes = cn(
-    "group flex w-full cursor-pointer items-baseline gap-4 py-2.5 text-left",
-    "outline-none",
-  );
-
-  const titleClasses = cn(
-    "min-w-0 flex-1 truncate text-sm text-foreground/70",
-    "transition-colors duration-150",
-    "group-hover:text-foreground group-focus-visible:text-foreground",
-  );
-
-  return (
-    <button type="button" onClick={onOpen} className={classes}>
-      <span className={titleClasses}>{title}</span>
-      <span className="shrink-0 text-[11px] text-muted-foreground/50 tabular-nums">
-        {relativeTime(updatedAt)}
-      </span>
-    </button>
-  );
-};
-
 const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   const { setPrompt } = useChatInput();
   const navigate = useNavigate();
@@ -178,29 +183,33 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
   }, [sessions, activeId, routeType]);
 
   const firstName = userProfile.name?.trim().split(" ")[0] || "there";
+
   const handleStarter = (prompt: string) => {
     setPrompt(prompt);
     textAreaRef.current?.focus();
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-2 px-4 select-none animate-in fade-in duration-300 fill-mode-backwards">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-medium tracking-tight text-foreground">
-          {greeting}, {firstName}.
-        </h1>
-      </header>
+    <div
+      className={cn(
+        "mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-6 select-none",
+        "animate-in fade-in slide-in-from-bottom-1 duration-500 ease-out fill-mode-backwards",
+      )}
+    >
+      <h1 className="font-serif text-[36px] leading-[1.12] tracking-[-0.01em] text-foreground">
+        {greeting}, {firstName}.
+      </h1>
 
-      <Section label="Try asking">
+      <div className="mt-11 flex flex-col">
         {isAgent ? (
           <AgentStarters onSelect={handleStarter} />
         ) : (
           <ChatStarters onSelect={handleStarter} />
         )}
-      </Section>
+      </div>
 
       {recents.length > 0 && (
-        <Section label="Recent">
+        <section className="mt-11 flex flex-col border-t border-border/40 pt-5">
           {recents.map((session) => (
             <RecentRow
               key={session.id}
@@ -211,32 +220,17 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
               }
             />
           ))}
-        </Section>
+        </section>
       )}
 
-      <footer className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] text-muted-foreground/40">
-        <Shortcut label="chat/agent">
-          <Kbd>Ctrl</Kbd>
-          <Kbd>Tab</Kbd>
-        </Shortcut>
-        <Shortcut label="focus">
-          <Kbd>Ctrl</Kbd>
-          <Kbd>/</Kbd>
-        </Shortcut>
-        <Shortcut label="commands">
-          <Kbd>Ctrl</Kbd>
-          <Kbd>K</Kbd>
-        </Shortcut>
-        <Shortcut label="send">
-          {enterKeySends ? (
-            <Kbd>Enter</Kbd>
-          ) : (
-            <>
-              <Kbd>Shift</Kbd>
-              <Kbd>Enter</Kbd>
-            </>
-          )}
-        </Shortcut>
+      <footer className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-2">
+        <Shortcut keys="Ctrl + Tab" label="mode" />
+        <Shortcut keys="Ctrl + /" label="focus" />
+        <Shortcut keys="Ctrl + K" label="commands" />
+        <Shortcut
+          keys={enterKeySends ? "Enter" : "Shift + Enter"}
+          label="send"
+        />
       </footer>
     </div>
   );
