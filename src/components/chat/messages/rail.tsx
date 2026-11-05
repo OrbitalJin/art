@@ -58,7 +58,7 @@ const RailBar: React.FC<RailBarProps> = ({
   );
 
   const stateClassName = isCurrent
-    ? "w-7 bg-foreground opacity-80 ring-4 ring-foreground/10"
+    ? "w-5 bg-foreground opacity-80 ring-4 ring-foreground/10"
     : isVisible
       ? cn("bg-foreground opacity-70", isUser ? "w-5" : "w-3.5")
       : cn("bg-foreground opacity-30", isUser ? "w-4" : "w-2.5");
