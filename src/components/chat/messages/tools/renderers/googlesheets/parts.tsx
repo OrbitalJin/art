@@ -2,53 +2,88 @@ import type { FC } from "react";
 import { cn } from "@/lib/utils";
 import { EmptyNote } from "../../shared";
 import {
-  cellText,
   columnCountOf,
   columnLabel,
-  formatDimensions,
+  describeCell,
   gridOriginOf,
-  isNumericCell,
 } from "./helpers";
 
+const headerCellClasses =
+  "sticky border-b border-border/40 bg-muted px-3 py-1.5 text-[10px] font-normal select-none text-muted-foreground/60";
+
 const GridCell: FC<{ value: unknown }> = ({ value }) => {
-  const text = cellText(value);
-  const numeric = isNumericCell(value, text);
+  const { text, numeric } = describeCell(value);
 
   const cellClasses = cn(
-    "max-w-[24rem] truncate px-3 py-1.5 align-top text-foreground/80",
+    "max-w-[24rem] truncate border-b border-border/25 px-3 py-1.5 align-top text-foreground/80 group-last:border-b-0",
     numeric && "text-right tabular-nums",
   );
 
   return (
-    <td title={text} className={cellClasses}>
+    <td title={text || undefined} className={cellClasses}>
       {text || <span className="text-muted-foreground/30">—</span>}
     </td>
   );
 };
 
-const CornerCell: FC = () => (
-  <th
-    aria-hidden
-    className="sticky left-0 top-0 z-20 border-r border-border/30 bg-muted px-3 py-1.5 select-none"
-  />
+const CornerCell: FC = () => {
+  const cornerClasses = cn(
+    headerCellClasses,
+    "left-0 top-0 z-20 border-r border-r-border/30",
+  );
+
+  return <th aria-hidden className={cornerClasses} />;
+};
+
+const ColumnHeader: FC<{ label: string }> = ({ label }) => {
+  const columnHeaderClasses = cn(headerCellClasses, "top-0 z-10 text-center");
+
+  return (
+    <th scope="col" className={columnHeaderClasses}>
+      {label}
+    </th>
+  );
+};
+
+const RowHeader: FC<{ number: number }> = ({ number }) => {
+  const rowHeaderClasses = cn(
+    headerCellClasses,
+    "left-0 z-10 border-r border-r-border/30 border-b-border/25 text-right align-top tabular-nums group-last:border-b-0",
+  );
+
+  return (
+    <th scope="row" className={rowHeaderClasses}>
+      {number}
+    </th>
+  );
+};
+
+const HeaderRow: FC<{ columnIndexes: number[]; firstColumn: number }> = ({
+  columnIndexes,
+  firstColumn,
+}) => (
+  <tr>
+    <CornerCell />
+    {columnIndexes.map((columnIndex) => (
+      <ColumnHeader
+        key={columnIndex}
+        label={columnLabel(firstColumn + columnIndex)}
+      />
+    ))}
+  </tr>
 );
 
-const ColumnHeader: FC<{ label: string }> = ({ label }) => (
-  <th
-    scope="col"
-    className="sticky top-0 z-10 bg-muted px-3 py-1.5 text-center text-[10px] font-normal select-none text-muted-foreground/60"
-  >
-    {label}
-  </th>
-);
-
-const RowHeader: FC<{ number: number }> = ({ number }) => (
-  <th
-    scope="row"
-    className="sticky left-0 z-10 border-r border-border/30 bg-card px-3 py-1.5 text-right align-top text-[10px] font-normal tabular-nums select-none text-muted-foreground/50"
-  >
-    {number}
-  </th>
+const GridRow: FC<{
+  row: unknown[];
+  rowNumber: number;
+  columnIndexes: number[];
+}> = ({ row, rowNumber, columnIndexes }) => (
+  <tr className="group">
+    <RowHeader number={rowNumber} />
+    {columnIndexes.map((columnIndex) => (
+      <GridCell key={columnIndex} value={row[columnIndex]} />
+    ))}
+  </tr>
 );
 
 export const ValueGrid: FC<{
@@ -66,67 +101,36 @@ export const ValueGrid: FC<{
 
   const origin = gridOriginOf(range);
   const columnCount = columnCountOf(values);
-  const columns = Array.from({ length: columnCount }, (_, index) => index);
+  const columnIndexes = Array.from(
+    { length: columnCount },
+    (_, index) => index,
+  );
+
+  const containerClasses = cn(
+    "overflow-auto rounded-md border border-border/50 bg-card",
+    maxHeightClass,
+  );
 
   return (
-    <div
-      className={cn(
-        "overflow-auto rounded-lg border border-border/50 bg-card",
-        maxHeightClass,
-      )}
-    >
-      <table className="w-full border-collapse text-xs">
+    <div className={containerClasses}>
+      <table className="w-full border-separate border-spacing-0 text-xs">
         <thead>
-          <tr className="border-b border-border/40">
-            <CornerCell />
-            {columns.map((column) => (
-              <ColumnHeader
-                key={column}
-                label={columnLabel(origin.column + column)}
-              />
-            ))}
-          </tr>
+          <HeaderRow
+            columnIndexes={columnIndexes}
+            firstColumn={origin.column}
+          />
         </thead>
         <tbody>
           {values.map((row, rowIndex) => (
-            <tr
+            <GridRow
               key={rowIndex}
-              className="border-b border-border/25 last:border-0"
-            >
-              <RowHeader number={origin.row + rowIndex} />
-              {columns.map((column) => (
-                <GridCell key={column} value={row[column]} />
-              ))}
-            </tr>
+              row={row}
+              rowNumber={origin.row + rowIndex}
+              columnIndexes={columnIndexes}
+            />
           ))}
         </tbody>
       </table>
-    </div>
-  );
-};
-
-export const RangeHeader: FC<{
-  range: string | null;
-  fallback: string;
-  values: unknown[][];
-}> = ({ range, fallback, values }) => {
-  const dimensions = formatDimensions(values.length, columnCountOf(values));
-  const label = range ?? fallback;
-  const showDimensions = values.length > 0 && dimensions;
-
-  return (
-    <div className="flex min-w-0 items-center justify-between gap-3">
-      <span
-        className="min-w-0 truncate rounded-md bg-muted/60 px-1.5 py-0.5 font-mono text-[11px] text-foreground/70"
-        title={range ?? undefined}
-      >
-        {label}
-      </span>
-      {showDimensions ? (
-        <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground/60">
-          {dimensions}
-        </span>
-      ) : null}
     </div>
   );
 };

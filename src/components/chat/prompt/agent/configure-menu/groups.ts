@@ -3,7 +3,6 @@ import {
   FolderClosed,
   Globe,
   Link,
-  ListChecks,
   MessageCircleQuestion,
   Newspaper,
   Route,
@@ -15,8 +14,7 @@ import type { KeyType } from "@/lib/store/use-settings-store";
 import { TbBrandYoutube } from "react-icons/tb";
 import type { IconType } from "react-icons";
 
-export type Category =
-  "art" | "device" | "interaction" | "integrations" | "web";
+export type Category = "device" | "interaction" | "web";
 
 export type Source = "local" | "files";
 
@@ -32,20 +30,12 @@ export interface ToolGroup {
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
-  art: "Art",
   device: "Device",
   interaction: "Interaction",
-  integrations: "Integrations",
   web: "Web",
 };
 
-export const CATEGORY_ORDER: Category[] = [
-  "interaction",
-  "web",
-  "device",
-  "integrations",
-  "art",
-];
+export const CATEGORY_ORDER: Category[] = ["interaction", "web", "device"];
 
 export const SEARCH_GROUPS: ToolGroup[] = [
   {
@@ -80,14 +70,6 @@ export const SEARCH_GROUPS: ToolGroup[] = [
 export const TOOL_GROUPS: ToolGroup[] = [
   ...SEARCH_GROUPS,
   {
-    key: "tasks",
-    label: "Tasks",
-    description: "Create and manage tasks",
-    category: "art",
-    source: "local",
-    icon: ListChecks,
-  },
-  {
     key: "plan",
     label: "Plan",
     description: "Plan multi-step work",
@@ -115,7 +97,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
     key: "youtube",
     label: "YouTube",
     description: "Pull video transcripts",
-    category: "integrations",
+    category: "web",
     source: "local",
     icon: TbBrandYoutube,
   },
@@ -123,7 +105,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
     key: READ_SHEET_TOOL_NAME,
     label: "Google Sheets",
     description: "Read data from a shared sheet link",
-    category: "integrations",
+    category: "web",
     source: "local",
     icon: Table,
   },

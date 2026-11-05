@@ -7,31 +7,31 @@ const appWindow = getCurrentWindow();
 interface WindowButtonProps {
   label: string;
   icon: LucideIcon;
-  hoverColor: string;
+  dotColor: string;
   onClick: () => void;
 }
 
 const WindowButton = ({
   label,
   icon: Icon,
-  hoverColor,
+  dotColor,
   onClick,
 }: WindowButtonProps) => {
   const buttonClassName = cn(
-    "group/button flex items-center justify-center rounded-full p-1.5",
+    "flex items-center justify-center rounded-full p-1",
     "outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
   );
 
   const dotClassName = cn(
     "flex size-3 items-center justify-center rounded-full",
     "bg-foreground/15 transition-colors duration-200",
-    hoverColor,
+    dotColor,
   );
 
   const glyphClassName = cn(
     "size-2 text-black/60 opacity-0",
     "transition-opacity duration-200",
-    "group-hover/button:opacity-100",
+    "group-hover/controls:opacity-100",
   );
 
   return (
@@ -49,23 +49,26 @@ export const WindowControls = () => {
   const close = () => appWindow.close();
 
   return (
-    <div data-tauri-drag-region className="flex items-center">
+    <div
+      data-tauri-drag-region
+      className="group/controls flex items-center pr-0.5"
+    >
       <WindowButton
         label="Minimize"
         icon={Minus}
-        hoverColor="group-hover/button:bg-amber-300"
+        dotColor="group-hover/controls:bg-amber-400"
         onClick={minimize}
       />
       <WindowButton
         label="Maximize"
         icon={Plus}
-        hoverColor="group-hover/button:bg-emerald-400"
+        dotColor="group-hover/controls:bg-emerald-400"
         onClick={toggleMaximize}
       />
       <WindowButton
         label="Close"
         icon={X}
-        hoverColor="group-hover/button:bg-red-400"
+        dotColor="group-hover/controls:bg-red-400"
         onClick={close}
       />
     </div>

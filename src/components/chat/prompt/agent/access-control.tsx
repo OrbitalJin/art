@@ -13,6 +13,19 @@ import {
   type AccessModeTone,
 } from "@/lib/store/session/types";
 
+const ActiveBar: React.FC<{ tone: AccessModeTone }> = ({ tone }) => {
+  const wrapperClassName = cn(
+    "pointer-events-none absolute inset-y-0 left-0 flex items-center",
+    tone.text,
+  );
+
+  return (
+    <span aria-hidden className={wrapperClassName}>
+      <span className="h-4 w-0.5 rounded-r-full bg-current" />
+    </span>
+  );
+};
+
 const AccessOption: React.FC<{
   label: string;
   selected: boolean;
@@ -20,12 +33,12 @@ const AccessOption: React.FC<{
   onSelect: () => void;
   children: React.ReactNode;
 }> = ({ label, selected, tone, onSelect, children }) => {
-  const optionClasses = cn(
-    "flex cursor-pointer items-center rounded-md border px-2 py-1 outline-none",
-    "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
+  const optionClassName = cn(
+    "flex h-6 cursor-pointer items-center rounded-full border px-2.5 outline-none",
+    "transition-all duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
     selected
-      ? cn("border-foreground/15", tone.fill, tone.text)
-      : "border-transparent text-muted-foreground hover:text-foreground",
+      ? cn("border-foreground/15 shadow-sm", tone.fill, tone.text)
+      : "border-transparent text-muted-foreground hover:bg-accent/50 hover:text-foreground",
   );
 
   return (
@@ -36,7 +49,7 @@ const AccessOption: React.FC<{
       aria-label={label}
       title={label}
       onClick={onSelect}
-      className={optionClasses}
+      className={optionClassName}
     >
       {children}
     </button>
@@ -50,19 +63,23 @@ const AccessDescription: React.FC<{
   tone: AccessModeTone;
   children: React.ReactNode;
 }> = ({ label, description, selected, tone, children }) => {
-  const rowClasses = cn(
-    "flex items-start gap-2.5 rounded-lg border px-2.5 py-2",
-    selected ? cn("border-foreground/15", tone.fill) : "border-transparent opacity-60",
+  const rowClassName = cn(
+    "relative flex items-start gap-2.5 rounded-xl border px-3 py-2",
+    "transition-opacity duration-150",
+    selected
+      ? cn("border-foreground/10", tone.fill)
+      : "border-transparent opacity-55",
   );
 
-  const iconClasses = cn(
+  const iconClassName = cn(
     "mt-0.5 shrink-0",
     selected ? tone.text : "text-muted-foreground",
   );
 
   return (
-    <div className={rowClasses}>
-      <span className={iconClasses}>{children}</span>
+    <div className={rowClassName}>
+      {selected && <ActiveBar tone={tone} />}
+      <span className={iconClassName}>{children}</span>
       <div className="flex min-w-0 flex-col gap-0.5">
         <span className="text-[13px] font-medium text-foreground">{label}</span>
         <p className="text-[11px] leading-snug text-muted-foreground">
@@ -75,14 +92,29 @@ const AccessDescription: React.FC<{
 
 const AccessDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
   const currentLabel = accessModeLabel(mode);
+  const currentTone = ACCESS_MODE_TONES[mode];
+
+  const headerClassName = cn(
+    "flex items-center justify-between gap-2",
+    "border-b border-border/40 py-2.5 pl-4 pr-3",
+  );
+
+  const labelClassName = cn(
+    "text-[10px] font-medium uppercase tracking-wider",
+    "text-muted-foreground/60",
+  );
+
+  const currentClassName = cn(
+    "rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ring-inset ring-foreground/10",
+    currentTone.fill,
+    currentTone.text,
+  );
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 border-b border-border/50 py-2 pr-2.5 pl-3.5">
-        <p className="text-[13px] font-medium text-foreground">Access control</p>
-        <span className="rounded-md bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground ring-1 ring-border/60">
-          {currentLabel}
-        </span>
+      <div className={headerClassName}>
+        <p className={labelClassName}>Access control</p>
+        <span className={currentClassName}>{currentLabel}</span>
       </div>
 
       <div className="flex flex-col gap-0.5 p-1.5">
@@ -92,7 +124,7 @@ const AccessDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
           selected={mode === "readonly"}
           tone={ACCESS_MODE_TONES.readonly}
         >
-          <Eye size={13} aria-hidden />
+          <Eye size={13} strokeWidth={1.75} aria-hidden />
         </AccessDescription>
 
         <AccessDescription
@@ -101,7 +133,7 @@ const AccessDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
           selected={mode === "confirm"}
           tone={ACCESS_MODE_TONES.confirm}
         >
-          <ShieldAlert size={13} aria-hidden />
+          <ShieldAlert size={13} strokeWidth={1.75} aria-hidden />
         </AccessDescription>
 
         <AccessDescription
@@ -110,7 +142,7 @@ const AccessDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
           selected={mode === "autonomous"}
           tone={ACCESS_MODE_TONES.autonomous}
         >
-          <LockOpen size={13} aria-hidden />
+          <LockOpen size={13} strokeWidth={1.75} aria-hidden />
         </AccessDescription>
       </div>
     </>
@@ -131,15 +163,17 @@ export const AccessControl: React.FC<{ disabled: boolean }> = ({
   const mode = session.accessMode ?? "confirm";
   const tone = ACCESS_MODE_TONES[mode];
 
-  const groupClasses = cn(
-    "flex shrink-0 items-center gap-0.5 rounded-lg p-0.5 h-7",
-    "ring-1 transition-colors duration-150",
+  const groupClassName = cn(
+    "flex h-7 shrink-0 items-center gap-0.5 rounded-full p-0.5",
+    "bg-background/40 ring-1 transition-colors duration-150",
     tone.ring,
     disabled && "pointer-events-none opacity-60",
   );
 
-  const contentClasses = cn(
-    "w-80 overflow-hidden rounded-xl border-border/60 p-0 shadow-lg",
+  const contentClassName = cn(
+    "w-80 overflow-hidden rounded-2xl p-0",
+    "border-border/40 bg-popover/80 backdrop-blur-2xl",
+    "shadow-xl shadow-black/15 ring-1 ring-inset ring-foreground/5",
   );
 
   return (
@@ -148,7 +182,7 @@ export const AccessControl: React.FC<{ disabled: boolean }> = ({
         <div
           role="radiogroup"
           aria-label="Access control"
-          className={groupClasses}
+          className={groupClassName}
         >
           <AccessOption
             label="Read only"
@@ -156,7 +190,7 @@ export const AccessControl: React.FC<{ disabled: boolean }> = ({
             tone={ACCESS_MODE_TONES.readonly}
             onSelect={() => setAccessMode(activeId, "readonly")}
           >
-            <Eye size={12} aria-hidden />
+            <Eye size={12} strokeWidth={1.75} aria-hidden />
           </AccessOption>
 
           <AccessOption
@@ -165,7 +199,7 @@ export const AccessControl: React.FC<{ disabled: boolean }> = ({
             tone={ACCESS_MODE_TONES.confirm}
             onSelect={() => setAccessMode(activeId, "confirm")}
           >
-            <ShieldAlert size={12} aria-hidden />
+            <ShieldAlert size={12} strokeWidth={1.75} aria-hidden />
           </AccessOption>
 
           <AccessOption
@@ -174,12 +208,17 @@ export const AccessControl: React.FC<{ disabled: boolean }> = ({
             tone={ACCESS_MODE_TONES.autonomous}
             onSelect={() => setAccessMode(activeId, "autonomous")}
           >
-            <LockOpen size={12} aria-hidden />
+            <LockOpen size={12} strokeWidth={1.75} aria-hidden />
           </AccessOption>
         </div>
       </HoverCardTrigger>
 
-      <HoverCardContent align="end" side="top" className={contentClasses}>
+      <HoverCardContent
+        align="end"
+        side="top"
+        sideOffset={8}
+        className={contentClassName}
+      >
         <AccessDetails mode={mode} />
       </HoverCardContent>
     </HoverCard>

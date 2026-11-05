@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, Music } from "lucide-react";
+import { ChevronDown, CloudDownload, Music, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -8,8 +8,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Player } from "@/components/interval/player";
-import { SettingsDialog } from "@/components/settings/settings-dialog";
-import { UpdaterDialog } from "@/components/updater-dialog";
+import {
+  SettingsDialog,
+  type SettingsDialogTriggerState,
+} from "@/components/settings/settings-dialog";
+import {
+  UpdaterDialog,
+  type UpdaterDialogTriggerState,
+} from "@/components/updater-dialog";
 import { useIntervalStore } from "@/lib/store/use-interval-store";
 import { Command } from "@/components/command";
 import {
@@ -17,11 +23,12 @@ import {
   type NavigationItem,
 } from "@/components/layout/navigation";
 import { WindowControls } from "@/components/layout/window-controls";
+import { PanelRow } from "./panel-row";
 
 const iconButtonClassName = cn(
-  "flex items-center justify-center rounded-lg",
+  "flex items-center justify-center rounded-full",
   "text-muted-foreground transition-colors",
-  "hover:bg-accent/50 hover:text-foreground",
+  "hover:bg-accent/60 hover:text-foreground",
 );
 
 const MusicMenu = ({ className }: { className?: string }) => {
@@ -39,7 +46,7 @@ const MusicMenu = ({ className }: { className?: string }) => {
         >
           <Music
             strokeWidth={1.75}
-            className="size-4 animate-pulse text-primary"
+            className="size-3.5 animate-pulse text-primary"
           />
         </button>
       </DropdownMenuTrigger>
@@ -54,6 +61,40 @@ const MusicMenu = ({ className }: { className?: string }) => {
   );
 };
 
+const UpdateBadge = () => {
+  return (
+    <span className="flex items-center gap-1.5 rounded-full bg-green-400/10 px-1.5 py-0.5 text-[10px] font-medium text-green-400">
+      <span className="relative flex size-1.5">
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-400 opacity-75" />
+        <span className="relative inline-flex size-1.5 rounded-full bg-green-400" />
+      </span>
+      New
+    </span>
+  );
+};
+
+const renderSettingsTrigger = ({ open }: SettingsDialogTriggerState) => {
+  const icon = <Settings strokeWidth={1.75} className="size-4 shrink-0" />;
+
+  return <PanelRow active={open} label="Settings" icon={icon} />;
+};
+
+const renderUpdatesTrigger = ({
+  open,
+  updateAvailable,
+}: UpdaterDialogTriggerState) => {
+  const iconClassName = cn(
+    "size-4 shrink-0",
+    updateAvailable && "text-green-400",
+  );
+  const icon = <CloudDownload strokeWidth={1.75} className={iconClassName} />;
+  const badge = updateAvailable ? <UpdateBadge /> : null;
+
+  return (
+    <PanelRow active={open} label="Updates" icon={icon} trailing={badge} />
+  );
+};
+
 interface ModeRowProps {
   item: NavigationItem;
   selected: boolean;
@@ -63,38 +104,24 @@ interface ModeRowProps {
 const ModeRow = ({ item, selected, onSelect }: ModeRowProps) => {
   const Icon = selected ? item.activeIcon : item.icon;
 
-  const rowClassName = cn(
-    "group/row relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm",
-    "text-muted-foreground transition-colors",
-    "hover:bg-accent/50 hover:text-foreground",
-    selected && "bg-accent/60 text-foreground",
-  );
+  const iconClassName = cn("size-4 shrink-0", selected && "text-primary");
 
   const hintClassName = cn(
-    "text-[10px] tabular-nums text-muted-foreground/50 transition-opacity",
+    "rounded-md border border-border/50 bg-background/40 px-1.5 py-0.5",
+    "text-[10px] font-medium tabular-nums text-muted-foreground/70",
+    "transition-opacity",
     selected ? "opacity-100" : "opacity-0 group-hover/row:opacity-100",
   );
 
   return (
-    <button
-      type="button"
+    <PanelRow
       onClick={onSelect}
       aria-current={selected ? "page" : undefined}
-      className={rowClassName}
-    >
-      {selected && (
-        <span
-          aria-hidden
-          className="absolute left-0 top-1/2 h-3.5 w-0.5 -translate-y-1/2 rounded-r-full bg-primary"
-        />
-      )}
-      <Icon
-        strokeWidth={1.75}
-        className={cn("size-4 shrink-0", selected && "text-primary")}
-      />
-      <span className="flex-1 text-left">{item.label}</span>
-      <span className={hintClassName}>Alt {item.shortcut}</span>
-    </button>
+      active={selected}
+      label={item.label}
+      icon={<Icon strokeWidth={1.75} className={iconClassName} />}
+      trailing={<kbd className={hintClassName}>Alt {item.shortcut}</kbd>}
+    />
   );
 };
 
@@ -109,6 +136,9 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const current = items.find(isSelected);
+  const CurrentIcon = current?.activeIcon;
 
   const clearTimers = () => {
     if (openTimer.current) clearTimeout(openTimer.current);
@@ -157,23 +187,49 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
     setOpen(false);
   };
 
+  const wrapperClassName = cn(
+    "relative pointer-events-auto transition-opacity duration-200",
+    "opacity-70 hover:opacity-100",
+  );
+
   const pillClassName = cn(
-    "flex items-center gap-2 rounded-full px-2.5 py-1.5",
-    "border border-border/40 backdrop-blur-xl shadow-sm transition-colors",
+    "flex items-center gap-1.5 rounded-full p-1",
+    "border border-border",
+    "backdrop-blur-xl shadow-lg shadow-black/10 transition-colors duration-200",
     open ? "bg-card/70" : "bg-card/40",
   );
 
+  const triggerClassName = cn(
+    "flex h-6 items-center gap-1.5 rounded-full pl-2 pr-1.5 outline-none",
+    "text-muted-foreground transition-colors",
+    "hover:bg-accent/60 hover:text-foreground",
+    "focus-visible:ring-2 focus-visible:ring-ring/50",
+  );
+
+  const chevronClassName = cn(
+    "size-3 transition-transform duration-200",
+    open && "rotate-180",
+  );
+
   const panelClassName = cn(
-    "absolute right-0 top-full mt-1.5 w-52 origin-top-right p-1",
-    "rounded-2xl border border-border/40 bg-card/70 shadow-lg backdrop-blur-2xl",
+    "absolute right-0 top-full mt-2 w-56 origin-top-right p-1.5",
+    "rounded-2xl border border-border/40 bg-card/70 backdrop-blur-2xl",
+    "shadow-xl shadow-black/15 ring-1 ring-inset ring-foreground/5",
     "transition-all duration-200 ease-out",
-    open ? "scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0",
+    open
+      ? "visible translate-y-0 scale-100 opacity-100"
+      : "pointer-events-none invisible -translate-y-1 scale-95 opacity-0",
+  );
+
+  const headerClassName = cn(
+    "px-2.5 pb-1 pt-1.5 text-[10px] font-medium uppercase tracking-wider",
+    "text-muted-foreground/60",
   );
 
   return (
     <div
       ref={wrapperRef}
-      className="relative pointer-events-auto transition-opacity opacity-70 hover:opacity-100"
+      className={wrapperClassName}
       onPointerEnter={handleEnter}
       onPointerLeave={handleLeave}
     >
@@ -183,25 +239,25 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
           aria-label={open ? "Hide navigation" : "Show navigation"}
           aria-expanded={open}
           onClick={handleToggle}
-          className={cn(
-            "flex size-5 items-center justify-center rounded-full",
-            "text-muted-foreground transition-colors hover:text-foreground",
-          )}
+          className={triggerClassName}
         >
-          <ChevronDown
-            strokeWidth={2.25}
-            className={cn(
-              "size-3.5 transition-transform duration-200",
-              open && "rotate-180",
-            )}
-          />
+          {CurrentIcon && (
+            <CurrentIcon strokeWidth={1.75} className="size-3.5 text-primary" />
+          )}
+          {current && (
+            <span className="text-xs font-medium text-foreground/90">
+              {current.label}
+            </span>
+          )}
+          <ChevronDown strokeWidth={2.25} className={chevronClassName} />
         </button>
-        <MusicMenu className="size-5" />
-        <span aria-hidden className="h-4 w-px bg-border/60" />
+        <MusicMenu className="size-6" />
+        <span aria-hidden className="h-3.5 w-px bg-border/60" />
         <WindowControls />
       </div>
 
-      <div className={panelClassName}>
+      <div aria-hidden={!open} className={panelClassName}>
+        <p className={headerClassName}>Navigate</p>
         <nav className="flex flex-col gap-0.5">
           {items.map((item) => (
             <ModeRow
@@ -213,11 +269,11 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
           ))}
         </nav>
 
-        <div aria-hidden className="my-1 h-px bg-border/50" />
+        <div aria-hidden className="mx-1 my-1.5 h-px bg-border/50" />
 
-        <div className="flex items-center justify-center gap-1">
-          <UpdaterDialog />
-          <SettingsDialog />
+        <div className="flex flex-col gap-0.5">
+          <UpdaterDialog trigger={renderUpdatesTrigger} />
+          <SettingsDialog trigger={renderSettingsTrigger} />
         </div>
       </div>
     </div>
@@ -229,7 +285,7 @@ export const Chrome = () => {
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-50 flex justify-end p-3">
+      <div className="pointer-events-none absolute inset-x-0 top-0.5 z-50 flex justify-end p-3">
         <Cluster items={items} isSelected={isSelected} />
       </div>
       <Command items={items} />

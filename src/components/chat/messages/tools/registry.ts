@@ -1,6 +1,5 @@
 import type { ToolCallBlock } from "@/lib/store/session/types";
 import type { FileToolName } from "@/lib/ai/tools/files";
-import type { TaskToolName } from "@/lib/ai/tools/tasks";
 import type { AskUserToolName } from "@/lib/ai/tools/ask-user";
 import type { PlanToolName } from "@/lib/ai/tools/plan";
 import type { YoutubeToolName } from "@/lib/ai/tools/youtube";
@@ -31,18 +30,6 @@ import { renderer as writeFile } from "./renderers/files/write-file";
 import { renderer as fetchUrl } from "./renderers/search/fetch-url";
 import { renderer as newsSearch } from "./renderers/search/news-search";
 import { renderer as webSearch } from "./renderers/search/web-search";
-import { renderer as createProject } from "./renderers/tasks/create-project";
-import { renderer as createProjectWithTasks } from "./renderers/tasks/create-project-with-tasks";
-import { renderer as createTask } from "./renderers/tasks/create-task";
-import { renderer as deleteProject } from "./renderers/tasks/delete-project";
-import { renderer as deleteTask } from "./renderers/tasks/delete-task";
-import { renderer as getProjects } from "./renderers/tasks/get-projects";
-import { renderer as getTask } from "./renderers/tasks/get-task";
-import { renderer as getTasks } from "./renderers/tasks/get-tasks";
-import { renderer as moveTask } from "./renderers/tasks/move-task";
-import { renderer as moveTaskToPosition } from "./renderers/tasks/move-task-to-position";
-import { renderer as updateProject } from "./renderers/tasks/update-project";
-import { renderer as updateTask } from "./renderers/tasks/update-task";
 import { renderer as planWrite } from "./renderers/plan/plan-write";
 import { renderer as askUser } from "./renderers/ask-user/ask-user";
 import { renderer as readSheet } from "./renderers/googlesheets/read-sheet";
@@ -65,21 +52,6 @@ const fileRenderers = {
   move_path: movePath,
   copy_path: copyPath,
 } satisfies Record<FileToolName, ToolRendererEntry>;
-
-const taskRenderers = {
-  get_tasks: getTasks,
-  get_task: getTask,
-  create_task: createTask,
-  update_task: updateTask,
-  move_task: moveTask,
-  move_task_to_position: moveTaskToPosition,
-  delete_task: deleteTask,
-  get_projects: getProjects,
-  create_project: createProject,
-  update_project: updateProject,
-  delete_project: deleteProject,
-  create_project_with_tasks: createProjectWithTasks,
-} satisfies Record<TaskToolName, ToolRendererEntry>;
 
 const askUserRenderers = {
   [ASK_USER_TOOL_NAME]: askUser,
@@ -118,7 +90,6 @@ const googlesheetsRenderers = {
 const TOOL_RENDERERS = {
   ...fileRenderers,
   ...searchRenderers,
-  ...taskRenderers,
   ...askUserRenderers,
   ...planRenderers,
   ...googlesheetsRenderers,

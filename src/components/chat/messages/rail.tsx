@@ -11,9 +11,9 @@ interface Props {
 }
 
 /** Target bar thickness and spacing in px; both scale down for long threads. */
-const BAR_MAX = 2;
-const BAR_MIN = 0.5;
-const GAP_MAX = 12;
+const BAR_MAX = 3;
+const BAR_MIN = 1;
+const GAP_MAX = 10;
 /** Share of the scroll area the stack is allowed to occupy. */
 const RAIL_FRACTION = 0.6;
 
@@ -25,11 +25,123 @@ const previewOf = (message: Message): string => {
   return "Empty message";
 };
 
+interface RailBarProps {
+  role: Message["role"];
+  position: number;
+  total: number;
+  thickness: number;
+  rowHeight: number;
+  isCurrent: boolean;
+  isVisible: boolean;
+  onJump: () => void;
+  onHover: () => void;
+  onLeave: () => void;
+}
+
+const RailBar: React.FC<RailBarProps> = ({
+  role,
+  position,
+  total,
+  thickness,
+  rowHeight,
+  isCurrent,
+  isVisible,
+  onJump,
+  onHover,
+  onLeave,
+}) => {
+  const isUser = role === "user";
+
+  const buttonClassName = cn(
+    "group/bar pointer-events-auto flex w-8 cursor-pointer items-center justify-end",
+    "rounded-full outline-none",
+  );
+
+  const stateClassName = isCurrent
+    ? "w-7 bg-foreground opacity-80 ring-4 ring-foreground/10"
+    : isVisible
+      ? cn("bg-foreground opacity-70", isUser ? "w-5" : "w-3.5")
+      : cn("bg-foreground opacity-30", isUser ? "w-4" : "w-2.5");
+
+  const barClassName = cn(
+    "rounded-full transition-[width,opacity,box-shadow] duration-300 ease-out",
+    "motion-reduce:transition-none",
+    stateClassName,
+    "group-hover/bar:w-7 group-hover/bar:opacity-100",
+    "group-focus-visible/bar:w-7 group-focus-visible/bar:opacity-100",
+  );
+
+  return (
+    <button
+      type="button"
+      tabIndex={-1}
+      aria-label={`Jump to message ${position} of ${total}`}
+      aria-current={isCurrent ? "true" : undefined}
+      onClick={onJump}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      className={buttonClassName}
+      style={{ height: `${rowHeight}px` }}
+    >
+      <span className={barClassName} style={{ height: `${thickness}px` }} />
+    </button>
+  );
+};
+
+interface RailTooltipProps {
+  message: Message;
+  position: number;
+  total: number;
+  top: number;
+}
+
+const RailTooltip: React.FC<RailTooltipProps> = ({
+  message,
+  position,
+  total,
+  top,
+}) => {
+  const roleLabel = message.role === "user" ? "You" : "Assistant";
+
+  const tooltipClassName = cn(
+    "pointer-events-none absolute right-full mr-3 w-56 max-w-[40vw] -translate-y-1/2",
+    "rounded-lg border border-border bg-popover/95 px-3 py-2",
+    "shadow-lg shadow-black/10 backdrop-blur-md",
+    "animate-in fade-in slide-in-from-right-1 duration-150",
+  );
+
+  const headerClassName = cn(
+    "flex items-center justify-between text-[10px] font-medium tracking-wide",
+    "text-muted-foreground",
+  );
+
+  const bodyClassName = cn(
+    "mt-1 line-clamp-3 text-[11.5px] leading-snug text-foreground",
+  );
+
+  return (
+    <div
+      role="tooltip"
+      className={tooltipClassName}
+      style={{ top: `${top}px` }}
+    >
+      <p className={headerClassName}>
+        <span>{roleLabel}</span>
+        <span className="tabular-nums">
+          {position} / {total}
+        </span>
+      </p>
+      <p className={bodyClassName}>{previewOf(message)}</p>
+    </div>
+  );
+};
+
 /**
- * A quiet vertical stack of bars, one per message, pinned to the left edge of
- * the chat pane alongside the sidebar. Bars grow and brighten as their message
- * enters the viewport; clicking one scrolls to it. Thickness and spacing scale
- * down for long threads so the stack always stays inside its slot.
+ * A quiet vertical stack of bars, one per message, pinned to the right edge of
+ * the chat pane with a small gap. Bars grow and brighten as their message
+ * enters the viewport; clicking one scrolls to it. User bars are longer than
+ * assistant bars. Thickness and spacing scale down for long threads so the
+ * stack always stays inside its slot.
  */
 export const MessageRail: React.FC<Props> = ({ messages }) => {
   const { scrollToMessage } = useMessageScroller();
@@ -67,76 +179,52 @@ export const MessageRail: React.FC<Props> = ({ messages }) => {
   const bar = Math.max(BAR_MIN, BAR_MAX * scale);
   const row = bar + gap;
   const hoveredMessage = hovered === null ? null : messages[hovered];
+  const tooltipTop = hovered === null ? 0 : hovered * row + row / 2;
+
   // The anchor is the message at the reading position; fall back to the first
   // visible one so the rail always has a highlight while scrolling.
-  const activeId =
-    currentAnchorId && messages.some((m) => m.id === currentAnchorId)
-      ? currentAnchorId
-      : (visibleMessageIds[0] ?? null);
+  const anchorExists = messages.some((m) => m.id === currentAnchorId);
+  const activeId = anchorExists
+    ? currentAnchorId
+    : (visibleMessageIds[0] ?? null);
+
+  const railClassName = cn(
+    "pointer-events-none absolute right-3 z-10 hidden -translate-y-1/2",
+    "flex-col items-end @[54rem]:flex",
+  );
 
   return (
     <div
       ref={railRef}
       data-slot="message-rail"
-      className={cn(
-        "pointer-events-none absolute left-3 z-10 hidden -translate-y-1/2",
-        "flex-col items-start @[54rem]:flex",
-      )}
+      className={railClassName}
       style={{ top: "calc(50% - var(--prompt-height, 0px) / 2)" }}
     >
-      {messages.map((message, index) => {
-        const isCurrent = message.id === activeId;
-        const isVisible = visible.has(message.id);
-
-        return (
-          <button
-            key={message.id}
-            type="button"
-            tabIndex={-1}
-            aria-label={`Jump to message ${index + 1} of ${count}`}
-            aria-current={isCurrent ? "true" : undefined}
-            onClick={() => scrollToMessage(message.id, { behavior: "smooth" })}
-            onMouseEnter={() => setHovered(index)}
-            onMouseLeave={() =>
-              setHovered((value) => (value === index ? null : value))
-            }
-            className="group/bar pointer-events-auto flex w-8 cursor-pointer items-center rounded-full outline-none"
-            style={{ height: `${row}px` }}
-          >
-            <span
-              className={cn(
-                "rounded-full transition-[width,background-color,opacity,box-shadow] duration-300 ease-out",
-                "motion-reduce:transition-none",
-                message.role === "user" ? "bg-primary" : "bg-muted-foreground",
-                isCurrent
-                  ? "w-6 bg-primary opacity-100 ring-2 ring-primary/25"
-                  : isVisible
-                    ? "w-4 opacity-55"
-                    : "w-3 opacity-20",
-                "group-hover/bar:w-6 group-hover/bar:opacity-100",
-              )}
-              style={{ height: `${bar}px` }}
-            />
-          </button>
-        );
-      })}
+      {messages.map((message, index) => (
+        <RailBar
+          key={message.id}
+          role={message.role}
+          position={index + 1}
+          total={count}
+          thickness={bar}
+          rowHeight={row}
+          isCurrent={message.id === activeId}
+          isVisible={visible.has(message.id)}
+          onJump={() => scrollToMessage(message.id, { behavior: "smooth" })}
+          onHover={() => setHovered(index)}
+          onLeave={() =>
+            setHovered((value) => (value === index ? null : value))
+          }
+        />
+      ))}
 
       {hoveredMessage && hovered !== null && (
-        <div
-          role="tooltip"
-          className={cn(
-            "pointer-events-none absolute left-full ml-2 w-56 max-w-[40vw]",
-            "rounded-md border border-border/60 bg-popover/95 px-2.5 py-1.5 shadow-md backdrop-blur-sm",
-          )}
-          style={{ top: `${hovered * row}px` }}
-        >
-          <p className="text-[10px] font-medium tracking-wide text-muted-foreground/70">
-            {hoveredMessage.role === "user" ? "You" : "Assistant"}
-          </p>
-          <p className="mt-0.5 line-clamp-3 text-[11px] leading-snug text-foreground/80">
-            {previewOf(hoveredMessage)}
-          </p>
-        </div>
+        <RailTooltip
+          message={hoveredMessage}
+          position={hovered + 1}
+          total={count}
+          top={tooltipTop}
+        />
       )}
     </div>
   );

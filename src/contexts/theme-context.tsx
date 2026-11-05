@@ -14,6 +14,7 @@ export type ThemeColor =
   | "sunny sprout"
   | "dark matter"
   | "claude plus"
+  | "notebook"
   | "terminal"
   | "t3 chat"
   | "vercel"

@@ -120,6 +120,7 @@ export const AppearanceSettingTab = () => {
                 <SelectItem value="dark matter">Dark Matter</SelectItem>
                 <SelectItem value="mocha mousse">Mocha Mousse</SelectItem>
                 <SelectItem value="terminal">Terminal</SelectItem>
+                <SelectItem value="notebook">Notebook</SelectItem>
                 <SelectItem value="vercel">Vercel</SelectItem>
                 <SelectItem value="claude">Claude</SelectItem>
                 <SelectItem value="pony">Pony</SelectItem>

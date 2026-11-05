@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { CloudDownload, ScrollText } from "lucide-react";
 
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -17,11 +16,22 @@ import { UpdateTab } from "./update/update-tab";
 import { ChangelogTab } from "./update/changelog-tab";
 import { useAppUpdater } from "@/hooks/use-app-updater";
 
-export const UpdaterDialog = () => {
+export interface UpdaterDialogTriggerState {
+  open: boolean;
+  updateAvailable: boolean;
+}
+
+interface UpdaterDialogProps {
+  trigger: (state: UpdaterDialogTriggerState) => ReactNode;
+}
+
+export const UpdaterDialog = ({ trigger }: UpdaterDialogProps) => {
   const open = useUIStateStore((state) => state.updateDialogOpen);
   const setOpen = useUIStateStore((state) => state.setUpdateDialogOpen);
   const [tab, setTab] = useState("update");
   const { status } = useAppUpdater(true);
+
+  const updateAvailable = status === "available";
 
   useEffect(() => {
     if (status === "available") setOpen(true);
@@ -30,18 +40,7 @@ export const UpdaterDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          size="icon"
-          variant={status === "available" ? "outline" : "ghost"}
-          className="relative h-10 w-10 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <CloudDownload
-            className={status === "available" ? "text-green-400" : "opacity-70"}
-          />
-          {status === "available" && (
-            <div className="absolute top-0 right-0 h-1 w-1 rounded-full opacity-80 bg-green-400 animate-ping" />
-          )}
-        </Button>
+        {trigger({ open, updateAvailable })}
       </DialogTrigger>
 
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden rounded-2xl p-0">

@@ -2,7 +2,6 @@ import type { SessionMeta } from "@/lib/store/session/types";
 import type { ToolSet } from "ai";
 import { ExaTools, searchTools } from "./exa";
 import { READ_SHEET_TOOL_NAME, sheetsTools } from "./sheets";
-import { tasksTools } from "./tasks";
 import { fileTools } from "./files";
 import { askUserTools } from "./ask-user";
 import { doneTools } from "./done";
@@ -21,7 +20,9 @@ export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
   const on = session.groups;
   const search = searchFor(session);
   const nutrition = nutritionTools();
-  const macros = useSettingsStore.getState().keys?.usda ? fetchMacrosTools() : {};
+  const macros = useSettingsStore.getState().keys?.usda
+    ? fetchMacrosTools()
+    : {};
 
   if (session.type === "chat") {
     return { ...search, ...nutrition, ...macros };
@@ -33,7 +34,6 @@ export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
     ...macros,
     ...doneTools(),
     ...(on.plan ? planTools(session.id) : {}),
-    ...(on.tasks ? tasksTools() : {}),
     ...(on.askUser ? askUserTools(session.id) : {}),
     ...(on.youtube ? youtubeTools() : {}),
     ...(on[READ_SHEET_TOOL_NAME] ? sheetsTools() : {}),

@@ -12,6 +12,20 @@ export const cellText = (value: unknown): string => {
   }
 };
 
+const NUMERIC = /^-?[\d,]*\.?\d+%?$/;
+
+export interface CellDisplay {
+  text: string;
+  numeric: boolean;
+}
+
+export const describeCell = (value: unknown): CellDisplay => {
+  const text = cellText(value);
+  const numeric = typeof value === "number" || NUMERIC.test(text.trim());
+
+  return { text, numeric };
+};
+
 /** 0 -> A, 25 -> Z, 26 -> AA. */
 export const columnLabel = (index: number): string => {
   let label = "";
@@ -57,15 +71,5 @@ export const gridOriginOf = (range: string | null): GridOrigin => {
 export const columnCountOf = (values: unknown[][]): number =>
   values.reduce((widest, row) => Math.max(widest, row.length), 0);
 
-export const formatDimensions = (
-  rows: number | null,
-  columns: number | null,
-): string | null => {
-  if (rows === null || columns === null) return null;
-  return `${rows.toLocaleString()} × ${columns.toLocaleString()}`;
-};
-
-const NUMERIC = /^-?[\d,]*\.?\d+%?$/;
-
-export const isNumericCell = (value: unknown, text: string): boolean =>
-  typeof value === "number" || NUMERIC.test(text.trim());
+export const formatDimensions = (rows: number, columns: number): string =>
+  `${rows.toLocaleString()} × ${columns.toLocaleString()}`;

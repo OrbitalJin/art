@@ -57,42 +57,68 @@ const usePendingPrompts = (sessionId: string | undefined): Pending[] => {
   }, [approvals, questions, sessionId]);
 };
 
+const PagerButton: React.FC<{
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}> = ({ label, disabled, onClick, children }) => {
+  const buttonClassName = cn(
+    "size-5 rounded-full text-muted-foreground hover:text-foreground",
+  );
+
+  return (
+    <Button
+      size="icon"
+      variant="ghost"
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      className={buttonClassName}
+    >
+      {children}
+    </Button>
+  );
+};
+
 const Pager: React.FC<{
   noun: string;
   index: number;
   total: number;
   onPrev: () => void;
   onNext: () => void;
-}> = ({ noun, index, total, onPrev, onNext }) => (
-  <>
-    <Button
-      size="icon"
-      variant="ghost"
-      aria-label={`Previous ${noun}`}
-      disabled={index === 0}
-      onClick={onPrev}
-      className="size-5 text-muted-foreground hover:text-foreground"
-    >
-      <ChevronLeft size={12} aria-hidden />
-    </Button>
-    <span
-      aria-live="polite"
-      className="min-w-8 text-center text-[11px] font-medium text-muted-foreground/60 tabular-nums"
-    >
-      {index + 1} / {total}
-    </span>
-    <Button
-      size="icon"
-      variant="ghost"
-      aria-label={`Next ${noun}`}
-      disabled={index === total - 1}
-      onClick={onNext}
-      className="size-5 text-muted-foreground hover:text-foreground"
-    >
-      <ChevronRight size={12} aria-hidden />
-    </Button>
-  </>
-);
+}> = ({ noun, index, total, onPrev, onNext }) => {
+  const pagerClassName = cn(
+    "flex items-center gap-0.5 rounded-full bg-muted/40 p-0.5",
+  );
+
+  const countClassName = cn(
+    "min-w-8 text-center text-[11px] font-medium tabular-nums",
+    "text-muted-foreground/70",
+  );
+
+  return (
+    <div className={pagerClassName}>
+      <PagerButton
+        label={`Previous ${noun}`}
+        disabled={index === 0}
+        onClick={onPrev}
+      >
+        <ChevronLeft size={12} aria-hidden />
+      </PagerButton>
+      <span aria-live="polite" className={countClassName}>
+        {index + 1} / {total}
+      </span>
+      <PagerButton
+        label={`Next ${noun}`}
+        disabled={index === total - 1}
+        onClick={onNext}
+      >
+        <ChevronRight size={12} aria-hidden />
+      </PagerButton>
+    </div>
+  );
+};
 
 const PendingQueue: React.FC<{ items: Pending[] }> = ({ items }) => {
   const [index, setIndex] = useState(0);
@@ -136,27 +162,62 @@ const PendingQueue: React.FC<{ items: Pending[] }> = ({ items }) => {
   );
 };
 
-const StreamStatus: React.FC<{ streaming: boolean }> = ({ streaming }) => (
-  <>
-    <span
-      aria-hidden
-      className={cn(
-        "size-2 shrink-0 rounded-full",
-        streaming
-          ? "animate-pulse bg-amber-500 motion-reduce:animate-none"
-          : "bg-emerald-500/70",
-      )}
-    />
-    <span
-      className={cn(
-        "shrink-0 text-xs font-medium",
-        streaming ? "shimmer text-amber-500/40" : "text-foreground/70",
-      )}
-    >
-      {streaming ? "Working" : "Agent"}
+const StreamStatus: React.FC<{ streaming: boolean }> = ({ streaming }) => {
+  const haloClassName = cn(
+    "absolute inline-flex size-full rounded-full bg-amber-500/60",
+    "animate-ping motion-reduce:animate-none",
+  );
+
+  const dotClassName = cn(
+    "relative inline-flex size-2 rounded-full",
+    streaming ? "bg-amber-500" : "bg-emerald-500/70",
+  );
+
+  const labelClassName = cn(
+    "shrink-0 text-xs font-medium",
+    streaming ? "shimmer text-amber-500/40" : "text-foreground/70",
+  );
+
+  return (
+    <>
+      <span aria-hidden className="relative flex size-2 shrink-0">
+        {streaming && <span className={haloClassName} />}
+        <span className={dotClassName} />
+      </span>
+      <span className={labelClassName}>{streaming ? "Working" : "Agent"}</span>
+    </>
+  );
+};
+
+const stepMark = (status: Plan["steps"][number]["status"]): string => {
+  if (status === "completed") return "✓";
+  if (status === "in_progress") return "●";
+  return "○";
+};
+
+const PlanProgress: React.FC<{ completed: number; total: number }> = ({
+  completed,
+  total,
+}) => {
+  const percent = total === 0 ? 0 : (completed / total) * 100;
+  const fillStyle = { width: `${percent}%` };
+
+  const trackClassName = cn(
+    "relative h-0.5 w-10 shrink-0 overflow-hidden rounded-full bg-foreground/10",
+  );
+
+  const fillClassName = cn(
+    "absolute inset-y-0 left-0 rounded-full",
+    "transition-[width] duration-300 ease-out motion-reduce:transition-none",
+    completed === total ? "bg-emerald-500" : "bg-foreground/50",
+  );
+
+  return (
+    <span aria-hidden className={trackClassName}>
+      <span className={fillClassName} style={fillStyle} />
     </span>
-  </>
-);
+  );
+};
 
 const PlanStrip: React.FC<{ plan: Plan }> = ({ plan }) => {
   const total = plan.steps.length;
@@ -168,42 +229,39 @@ const PlanStrip: React.FC<{ plan: Plan }> = ({ plan }) => {
   const label = current?.content ?? next?.content ?? "Plan complete";
 
   const title = plan.steps
-    .map((step) => {
-      const mark =
-        step.status === "completed"
-          ? "✓"
-          : step.status === "in_progress"
-            ? "●"
-            : "○";
-      return `${mark} ${step.content}`;
-    })
+    .map((step) => `${stepMark(step.status)} ${step.content}`)
     .join("\n");
 
+  const stripClassName = cn(
+    "flex h-8 items-center gap-2.5 px-3",
+    "animate-in fade-in duration-200 motion-reduce:animate-none",
+  );
+
+  const dotClassName = cn(
+    "size-1.5 rounded-full",
+    completed === total
+      ? "bg-emerald-500"
+      : current
+        ? "animate-pulse bg-amber-500 motion-reduce:animate-none"
+        : "bg-muted-foreground/25",
+  );
+
   return (
-    <div
-      title={title}
-      className="flex h-8 items-center gap-2.5 px-3 animate-in fade-in duration-200 motion-reduce:animate-none"
-    >
+    <div title={title} className={stripClassName}>
       <span
         aria-hidden
         className="flex size-2 shrink-0 items-center justify-center"
       >
-        <span
-          className={cn(
-            "size-1.5 rounded-full",
-            completed === total
-              ? "bg-emerald-500"
-              : current
-                ? "animate-pulse bg-amber-500 motion-reduce:animate-none"
-                : "bg-muted-foreground/25",
-          )}
-        />
+        <span className={dotClassName} />
       </span>
       <span className="min-w-0 truncate text-[11px] text-foreground/70">
         {label}
       </span>
-      <span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground/60">
-        {completed}/{total}
+      <span className="ml-auto flex shrink-0 items-center gap-2">
+        <PlanProgress completed={completed} total={total} />
+        <span className="text-[11px] tabular-nums text-muted-foreground/60">
+          {completed}/{total}
+        </span>
       </span>
     </div>
   );
@@ -229,17 +287,29 @@ export const AgentBar = () => {
   const runningTools = streaming && toolCalls.length > 0;
   const showPlan = streaming && !hasPending && !!plan && plan.steps.length > 0;
 
+  const rowClassName = cn(
+    "relative flex select-none items-center gap-2.5 bg-linear-to-r to-transparent",
+    "transition-colors duration-300",
+    streaming && "from-amber-500/5",
+    hasPending ? "items-stretch px-0" : "h-10 px-3",
+  );
+
+  const pendingClassName = cn(
+    "w-full animate-in fade-in slide-in-from-top-1 duration-200",
+    "motion-reduce:animate-none",
+  );
+
+  const glowClassName = cn(
+    "pointer-events-none absolute inset-x-0 -bottom-px h-px animate-pulse",
+    "bg-linear-to-r from-transparent via-amber-500/20 to-transparent",
+    "motion-reduce:animate-none",
+  );
+
   return (
     <div className="relative flex flex-col border-b border-border/40">
-      <div
-        className={cn(
-          "relative flex select-none items-center gap-2.5 bg-linear-to-r to-transparent transition-colors duration-300",
-          streaming && "from-amber-500/5",
-          hasPending ? "items-stretch px-0" : "h-10 px-3",
-        )}
-      >
+      <div className={rowClassName}>
         {hasPending ? (
-          <div className="w-full animate-in fade-in slide-in-from-top-1 duration-200 motion-reduce:animate-none">
+          <div className={pendingClassName}>
             <PendingQueue key={session.id} items={prompts} />
           </div>
         ) : (
@@ -251,27 +321,24 @@ export const AgentBar = () => {
             ) : (
               <EnabledTools session={session} />
             )}
-            <AccessControl disabled={streaming} />
-            <ConfigureMenu
-              disabled={isSending}
-              session={session}
-              onAddFolder={tools.onAddFolder}
-              onRemoveFolder={tools.onRemoveFolder}
-              onToggle={tools.onToggle}
-              onRevokeAll={tools.onRevokeAll}
-            />
+            <div className="flex shrink-0 flex-row items-center gap-1">
+              <ConfigureMenu
+                disabled={isSending}
+                session={session}
+                onAddFolder={tools.onAddFolder}
+                onRemoveFolder={tools.onRemoveFolder}
+                onToggle={tools.onToggle}
+                onRevokeAll={tools.onRevokeAll}
+              />
+              <AccessControl disabled={streaming} />
+            </div>
           </>
         )}
       </div>
 
       {showPlan ? <PlanStrip plan={plan} /> : null}
 
-      {streaming && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -bottom-px h-px animate-pulse bg-linear-to-r from-transparent via-amber-500/20 to-transparent motion-reduce:animate-none"
-        />
-      )}
+      {streaming && <span aria-hidden className={glowClassName} />}
     </div>
   );
 };

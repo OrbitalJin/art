@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Wrench } from "lucide-react";
+import { Settings2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +55,7 @@ export const ConfigureMenu: React.FC<{
 
   const triggerClasses = cn(
     "flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg",
-    "text-muted-foreground ring-1 ring-border/60 outline-none",
+    "text-muted-foreground outline-none opacity-70 hover:opacity-100",
     "transition-colors duration-150 hover:bg-muted/60 hover:text-foreground",
     "focus-visible:ring-2 focus-visible:ring-ring/50",
     "data-[state=open]:bg-muted/60 data-[state=open]:text-foreground",
@@ -124,7 +124,7 @@ export const ConfigureMenu: React.FC<{
           title="Configure tools"
           className={triggerClasses}
         >
-          <Wrench size={13} aria-hidden />
+          <Settings2 size={13} aria-hidden />
         </button>
       </DropdownMenuTrigger>
 

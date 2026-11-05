@@ -20,20 +20,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Palette,
-  Settings,
-  UserCircle,
-  MessageCircle,
-  RotateCcw,
-} from "lucide-react";
+import { Palette, UserCircle, MessageCircle, RotateCcw } from "lucide-react";
 import { ChatSettingsTab } from "./tabs/chat";
 import { IdentitiesSettingsTab } from "./tabs/identities";
 import { AppearanceSettingTab } from "./tabs/appearance";
 import { getVersion } from "@tauri-apps/api/app";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "../ui/button";
-import { cn } from "@/lib/utils";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
@@ -71,7 +64,15 @@ function AppVersion() {
   );
 }
 
-export const SettingsDialog = () => {
+export interface SettingsDialogTriggerState {
+  open: boolean;
+}
+
+interface SettingsDialogProps {
+  trigger: (state: SettingsDialogTriggerState) => ReactNode;
+}
+
+export const SettingsDialog = ({ trigger }: SettingsDialogProps) => {
   const resetSettings = useSettingsStore((state) => state.resetSettings);
   const settingsOpen = useUIStateStore((state) => state.settingsDialogOpen);
   const setSettingsOpen = useUIStateStore(
@@ -90,19 +91,7 @@ export const SettingsDialog = () => {
   };
   return (
     <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-      <DialogTrigger asChild>
-        <Button
-          size="icon"
-          variant="ghost"
-          className={cn(
-            "h-10 w-10 text-muted-foreground hover:text-foreground transition-all",
-            settingsOpen && "text-foreground bg-accent",
-          )}
-          aria-label="Settings"
-        >
-          <Settings className="opacity-70" />
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger({ open: settingsOpen })}</DialogTrigger>
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 scrollbar-none overflow-scroll p-0">
         <DialogHeader className="border-b px-6 py-4">
           <DialogTitle className="text-xl">Settings</DialogTitle>

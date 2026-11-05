@@ -9,14 +9,19 @@ import {
   formatCount,
 } from "../../shared";
 import { defineRenderer, type RendererProps } from "../../types";
-import { RangeHeader, ValueGrid } from "./parts";
+import { ValueGrid } from "./parts";
 import { readSheetInput, readSheetOutputSchema } from "./schema";
 import type { ReadSheetInput, ReadSheetOutput } from "./schema";
+
+const rangeOf = (
+  input: ReadSheetInput | null,
+  output: ReadSheetOutput | null,
+): string | null => output?.range ?? input?.range ?? null;
 
 const labelOf = (
   input: ReadSheetInput | null,
   output: ReadSheetOutput | null,
-): string | null => output?.range ?? input?.range ?? input?.sheet ?? null;
+): string | null => rangeOf(input, output) ?? input?.sheet ?? null;
 
 const Summary: FC<RendererProps<ReadSheetInput, ReadSheetOutput>> = ({
   block,
@@ -44,13 +49,12 @@ const Detail: FC<RendererProps<ReadSheetInput, ReadSheetOutput>> = ({
   input,
   output,
 }) => {
-  const range = labelOf(input, output);
+  const range = rangeOf(input, output);
   const values = output?.values ?? [];
 
   return (
     <DetailGate block={block} executingLabel="Reading sheet…">
       <div className="flex flex-col gap-2">
-        <RangeHeader range={range} fallback="Sheet" values={values} />
         <ValueGrid
           values={values}
           range={range}

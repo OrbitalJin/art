@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import type { SessionMeta } from "@/lib/store/session/types";
+import { cn } from "@/lib/utils";
 import { CATEGORY_ORDER, TOOL_GROUPS, type Category } from "./groups";
 import { CategoryLink } from "./rows";
 import { groupEnabled, groupsInCategory } from "./helpers";
@@ -7,20 +8,37 @@ import { groupEnabled, groupsInCategory } from "./helpers";
 const MainHeader: React.FC<{
   nothingToRevoke: boolean;
   onRevokeAll: () => void;
-}> = ({ nothingToRevoke, onRevokeAll }) => (
-  <div className="flex items-center justify-between gap-2 border-b border-border/50 py-2 pr-2 pl-3.5">
-    <p className="text-[13px] font-medium text-foreground">Configure agent</p>
-    <Button
-      variant="ghost"
-      size="sm"
-      className="h-7 px-2 text-xs text-muted-foreground shadow-none hover:text-destructive"
-      onClick={onRevokeAll}
-      disabled={nothingToRevoke}
-    >
-      Revoke all
-    </Button>
-  </div>
-);
+}> = ({ nothingToRevoke, onRevokeAll }) => {
+  const headerClassName = cn(
+    "flex items-center justify-between gap-2",
+    "border-b border-border/40 py-2 pl-4 pr-2",
+  );
+
+  const labelClassName = cn(
+    "text-[10px] font-medium uppercase tracking-wider",
+    "text-muted-foreground/60",
+  );
+
+  const revokeClassName = cn(
+    "h-7 rounded-full px-2.5 text-[11px] text-muted-foreground shadow-none",
+    "hover:bg-destructive/10 hover:text-destructive",
+  );
+
+  return (
+    <div className={headerClassName}>
+      <p className={labelClassName}>Configure agent</p>
+      <Button
+        variant="ghost"
+        size="sm"
+        className={revokeClassName}
+        onClick={onRevokeAll}
+        disabled={nothingToRevoke}
+      >
+        Revoke all
+      </Button>
+    </div>
+  );
+};
 
 export const MainPage: React.FC<{
   session: SessionMeta;

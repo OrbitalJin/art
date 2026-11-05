@@ -16,6 +16,7 @@ import {
   type AskUserQuestion,
   type QuestionStatus,
 } from "@/lib/store/use-question-store";
+import { PromptCard, PromptStatus } from "./prompt-card";
 
 interface Props {
   toolCallId: string;
@@ -39,33 +40,45 @@ const OptionButton: React.FC<{
   multiple: boolean;
   disabled: boolean;
   onSelect: () => void;
-}> = ({ option, selected, multiple, disabled, onSelect }) => (
-  <button
-    type="button"
-    disabled={disabled}
-    onClick={onSelect}
-    role={multiple ? "checkbox" : "radio"}
-    aria-checked={selected}
-    className="select-none disabled:pointer-events-none"
-  >
-    <TraceLine className="pl-6">
-      <TraceIcon>
-        {selected ? <CircleCheck className={chosenIconClasses} /> : <Circle />}
-      </TraceIcon>
-      <TraceTitle
-        className={cn(
-          selected && "text-foreground/90",
-          disabled && !selected && "text-muted-foreground/45",
-        )}
-      >
-        {option.label}
-      </TraceTitle>
-      {option.description ? (
-        <TraceDescription>{option.description}</TraceDescription>
-      ) : null}
-    </TraceLine>
-  </button>
-);
+}> = ({ option, selected, multiple, disabled, onSelect }) => {
+  const buttonClassName = cn(
+    "block w-full select-none rounded-lg text-left outline-none",
+    "transition-colors duration-150",
+    "hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring/50",
+    "disabled:pointer-events-none",
+    selected && "bg-accent/40",
+  );
+
+  const titleClassName = cn(
+    selected && "text-foreground/90",
+    disabled && !selected && "text-muted-foreground/45",
+  );
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onSelect}
+      role={multiple ? "checkbox" : "radio"}
+      aria-checked={selected}
+      className={buttonClassName}
+    >
+      <TraceLine className="pl-6">
+        <TraceIcon>
+          {selected ? (
+            <CircleCheck className={chosenIconClasses} />
+          ) : (
+            <Circle />
+          )}
+        </TraceIcon>
+        <TraceTitle className={titleClassName}>{option.label}</TraceTitle>
+        {option.description ? (
+          <TraceDescription>{option.description}</TraceDescription>
+        ) : null}
+      </TraceLine>
+    </button>
+  );
+};
 
 const CardActions: React.FC<{
   isPending: boolean;
@@ -83,40 +96,47 @@ const CardActions: React.FC<{
   onSkip,
   onNext,
   onSubmit,
-}) => (
-  <>
-    {isPending && (
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={onSkip}
-        className="text-xs text-muted-foreground hover:text-foreground"
-      >
-        Skip
-      </Button>
-    )}
-    {showNext && (
-      <Button
-        size="sm"
-        variant={isPending ? "secondary" : "ghost"}
-        onClick={onNext}
-        className="text-xs"
-      >
-        Next
-      </Button>
-    )}
-    {showSubmit && (
-      <Button
-        size="sm"
-        disabled={!canSubmit}
-        onClick={onSubmit}
-        className="text-xs"
-      >
-        Submit
-      </Button>
-    )}
-  </>
-);
+}) => {
+  const skipClassName = cn(
+    "h-7 rounded-full px-3 text-xs text-muted-foreground",
+    "hover:text-foreground",
+  );
+
+  return (
+    <>
+      {isPending && (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onSkip}
+          className={skipClassName}
+        >
+          Skip
+        </Button>
+      )}
+      {showNext && (
+        <Button
+          size="sm"
+          variant={isPending ? "secondary" : "ghost"}
+          onClick={onNext}
+          className="h-7 rounded-full px-3 text-xs"
+        >
+          Next
+        </Button>
+      )}
+      {showSubmit && (
+        <Button
+          size="sm"
+          disabled={!canSubmit}
+          onClick={onSubmit}
+          className="h-7 rounded-full px-3 text-xs"
+        >
+          Submit
+        </Button>
+      )}
+    </>
+  );
+};
 
 const QuestionBlock: React.FC<{
   question: AskUserQuestion;
@@ -137,6 +157,13 @@ const QuestionBlock: React.FC<{
 }) => {
   const multiple = Boolean(question.multiple);
   const options = question.options ?? [];
+
+  const placeholder =
+    options.length > 0 ? "Or type your own answer…" : "Your answer…";
+
+  const inputClassName = cn(
+    "h-8 rounded-full border-border/40 bg-background/40 px-3 text-xs",
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -170,11 +197,9 @@ const QuestionBlock: React.FC<{
           value={custom}
           disabled={disabled}
           onChange={(event) => onCustomChange(event.target.value)}
-          placeholder={
-            options.length > 0 ? "Or type your own answer…" : "Your answer…"
-          }
+          placeholder={placeholder}
           aria-label={`Custom answer: ${question.question}`}
-          className="h-7 text-xs"
+          className={inputClassName}
         />
         {actions}
       </div>
@@ -186,27 +211,34 @@ const QuestionNav: React.FC<{
   current: number;
   total: number;
   onBack?: () => void;
-}> = ({ current, total, onBack }) => (
-  <div className="flex items-center gap-1">
-    {onBack && (
-      <Button
-        size="icon-xs"
-        variant="ghost"
-        aria-label="Previous question"
-        onClick={onBack}
-        className="text-muted-foreground hover:text-foreground"
+}> = ({ current, total, onBack }) => {
+  const navClassName = cn(
+    "flex items-center gap-0.5 rounded-full bg-muted/40 p-0.5",
+    !onBack && "pl-2.5",
+  );
+
+  return (
+    <div className={navClassName}>
+      {onBack && (
+        <Button
+          size="icon-xs"
+          variant="ghost"
+          aria-label="Previous question"
+          onClick={onBack}
+          className="rounded-full text-muted-foreground hover:text-foreground"
+        >
+          <ChevronLeft aria-hidden />
+        </Button>
+      )}
+      <span
+        aria-live="polite"
+        className="px-1.5 text-[11px] font-medium tabular-nums text-muted-foreground/70"
       >
-        <ChevronLeft aria-hidden />
-      </Button>
-    )}
-    <span
-      aria-live="polite"
-      className="text-[11px] font-medium text-muted-foreground/60 tabular-nums"
-    >
-      Question {current} of {total}
-    </span>
-  </div>
-);
+        Question {current} of {total}
+      </span>
+    </div>
+  );
+};
 
 const CardHeader: React.FC<{
   isPending: boolean;
@@ -215,22 +247,15 @@ const CardHeader: React.FC<{
   onBack?: () => void;
   trailing?: React.ReactNode;
 }> = ({ isPending, current, total, onBack, trailing }) => {
-  const dotClasses = cn(
-    "size-1.5 shrink-0 rounded-full",
-    isPending
-      ? "animate-pulse bg-amber-500 motion-reduce:animate-none"
-      : "bg-emerald-500/70",
-  );
-
   const hasMultiple = total > 1;
   const hasControls = hasMultiple || Boolean(trailing);
 
   return (
     <div className="flex items-center gap-2 px-3 pt-2.5">
-      <span aria-hidden className={dotClasses} />
-      <span className="text-[11px] font-medium text-muted-foreground/70">
-        {isPending ? "Asking you" : "Asked you"}
-      </span>
+      <PromptStatus
+        tone={isPending ? "pending" : "positive"}
+        label={isPending ? "Asking you" : "Asked you"}
+      />
 
       {hasControls ? (
         <div className="ml-auto flex shrink-0 items-center gap-3">
@@ -326,15 +351,6 @@ export const AskUserCard: React.FC<Props> = ({
   const showNext = hasMultiple && !isLast;
   const showSubmit = isPending && isLast;
 
-  const containerClasses = cn(
-    "overflow-hidden transition-colors duration-200",
-    variant === "default" && [
-      "mb-2 max-w-3xl rounded-lg border bg-muted/10",
-      isPending ? "border-amber-500/30" : "border-border/40",
-    ],
-    variant === "embedded" && "w-full",
-  );
-
   if (!activeQuestion) return null;
 
   const actions = (
@@ -350,7 +366,7 @@ export const AskUserCard: React.FC<Props> = ({
   );
 
   return (
-    <div className={containerClasses}>
+    <PromptCard variant={variant} pending={isPending}>
       <CardHeader
         isPending={isPending}
         current={activeIndex + 1}
@@ -359,7 +375,7 @@ export const AskUserCard: React.FC<Props> = ({
         trailing={trailing}
       />
 
-      <div className="px-3 pt-1.5 pb-2.5">
+      <div className="px-3 pb-3 pt-2">
         <QuestionBlock
           key={activeIndex}
           question={activeQuestion}
@@ -373,6 +389,6 @@ export const AskUserCard: React.FC<Props> = ({
           actions={actions}
         />
       </div>
-    </div>
+    </PromptCard>
   );
 };

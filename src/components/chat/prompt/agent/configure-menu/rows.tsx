@@ -1,34 +1,69 @@
-import { ChevronRight } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import { useHasKey, useKeysLoading } from "@/lib/store/use-settings-store";
 import { ART_KEY_NOTICE } from "../../key-notice";
 import type { SessionMeta } from "@/lib/store/session/types";
 import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
-import {
-  groupActive,
-  groupsInCategory,
-  selectableRowClasses,
-} from "./helpers";
+import { groupActive, groupsInCategory, selectableRowClasses } from "./helpers";
 import { cn } from "@/lib/utils";
+
+const ActiveBar: React.FC = () => {
+  const barClassName = cn(
+    "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2",
+    "rounded-r-full bg-primary",
+  );
+
+  return <span aria-hidden className={barClassName} />;
+};
 
 const RowText: React.FC<{
   label: string;
   subtitle: string;
   active?: boolean;
-}> = ({ label, subtitle, active = false }) => (
-  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-    <span
-      className={cn(
-        "truncate text-[13px] font-medium",
-        active ? "text-foreground" : "text-foreground/80",
-      )}
-    >
-      {label}
+}> = ({ label, subtitle, active = false }) => {
+  const labelClassName = cn(
+    "truncate text-[13px] font-medium transition-colors duration-150",
+    active ? "text-foreground" : "text-foreground/80",
+  );
+
+  return (
+    <span className="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+      <span className={labelClassName}>{label}</span>
+      <span className="truncate text-[11px] text-muted-foreground">
+        {subtitle}
+      </span>
     </span>
-    <span className="truncate text-[11px] text-muted-foreground">
-      {subtitle}
+  );
+};
+
+const ToggleMark: React.FC<{ enabled: boolean }> = ({ enabled }) => {
+  const markClassName = cn(
+    "flex size-4 shrink-0 items-center justify-center rounded-md border",
+    "transition-colors duration-150",
+    enabled
+      ? "border-primary bg-primary text-primary-foreground"
+      : "border-border/60 bg-transparent text-transparent",
+  );
+
+  return (
+    <span aria-hidden className={markClassName}>
+      <Check strokeWidth={3} className="size-2.5" />
     </span>
-  </span>
-);
+  );
+};
+
+const Summary: React.FC<{ active: boolean; children: React.ReactNode }> = ({
+  active,
+  children,
+}) => {
+  const summaryClassName = cn(
+    "shrink-0 tabular-nums transition-colors duration-150",
+    active
+      ? "rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary"
+      : "text-[11px] text-muted-foreground/60",
+  );
+
+  return <span className={summaryClassName}>{children}</span>;
+};
 
 export const ToolRow: React.FC<{
   label: string;
@@ -36,16 +71,28 @@ export const ToolRow: React.FC<{
   enabled: boolean;
   onToggle: () => void;
   disabled?: boolean;
-}> = ({ label, subtitle, enabled, onToggle, disabled }) => (
-  <button
-    type="button"
-    onClick={onToggle}
-    disabled={disabled}
-    className={cn(selectableRowClasses(enabled), disabled && "opacity-60")}
-  >
-    <RowText label={label} subtitle={subtitle} active={enabled} />
-  </button>
-);
+}> = ({ label, subtitle, enabled, onToggle, disabled }) => {
+  const rowClassName = cn(
+    selectableRowClasses(enabled),
+    "relative",
+    disabled && "opacity-60",
+  );
+
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      onClick={onToggle}
+      disabled={disabled}
+      className={rowClassName}
+    >
+      {enabled && <ActiveBar />}
+      <RowText label={label} subtitle={subtitle} active={enabled} />
+      <ToggleMark enabled={enabled} />
+    </button>
+  );
+};
 
 const LinkRow: React.FC<{
   label: string;
@@ -54,23 +101,23 @@ const LinkRow: React.FC<{
   trailing: React.ReactNode;
   onOpen: () => void;
 }> = ({ label, subtitle, active, trailing, onOpen }) => {
-  const trailingClasses = cn(
-    "flex shrink-0 items-center gap-1.5 text-xs",
-    active ? "text-foreground/80" : "text-muted-foreground",
+  const rowClassName = cn(selectableRowClasses(active), "group/row relative");
+
+  const chevronClassName = cn(
+    "shrink-0 text-muted-foreground/60 transition-transform duration-200",
+    "group-hover/row:translate-x-0.5 group-focus-visible/row:translate-x-0.5",
   );
 
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className={selectableRowClasses(active)}
-    >
+    <button type="button" onClick={onOpen} className={rowClassName}>
+      {active && <ActiveBar />}
       <RowText label={label} subtitle={subtitle} active={active} />
-      <span className={trailingClasses}>{trailing}</span>
+      <Summary active={active}>{trailing}</Summary>
       <ChevronRight
         size={14}
+        strokeWidth={1.75}
         aria-hidden
-        className="shrink-0 text-muted-foreground/60"
+        className={chevronClassName}
       />
     </button>
   );
@@ -118,15 +165,13 @@ export const GroupRow: React.FC<{
   }
 
   const enabled = hasKey && session.groups?.[group.key] === true;
+  const showDescription = hasKey || !group.requiresKey || keysLoading;
+  const subtitle = showDescription ? group.description : ART_KEY_NOTICE;
 
   return (
     <ToolRow
       label={group.label}
-      subtitle={
-        hasKey || !group.requiresKey || keysLoading
-          ? group.description
-          : ART_KEY_NOTICE
-      }
+      subtitle={subtitle}
       enabled={enabled}
       disabled={!hasKey}
       onToggle={() => onToggle(group.key, !enabled)}
@@ -143,9 +188,8 @@ export const CategoryLink: React.FC<{
   const activeGroups = groups.filter((group) => groupActive(session, group));
 
   const active = activeGroups.length > 0;
-  const subtitle = active
-    ? activeGroups.map((group) => group.label).join(", ")
-    : groups.map((group) => group.label).join(", ");
+  const subtitleGroups = active ? activeGroups : groups;
+  const subtitle = subtitleGroups.map((group) => group.label).join(", ");
   const summary = active
     ? `${activeGroups.length} of ${groups.length}`
     : `${groups.length}`;
