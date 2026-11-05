@@ -54,7 +54,7 @@ const RailBar: React.FC<RailBarProps> = ({
 
   const buttonClassName = cn(
     "group/bar pointer-events-auto flex w-8 cursor-pointer items-center justify-end",
-    "rounded-full outline-none",
+    "rounded-full outline-none opacity-60 hover:opacity-100",
   );
 
   const stateClassName = isCurrent
