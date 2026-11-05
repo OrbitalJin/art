@@ -34,7 +34,6 @@ export const Tasks = () => {
           defaultDue={manager.createTaskDate}
         />
         <ProjectActions />
-        <div className="flex-1" />
         <Tooltip>
           <TooltipTrigger asChild>
             <div>
@@ -53,7 +52,7 @@ export const Tasks = () => {
               </Tabs>
             </div>
           </TooltipTrigger>
-          <TooltipContent side="left">
+          <TooltipContent side="bottom">
             <KbdGroup>
               <Kbd>Alt</Kbd>
               <span>+</span>
@@ -61,6 +60,7 @@ export const Tasks = () => {
             </KbdGroup>
           </TooltipContent>
         </Tooltip>
+        <div className="flex-1" />
       </div>
 
       <div className="flex-1 overflow-hidden">

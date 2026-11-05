@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
-import { Sidebar } from "./sidebar";
+import { Chrome } from "./chrome";
 import { cn } from "@/lib/utils";
 
 const HiddenPlayer = lazy(() =>
@@ -30,7 +30,7 @@ export function Layout({ children }: LayoutProps) {
           {children}
         </main>
 
-        <Sidebar />
+        <Chrome />
       </div>
       <Suspense fallback={null}>
         <HiddenPlayer />

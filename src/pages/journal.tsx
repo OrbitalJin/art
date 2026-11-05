@@ -110,8 +110,8 @@ const JournalContent = () => {
 
       <div
         className={cn(
-          "absolute top-3 right-3 z-30",
-          "flex items-center gap-2 rounded-xl border border-border/60",
+          "absolute bottom-3 right-3 z-30",
+          "flex items-center gap-2 rounded-xl border border-border",
           "bg-background/80 backdrop-blur shadow-sm transition-all duration-300 opacity-70",
           "px-2 py-1.5",
           "hover:bg-background/90",

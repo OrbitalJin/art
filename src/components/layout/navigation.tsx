@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   Book,
   BookOpen,
@@ -10,46 +10,18 @@ import {
   SquareCheckBig,
   type LucideIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useSessionIndex } from "@/lib/store/session/index-store";
-import { Command } from "../command";
 
 export interface NavigationItem {
   href: string;
+  base: string;
   icon: LucideIcon;
   activeIcon: LucideIcon;
   shortcut: string;
   label: string;
 }
 
-interface NavItemProps {
-  item: NavigationItem;
-  selected: boolean;
-}
-
-const NavItem = ({ item, selected }: NavItemProps) => {
-  const navigate = useNavigate();
-  const Icon = selected ? item.activeIcon : item.icon;
-
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      aria-label={item.label}
-      aria-current={selected ? "page" : undefined}
-      onClick={() => navigate(item.href)}
-      className={cn(
-        "size-10 text-muted-foreground hover:text-foreground",
-        selected && "text-primary",
-      )}
-    >
-      <Icon className="opacity-70" />
-    </Button>
-  );
-};
-
-export const Navigation = () => {
+export const useNavigation = () => {
   const { pathname } = useLocation();
 
   const activeType = useSessionIndex((state) => {
@@ -57,51 +29,43 @@ export const Navigation = () => {
     return active?.type ?? "chat";
   });
 
-  const isActive = (path: string) =>
-    pathname === path || pathname.startsWith(`${path}/`);
+  const items: NavigationItem[] = [
+    {
+      href: `/session/${activeType}`,
+      base: "/session",
+      label: "Chat",
+      icon: MessageCircleDashed,
+      activeIcon: MessageCircle,
+      shortcut: "1",
+    },
+    {
+      href: "/journal",
+      base: "/journal",
+      label: "Journal",
+      icon: Book,
+      activeIcon: BookOpen,
+      shortcut: "2",
+    },
+    {
+      href: "/tasks",
+      base: "/tasks",
+      label: "Tasks",
+      icon: SquareCheck,
+      activeIcon: SquareCheckBig,
+      shortcut: "3",
+    },
+    {
+      href: "/interval",
+      base: "/interval",
+      label: "Intervals",
+      icon: ClockFading,
+      activeIcon: Clock,
+      shortcut: "4",
+    },
+  ];
 
-  const chat: NavigationItem = {
-    href: `/session/${activeType}`,
-    label: "Chat",
-    icon: MessageCircleDashed,
-    activeIcon: MessageCircle,
-    shortcut: "1",
-  };
+  const isSelected = (item: NavigationItem) =>
+    pathname === item.base || pathname.startsWith(`${item.base}/`);
 
-  const journal: NavigationItem = {
-    href: "/journal",
-    label: "Journal",
-    icon: Book,
-    activeIcon: BookOpen,
-    shortcut: "2",
-  };
-
-  const tasks: NavigationItem = {
-    href: "/tasks",
-    label: "Tasks",
-    icon: SquareCheck,
-    activeIcon: SquareCheckBig,
-    shortcut: "3",
-  };
-
-  const intervals: NavigationItem = {
-    href: "/interval",
-    label: "Intervals",
-    icon: ClockFading,
-    activeIcon: Clock,
-    shortcut: "4",
-  };
-
-  const items = [chat, journal, tasks, intervals];
-
-  return (
-    <nav className="flex w-full flex-1 flex-col items-center gap-2 px-2">
-      <NavItem item={chat} selected={pathname.startsWith("/session")} />
-      <NavItem item={journal} selected={isActive(journal.href)} />
-      <NavItem item={tasks} selected={isActive(tasks.href)} />
-      <NavItem item={intervals} selected={isActive(intervals.href)} />
-
-      <Command items={items} />
-    </nav>
-  );
+  return { items, isSelected };
 };

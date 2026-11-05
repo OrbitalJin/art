@@ -191,7 +191,8 @@ const TimerSettings: React.FC<TimerSettingsProps> = ({
       variant="ghost"
       size="icon"
       className={cn(
-        "absolute top-2 right-2 h-8 w-8 rounded-full",
+        "absolute top-2 h-8 w-8 rounded-full",
+        fullscreen || !isDesktop ? "left-2" : "right-2",
         "opacity-0 transition-all duration-200",
         "group-hover:opacity-60 hover:opacity-100 focus-visible:opacity-100",
       )}

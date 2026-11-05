@@ -91,7 +91,7 @@ export const Chat = () => {
       <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <div
         data-chat-thread
-        className="relative flex-1 flex flex-col selection:bg-primary/50 min-w-0 overflow-x-hidden pt-0"
+        className="relative flex-1 flex flex-col selection:bg-primary/50 min-w-0 overflow-x-hidden pt-0 px-2"
       >
         <MessageScrollerProvider
           autoScroll
