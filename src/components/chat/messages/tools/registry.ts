@@ -10,6 +10,7 @@ import type {
 } from "@/lib/ai/tools/nutrition";
 import { ASK_USER_TOOL_NAME } from "@/lib/ai/tools/ask-user";
 import { PLAN_TOOL_NAME } from "@/lib/ai/tools/plan";
+import { READ_SHEET_TOOL_NAME } from "@/lib/ai/tools/sheets";
 import {
   SHOW_NUTRITION_TOOL_NAME,
   FETCH_FOOD_MACROS_TOOL_NAME,
@@ -28,9 +29,6 @@ import { renderer as removePath } from "./renderers/files/remove-path";
 import { renderer as stat } from "./renderers/files/stat";
 import { renderer as writeFile } from "./renderers/files/write-file";
 import { renderer as fetchUrl } from "./renderers/search/fetch-url";
-import { renderer as flightSearch } from "./renderers/search/flight-search";
-import { renderer as hotelSearch } from "./renderers/search/hotel-search";
-import { renderer as mapsSearch } from "./renderers/search/maps-search";
 import { renderer as newsSearch } from "./renderers/search/news-search";
 import { renderer as webSearch } from "./renderers/search/web-search";
 import { renderer as createProject } from "./renderers/tasks/create-project";
@@ -47,16 +45,7 @@ import { renderer as updateProject } from "./renderers/tasks/update-project";
 import { renderer as updateTask } from "./renderers/tasks/update-task";
 import { renderer as planWrite } from "./renderers/plan/plan-write";
 import { renderer as askUser } from "./renderers/ask-user/ask-user";
-import { renderer as fetchEmails } from "./renderers/email/fetch-emails";
-import { renderer as fetchMessage } from "./renderers/email/fetch-message";
-import { renderer as listLabels } from "./renderers/email/list-labels";
-import { renderer as listMessages } from "./renderers/email/list-messages";
-import { renderer as batchGet } from "./renderers/googlesheets/batch-get";
-import { renderer as getSheetNames } from "./renderers/googlesheets/get-sheet-names";
-import { renderer as getSpreadsheetInfo } from "./renderers/googlesheets/get-spreadsheet-info";
-import { renderer as lookupRow } from "./renderers/googlesheets/lookup-row";
-import { renderer as searchSpreadsheets } from "./renderers/googlesheets/search-spreadsheets";
-import { renderer as valuesGet } from "./renderers/googlesheets/values-get";
+import { renderer as readSheet } from "./renderers/googlesheets/read-sheet";
 import { renderer as transcript } from "./renderers/youtube/transcript";
 import { renderer as nutrition } from "./renderers/nutrition/nutrition";
 import { renderer as fetchMacros } from "./renderers/nutrition/fetch-macros";
@@ -113,28 +102,13 @@ const youtubeRenderers = {
 } satisfies Record<YoutubeToolName, ToolRendererEntry>;
 
 const searchRenderers = {
-  COMPOSIO_SEARCH_WEB: webSearch,
-  COMPOSIO_SEARCH_FETCH_URL_CONTENT: fetchUrl,
-  COMPOSIO_SEARCH_NEWS: newsSearch,
-  COMPOSIO_SEARCH_FLIGHTS: flightSearch,
-  COMPOSIO_SEARCH_HOTELS: hotelSearch,
-  COMPOSIO_SEARCH_GOOGLE_MAPS: mapsSearch,
-} satisfies Record<string, ToolRendererEntry>;
-
-const emailRenderers = {
-  GMAIL_FETCH_EMAILS: fetchEmails,
-  GMAIL_LIST_MESSAGES: listMessages,
-  GMAIL_FETCH_MESSAGE_BY_MESSAGE_ID: fetchMessage,
-  GMAIL_LIST_LABELS: listLabels,
+  exa_search: webSearch,
+  exa_fetch: fetchUrl,
+  exa_news: newsSearch,
 } satisfies Record<string, ToolRendererEntry>;
 
 const googlesheetsRenderers = {
-  GOOGLESHEETS_GET_SPREADSHEET_INFO: getSpreadsheetInfo,
-  GOOGLESHEETS_GET_SHEET_NAMES: getSheetNames,
-  GOOGLESHEETS_VALUES_GET: valuesGet,
-  GOOGLESHEETS_BATCH_GET: batchGet,
-  GOOGLESHEETS_SEARCH_SPREADSHEETS: searchSpreadsheets,
-  GOOGLESHEETS_LOOKUP_SPREADSHEET_ROW: lookupRow,
+  [READ_SHEET_TOOL_NAME]: readSheet,
 } satisfies Record<string, ToolRendererEntry>;
 
 /**
@@ -147,7 +121,6 @@ const TOOL_RENDERERS = {
   ...taskRenderers,
   ...askUserRenderers,
   ...planRenderers,
-  ...emailRenderers,
   ...googlesheetsRenderers,
   ...youtubeRenderers,
   ...nutritionRenderers,

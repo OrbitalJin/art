@@ -41,7 +41,7 @@ export const resolveKeys = async (): Promise<void> => {
         keys: {
           gateway: record.gateway ?? "",
           usda: record.usda ?? "",
-          composio: record.composio ?? "",
+          exa: record.exa ?? "",
         },
         keysStatus: "ready",
         keysError: null,

@@ -1,14 +1,11 @@
 import { ChevronRight } from "lucide-react";
-import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import { useHasKey, useKeysLoading } from "@/lib/store/use-settings-store";
 import { ART_KEY_NOTICE } from "../../key-notice";
 import type { SessionMeta } from "@/lib/store/session/types";
-import { serviceById } from "@/lib/services/catalog";
 import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
 import {
   groupActive,
   groupsInCategory,
-  isConnected,
   selectableRowClasses,
 } from "./helpers";
 import { cn } from "@/lib/utils";
@@ -100,38 +97,6 @@ const FilesLink: React.FC<{
   );
 };
 
-const ConnectionRow: React.FC<{
-  group: ToolGroup;
-  session: SessionMeta;
-  onToggle: (key: string, value: boolean) => void;
-}> = ({ group, session, onToggle }) => {
-  const connections = useConnectionsStore((state) => state.connections);
-  const service = group.service ? serviceById(group.service) : undefined;
-  const connected = service ? isConnected(connections, service.id) : false;
-  const enabled = connected && session.groups?.[group.key] === true;
-
-  const subtitle = connected
-    ? group.description
-    : `${service?.label ?? "Service"} not connected — configure in Settings`;
-
-  const rowClasses = cn(
-    selectableRowClasses(enabled),
-    !connected && "opacity-60",
-  );
-
-  return (
-    <button
-      type="button"
-      disabled={!connected}
-      aria-pressed={enabled}
-      onClick={() => onToggle(group.key, !enabled)}
-      className={rowClasses}
-    >
-      <RowText label={group.label} subtitle={subtitle} active={enabled} />
-    </button>
-  );
-};
-
 export const GroupRow: React.FC<{
   group: ToolGroup;
   session: SessionMeta;
@@ -150,15 +115,6 @@ export const GroupRow: React.FC<{
         onOpen={onOpenFiles}
       />
     );
-  }
-
-  if (group.source === "service" && group.service) {
-    const service = serviceById(group.service);
-    if (service && !service.noAuth) {
-      return (
-        <ConnectionRow group={group} session={session} onToggle={onToggle} />
-      );
-    }
   }
 
   const enabled = hasKey && session.groups?.[group.key] === true;
@@ -183,12 +139,8 @@ export const CategoryLink: React.FC<{
   session: SessionMeta;
   onOpen: () => void;
 }> = ({ category, session, onOpen }) => {
-  const connections = useConnectionsStore((state) => state.connections);
-
   const groups = groupsInCategory(category);
-  const activeGroups = groups.filter((group) =>
-    groupActive(session, group, connections),
-  );
+  const activeGroups = groups.filter((group) => groupActive(session, group));
 
   const active = activeGroups.length > 0;
   const subtitle = active

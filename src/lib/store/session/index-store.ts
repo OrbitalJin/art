@@ -221,7 +221,7 @@ export const useSessionIndex = create<SessionIndexState>()(
     }),
     {
       name: "session-index",
-      version: 1,
+      version: 2,
       storage:
         createSessionIndexStorage<
           Pick<SessionIndexState, "sessions" | "activeId">
@@ -231,6 +231,42 @@ export const useSessionIndex = create<SessionIndexState>()(
         sessions: state.sessions,
         activeId: state.activeId,
       }),
+      migrate: (persisted, version) => {
+        const state = persisted as {
+          sessions?: SessionMeta[];
+          activeId?: string | null;
+        };
+
+        // v1 stored Composio tool ids as the group keys for search. Remap the
+        // surviving ones to the Exa tool ids and drop the retired groups
+        // (flights/hotels/maps, gmail, googlesheets).
+        if (version < 2 && Array.isArray(state?.sessions)) {
+          const remap: Record<string, string> = {
+            COMPOSIO_SEARCH_WEB: "exa_search",
+            COMPOSIO_SEARCH_FETCH_URL_CONTENT: "exa_fetch",
+            COMPOSIO_SEARCH_NEWS: "exa_news",
+          };
+
+          state.sessions = state.sessions.map((meta) => {
+            const groups: SessionGroups = {};
+            for (const [key, value] of Object.entries(meta.groups ?? {})) {
+              const next = remap[key];
+              if (next) {
+                groups[next] = value;
+              } else if (
+                !key.startsWith("COMPOSIO_") &&
+                key !== "gmail" &&
+                key !== "googlesheets"
+              ) {
+                groups[key] = value;
+              }
+            }
+            return { ...meta, groups };
+          });
+        }
+
+        return state as SessionIndexState;
+      },
     },
   ),
 );

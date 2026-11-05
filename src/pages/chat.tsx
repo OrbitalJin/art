@@ -10,14 +10,12 @@ import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 import { useChatMessages } from "@/contexts/chat-context";
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { createSession } from "@/lib/store/session/commands";
-import { useConnectionsSync } from "@/hooks/use-connections-sync";
 import type { SessionType } from "@/lib/store/session/types";
 
 const isSessionType = (value: string | undefined): value is SessionType =>
   value === "chat" || value === "agent";
 
 export const Chat = () => {
-  useConnectionsSync();
   const { type, sessionId } = useParams<{
     type: string;
     sessionId: string;

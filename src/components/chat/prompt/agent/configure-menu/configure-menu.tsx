@@ -5,11 +5,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useConnectionsStore } from "@/lib/store/use-connections-store";
-import {
-  useHasKey,
-  useKeysLoading,
-} from "@/lib/store/use-settings-store";
+import { useHasKey, useKeysLoading } from "@/lib/store/use-settings-store";
 import type { SessionMeta } from "@/lib/store/session/types";
 import type { Category } from "./groups";
 import { TOOL_GROUPS } from "./groups";
@@ -42,16 +38,11 @@ export const ConfigureMenu: React.FC<{
   onToggle,
   onRevokeAll,
 }) => {
-  const syncConnections = useConnectionsStore((state) => state.syncConnections);
-  const hasComposio = useHasKey("composio");
+  const hasExa = useHasKey("exa");
   const keysLoading = useKeysLoading();
   const contentRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState<MenuPage>(MAIN_PAGE);
-
-  useEffect(() => {
-    if (open) void syncConnections();
-  }, [open, syncConnections]);
 
   useEffect(() => {
     contentRef.current?.scrollTo({ top: 0 });
@@ -119,10 +110,10 @@ export const ConfigureMenu: React.FC<{
         ? groupsInCategory(page.category)
         : [];
 
-  const showComposioKeyNotice =
+  const showExaKeyNotice =
     !keysLoading &&
-    !hasComposio &&
-    visibleGroups.some((g) => g.requiresKey === "composio");
+    !hasExa &&
+    visibleGroups.some((g) => g.requiresKey === "exa");
 
   return (
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>
@@ -146,7 +137,7 @@ export const ConfigureMenu: React.FC<{
       >
         {renderPage()}
 
-        {showComposioKeyNotice && (
+        {showExaKeyNotice && (
           <KeyNotice className="border-t border-border/50 px-3.5 py-2.5">
             {ART_KEY_NOTICE}.
           </KeyNotice>

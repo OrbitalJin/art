@@ -28,7 +28,6 @@ import { cn } from "@/lib/utils";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ConnectionsSettings } from "./connections";
 import {
   CARD_CLASSES,
   INPUT_CLASSES,
@@ -487,13 +486,6 @@ export const ChatSettingsTab: React.FC = () => {
             onSelect={() => setDefaultAccessMode("autonomous")}
           />
         </div>
-      </SettingsSection>
-
-      <SettingsSection
-        title="Connections"
-        description="Services the agent can use. Connect once here, then enable per session."
-      >
-        <ConnectionsSettings />
       </SettingsSection>
 
       <SettingsSection title="Data">

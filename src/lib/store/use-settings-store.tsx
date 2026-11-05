@@ -8,13 +8,13 @@ import { DEFAULT_PERSONA, type PersonaId } from "../ai/prompts/personas";
 export type FontSize = "small" | "medium" | "large";
 export type CornerRadius = "none" | "small" | "medium" | "large";
 
-export type KeyType = "gateway" | "composio" | "uploads" | "usda";
+export type KeyType = "gateway" | "exa" | "uploads" | "usda";
 
 /** The key set resolved from a single art key via PocketBase. */
 export interface ArtKeys {
   gateway: string;
   usda: string;
-  composio: string;
+  exa: string;
 }
 
 export type KeysStatus = "idle" | "loading" | "ready" | "error";
@@ -40,7 +40,6 @@ interface SettingsState {
   keys: ArtKeys | null;
   keysStatus: KeysStatus;
   keysError: string | null;
-  composioUserId: string;
   fontSize: FontSize;
   cornerRadius: CornerRadius;
   defaultModel: ModelId;
@@ -54,7 +53,6 @@ interface SettingsState {
   agentProfile: AgentProfile;
 
   setArtKey: (key: string) => void;
-  ensureComposioUserId: () => string;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
   setDefaultModel: (model: ModelId) => void;
@@ -92,7 +90,6 @@ const initialState = {
   keys: null as ArtKeys | null,
   keysStatus: "idle" as KeysStatus,
   keysError: null as string | null,
-  composioUserId: "",
   fontSize: "medium" as FontSize,
   cornerRadius: "medium" as CornerRadius,
   defaultModel: "model-1" as ModelId,
@@ -113,7 +110,6 @@ type PersistedSettings = Omit<
 
 const partialize = (state: SettingsState): PersistedSettings => ({
   artKey: state.artKey,
-  composioUserId: state.composioUserId,
   fontSize: state.fontSize,
   cornerRadius: state.cornerRadius,
   defaultModel: state.defaultModel,
@@ -129,16 +125,9 @@ const partialize = (state: SettingsState): PersistedSettings => ({
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       ...initialState,
       setArtKey: (key: string) => set({ artKey: key }),
-      ensureComposioUserId: () => {
-        const existing = get().composioUserId;
-        if (existing) return existing;
-        const id = crypto.randomUUID();
-        set({ composioUserId: id });
-        return id;
-      },
       setFontSize: (size: FontSize) => set({ fontSize: size }),
       setCornerRadius: (radius: CornerRadius) => set({ cornerRadius: radius }),
       setDefaultModel: (model: ModelId) => set({ defaultModel: model }),
@@ -162,7 +151,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 14,
+      version: 15,
       storage: createSettingsStorage<PersistedSettings>(),
       partialize,
       migrate: (persistedState: unknown, version: number) => {
@@ -277,6 +266,16 @@ export const useSettingsStore = create<SettingsState>()(
             delete state.fdcApiKey;
           }
         }
+        if (version < 15) {
+          const state = persistedState as {
+            composioUserId?: string;
+            exaKey?: string;
+          };
+          if (state) {
+            delete state.composioUserId;
+            delete state.exaKey;
+          }
+        }
         return persistedState as SettingsState;
       },
     },
@@ -291,8 +290,8 @@ export const useHasKey = (type?: KeyType): boolean =>
     if (!keys) return false;
     return type === "gateway"
       ? keys.gateway.length > 0
-      : type === "composio"
-        ? keys.composio.length > 0
+      : type === "exa"
+        ? keys.exa.length > 0
         : keys.usda.length > 0;
   });
 

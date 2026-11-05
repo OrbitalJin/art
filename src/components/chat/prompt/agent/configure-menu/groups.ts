@@ -1,19 +1,16 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  BedDouble,
   FolderClosed,
   Globe,
   Link,
   ListChecks,
-  Mail,
-  MapPin,
   MessageCircleQuestion,
   Newspaper,
-  Plane,
   Route,
-  Sheet,
+  Table,
 } from "lucide-react";
-import { SERVICES, SearchTools } from "@/lib/services/catalog";
+import { ExaTools } from "@/lib/ai/tools/exa";
+import { READ_SHEET_TOOL_NAME } from "@/lib/ai/tools/sheets";
 import type { KeyType } from "@/lib/store/use-settings-store";
 import { TbBrandYoutube } from "react-icons/tb";
 import type { IconType } from "react-icons";
@@ -21,7 +18,7 @@ import type { IconType } from "react-icons";
 export type Category =
   "art" | "device" | "interaction" | "integrations" | "web";
 
-export type Source = "local" | "files" | "service";
+export type Source = "local" | "files";
 
 export interface ToolGroup {
   key: string;
@@ -30,8 +27,6 @@ export interface ToolGroup {
   category: Category;
   source: Source;
   icon: LucideIcon | IconType;
-  /** Composio service id; set for `source: "service"` groups. */
-  service?: string;
   /** Setting key required for this group's tools to work. */
   requiresKey?: KeyType;
 }
@@ -54,93 +49,36 @@ export const CATEGORY_ORDER: Category[] = [
 
 export const SEARCH_GROUPS: ToolGroup[] = [
   {
-    key: SearchTools.web,
-    service: SERVICES.search.id,
+    key: ExaTools.web,
     label: "Web Search",
     description: "Search the web for current information",
     category: "web",
-    source: "service",
+    source: "local",
     icon: Globe,
-    requiresKey: "composio",
+    requiresKey: "exa",
   },
   {
-    key: SearchTools.fetch,
-    service: SERVICES.search.id,
+    key: ExaTools.fetch,
     label: "Fetch URL",
     description: "Read the contents of a URL",
     category: "web",
-    source: "service",
+    source: "local",
     icon: Link,
-    requiresKey: "composio",
+    requiresKey: "exa",
   },
   {
-    key: SearchTools.news,
-    service: SERVICES.search.id,
+    key: ExaTools.news,
     label: "News",
     description: "Search recent news articles",
     category: "web",
-    source: "service",
+    source: "local",
     icon: Newspaper,
-    requiresKey: "composio",
-  },
-  {
-    key: SearchTools.flights,
-    service: SERVICES.search.id,
-    label: "Flights",
-    description: "Search flights, schedules, and pricing",
-    category: "web",
-    source: "service",
-    icon: Plane,
-    requiresKey: "composio",
-  },
-  {
-    key: SearchTools.hotels,
-    service: SERVICES.search.id,
-    label: "Hotels",
-    description: "Search hotels and rentals with prices",
-    category: "web",
-    source: "service",
-    icon: BedDouble,
-    requiresKey: "composio",
-  },
-  {
-    key: SearchTools.maps,
-    service: SERVICES.search.id,
-    label: "Maps",
-    description: "Search places, businesses, and locations",
-    category: "web",
-    source: "service",
-    icon: MapPin,
-    requiresKey: "composio",
+    requiresKey: "exa",
   },
 ];
 
-export const GMAIL_GROUP: ToolGroup = {
-  key: SERVICES.gmail.id,
-  service: SERVICES.gmail.id,
-  label: SERVICES.gmail.label,
-  description: SERVICES.gmail.description,
-  category: "integrations",
-  source: "service",
-  icon: Mail,
-  requiresKey: "composio",
-};
-
-export const SHEETS_GROUP: ToolGroup = {
-  key: SERVICES.sheets.id,
-  service: SERVICES.sheets.id,
-  label: SERVICES.sheets.label,
-  description: SERVICES.sheets.description,
-  category: "integrations",
-  source: "service",
-  icon: Sheet,
-  requiresKey: "composio",
-};
-
 export const TOOL_GROUPS: ToolGroup[] = [
   ...SEARCH_GROUPS,
-  GMAIL_GROUP,
-  SHEETS_GROUP,
   {
     key: "tasks",
     label: "Tasks",
@@ -180,5 +118,13 @@ export const TOOL_GROUPS: ToolGroup[] = [
     category: "integrations",
     source: "local",
     icon: TbBrandYoutube,
+  },
+  {
+    key: READ_SHEET_TOOL_NAME,
+    label: "Google Sheets",
+    description: "Read data from a shared sheet link",
+    category: "integrations",
+    source: "local",
+    icon: Table,
   },
 ];

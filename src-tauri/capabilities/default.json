@@ -40,9 +40,9 @@
     {
       "identifier": "http:default",
       "allow": [
-        { "url": "https://api.exa.ai" },
+        { "url": "https://api.exa.ai/*" },
+        { "url": "https://docs.google.com/*" },
         { "url": "https://ai-gateway.vercel.sh" },
-        { "url": "https://backend.composio.dev" },
         { "url": "https://*.x1c.dev/*" },
         { "url": "https://api.nal.usda.gov/fdc/v1/*" }
       ]

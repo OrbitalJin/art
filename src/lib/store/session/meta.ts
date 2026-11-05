@@ -1,5 +1,6 @@
 import { MODELS, type ModelId } from "@/lib/ai/models";
-import { SERVICES, SearchTools } from "@/lib/services/catalog";
+import { ExaTools } from "@/lib/ai/tools/exa";
+import { READ_SHEET_TOOL_NAME } from "@/lib/ai/tools/sheets";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import type { SessionGroups, SessionMeta, SessionType } from "./types";
 
@@ -13,14 +14,10 @@ export const defaultGroups = (type: SessionType): SessionGroups => ({
   askUser: type === "agent",
   youtube: false,
   files: false,
-  [SearchTools.web]: true,
-  [SearchTools.fetch]: true,
-  [SearchTools.news]: false,
-  [SearchTools.flights]: false,
-  [SearchTools.hotels]: false,
-  [SearchTools.maps]: false,
-  [SERVICES.gmail.id]: false,
-  [SERVICES.sheets.id]: false,
+  [READ_SHEET_TOOL_NAME]: false,
+  [ExaTools.web]: true,
+  [ExaTools.fetch]: true,
+  [ExaTools.news]: false,
 });
 
 interface CreateMetaOpts {

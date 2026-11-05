@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { useConnectionsStore } from "@/lib/store/use-connections-store";
 import type { SessionMeta } from "@/lib/store/session/types";
 import { CATEGORY_ORDER, TOOL_GROUPS, type Category } from "./groups";
 import { CategoryLink } from "./rows";
@@ -28,10 +27,8 @@ export const MainPage: React.FC<{
   onOpenCategory: (category: Category) => void;
   onRevokeAll: () => void;
 }> = ({ session, onOpenCategory, onRevokeAll }) => {
-  const connections = useConnectionsStore((state) => state.connections);
   const nothingToRevoke = !TOOL_GROUPS.some(
-    (group) =>
-      group.source !== "files" && groupEnabled(session, group, connections),
+    (group) => group.source !== "files" && groupEnabled(session, group),
   );
 
   return (

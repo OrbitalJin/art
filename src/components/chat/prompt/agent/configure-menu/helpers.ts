@@ -1,9 +1,6 @@
 import type { SessionMeta } from "@/lib/store/session/types";
-import { serviceById } from "@/lib/services/catalog";
 import { TOOL_GROUPS, type Category, type ToolGroup } from "./groups";
 import { cn } from "@/lib/utils";
-
-export type Connections = Record<string, { isActive?: boolean } | undefined>;
 
 export const selectableRowClasses = (active: boolean): string =>
   cn(
@@ -15,47 +12,26 @@ export const selectableRowClasses = (active: boolean): string =>
       : "border-transparent hover:bg-muted/40",
   );
 
-export const isConnected = (connections: Connections, service: string): boolean =>
-  connections[service]?.isActive === true;
-
 /** The `session.groups` key that backs a group. */
 export const groupToolKeys = (group: ToolGroup): string[] => [group.key];
-
-export const serviceConnected = (
-  group: ToolGroup,
-  connections: Connections,
-): boolean => {
-  const service = group.service ? serviceById(group.service) : undefined;
-  if (!service || service.noAuth) return true;
-  return isConnected(connections, service.id);
-};
 
 export const groupEnabled = (
   session: SessionMeta,
   group: ToolGroup,
-  connections: Connections,
-): boolean => {
-  if (!serviceConnected(group, connections)) return false;
-  return groupToolKeys(group).every(
-    (key) => session.groups?.[key] === true,
-  );
-};
+): boolean =>
+  groupToolKeys(group).every((key) => session.groups?.[key] === true);
 
 /** True when at least one tool of the group is enabled. */
 export const groupAnyEnabled = (
   session: SessionMeta,
   group: ToolGroup,
-  connections: Connections,
-): boolean => {
-  if (!serviceConnected(group, connections)) return false;
-  return groupToolKeys(group).some((key) => session.groups?.[key] === true);
-};
+): boolean =>
+  groupToolKeys(group).some((key) => session.groups?.[key] === true);
 
 export const groupActive = (
   session: SessionMeta,
   group: ToolGroup,
-  connections: Connections,
-): boolean => groupEnabled(session, group, connections);
+): boolean => groupEnabled(session, group);
 
 export const groupsInCategory = (category: Category): ToolGroup[] =>
   TOOL_GROUPS.filter((group) => group.category === category);

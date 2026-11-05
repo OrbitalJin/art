@@ -11,10 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useSessionIndex } from "@/lib/store/session/index-store";
-import {
-  useSettingsStore,
-  useKeysLoading,
-} from "@/lib/store/use-settings-store";
+import { useHasKey, useKeysLoading } from "@/lib/store/use-settings-store";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,9 +31,7 @@ export const WebMenu: React.FC = () => {
   );
   const setGroup = useSessionIndex((state) => state.setGroup);
   const setGroups = useSessionIndex((state) => state.setGroups);
-  const hasKey = useSettingsStore(
-    (state) => (state.keys?.composio.length ?? 0) > 0,
-  );
+  const hasKey = useHasKey("exa");
   const keysLoading = useKeysLoading();
   const { isSending: disabled } = useChatStream();
   const [open, setOpen] = useState(false);
