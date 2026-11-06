@@ -3,7 +3,9 @@ import { Markdown } from "tiptap-markdown";
 import { CharacterCount } from "@tiptap/extension-character-count";
 import { Highlight } from "@tiptap/extension-highlight";
 import { TableKit } from "@tiptap/extension-table";
-import { TagHighlighter } from "@/lib/editor/extensions/tag-highlighter";
+import { Tag } from "@/lib/editor/extensions/tag";
+import { createTagSuggestion } from "@/lib/editor/extensions/tag-suggestion";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { Typography } from "@tiptap/extension-typography";
 import { Youtube } from "@tiptap/extension-youtube";
 import { Link } from "@tiptap/extension-link";
@@ -19,7 +21,8 @@ export const editorExtensions = [
   TableKit,
   Link,
   Highlight,
-  TagHighlighter,
+  Tag,
+  createTagSuggestion(() => useJournalStore.getState().getAllTags()),
   Typography,
   Youtube.configure({
     inline: true,

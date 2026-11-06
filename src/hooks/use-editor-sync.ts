@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Editor } from "@tiptap/react";
 import { useJournalStore } from "@/lib/store/use-journal-store";
-import { tagPluginKey } from "@/lib/editor/extensions/tag-highlighter";
+import { collectTags } from "@/lib/editor/extensions/tag";
 
 const SAVE_DEBOUNCE_MS = 1500;
 
@@ -21,12 +21,11 @@ export const useEditorSync = (
   editorRef.current = editor;
   activeIdRef.current = activeId;
 
-  // Tags are derived from the document by the tag highlighter plugin, so read
-  // them straight from its state instead of re-parsing the markdown output.
+  // Tags live in the document as marks, so extraction is a typed traversal
+  // rather than a second parse of the markdown output.
   const syncTags = useCallback(
     (ed: Editor, id: string) => {
-      const tags = tagPluginKey.getState(ed.state)?.tags;
-      if (tags) updateTags(id, tags);
+      updateTags(id, collectTags(ed.state.doc));
     },
     [updateTags],
   );
