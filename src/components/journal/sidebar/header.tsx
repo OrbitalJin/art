@@ -1,26 +1,21 @@
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WORKSPACES, type Workspace } from "@/lib/store/journal/types";
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
+  AtSign,
   Briefcase,
   Microscope,
   PanelLeftClose,
   Plus,
-  Search,
   User,
   X,
 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { WORKSPACES, type Workspace } from "@/lib/store/journal/types";
 import { useJournalStore } from "@/lib/store/use-journal-store";
-import { useMemo } from "react";
 import { useJournalEditor } from "@/contexts/note-editor-context";
 import { TagFilterDropdown } from "./page/tag/filter-dropdown";
-import { useNavigate } from "react-router-dom";
 
 interface Props {
   onClose: (open: boolean) => void;
@@ -42,20 +37,25 @@ export const SidebarHeader: React.FC<Props> = ({
   const { currentTab, setCurrentTab } = useJournalEditor();
   const navigate = useNavigate();
 
+  const workspacePages = useMemo(
+    () => pages.filter((page) => page.workspace === currentTab),
+    [pages, currentTab],
+  );
+
   const tagCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    pages.forEach((page) => {
+    workspacePages.forEach((page) => {
       page.tags.forEach((tag) => {
         counts[tag] = (counts[tag] || 0) + 1;
       });
     });
     return counts;
-  }, [pages]);
+  }, [workspacePages]);
 
   const allTags = useMemo(() => {
-    const allTags = pages.flatMap((page) => page.tags);
+    const allTags = workspacePages.flatMap((page) => page.tags);
     return [...new Set(allTags)].sort();
-  }, [pages]);
+  }, [workspacePages]);
 
   const getTagCount = (tag: string) => tagCounts[tag] || 0;
 
@@ -64,49 +64,39 @@ export const SidebarHeader: React.FC<Props> = ({
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
     );
   };
+
+  const handleCreate = () => {
+    create(currentTab);
+    navigate("/journal");
+  };
+
+  const clearTag = (tag: string) => {
+    setSelectedTags((prev) => prev.filter((t) => t !== tag));
+  };
+
   return (
-    <div>
-      <div className="flex flex-row p-2 gap-2 border-b">
+    <div className="flex flex-col">
+      <div className="flex border-b border-border/50 p-2 gap-2">
         <Button
           variant="outline"
-          className="flex-1"
-          onClick={() => {
-            create(currentTab);
-            navigate("/journal");
-          }}
+          className="flex-1 items-center"
+          onClick={handleCreate}
         >
-          <Plus />
-          New Page
+          <Plus className="h-4 w-4" /> New Page
         </Button>
-        <Button size="icon" variant="outline" onClick={() => onClose(false)}>
+        <Button variant="outline" size="icon" onClick={() => onClose(false)}>
           <PanelLeftClose />
         </Button>
       </div>
-      <div className="flex p-2 border-b gap-2">
-        <div
-          className={cn(
-            "flex-1 flex flex-row px-2 gap-2 items-center",
-            "bg-card border text-foreground/70 text-sm rounded-md",
-          )}
-        >
-          <Search size={16} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="outline-none flex-1"
-            placeholder="Search journal..."
-          />
-          {query && (
-            <X
-              size={16}
-              className="cursor-pointer text-muted-foreground hover:text-foreground"
-              onClick={() => setQuery("")}
-            />
-          )}
-        </div>
 
-        <Tooltip>
-          <TooltipTrigger>
+      <div className="flex flex-col border-b border-border/50 bg-card/30">
+        <div className="flex items-center gap-2 p-2 px-3 flex-1">
+          <div
+            className={cn(
+              "flex flex-1 flex-row items-center gap-2",
+              "text-foreground/70 text-sm rounded-md",
+            )}
+          >
             <TagFilterDropdown
               allTags={allTags}
               selectedTags={selectedTags}
@@ -114,15 +104,52 @@ export const SidebarHeader: React.FC<Props> = ({
               onClearAll={() => setSelectedTags([])}
               getTagCount={getTagCount}
             />
-          </TooltipTrigger>
-          <TooltipContent side="right">Filter by tags</TooltipContent>
-        </Tooltip>
-      </div>
-      <div
-        className={cn(
-          "flex-1 flex flex-row p-2 items-center border-b bg-card/50 justify-center",
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="outline-none flex-1 p-1"
+              placeholder="Search journal..."
+            />
+            {query && (
+              <X
+                size={16}
+                className="cursor-pointer text-muted-foreground hover:text-foreground"
+                onClick={() => setQuery("")}
+              />
+            )}
+          </div>
+        </div>
+
+        {selectedTags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1 px-3 pb-2">
+            {selectedTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => clearTag(tag)}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full bg-background/70 py-0.5 pl-2 pr-1.5",
+                  "text-[11px] text-foreground/80 ring-1 ring-border/50",
+                  "transition-colors hover:bg-background hover:text-foreground",
+                )}
+              >
+                <AtSign className="size-3 opacity-60" />
+                {tag}
+                <X className="size-3 opacity-60" />
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setSelectedTags([])}
+              className="ml-0.5 text-[11px] text-muted-foreground transition-colors hover:text-destructive"
+            >
+              Clear
+            </button>
+          </div>
         )}
-      >
+      </div>
+
+      <div className="flex border-b border-border/50 bg-card/50 p-2">
         <Tabs
           className="flex-1"
           defaultValue={currentTab}
@@ -130,7 +157,7 @@ export const SidebarHeader: React.FC<Props> = ({
             setCurrentTab(v as Workspace);
           }}
         >
-          <TabsList className="flex-1 w-full bg-transparent! p-0">
+          <TabsList className="flex-1 w-full bg-transparent! p-0 gap-2">
             {WORKSPACES.map((workspace) => (
               <TabsTrigger key={workspace} value={workspace} className="flex-1">
                 {workspace === "work" ? (

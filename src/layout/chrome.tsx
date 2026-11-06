@@ -193,7 +193,7 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
 
   const wrapperClassName = cn(
     "relative pointer-events-auto transition-opacity duration-200",
-    "opacity-70 hover:opacity-100",
+    "opacity-80 hover:opacity-100",
   );
 
   const pillClassName = cn(

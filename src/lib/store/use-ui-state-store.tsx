@@ -16,7 +16,10 @@ interface ChatState {
 interface JournalState {
   sidebarOpen: boolean;
   pinnedOpen: boolean;
-  sessionsOpen: boolean;
+  todayOpen: boolean;
+  yesterdayOpen: boolean;
+  last7DaysOpen: boolean;
+  olderOpen: boolean;
   archivedOpen: boolean;
   zoomLevel: number;
 }
@@ -53,7 +56,10 @@ export const useUIStateStore = create<SettingsState>()(
       journalState: {
         sidebarOpen: false,
         pinnedOpen: true,
-        sessionsOpen: true,
+        todayOpen: true,
+        yesterdayOpen: true,
+        last7DaysOpen: true,
+        olderOpen: true,
         archivedOpen: false,
         zoomLevel: 100,
       },
@@ -69,7 +75,7 @@ export const useUIStateStore = create<SettingsState>()(
     }),
     {
       name: "ui-state-storage",
-      version: 3,
+      version: 4,
       storage: createSettingsStorage<PersistedUIState>(),
       partialize: (state): PersistedUIState => ({
         chatState: state.chatState,
@@ -83,6 +89,19 @@ export const useUIStateStore = create<SettingsState>()(
         };
         if (version < 3) {
           delete state.captureState;
+        }
+        if (version < 4) {
+          const journal = (state.journalState ?? {}) as Record<string, unknown>;
+          state.journalState = {
+            sidebarOpen: (journal.sidebarOpen as boolean) ?? false,
+            pinnedOpen: (journal.pinnedOpen as boolean) ?? true,
+            archivedOpen: (journal.archivedOpen as boolean) ?? false,
+            zoomLevel: (journal.zoomLevel as number) ?? 100,
+            todayOpen: true,
+            yesterdayOpen: true,
+            last7DaysOpen: true,
+            olderOpen: true,
+          };
         }
         return state as SettingsState;
       },

@@ -1,16 +1,21 @@
+import { useMemo, useState } from "react";
+import { MoreHorizontal } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { cn, formatDateAsAgo } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuPortal,
+  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,243 +25,206 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-import {
-  ArrowRightLeft,
-  MoreVertical,
-  TextCursor,
-  Trash2,
-  Loader2,
-  PinOff,
-  Pin,
-  Archive,
-  ArchiveRestore,
-  Wand2,
-  Download,
-} from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 import { useJournalStore } from "@/lib/store/use-journal-store";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { toast } from "sonner";
-import { TagList } from "@/components/journal/sidebar/page/tag/list";
 import { WORKSPACES } from "@/lib/store/journal/types";
+import { countWords } from "@/lib/store/journal/content";
 import { useGeneratePageTitle } from "@/hooks/use-generate-page-title";
 import { useTradeJournal } from "@/hooks/use-trade-journal";
-import { useNavigate } from "react-router-dom";
 
-interface Props extends React.HTMLAttributes<HTMLDivElement> {
+interface Props {
   id: string;
   title: string;
   pinned?: boolean;
   active: boolean;
-  createdAt: number;
+  updatedAt: number;
   tags: string[];
-  onSwitch?: () => void;
+  content: string;
 }
 
-export const PageListItem: React.FC<Props> = ({
-  id,
-  title,
-  active,
-  pinned,
-  createdAt,
-  tags,
-}) => {
-  const updateTitle = useJournalStore((state) => state.updateTitle);
-  const { generating, generateTitle } = useGeneratePageTitle();
-  const navigate = useNavigate();
+const MAX_VISIBLE_TAGS = 3;
 
-  const [editing, setEditing] = useState(false);
-  const [text, setText] = useState(title);
+const formatWords = (count: number) =>
+  `${count.toLocaleString()} ${count === 1 ? "word" : "words"}`;
 
-  const cancel = () => {
-    setText(title);
-    setEditing(false);
+const stopPropagation = (event: React.SyntheticEvent) => {
+  event.stopPropagation();
+};
+
+const TitleInput: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}> = ({ value, onChange, onSubmit, onCancel }) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing) return;
+    if (event.key === "Enter") onSubmit();
+    if (event.key === "Escape") onCancel();
   };
 
-  const handleSubmit = () => {
-    if (!text.trim()) {
-      setText(title);
-      setEditing(false);
-      return;
-    }
-    updateTitle(id, text.trim());
-    setEditing(false);
-  };
+  const inputClassName = cn(
+    "-mx-1.5 h-6 min-w-0 flex-1 rounded-md bg-background/60 px-1.5",
+    "text-[13px] text-foreground ring-1 ring-ring/40 outline-none",
+  );
 
   return (
-    <div
-      className={cn(
-        "flex flex-row p-2 group items-center justify-between opacity-80",
-        "transition-colors hover:bg-accent/30 rounded-md",
-        editing && "text-accent-foreground",
-        active &&
-          "bg-accent/20 font-medium ring-1 ring-inset ring-foreground/5",
-      )}
-      onClick={() => {
-        if (!editing && !generating) {
-          navigate(`/journal/${id}`);
-        }
-      }}
-    >
-      <div className="flex-1 flex flex-col gap-2">
-        {generating ? (
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
-            <p className="shimmer text-sm truncate">Generating title...</p>
-          </div>
-        ) : editing ? (
-          <input
-            autoFocus
-            value={text}
-            onBlur={cancel}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSubmit();
-              if (e.key === "Escape") cancel();
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className="w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm"
-          />
-        ) : (
-          <p className="text-sm">{title}</p>
-        )}
-        <p className="text-xs text-foreground/70">{formatDate(createdAt)}</p>
-        {tags.length > 0 && <TagList active={active} tags={tags} />}
-      </div>
-
-      {!editing && !generating && (
-        <Menu
-          id={id}
-          pinned={!!pinned}
-          setEditing={setEditing}
-          setText={setText}
-          updateTitle={updateTitle}
-          generateTitle={generateTitle}
-        />
-      )}
-    </div>
+    <input
+      type="text"
+      value={value}
+      autoFocus
+      aria-label="Page title"
+      onChange={(event) => onChange(event.target.value)}
+      onBlur={onCancel}
+      onKeyDown={handleKeyDown}
+      className={inputClassName}
+    />
   );
 };
 
-interface MenuProps {
-  id: string;
-  pinned: boolean;
-  setEditing: (val: boolean) => void;
-  setText: (text: string) => void;
-  updateTitle: (id: string, title: string) => void;
-  generateTitle: (id: string) => Promise<string | void>;
-}
+const DeleteDialog: React.FC<{
+  open: boolean;
+  title: string;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+}> = ({ open, title, onOpenChange, onConfirm }) => (
+  <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialogContent size="sm">
+      <AlertDialogHeader>
+        <AlertDialogTitle>Delete this page?</AlertDialogTitle>
+        <AlertDialogDescription className="break-words">
+          <span className="font-medium text-foreground">“{title}”</span> will be
+          permanently deleted. This can't be undone.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction variant="destructive" onClick={onConfirm}>
+          Delete
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+);
 
-const Menu: React.FC<MenuProps> = ({
-  id,
-  pinned,
-  setEditing,
-  setText,
-  updateTitle,
-  generateTitle,
-}) => {
+const MenuTrigger: React.FC = () => {
+  const triggerClassName = cn(
+    "size-6 rounded-md text-muted-foreground/70 opacity-0 transition-opacity duration-150",
+    "group-hover:opacity-100 group-focus-within:opacity-100",
+    "focus-visible:opacity-100 data-[state=open]:opacity-100",
+    "hover:bg-accent/60 hover:text-foreground",
+  );
+
+  return (
+    <DropdownMenuTrigger asChild>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className={triggerClassName}
+        onClick={stopPropagation}
+      >
+        <MoreHorizontal strokeWidth={1.75} className="size-4" />
+        <span className="sr-only">Page options</span>
+      </Button>
+    </DropdownMenuTrigger>
+  );
+};
+
+const PageMenu: React.FC<{
+  id: string;
+  title: string;
+  pinned: boolean;
+  onRename: () => void;
+  onGenerate: () => void;
+  onOpenChange?: (open: boolean) => void;
+}> = ({ id, title, pinned, onRename, onGenerate, onOpenChange }) => {
+  const togglePinned = useJournalStore((state) => state.togglePinned);
+  const toggleArchived = useJournalStore((state) => state.toggleArchived);
   const changeWorkspace = useJournalStore((state) => state.changeWorkspace);
   const deleteFn = useJournalStore((state) => state.deleteFn);
-  const togglePin = useJournalStore((state) => state.togglePinned);
-  const toggleArchived = useJournalStore((state) => state.toggleArchived);
-  const setActive = useJournalStore((state) => state.setActive);
   const page = useJournalStore((state) => state.getFn(id));
-
   const { exportPage } = useTradeJournal();
 
-  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const handleGenerate = async (e: Event) => {
-    e.preventDefault();
-    setOpen(false);
-    const newTitle = await generateTitle(id);
-    if (newTitle) {
-      setText(newTitle);
-      updateTitle(id, newTitle);
-    }
+  const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    onOpenChange?.(next);
+  };
+
+  const handleDeleteSelect = (event: Event) => {
+    event.preventDefault();
+    handleOpenChange(false);
+    requestAnimationFrame(() => setConfirmOpen(true));
   };
 
   const handleDelete = () => {
+    setConfirmOpen(false);
+    if (id === useJournalStore.getState().activeId) {
+      navigate("/journal", { replace: true });
+    }
     deleteFn(id);
     toast.success("Page deleted successfully.");
-    setOpen(false);
   };
 
-  return (
-    <AlertDialog>
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="link"
-            size="icon"
-            className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
+  const contentClassName = cn(
+    "w-44 rounded-xl border-border/40 bg-popover/80 p-1",
+    "shadow-lg shadow-black/10 backdrop-blur-2xl",
+  );
 
-        <DropdownMenuContent
-          align="end"
-          className="w-52"
-          onClick={(e) => e.stopPropagation()}
-        >
+  const itemClassName = "rounded-lg";
+
+  const deleteClassName = cn(
+    itemClassName,
+    "text-destructive focus:bg-destructive/10 focus:text-destructive",
+  );
+
+  return (
+    <>
+      <DropdownMenu open={open} onOpenChange={handleOpenChange}>
+        <MenuTrigger />
+
+        <DropdownMenuContent align="end" className={contentClassName}>
           {!page?.archived && (
             <>
-              {/* Edit actions */}
               <DropdownMenuGroup>
                 <DropdownMenuItem
-                  onSelect={() => togglePin(id)}
-                  className="gap-2.5"
+                  className={itemClassName}
+                  onSelect={() => togglePinned(id)}
                 >
-                  {pinned ? (
-                    <PinOff className="h-3.5 w-3.5 text-muted-foreground" />
-                  ) : (
-                    <Pin className="h-3.5 w-3.5 text-muted-foreground" />
-                  )}
-                  <span>{pinned ? "Unpin" : "Pin"}</span>
+                  {pinned ? "Unpin" : "Pin"}
                 </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  className="gap-2.5"
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    setActive(id);
-                    setEditing(true);
-                    setOpen(false);
-                  }}
-                >
-                  <TextCursor className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span>Rename</span>
+                <DropdownMenuItem className={itemClassName} onSelect={onRename}>
+                  Rename
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />
 
-              {/* AI + organization */}
               <DropdownMenuGroup>
-                <DropdownMenuItem className="gap-2.5" onSelect={handleGenerate}>
-                  <Wand2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span>Generate Title</span>
+                <DropdownMenuItem
+                  className={itemClassName}
+                  onSelect={onGenerate}
+                >
+                  Generate Title
                 </DropdownMenuItem>
-
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="gap-2.5">
-                    <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span>Move to</span>
+                  <DropdownMenuSubTrigger className={itemClassName}>
+                    Move to
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
+                    <DropdownMenuSubContent className={contentClassName}>
                       {WORKSPACES.map(
                         (workspace) =>
                           workspace !== page?.workspace && (
                             <DropdownMenuItem
                               key={workspace}
+                              className={itemClassName}
                               onSelect={() => changeWorkspace(id, workspace)}
                             >
                               {workspace.charAt(0).toUpperCase() +
@@ -273,64 +241,232 @@ const Menu: React.FC<MenuProps> = ({
             </>
           )}
 
-          {/* Page-level actions */}
           <DropdownMenuGroup>
             <DropdownMenuItem
+              className={itemClassName}
               onSelect={() => exportPage(id)}
-              className="gap-2.5"
             >
-              <Download className="h-3.5 w-3.5 text-muted-foreground" />
-              <span>Export</span>
+              Export
             </DropdownMenuItem>
-
             <DropdownMenuItem
+              className={itemClassName}
               onSelect={() => toggleArchived(id)}
-              className="gap-2.5"
             >
-              {page?.archived ? (
-                <ArchiveRestore className="h-3.5 w-3.5 text-muted-foreground" />
-              ) : (
-                <Archive className="h-3.5 w-3.5 text-muted-foreground" />
-              )}
-              <span>{page?.archived ? "Unarchive" : "Archive"}</span>
+              {page?.archived ? "Unarchive" : "Archive"}
             </DropdownMenuItem>
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
 
-          <AlertDialogTrigger asChild>
-            <DropdownMenuItem
-              className="gap-2.5 text-destructive focus:bg-destructive/10 focus:text-destructive"
-              onSelect={(e) => e.preventDefault()}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              <span>Delete</span>
-            </DropdownMenuItem>
-          </AlertDialogTrigger>
+          <DropdownMenuItem
+            className={deleteClassName}
+            onSelect={handleDeleteSelect}
+          >
+            Delete
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialogContent size="sm" onClick={(e) => e.stopPropagation()}>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            entry.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setOpen(false)}>
-            Cancel
-          </AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            onClick={handleDelete}
-          >
-            Delete
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      <DeleteDialog
+        open={confirmOpen}
+        title={title}
+        onOpenChange={setConfirmOpen}
+        onConfirm={handleDelete}
+      />
+    </>
+  );
+};
+
+// pointer-events-none: the label fades out on hover but would otherwise keep
+// intercepting clicks meant for the menu button underneath it.
+const RowTime: React.FC<{
+  label: string;
+  swapWithMenu: boolean;
+  hidden: boolean;
+}> = ({ label, swapWithMenu, hidden }) => {
+  const timeClassName = cn(
+    "pointer-events-none col-start-1 row-start-1",
+    "text-[11px] tabular-nums text-muted-foreground/70",
+    "transition-opacity duration-150",
+    swapWithMenu && "group-hover:opacity-0 group-focus-within:opacity-0",
+    hidden && "opacity-0",
+  );
+
+  return <span className={timeClassName}>{label}</span>;
+};
+
+const MetaLine: React.FC<{ wordCount: number }> = ({ wordCount }) => {
+  const isEmpty = wordCount === 0;
+  const label = isEmpty ? "Empty" : formatWords(wordCount);
+
+  const metaClassName = cn(
+    "text-[11px] tabular-nums",
+    isEmpty ? "italic text-muted-foreground/40" : "text-muted-foreground/60",
+  );
+
+  return <p className={metaClassName}>{label}</p>;
+};
+
+const TagChips: React.FC<{ tags: string[]; hiddenCount: number }> = ({
+  tags,
+  hiddenCount,
+}) => {
+  const chipClassName = cn(
+    "max-w-full truncate rounded-md bg-muted/50 px-1.5 py-0.5",
+    "text-[10px] text-muted-foreground",
+  );
+
+  const overflowClassName = cn(
+    "rounded-md px-1 py-0.5 text-[10px] tabular-nums text-muted-foreground/60",
+  );
+
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-1">
+      {tags.map((tag) => (
+        <span key={tag} className={chipClassName}>
+          @{tag}
+        </span>
+      ))}
+      {hiddenCount > 0 && (
+        <span className={overflowClassName}>+{hiddenCount}</span>
+      )}
+    </div>
+  );
+};
+
+export const PageListItem: React.FC<Props> = ({
+  id,
+  title,
+  pinned,
+  active,
+  updatedAt,
+  tags,
+  content,
+}) => {
+  const updateTitle = useJournalStore((state) => state.updateTitle);
+  const { generating, generateTitle } = useGeneratePageTitle();
+  const navigate = useNavigate();
+
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(title);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const canOpen = !editing && !generating;
+  const showMenu = canOpen;
+  const hideTime = showMenu && menuOpen;
+  const timeLabel = formatDateAsAgo(updatedAt);
+
+  const wordCount = useMemo(() => countWords(content), [content]);
+  const visibleTags = tags.slice(0, MAX_VISIBLE_TAGS);
+  const hiddenTagCount = Math.max(0, tags.length - MAX_VISIBLE_TAGS);
+  const hasTags = tags.length > 0;
+
+  const handleStartEditing = () => {
+    setText(title);
+    setEditing(true);
+  };
+
+  const handleCancel = () => {
+    setText(title);
+    setEditing(false);
+  };
+
+  const handleSubmit = () => {
+    const trimmed = text.trim();
+    if (trimmed && trimmed !== title) {
+      updateTitle(id, trimmed);
+    }
+    setEditing(false);
+  };
+
+  const handleOpen = () => {
+    if (!canOpen) return;
+    navigate(`/journal/${id}`);
+  };
+
+  const handleGenerate = () => {
+    void generateTitle(id);
+  };
+
+  const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpen();
+    }
+  };
+
+  const rowClassName = cn(
+    "group relative flex w-full max-w-full min-w-0 flex-col gap-1.5 overflow-hidden",
+    "rounded-lg px-3 py-2.5 text-[13px] select-none outline-none",
+    "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
+    canOpen ? "cursor-pointer" : "cursor-default",
+    active
+      ? "bg-accent/50 text-foreground"
+      : "text-foreground/70 hover:bg-accent/30 hover:text-foreground",
+  );
+
+  const titleClassName = cn(
+    "block min-w-0 flex-1 truncate font-medium",
+    active ? "text-foreground" : "text-foreground/85",
+    generating && "shimmer font-normal text-muted-foreground",
+  );
+
+  const titleLabel = generating ? "Generating title…" : title;
+
+  return (
+    <div
+      tabIndex={0}
+      aria-current={active ? "page" : undefined}
+      onClick={handleOpen}
+      onKeyDown={handleRowKeyDown}
+      className={rowClassName}
+    >
+      <div className="flex w-full min-w-0 items-center gap-2">
+        {generating && <Spinner />}
+
+        {editing ? (
+          <TitleInput
+            value={text}
+            onChange={setText}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+          />
+        ) : (
+          <span title={titleLabel} className={titleClassName}>
+            {titleLabel}
+          </span>
+        )}
+
+        <div
+          className="relative grid shrink-0 items-center justify-items-end"
+          onClick={stopPropagation}
+          onKeyDown={stopPropagation}
+        >
+          <RowTime
+            label={timeLabel}
+            swapWithMenu={showMenu}
+            hidden={hideTime}
+          />
+
+          {showMenu && (
+            <div className="relative col-start-1 row-start-1">
+              <PageMenu
+                id={id}
+                title={title}
+                pinned={!!pinned}
+                onRename={handleStartEditing}
+                onGenerate={handleGenerate}
+                onOpenChange={setMenuOpen}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <MetaLine wordCount={wordCount} />
+
+      {hasTags && <TagChips tags={visibleTags} hiddenCount={hiddenTagCount} />}
+    </div>
   );
 };

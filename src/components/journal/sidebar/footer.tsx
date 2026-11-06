@@ -1,5 +1,6 @@
-// sidebar-footer.tsx
+import { useMemo } from "react";
 import { Check, Copy } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -9,112 +10,78 @@ import {
 import { useJournalEditor } from "@/contexts/note-editor-context";
 import { useCopy } from "@/hooks/use-copy";
 import { useJournalStore } from "@/lib/store/use-journal-store";
+import { countWords } from "@/lib/store/journal/content";
 import { cn } from "@/lib/utils";
 
-const formatCount = (value: number, singular: string, plural: string) =>
+const ActionButton: React.FC<{
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  icon: LucideIcon;
+  active?: boolean;
+}> = ({ label, onClick, disabled, icon: Icon, active }) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        aria-label={label}
+        disabled={disabled}
+        onClick={onClick}
+        className={cn(
+          "size-6 shrink-0 text-muted-foreground hover:text-foreground",
+          active && "text-emerald-500 hover:text-emerald-500",
+        )}
+      >
+        <Icon className="size-3.5" />
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent side="top">{label}</TooltipContent>
+  </Tooltip>
+);
+
+const formatStat = (value: number, singular: string, plural: string) =>
   `${value.toLocaleString()} ${value === 1 ? singular : plural}`;
 
-const ModeToggle: React.FC<{
-  editable: boolean;
-  disabled: boolean;
-  onChange: (editable: boolean) => void;
-}> = ({ editable, disabled, onChange }) => {
-  const optionClasses = (selected: boolean) =>
-    cn(
-      "h-full flex-1 cursor-pointer rounded-full text-xs outline-none",
-      "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
-      selected
-        ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
-        : "text-muted-foreground hover:text-foreground",
-    );
-
-  return (
-    <div
-      role="radiogroup"
-      aria-label="Editor mode"
-      className="flex h-8 flex-1 items-center rounded-full bg-foreground/5 p-0.5 ring-1 ring-border/50"
-    >
-      <button
-        type="button"
-        role="radio"
-        aria-checked={editable}
-        disabled={disabled}
-        onClick={() => onChange(true)}
-        className={optionClasses(editable)}
-      >
-        Edit
-      </button>
-      <button
-        type="button"
-        role="radio"
-        aria-checked={!editable}
-        disabled={disabled}
-        onClick={() => onChange(false)}
-        className={optionClasses(!editable)}
-      >
-        Read
-      </button>
-    </div>
-  );
-};
-
 export const SidebarFooter = () => {
-  const { isEditable, isDisabled, wordCount, charCount, toggleEditable } =
-    useJournalEditor();
+  const { currentTab } = useJournalEditor();
+  const pages = useJournalStore((state) => state.pages);
   const currentNote = useJournalStore((state) =>
     state.getFn(state.activeId ?? ""),
   );
   const content = currentNote?.content ?? "";
   const { copy, copied } = useCopy(content);
 
-  const handleModeChange = (editable: boolean) => {
-    if (editable !== isEditable) toggleEditable();
-  };
-
-  const containerClasses = cn(
-    "flex flex-col gap-3 border-t border-border/50 p-3",
-    isDisabled && "pointer-events-none opacity-60",
-  );
+  const stats = useMemo(() => {
+    const workspacePages = pages.filter(
+      (page) => page.workspace === currentTab,
+    );
+    const words = workspacePages.reduce(
+      (total, page) => total + countWords(page.content),
+      0,
+    );
+    return { count: workspacePages.length, words };
+  }, [pages, currentTab]);
 
   return (
-    <footer className={containerClasses}>
-      <p className="text-[11px] text-muted-foreground/70 tabular-nums">
-        {formatCount(wordCount, "word", "words")}
+    <footer className="flex items-center justify-between gap-2 border-t border-border/50 px-3 py-2">
+      <p className="min-w-0 truncate text-[11px] text-muted-foreground/70 tabular-nums">
+        {formatStat(stats.count, "page", "pages")}
         <span aria-hidden className="mx-1.5">
           ·
         </span>
-        {formatCount(charCount, "character", "characters")}
+        {formatStat(stats.words, "word", "words")}
       </p>
 
-      <div className="flex items-center gap-2">
-        <ModeToggle
-          editable={isEditable}
-          disabled={isDisabled}
-          onChange={handleModeChange}
+      <div className="flex shrink-0 items-center gap-0.5">
+        <ActionButton
+          label={copied ? "Copied" : "Copy note"}
+          onClick={copy}
+          disabled={!content}
+          icon={copied ? Check : Copy}
+          active={copied}
         />
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              aria-label="Copy note"
-              disabled={isDisabled || !content}
-              onClick={copy}
-              className="size-8 shrink-0 text-muted-foreground hover:text-foreground"
-            >
-              {copied ? (
-                <Check className="size-4 text-emerald-500" />
-              ) : (
-                <Copy className="size-4" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            {copied ? "Copied" : "Copy note"}
-          </TooltipContent>
-        </Tooltip>
       </div>
     </footer>
   );

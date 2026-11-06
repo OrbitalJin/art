@@ -140,7 +140,7 @@ export const AccessControl: React.FC<{ disabled: boolean }> = ({
   );
 
   return (
-    <HoverCard openDelay={1000} closeDelay={100}>
+    <HoverCard openDelay={2000} closeDelay={100}>
       <HoverCardTrigger asChild>
         <div
           role="radiogroup"
