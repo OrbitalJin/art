@@ -6,6 +6,9 @@ import type {
   MessageStatus,
 } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
+import type { JournalRef } from "@/lib/journal/ref";
+import { format } from "@/lib/ai/prompts/format";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { sessionDataStore } from "@/lib/store/session/data-store";
 import { appendMessage } from "@/lib/store/session/commands";
@@ -43,11 +46,25 @@ function attachmentToPart(attachment: ChatAttachment) {
   };
 }
 
+const journalEntries = (refs: JournalRef[]) =>
+  refs.map((ref) => {
+    const page = useJournalStore.getState().getFn(ref.id);
+    return {
+      id: ref.id,
+      title: page?.title ?? ref.title,
+      content: page?.content ?? "",
+    };
+  });
+
 function toSDKMessages(messages: Message[]) {
   return messages
     .filter((m) => m.role === "user" || m.role === "assistant")
     .map((m) => {
-      const text = messageText(m);
+      const base = messageText(m);
+      const text =
+        m.role === "user" && m.refs?.length
+          ? base + format.journalRefs(journalEntries(m.refs))
+          : base;
       if (m.role === "user" && m.attachments?.length) {
         return {
           role: "user" as const,
@@ -68,6 +85,7 @@ export async function sendToSession(
   sessionId: string,
   text: string,
   attachments?: ChatAttachment[],
+  refs?: JournalRef[],
 ): Promise<void> {
   const apiKey = useSettingsStore.getState().keys?.gateway;
   if (!apiKey) {
@@ -128,12 +146,16 @@ export async function sendToSession(
         ? history.slice(0, -1)
         : history;
 
+    const currentText = refs?.length
+      ? text + format.journalRefs(journalEntries(refs))
+      : text;
+
     const currentUserContent = attachments?.length
       ? [
-          { type: "text" as const, text },
+          { type: "text" as const, text: currentText },
           ...attachments.map(attachmentToPart),
         ]
-      : text;
+      : currentText;
 
     stream = streamText({
       model: createGateway({ apiKey, fetch: nativeFetch })(

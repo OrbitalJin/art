@@ -15,3 +15,21 @@
   pointer-events: none;
   @apply text-muted-foreground/80;
 }
+
+/* Journal reference chip inserted by the "#" picker. */
+.composer .journal-ref-chip {
+  display: inline-block;
+  padding: 0 0.4em;
+  border-radius: 0.375rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 38%, transparent);
+  background: color-mix(in oklab, var(--primary) 16%, transparent);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.85em;
+  white-space: nowrap;
+} 
+
+.composer .journal-ref-chip.ProseMirror-selectednode {
+  outline: 2px solid color-mix(in oklab, var(--primary) 45%, transparent);
+  outline-offset: 1px;
+}

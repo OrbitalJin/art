@@ -7,6 +7,7 @@ import {
   Download,
   File as FileIcon,
   FileText,
+  Hash,
   Undo2,
   GitBranch,
   Pencil,
@@ -15,6 +16,8 @@ import {
 import { Renderer } from "./renderer";
 import type { ChatAttachment, Message } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
+import type { JournalRef } from "@/lib/journal/ref";
+import { useNavigate } from "react-router-dom";
 import { attachmentTypeLabel, isPdfMedia } from "@/lib/utils/images";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
@@ -276,6 +279,34 @@ const MessageAttachments: React.FC<{ attachments: MessageAttachment[] }> = ({
   );
 };
 
+/* ------------------------------ Journal refs ------------------------------ */
+
+const MessageRefs: React.FC<{ refs: JournalRef[] }> = ({ refs }) => {
+  const navigate = useNavigate();
+  if (refs.length === 0) return null;
+
+  return (
+    <div className="flex w-full flex-wrap justify-end gap-1.5">
+      {refs.map((ref) => (
+        <button
+          key={ref.id}
+          type="button"
+          onClick={() => navigate(`/journal/${ref.id}`)}
+          title={ref.title}
+          className={cn(
+            "inline-flex max-w-[280px] items-center gap-1 rounded-md border px-2 py-1 text-xs",
+            "border-primary/40 bg-primary/10 text-primary transition-colors",
+            "hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-ring",
+          )}
+        >
+          <Hash className="size-3 shrink-0" />
+          <span className="truncate">{ref.title}</span>
+        </button>
+      ))}
+    </div>
+  );
+};
+
 /* -------------------------------- Edit box -------------------------------- */
 
 const EditBox: React.FC<{
@@ -439,6 +470,7 @@ export const UserMessage: React.FC<Message> = (message) => {
       ) : (
         <>
           <MessageAttachments attachments={attachments} />
+          <MessageRefs refs={message.refs ?? []} />
 
           {content && (
             <div

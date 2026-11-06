@@ -17,6 +17,11 @@ import {
   createStashSuggestion,
   type StashPickerState,
 } from "./stash/stash-suggestion";
+import { JournalRefNode } from "./journal/journal-ref";
+import {
+  createJournalSuggestion,
+  type JournalPickerState,
+} from "./journal/journal-suggestion";
 
 export interface ComposerHandle {
   focus: () => void;
@@ -35,6 +40,8 @@ interface ComposerEditorProps {
   enterKeySends: boolean;
   /** Enable the inline "@" stash picker (agent sessions only). */
   stashSuggestion?: boolean;
+  /** Enable the inline "#" journal reference picker (agent sessions only). */
+  journalSuggestion?: boolean;
   /** Intercept paste before Tiptap handles it. Return true when consumed. */
   onPaste?: (event: ClipboardEvent) => boolean;
   className?: string;
@@ -57,6 +64,7 @@ export const ComposerEditor = forwardRef<ComposerHandle, ComposerEditorProps>(
       onSend,
       enterKeySends,
       stashSuggestion,
+      journalSuggestion,
       onPaste,
       className,
     },
@@ -64,6 +72,10 @@ export const ComposerEditor = forwardRef<ComposerHandle, ComposerEditorProps>(
   ) => {
     const editorRef = useRef<Editor | null>(null);
     const stashPickerRef = useRef<StashPickerState>({
+      active: false,
+      count: 0,
+    });
+    const journalPickerRef = useRef<JournalPickerState>({
       active: false,
       count: 0,
     });
@@ -107,9 +119,13 @@ export const ComposerEditor = forwardRef<ComposerHandle, ComposerEditorProps>(
         Placeholder.configure({
           placeholder: () => placeholderRef.current,
         }),
+        JournalRefNode,
         ...(stashSuggestion ? [createStashSuggestion(stashPickerRef)] : []),
+        ...(journalSuggestion
+          ? [createJournalSuggestion(journalPickerRef)]
+          : []),
       ],
-      [stashSuggestion],
+      [stashSuggestion, journalSuggestion],
     );
 
     const editor = useEditor({
@@ -129,9 +145,11 @@ export const ComposerEditor = forwardRef<ComposerHandle, ComposerEditorProps>(
         handleKeyDown: (_view: EditorView, event: KeyboardEvent) => {
           if (event.isComposing || event.key !== "Enter") return false;
 
-          // Let the stash picker consume Enter while it can select an entry.
-          const picker = stashPickerRef.current;
-          if (picker.active && picker.count > 0) return false;
+          // Let a picker consume Enter while it can select an entry.
+          const stash = stashPickerRef.current;
+          if (stash.active && stash.count > 0) return false;
+          const journal = journalPickerRef.current;
+          if (journal.active && journal.count > 0) return false;
 
           const { onSend: send, enterKeySends: sendsOnEnter } =
             handlersRef.current;

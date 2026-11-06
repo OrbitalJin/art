@@ -1,6 +1,7 @@
 import type { ModelId } from "@/lib/ai/models";
 import type { PersonaId } from "@/lib/ai/prompts/personas";
 import type { FsRoot } from "@/lib/fs";
+import type { JournalRef } from "@/lib/journal/ref";
 
 export type SessionType = "chat" | "agent";
 
@@ -119,6 +120,8 @@ export interface Message {
   // persisted messages still render.
   reasoning?: string;
   attachments?: ChatAttachment[];
+  /** Journal entries the user referenced when sending this message. */
+  refs?: JournalRef[];
   tokenUsage: TokenUsage;
   createdAt?: number;
 }

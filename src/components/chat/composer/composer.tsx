@@ -174,7 +174,7 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
   const showSendButton = isSending || canSend;
 
   const placeholder = isAgent
-    ? "Give your agent a task, @ stash."
+    ? "Give your agent a task. @ stash, # journal."
     : "Ask anything…";
 
   const handleSend = () => {
@@ -254,6 +254,7 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
             onSend={handleSend}
             enterKeySends={enterKeySends}
             stashSuggestion={isAgent}
+            journalSuggestion={isAgent}
             onPaste={handlePaste}
           />
 

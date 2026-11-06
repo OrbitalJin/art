@@ -8,6 +8,7 @@ import { doneTools } from "./done";
 import { planTools } from "./plan";
 import { youtubeTools } from "./youtube";
 import { fetchMacrosTools, nutritionTools } from "./nutrition";
+import { journalTools } from "./journal";
 import { applyPolicy } from "./policy";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 
@@ -33,6 +34,7 @@ export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
     ...nutrition,
     ...macros,
     ...doneTools(),
+    ...journalTools(),
     ...(on.plan ? planTools(session.id) : {}),
     ...(on.askUser ? askUserTools(session.id) : {}),
     ...(on.youtube ? youtubeTools() : {}),

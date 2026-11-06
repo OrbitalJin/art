@@ -11,6 +11,12 @@ import type {
   Message,
 } from "@/lib/store/session/types";
 import { toPersistedAttachment } from "@/lib/upload/pocketbase";
+import {
+  parseJournalRefIds,
+  stripJournalRefs,
+  type JournalRef,
+} from "@/lib/journal/ref";
+import { useJournalStore } from "@/lib/store/use-journal-store";
 const loadSendToSession = () => import("@/lib/ai/stream/send-stream");
 import {
   STREAMING_MESSAGE_ID,
@@ -37,6 +43,15 @@ interface ChatMessagesValues {
 
 const ChatInputContext = createContext<ChatInputValues | null>(null);
 const ChatMessagesContext = createContext<ChatMessagesValues | null>(null);
+
+/** Resolve the reference tokens in a draft to the entries that still exist. */
+const resolveRefs = (text: string): JournalRef[] => {
+  const get = useJournalStore.getState().getFn;
+  return parseJournalRefIds(text).flatMap((id) => {
+    const page = get(id);
+    return page ? [{ id: page.id, title: page.title }] : [];
+  });
+};
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -90,17 +105,20 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       const persistedAttachments = messageAttachments?.length
         ? messageAttachments
         : undefined;
+      const refs = resolveRefs(text);
+      const body = stripJournalRefs(text);
       await appendMessage(activeId, {
         id: crypto.randomUUID(),
         role: "user",
-        parts: [{ type: "text", text }],
+        parts: [{ type: "text", text: body }],
         attachments: persistedAttachments,
+        refs: refs.length ? refs : undefined,
         tokenUsage: { input: 0, output: 0 },
         createdAt: Date.now(),
       });
       useDraftStore.getState().clear(activeId);
       const { sendToSession } = await loadSendToSession();
-      await sendToSession(activeId, text, persistedAttachments);
+      await sendToSession(activeId, body, persistedAttachments, refs);
     },
     [activeId],
   );
@@ -117,6 +135,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       const data = sessionDataStore.getState().cache[activeId];
       const existing = data?.messages.find((m) => m.id === messageId);
       const existingAttachments = existing?.attachments;
+      const existingRefs = existing?.refs;
 
       await revertMessage(activeId, messageId);
 
@@ -125,12 +144,13 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         role: "user",
         parts: [{ type: "text", text }],
         attachments: existingAttachments,
+        refs: existingRefs,
         tokenUsage: { input: 0, output: 0 },
         createdAt: Date.now(),
       });
       useDraftStore.getState().clear(activeId);
       const { sendToSession } = await loadSendToSession();
-      await sendToSession(activeId, text, existingAttachments);
+      await sendToSession(activeId, text, existingAttachments, existingRefs);
     },
     [activeId],
   );
