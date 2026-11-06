@@ -202,16 +202,19 @@ export const useJournalStore = create<State>()(
       },
 
       updateTags(pageId: string, tags: string[]) {
+        const normalized = tags.map((t) => t.trim()).filter(Boolean);
         set((state: State) => ({
-          pages: state.pages.map((page) =>
-            page.id === pageId
-              ? {
-                  ...page,
-                  tags: tags.map((t) => t.trim()).filter(Boolean),
-                  updatedAt: Date.now(),
-                }
-              : page,
-          ),
+          pages: state.pages.map((page) => {
+            if (page.id !== pageId) return page;
+
+            const unchanged =
+              page.tags.length === normalized.length &&
+              page.tags.every((tag, index) => tag === normalized[index]);
+
+            return unchanged
+              ? page
+              : { ...page, tags: normalized, updatedAt: Date.now() };
+          }),
         }));
       },
 

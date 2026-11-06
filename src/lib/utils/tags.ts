@@ -39,10 +39,3 @@ export const navigateToTag = (editor: Editor, tag: string) => {
 
   return true;
 };
-
-export const extractTags = (content: string): string[] => {
-  const tagRegex = /@(\w+)/g;
-  const matches = content.matchAll(tagRegex);
-  const uniqueTags = new Set(Array.from(matches, (match) => match[1]));
-  return Array.from(uniqueTags).filter(Boolean);
-};
