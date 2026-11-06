@@ -1,3 +1,5 @@
+mod search;
+
 use std::path::{Path, PathBuf};
 use tauri_plugin_fs::FsExt;
 
@@ -17,7 +19,7 @@ fn home_dir() -> Option<PathBuf> {
     }
 }
 
-fn strip_verbatim(path: PathBuf) -> PathBuf {
+pub(crate) fn strip_verbatim(path: PathBuf) -> PathBuf {
     let text = path.to_string_lossy();
     match text.strip_prefix(r"\\?\") {
         Some(rest) => PathBuf::from(rest),
@@ -254,7 +256,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_env_var,
             allow_folder,
-            fetch_youtube_captions
+            fetch_youtube_captions,
+            search::search_files,
+            search::grep_files,
+            search::list_tree
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

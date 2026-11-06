@@ -17,14 +17,17 @@ import {
 import type { ToolRendererEntry } from "./types";
 import { renderer as copyPath } from "./renderers/files/copy-path";
 import { renderer as editFile } from "./renderers/files/edit-file";
+import { renderer as grepFiles } from "./renderers/files/grep-files";
 import { renderer as listFolder } from "./renderers/files/list-folder";
 import { renderer as listFolders } from "./renderers/files/list-folders";
+import { renderer as listTree } from "./renderers/files/list-tree";
 import { renderer as makeDir } from "./renderers/files/make-dir";
 import { renderer as movePath } from "./renderers/files/move-path";
 import { renderer as readFile } from "./renderers/files/read-file";
 import { renderer as readImage } from "./renderers/files/read-image";
 import { renderer as readPdf } from "./renderers/files/read-pdf";
 import { renderer as removePath } from "./renderers/files/remove-path";
+import { renderer as searchFiles } from "./renderers/files/search-files";
 import { renderer as stat } from "./renderers/files/stat";
 import { renderer as writeFile } from "./renderers/files/write-file";
 import { renderer as fetchUrl } from "./renderers/search/fetch-url";
@@ -41,6 +44,9 @@ import { genericRenderer } from "./renderers/generic";
 const fileRenderers = {
   list_folders: listFolders,
   list_folder: listFolder,
+  search_files: searchFiles,
+  grep_files: grepFiles,
+  list_tree: listTree,
   read_file: readFile,
   read_image: readImage,
   read_pdf: readPdf,

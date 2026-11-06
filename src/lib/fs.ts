@@ -20,6 +20,47 @@ export const grantFolder = async (path: string): Promise<void> => {
   await invoke("allow_folder", { path });
 };
 
+export interface FileHit {
+  path: string;
+}
+
+export interface GrepHit {
+  path: string;
+  line: number;
+  text: string;
+}
+
+export interface TreeEntry {
+  path: string;
+  isDir: boolean;
+  depth: number;
+}
+
+export const searchFiles = async (
+  root: string,
+  glob?: string,
+  limit?: number,
+): Promise<FileHit[]> => invoke<FileHit[]>("search_files", { root, glob, limit });
+
+export const grepFiles = async (
+  root: string,
+  pattern: string,
+  options: { glob?: string; caseSensitive?: boolean; limit?: number } = {},
+): Promise<GrepHit[]> =>
+  invoke<GrepHit[]>("grep_files", {
+    root,
+    pattern,
+    glob: options.glob,
+    caseSensitive: options.caseSensitive,
+    limit: options.limit,
+  });
+
+export const listTree = async (
+  root: string,
+  depth?: number,
+  limit?: number,
+): Promise<TreeEntry[]> => invoke<TreeEntry[]>("list_tree", { root, depth, limit });
+
 export const isInsideRoot = (
   rootPath: string,
   resolvedPath: string,

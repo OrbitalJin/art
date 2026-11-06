@@ -1,4 +1,10 @@
-import { resolveInRoot, type FsRoot } from "@/lib/fs";
+import {
+  grepFiles,
+  listTree,
+  resolveInRoot,
+  searchFiles,
+  type FsRoot,
+} from "@/lib/fs";
 import {
   arrayBufferToBase64,
   getReadableMediaType,
@@ -60,8 +66,25 @@ const listFolderOutputSchema = z.array(entrySchema);
 const readFileInputSchema = z.object({
   folder: folderSchema,
   path: z.string().describe("Relative path to the file."),
+  offset: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("First line to return (1-based). Defaults to 1."),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Maximum number of lines to return."),
 });
-const readFileOutputSchema = z.string();
+const readFileOutputSchema = z.object({
+  content: z.string(),
+  startLine: z.number(),
+  totalLines: z.number(),
+  truncated: z.boolean(),
+});
 const readMediaInputSchema = z.object({
   folder: folderSchema,
   path: z.string().describe("Relative path to the file."),
@@ -111,10 +134,47 @@ const movePathInputSchema = z.object({
   from: z.string().describe("Relative source path."),
   to: z.string().describe("Relative destination path."),
 });
+const searchFilesInputSchema = z.object({
+  folder: folderSchema,
+  glob: z
+    .string()
+    .optional()
+    .describe('Glob to filter file paths, e.g. "**/*.ts" or "src/**".'),
+  limit: z.number().int().positive().max(1000).optional(),
+});
+const searchFilesOutputSchema = z.array(z.object({ path: z.string() }));
+const grepFilesInputSchema = z.object({
+  folder: folderSchema,
+  pattern: z.string().describe("Regular expression to search for."),
+  glob: z
+    .string()
+    .optional()
+    .describe("Glob to limit which files are searched."),
+  caseSensitive: z.boolean().optional().describe("Defaults to true."),
+  limit: z.number().int().positive().max(1000).optional(),
+});
+const grepFilesOutputSchema = z.array(
+  z.object({ path: z.string(), line: z.number(), text: z.string() }),
+);
+const listTreeInputSchema = z.object({
+  folder: folderSchema,
+  path: z
+    .string()
+    .optional()
+    .describe("Relative directory to list. Defaults to the folder root."),
+  depth: z.number().int().positive().max(12).optional(),
+  limit: z.number().int().positive().max(1000).optional(),
+});
+const listTreeOutputSchema = z.array(
+  z.object({ path: z.string(), isDir: z.boolean(), depth: z.number() }),
+);
 
 export const fileToolSchemas = {
   list_folders: { input: listFoldersInputSchema, output: listFoldersOutputSchema },
   list_folder: { input: listFolderInputSchema, output: listFolderOutputSchema },
+  search_files: { input: searchFilesInputSchema, output: searchFilesOutputSchema },
+  grep_files: { input: grepFilesInputSchema, output: grepFilesOutputSchema },
+  list_tree: { input: listTreeInputSchema, output: listTreeOutputSchema },
   read_file: { input: readFileInputSchema, output: readFileOutputSchema },
   read_image: { input: readMediaInputSchema, output: mediaOutputSchema },
   read_pdf: { input: readMediaInputSchema, output: mediaOutputSchema },
@@ -211,13 +271,68 @@ export const fileTools = ({ roots }: Opts) => {
       },
     }),
 
+    search_files: tool({
+      title: "Search Files",
+      description: `Find files by name using a glob, e.g. "**/*.ts". Skips hidden, ignored and binary files. Connected folders: ${folders}.`,
+      inputSchema: searchFilesInputSchema,
+      outputSchema: searchFilesOutputSchema,
+      execute: async ({ folder, glob, limit }) =>
+        searchFiles(findRoot(roots, folder).path, glob, limit),
+    }),
+
+    grep_files: tool({
+      title: "Search Contents",
+      description: `Search file contents with a regular expression. Skips hidden, ignored and binary files. Connected folders: ${folders}.`,
+      inputSchema: grepFilesInputSchema,
+      outputSchema: grepFilesOutputSchema,
+      execute: async ({ folder, pattern, glob, caseSensitive, limit }) =>
+        grepFiles(findRoot(roots, folder).path, pattern, {
+          glob,
+          caseSensitive,
+          limit,
+        }),
+    }),
+
+    list_tree: tool({
+      title: "List Tree",
+      description: `Recursively list a directory tree to a fixed depth. Skips hidden, ignored and binary files. Connected folders: ${folders}.`,
+      inputSchema: listTreeInputSchema,
+      outputSchema: listTreeOutputSchema,
+      execute: async ({ folder, path, depth, limit }) =>
+        listTree(
+          path ? await resolve(folder, path) : findRoot(roots, folder).path,
+          depth,
+          limit,
+        ),
+    }),
+
     read_file: tool({
       title: "Read File",
-      description: `Read a UTF-8 text file. Connected folders: ${folders}.`,
+      description: `Read a UTF-8 text file, or a line range via offset/limit (both 1-based). Connected folders: ${folders}.`,
       inputSchema: readFileInputSchema,
       outputSchema: readFileOutputSchema,
-      execute: async ({ folder, path }) =>
-        readTextFile(await resolve(folder, path)),
+      execute: async ({ folder, path, offset, limit }) => {
+        const text = await readTextFile(await resolve(folder, path));
+
+        // Normalize CRLF/CR to LF so Windows files read cleanly. The edit and
+        // write paths are what restore a file's own line endings.
+        const normalized = text.replace(/\r\n?/g, "\n");
+        const lines = normalized.split("\n");
+        const totalLines = normalized.endsWith("\n")
+          ? lines.length - 1
+          : lines.length;
+        const startLine = Math.max(1, offset ?? 1);
+        const endLine = limit
+          ? Math.min(totalLines, startLine - 1 + limit)
+          : totalLines;
+
+        return {
+          content: lines.slice(startLine - 1, endLine).join("\n"),
+          startLine,
+          totalLines,
+          truncated: startLine > 1 || endLine < totalLines,
+        };
+      },
     }),
 
     read_image: tool({

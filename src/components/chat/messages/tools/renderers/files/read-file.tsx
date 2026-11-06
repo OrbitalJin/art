@@ -4,6 +4,7 @@ import type { z } from "zod";
 import { fileToolSchemas } from "@/lib/ai/tools/files";
 import {
   EmptyNote,
+  MetaLine,
   ResultBadge,
   SummaryRow,
   countLines,
@@ -26,7 +27,9 @@ const Summary: FC<RendererProps<ReadFileInput, ReadFileOutput>> = ({
     <SummaryRow>
       <FileName path={path} />
       {output !== null ? (
-        <ResultBadge>{formatCount(countLines(output), "line")}</ResultBadge>
+        <ResultBadge>
+          {formatCount(countLines(output.content), "line")}
+        </ResultBadge>
       ) : null}
     </SummaryRow>
   );
@@ -42,7 +45,16 @@ const Detail: FC<RendererProps<ReadFileInput, ReadFileOutput>> = ({
     <div className="flex flex-col gap-2.5">
       <FilePath folder={folder} path={path} />
       {output !== null ? (
-        <FileContent text={output} />
+        <>
+          {output.truncated ? (
+            <MetaLine
+              items={[
+                `lines ${output.startLine}–${output.startLine + countLines(output.content) - 1} of ${output.totalLines}`,
+              ]}
+            />
+          ) : null}
+          <FileContent text={output.content} />
+        </>
       ) : (
         <EmptyNote>Waiting…</EmptyNote>
       )}
