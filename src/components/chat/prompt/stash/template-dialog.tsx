@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,13 +11,20 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { StashEntry } from "@/lib/store/use-stash-store";
 import {
   extractPlaceholders,
   fillPlaceholders,
 } from "@/lib/stash/placeholders";
+import {
+  StashDialogBody,
+  StashDialogFooter,
+  StashDialogHeader,
+  StashField,
+  stashDialogContentClassName,
+} from "./stash-dialog-parts";
 
 interface Props {
   entry: StashEntry | null;
@@ -32,6 +32,15 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onInsert: (text: string) => void;
 }
+
+const TemplatePreview: React.FC<{ text: string }> = ({ text }) => {
+  const previewClassName = cn(
+    "max-h-40 overflow-auto rounded-lg border border-border/40 bg-muted/30 px-3 py-2",
+    "font-mono text-xs leading-relaxed whitespace-pre-wrap text-foreground/80",
+  );
+
+  return <pre className={previewClassName}>{text}</pre>;
+};
 
 const TemplateFields: React.FC<{
   entry: StashEntry;
@@ -48,17 +57,14 @@ const TemplateFields: React.FC<{
 
   return (
     <>
-      <DialogHeader>
-        <DialogTitle>{entry.title}</DialogTitle>
-        <DialogDescription>
-          Fill in the placeholders before inserting.
-        </DialogDescription>
-      </DialogHeader>
+      <StashDialogHeader
+        title={entry.title}
+        description="Fill in the placeholders before inserting."
+      />
 
-      <div className="flex flex-col gap-3">
+      <StashDialogBody>
         {placeholders.map((name) => (
-          <div key={name} className="flex flex-col gap-2">
-            <Label htmlFor={`stash-ph-${name}`}>{name}</Label>
+          <StashField key={name} label={name} htmlFor={`stash-ph-${name}`}>
             <Input
               id={`stash-ph-${name}`}
               value={values[name] ?? ""}
@@ -67,26 +73,48 @@ const TemplateFields: React.FC<{
                 setValues((prev) => ({ ...prev, [name]: e.target.value }))
               }
             />
-          </div>
+          </StashField>
         ))}
 
-        <div className="flex flex-col gap-2">
-          <Label>Preview</Label>
-          <pre className="max-h-40 overflow-auto rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-xs whitespace-pre-wrap text-foreground/80">
-            {preview}
-          </pre>
-        </div>
-      </div>
+        <StashField label="Preview">
+          <TemplatePreview text={preview} />
+        </StashField>
+      </StashDialogBody>
 
-      <DialogFooter>
-        <Button variant="outline" onClick={onCancel}>
+      <StashDialogFooter>
+        <Button variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
-        <Button onClick={() => onInsert(preview)}>Insert</Button>
-      </DialogFooter>
+        <Button size="sm" onClick={() => onInsert(preview)}>
+          Insert
+        </Button>
+      </StashDialogFooter>
     </>
   );
 };
+
+const DiscardDialog: React.FC<{
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+}> = ({ open, onOpenChange, onConfirm }) => (
+  <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialogContent size="sm">
+      <AlertDialogHeader>
+        <AlertDialogTitle>Close without inserting?</AlertDialogTitle>
+        <AlertDialogDescription>
+          Any values you entered won't be inserted.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction variant="destructive" onClick={onConfirm}>
+          Discard
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+);
 
 export const TemplateDialog = ({
   entry,
@@ -103,20 +131,24 @@ export const TemplateDialog = ({
     onOpenChange(false);
   };
 
+  const handleOpenChange = (value: boolean) => {
+    if (!value) {
+      requestClose();
+      return;
+    }
+    onOpenChange(true);
+  };
+
+  const handleInsert = (text: string) => {
+    onInsert(text);
+    onOpenChange(false);
+  };
+
   return (
     <>
-      <Dialog
-        open={open}
-        onOpenChange={(value) => {
-          if (!value) {
-            requestClose();
-            return;
-          }
-          onOpenChange(true);
-        }}
-      >
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent
-          className="sm:max-w-[480px]"
+          className={stashDialogContentClassName}
           onPointerDownOutside={(event) => event.preventDefault()}
           onEscapeKeyDown={(event) => event.preventDefault()}
         >
@@ -125,31 +157,17 @@ export const TemplateDialog = ({
               key={entry.id}
               entry={entry}
               onCancel={requestClose}
-              onInsert={(text) => {
-                onInsert(text);
-                onOpenChange(false);
-              }}
+              onInsert={handleInsert}
             />
           )}
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Close without inserting?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Any values you entered won't be inserted.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={confirmClose}>
-              Discard
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DiscardDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={confirmClose}
+      />
     </>
   );
 };

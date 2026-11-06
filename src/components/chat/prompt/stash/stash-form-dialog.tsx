@@ -1,65 +1,42 @@
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Bookmark, Braces } from "lucide-react";
 import {
   useStashStore,
   type StashEntry,
   type StashKind,
 } from "@/lib/store/use-stash-store";
 import { extractPlaceholders, hasPlaceholders } from "@/lib/stash/placeholders";
+import {
+  StashDialogBody,
+  StashDialogFooter,
+  StashDialogHeader,
+  StashField,
+  stashDialogContentClassName,
+} from "./stash-dialog-parts";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   entry?: StashEntry | null;
   initialContent?: string;
+  initialTitle?: string;
 }
 
-interface KindOptionProps {
+const KindOption: React.FC<{
   label: string;
-  hint: string;
-  icon: React.ReactNode;
   selected: boolean;
   onSelect: () => void;
-}
-
-const KindOption: React.FC<KindOptionProps> = ({
-  label,
-  hint,
-  icon,
-  selected,
-  onSelect,
-}) => {
-  const optionClasses = cn(
-    "flex flex-1 cursor-pointer items-center gap-3 rounded-lg border px-2.5 py-2 text-left",
-    "outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
+}> = ({ label, selected, onSelect }) => {
+  const optionClassName = cn(
+    "rounded-md px-3 py-1 text-xs font-medium outline-none",
+    "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
     selected
-      ? "border-foreground/15 bg-muted/50"
-      : "border-border/60 hover:bg-muted/40",
-  );
-
-  const tileClasses = cn(
-    "flex size-8 shrink-0 items-center justify-center rounded-lg border transition-colors duration-150",
-    selected
-      ? "border-foreground/15 bg-foreground/[0.04] text-foreground"
-      : "border-border/60 bg-muted/40 text-muted-foreground",
-  );
-
-  const labelClasses = cn(
-    "text-[13px] font-medium",
-    selected ? "text-foreground" : "text-foreground/80",
+      ? "bg-background text-foreground shadow-sm"
+      : "text-muted-foreground hover:text-foreground",
   );
 
   return (
@@ -68,16 +45,40 @@ const KindOption: React.FC<KindOptionProps> = ({
       role="radio"
       aria-checked={selected}
       onClick={onSelect}
-      className={optionClasses}
+      className={optionClassName}
     >
-      <span className={tileClasses}>{icon}</span>
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span className={labelClasses}>{label}</span>
-        <span className="truncate text-[11px] text-muted-foreground">
-          {hint}
-        </span>
-      </span>
+      {label}
     </button>
+  );
+};
+
+const KindToggle: React.FC<{
+  kind: StashKind;
+  onChange: (kind: StashKind) => void;
+}> = ({ kind, onChange }) => {
+  const groupClassName = cn("inline-flex rounded-lg bg-muted/50 p-0.5");
+
+  const hint =
+    kind === "template"
+      ? "Fill {{placeholders}} before inserting."
+      : "Inserted as-is.";
+
+  return (
+    <div className="flex items-center gap-3">
+      <div role="radiogroup" aria-label="Type" className={groupClassName}>
+        <KindOption
+          label="Snippet"
+          selected={kind === "snippet"}
+          onSelect={() => onChange("snippet")}
+        />
+        <KindOption
+          label="Template"
+          selected={kind === "template"}
+          onSelect={() => onChange("template")}
+        />
+      </div>
+      <span className="text-[11px] text-muted-foreground">{hint}</span>
+    </div>
   );
 };
 
@@ -117,21 +118,38 @@ const PlaceholderHint: React.FC<{
   );
 };
 
+const SaveShortcut: React.FC = () => {
+  const keysClassName = cn(
+    "rounded-md border border-border/50 bg-background/40 px-1.5 py-0.5",
+    "text-[10px] font-medium text-muted-foreground/70",
+  );
+
+  return (
+    <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
+      <kbd className={keysClassName}>Ctrl ↵</kbd>
+      save
+    </span>
+  );
+};
+
 const StashFormFields: React.FC<{
   entry?: StashEntry | null;
   initialContent: string;
+  initialTitle: string;
   onDone: () => void;
-}> = ({ entry, initialContent, onDone }) => {
+}> = ({ entry, initialContent, initialTitle, onDone }) => {
   const addEntry = useStashStore((state) => state.addEntry);
   const updateEntry = useStashStore((state) => state.updateEntry);
 
-  const [title, setTitle] = useState(entry?.title ?? "");
+  const [title, setTitle] = useState(entry?.title ?? initialTitle);
   const [content, setContent] = useState(entry?.content ?? initialContent);
   const [kind, setKind] = useState<StashKind>(
     entry?.kind ?? (hasPlaceholders(initialContent) ? "template" : "snippet"),
   );
 
   const canSave = content.trim().length > 0;
+  const heading = entry ? "Edit saved prompt" : "Save to stash";
+  const saveLabel = entry ? "Save changes" : "Save prompt";
 
   const handleSave = () => {
     if (!canSave) return;
@@ -155,46 +173,26 @@ const StashFormFields: React.FC<{
 
   return (
     <>
-      <DialogHeader>
-        <DialogTitle>
-          {entry ? "Edit saved prompt" : "Save to stash"}
-        </DialogTitle>
-        <DialogDescription>Reuse prompts in agent mode.</DialogDescription>
-      </DialogHeader>
+      <StashDialogHeader
+        title={heading}
+        description="Reuse prompts in agent mode."
+      />
 
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="stash-title">Title</Label>
+      <StashDialogBody>
+        <StashField label="Title" htmlFor="stash-title">
           <Input
             id="stash-title"
             value={title}
             placeholder="Untitled"
             onChange={(e) => setTitle(e.target.value)}
           />
-        </div>
+        </StashField>
 
-        <div className="flex flex-col gap-2">
-          <Label>Type</Label>
-          <div role="radiogroup" aria-label="Type" className="flex gap-2">
-            <KindOption
-              label="Snippet"
-              hint="Inserted as-is"
-              icon={<Bookmark className="size-4" aria-hidden />}
-              selected={kind === "snippet"}
-              onSelect={() => setKind("snippet")}
-            />
-            <KindOption
-              label="Template"
-              hint="Fill {{placeholders}} first"
-              icon={<Braces className="size-4" aria-hidden />}
-              selected={kind === "template"}
-              onSelect={() => setKind("template")}
-            />
-          </div>
-        </div>
+        <StashField label="Type">
+          <KindToggle kind={kind} onChange={setKind} />
+        </StashField>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="stash-content">Prompt</Label>
+        <StashField label="Prompt" htmlFor="stash-content">
           <Textarea
             id="stash-content"
             value={content}
@@ -208,20 +206,17 @@ const StashFormFields: React.FC<{
             content={content}
             onUseTemplate={() => setKind("template")}
           />
-        </div>
-      </div>
+        </StashField>
+      </StashDialogBody>
 
-      <DialogFooter className="items-center sm:justify-between">
-        <div />
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onDone}>
-            Cancel
-          </Button>
-          <Button disabled={!canSave} onClick={handleSave}>
-            {entry ? "Save changes" : "Save prompt"}
-          </Button>
-        </div>
-      </DialogFooter>
+      <StashDialogFooter hint={<SaveShortcut />}>
+        <Button variant="ghost" size="sm" onClick={onDone}>
+          Cancel
+        </Button>
+        <Button size="sm" disabled={!canSave} onClick={handleSave}>
+          {saveLabel}
+        </Button>
+      </StashDialogFooter>
     </>
   );
 };
@@ -231,14 +226,16 @@ export const StashFormDialog = ({
   onOpenChange,
   entry,
   initialContent = "",
+  initialTitle = "",
 }: Props) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="sm:max-w-[480px]">
+    <DialogContent className={stashDialogContentClassName}>
       {open && (
         <StashFormFields
           key={entry?.id ?? "new"}
           entry={entry}
           initialContent={initialContent}
+          initialTitle={initialTitle}
           onDone={() => onOpenChange(false)}
         />
       )}

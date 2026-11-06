@@ -14,9 +14,10 @@ import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useChatInput } from "@/contexts/chat-context";
+import type { PromptHandle } from "./prompt/editor";
 
 interface Props {
-  textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
+  promptRef: React.RefObject<PromptHandle | null>;
 }
 
 const greetingFor = (now: Date): string => {
@@ -224,7 +225,7 @@ const AgentStarters: React.FC<{ onSelect: (prompt: string) => void }> = ({
   </>
 );
 
-const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
+const WelcomeMessage: React.FC<Props> = ({ promptRef }) => {
   const { setPrompt } = useChatInput();
   const navigate = useNavigate();
   const { type } = useParams<{ type: string }>();
@@ -259,7 +260,7 @@ const WelcomeMessage: React.FC<Props> = ({ textAreaRef }) => {
 
   const handleStarter = (prompt: string) => {
     setPrompt(prompt);
-    textAreaRef.current?.focus();
+    promptRef.current?.focus();
   };
 
   const containerClassName = cn(

@@ -177,6 +177,10 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
     closeTimer.current = setTimeout(() => setOpen(false), 220);
   };
 
+  const handlePanelEnter = () => {
+    clearTimers();
+  };
+
   const handleToggle = () => {
     clearTimers();
     setOpen((current) => !current);
@@ -230,7 +234,6 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
     <div
       ref={wrapperRef}
       className={wrapperClassName}
-      onPointerEnter={handleEnter}
       onPointerLeave={handleLeave}
     >
       <div data-tauri-drag-region className={pillClassName}>
@@ -239,6 +242,7 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
           aria-label={open ? "Hide navigation" : "Show navigation"}
           aria-expanded={open}
           onClick={handleToggle}
+          onPointerEnter={handleEnter}
           className={triggerClassName}
         >
           {CurrentIcon && (
@@ -252,11 +256,19 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
           <ChevronDown strokeWidth={2.25} className={chevronClassName} />
         </button>
         <MusicMenu className="size-6" />
-        <span aria-hidden className="h-3.5 w-px bg-border/60" />
+        <div className="flex flex-row gap-1">
+          <span aria-hidden className="h-3.5 w-px bg-border/60" />
+          <span aria-hidden className="h-3.5 w-px bg-border/60" />
+          <span aria-hidden className="h-3.5 w-px bg-border/60" />
+        </div>
         <WindowControls />
       </div>
 
-      <div aria-hidden={!open} className={panelClassName}>
+      <div
+        aria-hidden={!open}
+        className={panelClassName}
+        onPointerEnter={handlePanelEnter}
+      >
         <p className={headerClassName}>Navigate</p>
         <nav className="flex flex-col gap-0.5">
           {items.map((item) => (

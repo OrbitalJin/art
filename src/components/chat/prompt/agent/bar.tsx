@@ -14,7 +14,6 @@ import {
 import { usePlanStore, type Plan } from "@/lib/store/use-plan-store";
 import { cn } from "@/lib/utils";
 import { AccessControl } from "./access-control";
-import { ConfigureMenu } from "./configure-menu";
 import { EnabledTools } from "./enabled-tools";
 import { ToolActivity } from "./tool-activity";
 import { useAgentTools } from "./use-agent-tools";
@@ -321,17 +320,7 @@ export const AgentBar = () => {
             ) : (
               <EnabledTools session={session} />
             )}
-            <div className="flex shrink-0 flex-row items-center gap-1">
-              <ConfigureMenu
-                disabled={isSending}
-                session={session}
-                onAddFolder={tools.onAddFolder}
-                onRemoveFolder={tools.onRemoveFolder}
-                onToggle={tools.onToggle}
-                onRevokeAll={tools.onRevokeAll}
-              />
-              <AccessControl disabled={streaming} />
-            </div>
+            <AccessControl disabled={streaming} />
           </>
         )}
       </div>

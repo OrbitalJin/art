@@ -1,5 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { useLayoutEffect, useRef } from "react";
 import {
   ArrowUp,
   File as FileIcon,
@@ -34,17 +33,20 @@ import {
   AttachmentTitle,
 } from "@/components/ui/attachment";
 import { Attach } from "./attach";
-import { StashSelect } from "./stash/stash-select";
 import { StashSaveButton } from "./stash/stash-save-button";
+import { StashDialogs } from "./stash/stash-dialogs";
 import { AgentBar } from "./agent/bar";
 import { AgentAttention } from "./agent/attention";
+import { ConfigureMenu } from "./agent/configure-menu";
+import { useAgentTools } from "./agent/use-agent-tools";
 import { ART_KEY_NOTICE, KeyNotice } from "./key-notice";
 import { filesFromDataTransfer, useUpload } from "@/hooks/use-upload";
 import { resolveAttachmentUrl } from "@/lib/upload/pocketbase";
 import type { ChatAttachment } from "@/lib/store/session/types";
+import { PromptEditor, type PromptHandle } from "./editor";
 
 interface Props {
-  textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
+  promptRef: React.RefObject<PromptHandle | null>;
   className?: string;
 }
 
@@ -149,10 +151,10 @@ const SendButton: React.FC<{
   );
 };
 
-export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
+export const Prompt: React.FC<Props> = ({ promptRef, className }) => {
   const { prompt, setPrompt, attachments, sendMessage } = useChatInput();
   const { ingest, remove, retry, ingestClipboardImage } = useUpload();
-  const { abortStream, isSending } = useChatStream();
+  const { abortStream, isSending, toolCalls } = useChatStream();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const hasKey = useHasKey("gateway");
   const hasUploadKey = useHasKey("uploads");
@@ -161,6 +163,7 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
     state.sessions.find((s) => s.id === state.activeId),
   );
   const footerRef = useRef<HTMLElement>(null);
+  const tools = useAgentTools(session, toolCalls);
 
   const isAgent = session?.type === "agent";
   const hasAttachments = attachments.length > 0;
@@ -173,14 +176,6 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
   const showSendButton = isSending || canSend;
 
   const placeholder = isAgent ? "Give your agent a task…" : "Ask anything…";
-
-  useEffect(() => {
-    const textarea = textAreaRef.current;
-    if (textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
-  }, [prompt, textAreaRef]);
 
   // Publish the composer's measured height to the chat shell so the message
   // thread can reserve space beneath it and keep every message reachable.
@@ -216,35 +211,27 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
     sendMessage(prompt, attachments);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.nativeEvent.isComposing) return;
+  const handlePaste = (event: ClipboardEvent): boolean => {
+    if (isSending) return false;
 
-    if (e.key === "Enter" && (enterKeySends ? !e.shiftKey : e.shiftKey)) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    if (isSending) return;
-
-    const data = e.clipboardData;
-    if (!data) return;
+    const data = event.clipboardData;
+    if (!data) return false;
 
     const files = filesFromDataTransfer(data);
     if (files.length) {
-      if (!hasUploadKey) return;
-      e.preventDefault();
+      if (!hasUploadKey) return false;
+      event.preventDefault();
       ingest(files);
-      return;
+      return true;
     }
 
     const types = Array.from(data.types);
-    if (types.includes("text/plain") || types.includes("text/html")) return;
-    if (!hasUploadKey) return;
+    if (types.includes("text/plain") || types.includes("text/html"))
+      return false;
+    if (!hasUploadKey) return false;
 
-    const handled = await ingestClipboardImage();
-    if (handled) e.preventDefault();
+    void ingestClipboardImage();
+    return true;
   };
 
   const containerClasses = cn(
@@ -256,18 +243,11 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
     !hasKey && "opacity-60",
   );
 
-  const textareaClasses = cn(
-    "resize-none border-0 bg-transparent! shadow-none focus-visible:ring-0",
-    "min-h-[70px] max-h-[250px] lg:max-h-[400px]",
-    "px-3.5 pt-3.5 pb-1 text-[15px] text-foreground/90",
-    "placeholder:text-muted-foreground/80",
-  );
-
   return (
     <footer
       ref={footerRef}
       className={cn(
-        "pointer-events-none absolute inset-x-0 bottom-2 z-20 px-2 pb-2",
+        "pointer-events-none absolute inset-x-0 bottom-2 px-2 pb-2",
         className,
       )}
     >
@@ -298,16 +278,18 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
             />
           )}
 
-          <Textarea
-            autoFocus
-            ref={textAreaRef}
+          <PromptEditor
+            key={session?.id ?? "prompt"}
+            ref={promptRef}
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={setPrompt}
             placeholder={placeholder}
-            className={textareaClasses}
-            onKeyDown={handleKeyDown}
+            editable={hasKey}
+            autoFocus
+            onSend={handleSend}
+            enterKeySends={enterKeySends}
+            stashSuggestion={isAgent}
             onPaste={handlePaste}
-            disabled={!hasKey}
           />
 
           <div className="flex items-center justify-between px-2 pb-2">
@@ -316,8 +298,17 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
               <Attach />
               {!isAgent && <PersonaSelect />}
               {!isAgent && <WebMenu />}
+              {isAgent && session && (
+                <ConfigureMenu
+                  disabled={isSending}
+                  session={session}
+                  onAddFolder={tools.onAddFolder}
+                  onRemoveFolder={tools.onRemoveFolder}
+                  onToggle={tools.onToggle}
+                  onRevokeAll={tools.onRevokeAll}
+                />
+              )}
               {isAgent && <StashSaveButton />}
-              {isAgent && <StashSelect textAreaRef={textAreaRef} />}
             </div>
 
             <div className="flex flex-row itemc-center gap-1.5">
@@ -331,6 +322,8 @@ export const Prompt: React.FC<Props> = ({ textAreaRef, className }) => {
             </div>
           </div>
         </div>
+
+        <StashDialogs promptRef={promptRef} />
       </div>
     </footer>
   );

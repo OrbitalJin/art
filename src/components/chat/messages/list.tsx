@@ -15,10 +15,11 @@ import type { Message } from "@/lib/store/session/types";
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
+import type { PromptHandle } from "../prompt/editor";
 
 interface Props {
   messages: readonly Message[];
-  textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
+  promptRef: React.RefObject<PromptHandle | null>;
 }
 
 const SessionScrollSync: React.FC = () => {
@@ -36,14 +37,14 @@ const SessionScrollSync: React.FC = () => {
   return null;
 };
 
-export const MessageList: React.FC<Props> = ({ messages, textAreaRef }) => {
+export const MessageList: React.FC<Props> = ({ messages, promptRef }) => {
   const { prompt } = useChatInput();
   const { isSending } = useChatStream();
 
   if (messages.length === 0 && prompt.length === 0) {
     return (
       <div className="relative flex flex-1 flex-col overflow-hidden px-4 pb-[calc(var(--prompt-height,0px)_+_1rem)] select-none">
-        <WelcomeMessage textAreaRef={textAreaRef} />
+        <WelcomeMessage promptRef={promptRef} />
       </div>
     );
   }

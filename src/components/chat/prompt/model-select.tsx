@@ -22,11 +22,6 @@ interface ModelRowProps {
 const ModelRow = ({ model, selected, onSelect }: ModelRowProps) => {
   const rowClassName = cn(selectableRowClasses(selected), "relative");
 
-  const indicatorClassName = cn(
-    "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2",
-    "rounded-r-full bg-primary",
-  );
-
   const nameClassName = cn(
     "truncate text-[13px] font-medium",
     selected ? "text-foreground" : "text-foreground/80",
@@ -39,7 +34,6 @@ const ModelRow = ({ model, selected, onSelect }: ModelRowProps) => {
       onClick={onSelect}
       className={rowClassName}
     >
-      {selected && <span aria-hidden className={indicatorClassName} />}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
         <span className={nameClassName}>{model.displayName}</span>
         <span className="truncate text-[11px] text-muted-foreground">

@@ -1,0 +1,15 @@
+@reference "./index.css";
+
+/* Composer-specific Tiptap styles — intentionally separate from `.tiptap`
+   (the journal editor) so the composer stays a plain, compact input. */
+.prompt-composer p {
+  margin: 0;
+}
+
+.prompt-composer p.is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  @apply text-muted-foreground/80;
+}

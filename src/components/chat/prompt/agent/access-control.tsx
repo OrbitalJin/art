@@ -8,23 +8,9 @@ import {
 } from "@/components/ui/hover-card";
 import {
   ACCESS_MODE_TONES,
-  accessModeLabel,
   type AccessMode,
   type AccessModeTone,
 } from "@/lib/store/session/types";
-
-const ActiveBar: React.FC<{ tone: AccessModeTone }> = ({ tone }) => {
-  const wrapperClassName = cn(
-    "pointer-events-none absolute inset-y-0 left-0 flex items-center",
-    tone.text,
-  );
-
-  return (
-    <span aria-hidden className={wrapperClassName}>
-      <span className="h-4 w-0.5 rounded-r-full bg-current" />
-    </span>
-  );
-};
 
 const AccessOption: React.FC<{
   label: string;
@@ -34,11 +20,11 @@ const AccessOption: React.FC<{
   children: React.ReactNode;
 }> = ({ label, selected, tone, onSelect, children }) => {
   const optionClassName = cn(
-    "flex h-6 cursor-pointer items-center rounded-full border px-2.5 outline-none",
-    "transition-all duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
+    "flex h-6 cursor-pointer items-center rounded-full px-2.5 outline-none",
+    "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
     selected
-      ? cn("border-foreground/15 shadow-sm", tone.fill, tone.text)
-      : "border-transparent text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+      ? cn("bg-background shadow-sm", tone.text)
+      : "text-muted-foreground/60 hover:text-foreground",
   );
 
   return (
@@ -64,11 +50,9 @@ const AccessDescription: React.FC<{
   children: React.ReactNode;
 }> = ({ label, description, selected, tone, children }) => {
   const rowClassName = cn(
-    "relative flex items-start gap-2.5 rounded-xl border px-3 py-2",
-    "transition-opacity duration-150",
-    selected
-      ? cn("border-foreground/10", tone.fill)
-      : "border-transparent opacity-55",
+    "flex items-start gap-2.5 rounded-lg px-3 py-2",
+    "transition-colors duration-150",
+    selected ? "bg-accent/40" : "opacity-55",
   );
 
   const iconClassName = cn(
@@ -78,7 +62,6 @@ const AccessDescription: React.FC<{
 
   return (
     <div className={rowClassName}>
-      {selected && <ActiveBar tone={tone} />}
       <span className={iconClassName}>{children}</span>
       <div className="flex min-w-0 flex-col gap-0.5">
         <span className="text-[13px] font-medium text-foreground">{label}</span>
@@ -91,33 +74,16 @@ const AccessDescription: React.FC<{
 };
 
 const AccessDetails: React.FC<{ mode: AccessMode }> = ({ mode }) => {
-  const currentLabel = accessModeLabel(mode);
-  const currentTone = ACCESS_MODE_TONES[mode];
-
   const headerClassName = cn(
-    "flex items-center justify-between gap-2",
-    "border-b border-border/40 py-2.5 pl-4 pr-3",
-  );
-
-  const labelClassName = cn(
-    "text-[10px] font-medium uppercase tracking-wider",
-    "text-muted-foreground/60",
-  );
-
-  const currentClassName = cn(
-    "rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ring-inset ring-foreground/10",
-    currentTone.fill,
-    currentTone.text,
+    "border-b border-border/40 px-4 py-2.5",
+    "text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60",
   );
 
   return (
     <>
-      <div className={headerClassName}>
-        <p className={labelClassName}>Access control</p>
-        <span className={currentClassName}>{currentLabel}</span>
-      </div>
+      <p className={headerClassName}>Access control</p>
 
-      <div className="flex flex-col gap-0.5 p-1.5">
+      <div className="flex flex-col gap-0.5 p-1">
         <AccessDescription
           label="Read only"
           description="The agent can read, search, and ask questions, but cannot create, edit, or delete anything."
@@ -161,23 +127,20 @@ export const AccessControl: React.FC<{ disabled: boolean }> = ({
   if (!activeId || !session) return null;
 
   const mode = session.accessMode ?? "confirm";
-  const tone = ACCESS_MODE_TONES[mode];
 
   const groupClassName = cn(
-    "flex h-7 shrink-0 items-center gap-0.5 rounded-full p-0.5",
-    "bg-background/40 ring-1 transition-colors duration-150",
-    tone.ring,
+    "flex h-7 shrink-0 items-center gap-0.5 rounded-full bg-muted/40 p-0.5",
+    "transition-opacity duration-150",
     disabled && "pointer-events-none opacity-60",
   );
 
   const contentClassName = cn(
-    "w-80 overflow-hidden rounded-2xl p-0",
-    "border-border/40 bg-popover/80 backdrop-blur-2xl",
-    "shadow-xl shadow-black/15 ring-1 ring-inset ring-foreground/5",
+    "w-80 overflow-hidden rounded-xl p-0",
+    "border-border/40 bg-popover/80 shadow-lg shadow-black/10 backdrop-blur-2xl",
   );
 
   return (
-    <HoverCard openDelay={2000} closeDelay={100}>
+    <HoverCard openDelay={1000} closeDelay={100}>
       <HoverCardTrigger asChild>
         <div
           role="radiogroup"

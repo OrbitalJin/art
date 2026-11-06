@@ -23,14 +23,8 @@ export const PanelRow = forwardRef<HTMLButtonElement, PanelRowProps>(
       className,
     );
 
-    const indicatorClassName = cn(
-      "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2",
-      "rounded-r-full bg-primary",
-    );
-
     return (
       <button ref={ref} type="button" {...props} className={rowClassName}>
-        {active && <span aria-hidden className={indicatorClassName} />}
         {icon}
         <span className="flex-1 text-left">{label}</span>
         {trailing}

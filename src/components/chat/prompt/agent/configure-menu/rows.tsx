@@ -6,15 +6,6 @@ import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
 import { groupActive, groupsInCategory, selectableRowClasses } from "./helpers";
 import { cn } from "@/lib/utils";
 
-const ActiveBar: React.FC = () => {
-  const barClassName = cn(
-    "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2",
-    "rounded-r-full bg-primary",
-  );
-
-  return <span aria-hidden className={barClassName} />;
-};
-
 const RowText: React.FC<{
   label: string;
   subtitle: string;
@@ -74,7 +65,6 @@ export const ToolRow: React.FC<{
 }> = ({ label, subtitle, enabled, onToggle, disabled }) => {
   const rowClassName = cn(
     selectableRowClasses(enabled),
-    "relative",
     disabled && "opacity-60",
   );
 
@@ -87,7 +77,6 @@ export const ToolRow: React.FC<{
       disabled={disabled}
       className={rowClassName}
     >
-      {enabled && <ActiveBar />}
       <RowText label={label} subtitle={subtitle} active={enabled} />
       <ToggleMark enabled={enabled} />
     </button>
@@ -110,7 +99,6 @@ const LinkRow: React.FC<{
 
   return (
     <button type="button" onClick={onOpen} className={rowClassName}>
-      {active && <ActiveBar />}
       <RowText label={label} subtitle={subtitle} active={active} />
       <Summary active={active}>{trailing}</Summary>
       <ChevronRight
