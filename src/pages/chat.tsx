@@ -1,7 +1,7 @@
 import { MessageList } from "@/components/chat/messages/list";
 import { StaticSidebar } from "@/components/chat/sidebar/static";
-import { Prompt } from "@/components/chat/prompt/prompt";
-import type { PromptHandle } from "@/components/chat/prompt/editor";
+import { Composer } from "@/components/chat/composer/composer";
+import type { ComposerHandle } from "@/components/chat/composer/editor";
 import { FloatingSidebar } from "@/components/chat/sidebar/floating";
 import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 import { useEffect, useRef } from "react";
@@ -25,7 +25,7 @@ export const Chat = () => {
   const { messages } = useChatMessages();
   const chatState = useUIStateStore((state) => state.chatState);
   const setChatState = useUIStateStore((state) => state.setChatState);
-  const promptRef = useRef<PromptHandle | null>(null);
+  const composerRef = useRef<ComposerHandle | null>(null);
   const didSyncRef = useRef<string | null>(null);
   const hydrated = useSessionIndex((s) => s.hydrated);
 
@@ -79,7 +79,7 @@ export const Chat = () => {
     setChatState({ sidebarOpen: open });
   };
 
-  useHotkey("Mod+/", () => promptRef.current?.focus());
+  useHotkey("Mod+/", () => composerRef.current?.focus());
   useHotkey("Control+Tab", () =>
     navigate(type === "chat" ? "/session/agent" : "/session/chat"),
   );
@@ -97,8 +97,8 @@ export const Chat = () => {
           defaultScrollPosition="last-anchor"
           scrollPreviousItemPeek={64}
         >
-          <MessageList messages={messages} promptRef={promptRef} />
-          <Prompt promptRef={promptRef} />
+          <MessageList messages={messages} composerRef={composerRef} />
+          <Composer composerRef={composerRef} />
         </MessageScrollerProvider>
       </div>
     </div>

@@ -8,7 +8,7 @@ import { LayersPlus } from "lucide-react";
 import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { useStashUiStore } from "@/lib/store/use-stash-ui-store";
-import { promptControlClasses } from "../toolbar";
+import { composerControlClasses } from "../toolbar";
 
 export const StashSaveButton = () => {
   const { prompt } = useChatInput();
@@ -25,7 +25,7 @@ export const StashSaveButton = () => {
           size="icon"
           disabled={disabled}
           onClick={() => openCreate({ initialContent: prompt })}
-          className={promptControlClasses}
+          className={composerControlClasses}
         >
           <LayersPlus />
           <span className="sr-only">Save to stash</span>

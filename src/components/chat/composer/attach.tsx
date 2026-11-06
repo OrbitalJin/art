@@ -9,7 +9,7 @@ import { useHasKey, useKeysLoading } from "@/lib/store/use-settings-store";
 import { ART_KEY_NOTICE } from "./key-notice";
 import { Button } from "@/components/ui/button";
 import { MAX_ATTACHMENT_SIZE } from "@/lib/utils/images";
-import { promptControlClasses } from "./toolbar";
+import { composerControlClasses } from "./toolbar";
 import { Paperclip } from "lucide-react";
 
 const MAX_MB = Math.round(MAX_ATTACHMENT_SIZE / (1024 * 1024));
@@ -28,7 +28,7 @@ export const Attach = () => {
           size="icon"
           onClick={() => void pickFiles()}
           disabled={disabled || !hasUploadKey}
-          className={promptControlClasses}
+          className={composerControlClasses}
         >
           <Paperclip className="h-4 w-4" />
         </Button>

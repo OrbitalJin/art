@@ -15,11 +15,11 @@ import type { Message } from "@/lib/store/session/types";
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import type { PromptHandle } from "../prompt/editor";
+import type { ComposerHandle } from "../composer/editor";
 
 interface Props {
   messages: readonly Message[];
-  promptRef: React.RefObject<PromptHandle | null>;
+  composerRef: React.RefObject<ComposerHandle | null>;
 }
 
 const SessionScrollSync: React.FC = () => {
@@ -37,14 +37,14 @@ const SessionScrollSync: React.FC = () => {
   return null;
 };
 
-export const MessageList: React.FC<Props> = ({ messages, promptRef }) => {
+export const MessageList: React.FC<Props> = ({ messages, composerRef }) => {
   const { prompt } = useChatInput();
   const { isSending } = useChatStream();
 
   if (messages.length === 0 && prompt.length === 0) {
     return (
-      <div className="relative flex flex-1 flex-col overflow-hidden px-4 pb-[calc(var(--prompt-height,0px)_+_1rem)] select-none">
-        <WelcomeMessage promptRef={promptRef} />
+      <div className="relative flex flex-1 flex-col overflow-hidden px-4 select-none">
+        <WelcomeMessage composerRef={composerRef} />
       </div>
     );
   }
@@ -56,7 +56,7 @@ export const MessageList: React.FC<Props> = ({ messages, promptRef }) => {
         <MessageScrollerViewport>
           <MessageScrollerContent
             aria-busy={isSending}
-            className="mx-auto w-full min-w-0 max-w-3xl overflow-x-hidden select-text mt-8"
+            className="mx-auto w-full min-w-0 max-w-3xl overflow-x-hidden select-text my-8"
           >
             <BranchOriginMarker />
             {messages.map((msg) => (
@@ -64,16 +64,9 @@ export const MessageList: React.FC<Props> = ({ messages, promptRef }) => {
                 <MessageBroker {...msg} />
               </MessageScrollerItem>
             ))}
-            <div
-              aria-hidden
-              className="h-[calc(var(--prompt-height,0px)_+_1rem)] shrink-0"
-            />
           </MessageScrollerContent>
         </MessageScrollerViewport>
-        <MessageScrollerButton
-          variant="outline"
-          className="data-[direction=end]:bottom-[calc(var(--prompt-height,0px)_+_1.5rem)]"
-        />
+        <MessageScrollerButton variant="outline" />
         <MessageRail messages={messages} />
       </MessageScroller>
     </div>

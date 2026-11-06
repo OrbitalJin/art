@@ -32,7 +32,7 @@ import { useSession } from "@/lib/store/session/data-store";
 import type { Message } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
 import { cn } from "@/lib/utils";
-import { promptControlClasses } from "./toolbar";
+import { composerControlClasses } from "./toolbar";
 
 const PREVIEW_LENGTH = 60;
 const SNIPPET_LEAD = 20;
@@ -262,7 +262,7 @@ export const JumpSelect = () => {
     value.toLowerCase().includes(query.toLowerCase()) ? 1 : 0;
 
   const triggerClassName = cn(
-    promptControlClasses,
+    composerControlClasses,
     open && "bg-accent/60 text-foreground",
   );
 

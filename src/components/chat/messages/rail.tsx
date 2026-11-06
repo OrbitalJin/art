@@ -198,7 +198,7 @@ export const MessageRail: React.FC<Props> = ({ messages }) => {
       ref={railRef}
       data-slot="message-rail"
       className={railClassName}
-      style={{ top: "calc(50% - var(--prompt-height, 0px) / 2)" }}
+      style={{ top: "50%" }}
     >
       {messages.map((message, index) => (
         <RailBar

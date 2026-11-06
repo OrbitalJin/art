@@ -15,7 +15,7 @@ import { VenetianMask } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import { promptControlClasses } from "./toolbar";
+import { composerControlClasses } from "./toolbar";
 
 export const PersonaSelect = () => {
   const { isSending: disabled } = useChatStream();
@@ -41,7 +41,7 @@ export const PersonaSelect = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className={promptControlClasses}
+                className={composerControlClasses}
               >
                 <VenetianMask className="h-4 w-4" />
                 <span className="sr-only">{currentPersona?.label}</span>

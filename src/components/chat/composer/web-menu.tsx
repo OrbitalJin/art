@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { SEARCH_GROUPS } from "./agent/configure-menu/groups";
 import { ToolRow } from "./agent/configure-menu/rows";
 import { ART_KEY_NOTICE, KeyNotice } from "./key-notice";
-import { promptControlClasses } from "./toolbar";
+import { composerControlClasses } from "./toolbar";
 
 /**
  * Chat-mode control for the search toolset. Only the tools declared in
@@ -57,7 +57,7 @@ export const WebMenu: React.FC = () => {
   };
 
   const triggerClasses = cn(
-    promptControlClasses,
+    composerControlClasses,
     "relative",
     !hasKey && "opacity-60",
   );

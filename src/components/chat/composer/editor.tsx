@@ -11,19 +11,19 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import type { JSONContent } from "@tiptap/core";
 import type { EditorView } from "@tiptap/pm/view";
 import { cn } from "@/lib/utils";
-import "@/styles/prompt-composer.css";
+import "@/styles/composer.css";
 import { docFromText, inlineFromText } from "./text-content";
 import {
   createStashSuggestion,
   type StashPickerState,
 } from "./stash/stash-suggestion";
 
-export interface PromptHandle {
+export interface ComposerHandle {
   focus: () => void;
   insertText: (text: string) => void;
 }
 
-interface PromptEditorProps {
+interface ComposerEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
@@ -41,12 +41,12 @@ interface PromptEditorProps {
 }
 
 const editorClasses = cn(
-  "prompt-composer min-h-[70px] max-h-[250px] lg:max-h-[400px] overflow-y-auto",
+  "composer min-h-[70px] max-h-[250px] lg:max-h-[400px] overflow-y-auto",
   "px-3.5 pt-3.5 pb-1 text-[15px] leading-[1.5] text-foreground/90",
   "whitespace-pre-wrap break-words outline-none",
 );
 
-export const PromptEditor = forwardRef<PromptHandle, PromptEditorProps>(
+export const ComposerEditor = forwardRef<ComposerHandle, ComposerEditorProps>(
   (
     {
       value,
@@ -198,4 +198,4 @@ export const PromptEditor = forwardRef<PromptHandle, PromptEditorProps>(
   },
 );
 
-PromptEditor.displayName = "PromptEditor";
+ComposerEditor.displayName = "ComposerEditor";

@@ -1,4 +1,3 @@
-import { useLayoutEffect, useRef } from "react";
 import {
   ArrowUp,
   File as FileIcon,
@@ -18,7 +17,7 @@ import { useChatInput } from "@/contexts/chat-context";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { PersonaSelect } from "./persona-select";
 import { WebMenu } from "./web-menu";
-import { ModelSelect } from "@/components/chat/prompt/model-select";
+import { ModelSelect } from "@/components/chat/composer/model-select";
 import { JumpSelect } from "./jump-select";
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { attachmentTypeLabel, isPdfMedia } from "@/lib/utils/images";
@@ -43,10 +42,10 @@ import { ART_KEY_NOTICE, KeyNotice } from "./key-notice";
 import { filesFromDataTransfer, useUpload } from "@/hooks/use-upload";
 import { resolveAttachmentUrl } from "@/lib/upload/pocketbase";
 import type { ChatAttachment } from "@/lib/store/session/types";
-import { PromptEditor, type PromptHandle } from "./editor";
+import { ComposerEditor, type ComposerHandle } from "./editor";
 
 interface Props {
-  promptRef: React.RefObject<PromptHandle | null>;
+  composerRef: React.RefObject<ComposerHandle | null>;
   className?: string;
 }
 
@@ -55,7 +54,7 @@ const AttachmentTypeIcon: React.FC<{ mimeType: string }> = ({ mimeType }) => {
   return <FileIcon className="size-3.5" />;
 };
 
-const PromptAttachmentItem: React.FC<{
+const ComposerAttachmentItem: React.FC<{
   attachment: ChatAttachment;
   onRemove: () => void;
   onRetry: () => void;
@@ -103,14 +102,14 @@ const PromptAttachmentItem: React.FC<{
   );
 };
 
-const PromptAttachments: React.FC<{
+const ComposerAttachments: React.FC<{
   attachments: ChatAttachment[];
   onRemove: (id: string) => void;
   onRetry: (id: string) => void;
 }> = ({ attachments, onRemove, onRetry }) => (
   <AttachmentGroup className="gap-1 px-3 pt-3">
     {attachments.map((attachment) => (
-      <PromptAttachmentItem
+      <ComposerAttachmentItem
         key={attachment.id}
         attachment={attachment}
         onRemove={() => onRemove(attachment.id)}
@@ -151,7 +150,7 @@ const SendButton: React.FC<{
   );
 };
 
-export const Prompt: React.FC<Props> = ({ promptRef, className }) => {
+export const Composer: React.FC<Props> = ({ composerRef, className }) => {
   const { prompt, setPrompt, attachments, sendMessage } = useChatInput();
   const { ingest, remove, retry, ingestClipboardImage } = useUpload();
   const { abortStream, isSending, toolCalls } = useChatStream();
@@ -162,7 +161,6 @@ export const Prompt: React.FC<Props> = ({ promptRef, className }) => {
   const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
-  const footerRef = useRef<HTMLElement>(null);
   const tools = useAgentTools(session, toolCalls);
 
   const isAgent = session?.type === "agent";
@@ -178,35 +176,6 @@ export const Prompt: React.FC<Props> = ({ promptRef, className }) => {
   const placeholder = isAgent
     ? "Give your agent a task, @ stash."
     : "Ask anything…";
-
-  // Publish the composer's measured height to the chat shell so the message
-  // thread can reserve space beneath it and keep every message reachable.
-  useLayoutEffect(() => {
-    const footer = footerRef.current;
-    if (!footer) return;
-
-    const host =
-      (footer.closest("[data-chat-thread]") as HTMLElement | null) ??
-      footer.parentElement;
-
-    const sync = () => {
-      host?.style.setProperty("--prompt-height", `${footer.offsetHeight}px`);
-    };
-
-    sync();
-
-    if (typeof ResizeObserver === "undefined") {
-      return () => host?.style.removeProperty("--prompt-height");
-    }
-
-    const observer = new ResizeObserver(sync);
-    observer.observe(footer);
-
-    return () => {
-      observer.disconnect();
-      host?.style.removeProperty("--prompt-height");
-    };
-  }, []);
 
   const handleSend = () => {
     if (!hasKey || attachmentsPending) return;
@@ -246,14 +215,8 @@ export const Prompt: React.FC<Props> = ({ promptRef, className }) => {
   );
 
   return (
-    <footer
-      ref={footerRef}
-      className={cn(
-        "pointer-events-none absolute inset-x-0 bottom-2 px-2 pb-2",
-        className,
-      )}
-    >
-      <div className="pointer-events-auto mx-auto flex max-w-3xl flex-col">
+    <footer className={cn("pb-2", className)}>
+      <div className="mx-auto flex max-w-3xl flex-col">
         <AgentAttention />
 
         {(!hasKey || !hasUploadKey) && !keysLoading && (
@@ -273,16 +236,16 @@ export const Prompt: React.FC<Props> = ({ promptRef, className }) => {
           {isAgent && <AgentBar />}
 
           {hasAttachments && (
-            <PromptAttachments
+            <ComposerAttachments
               attachments={attachments}
               onRemove={remove}
               onRetry={retry}
             />
           )}
 
-          <PromptEditor
-            key={session?.id ?? "prompt"}
-            ref={promptRef}
+          <ComposerEditor
+            key={session?.id ?? "composer"}
+            ref={composerRef}
             value={prompt}
             onChange={setPrompt}
             placeholder={placeholder}
@@ -325,7 +288,7 @@ export const Prompt: React.FC<Props> = ({ promptRef, className }) => {
           </div>
         </div>
 
-        <StashDialogs promptRef={promptRef} />
+        <StashDialogs composerRef={composerRef} />
       </div>
     </footer>
   );

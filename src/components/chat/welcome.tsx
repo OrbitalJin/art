@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useChatInput } from "@/contexts/chat-context";
-import type { PromptHandle } from "./prompt/editor";
+import type { ComposerHandle } from "./composer/editor";
 
 interface Props {
-  promptRef: React.RefObject<PromptHandle | null>;
+  composerRef: React.RefObject<ComposerHandle | null>;
 }
 
 const greetingFor = (now: Date): string => {
@@ -192,7 +192,7 @@ const AgentStarters: React.FC<{ onSelect: (prompt: string) => void }> = ({
   </>
 );
 
-const WelcomeMessage: React.FC<Props> = ({ promptRef }) => {
+const WelcomeMessage: React.FC<Props> = ({ composerRef }) => {
   const { setPrompt } = useChatInput();
   const navigate = useNavigate();
   const { type } = useParams<{ type: string }>();
@@ -227,7 +227,7 @@ const WelcomeMessage: React.FC<Props> = ({ promptRef }) => {
 
   const handleStarter = (prompt: string) => {
     setPrompt(prompt);
-    promptRef.current?.focus();
+    composerRef.current?.focus();
   };
 
   const containerClassName = cn(

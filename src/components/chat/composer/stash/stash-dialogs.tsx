@@ -11,12 +11,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useStashUiStore } from "@/lib/store/use-stash-ui-store";
-import type { PromptHandle } from "../editor";
+import type { ComposerHandle } from "../editor";
 import { StashFormDialog } from "./stash-form-dialog";
 import { TemplateDialog } from "./template-dialog";
 
 interface Props {
-  promptRef: RefObject<PromptHandle | null>;
+  composerRef: RefObject<ComposerHandle | null>;
 }
 
 const DeletePromptDialog: React.FC<{
@@ -53,7 +53,7 @@ const DeletePromptDialog: React.FC<{
  * Single host for the stash dialogs, driven by `useStashUiStore` so the inline
  * "@" picker and the toolbar save button can open them without prop drilling.
  */
-export const StashDialogs: React.FC<Props> = ({ promptRef }) => {
+export const StashDialogs: React.FC<Props> = ({ composerRef }) => {
   const form = useStashUiStore((state) => state.form);
   const template = useStashUiStore((state) => state.template);
   const pendingDelete = useStashUiStore((state) => state.pendingDelete);
@@ -73,7 +73,7 @@ export const StashDialogs: React.FC<Props> = ({ promptRef }) => {
   };
 
   const handleInsert = (text: string) => {
-    promptRef.current?.insertText(text);
+    composerRef.current?.insertText(text);
   };
 
   const handleConfirmDelete = () => {

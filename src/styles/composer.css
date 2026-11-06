@@ -4,11 +4,11 @@
    (the journal + interval memo editors) so the composer stays a plain, compact
    input. Note: Tiptap adds its own `tiptap` class to every editor, so rich
    styles are keyed to `.rich-editor` (see rich-editor.css) to avoid leaking. */
-.prompt-composer p {
+.composer p {
   margin: 0;
 }
 
-.prompt-composer p.is-empty::before {
+.composer p.is-empty::before {
   content: attr(data-placeholder);
   float: left;
   height: 0;
