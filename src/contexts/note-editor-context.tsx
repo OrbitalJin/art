@@ -41,7 +41,11 @@ export const JournalEditorProvider: React.FC<Props> = ({ children }) => {
 
   const editor = useEditor({
     editable: true,
-    immediatelyRender: true,
+    // Do not create the editor during render. `useEditor` otherwise schedules
+    // an immediate teardown (~1ms) of the render-created instance, which can
+    // destroy it before this component's first effects run and hand consumers
+    // a destroyed editor (see tiptap#8400). Creating it on mount avoids that.
+    immediatelyRender: false,
     extensions: editorExtensions,
     editorProps,
   });

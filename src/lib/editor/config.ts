@@ -12,7 +12,10 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { toast } from "sonner";
 
 export const editorExtensions = [
-  StarterKit,
+  // StarterKit v3 ships Link (and Underline) by default. We register Link
+  // explicitly below, so disable the built-in one to avoid a duplicate
+  // "link" extension.
+  StarterKit.configure({ link: false }),
   TableKit,
   Link,
   Highlight,

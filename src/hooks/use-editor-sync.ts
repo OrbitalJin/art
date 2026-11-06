@@ -20,7 +20,7 @@ export const useEditorSync = (
   const doSave = useCallback(() => {
     const ed = editorRef.current;
     const id = activeIdRef.current;
-    if (!ed || !id) return;
+    if (!ed || ed.isDestroyed || !id) return;
     setIsSaving(false);
     // @ts-expect-error tiptap-markdown adds this at runtime
     updateContent(id, ed.storage.markdown.getMarkdown());
@@ -28,8 +28,10 @@ export const useEditorSync = (
 
   // Sync editor content from store when note changes
   useEffect(() => {
-    if (!editor || !activeId || !note) {
-      editor?.commands.clearContent();
+    if (!editor || editor.isDestroyed) return;
+
+    if (!activeId || !note) {
+      editor.commands.clearContent();
       return;
     }
 
@@ -44,7 +46,7 @@ export const useEditorSync = (
 
   // Debounced auto-save on editor updates
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
 
     const onUpdate = () => {
       if (!activeIdRef.current) return;
@@ -64,7 +66,7 @@ export const useEditorSync = (
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      if (editor && activeId) {
+      if (editor && !editor.isDestroyed && activeId) {
         // @ts-expect-error tiptap-markdown adds this at runtime
         updateContent(activeId, editor.storage.markdown.getMarkdown());
       }

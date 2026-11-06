@@ -10,7 +10,7 @@ export const useEditorStateSelector = (editor: Editor | null) => {
   const state = useTipTapEditorState({
     editor,
     selector: (ctx) => {
-      if (!ctx.editor) {
+      if (!ctx.editor || ctx.editor.isDestroyed) {
         return {
           wordCount: 0,
           charCount: 0,
