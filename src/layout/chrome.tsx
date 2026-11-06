@@ -1,21 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, CloudDownload, Music, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Player } from "@/components/interval/player";
-import {
-  SettingsDialog,
-  type SettingsDialogTriggerState,
-} from "@/components/settings/settings-dialog";
-import {
-  UpdaterDialog,
-  type UpdaterDialogTriggerState,
-} from "@/components/updater-dialog";
+import { SettingsDialog } from "@/components/settings/settings-dialog";
+import { UpdaterDialog } from "@/components/updater-dialog";
 import { useIntervalStore } from "@/lib/store/use-interval-store";
 import { Command } from "@/components/command";
 import {
@@ -23,6 +19,7 @@ import {
   type NavigationItem,
 } from "@/components/layout/navigation";
 import { WindowControls } from "@/components/layout/window-controls";
+import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 import { PanelRow } from "./panel-row";
 
 const iconButtonClassName = cn(
@@ -73,25 +70,48 @@ const UpdateBadge = () => {
   );
 };
 
-const renderSettingsTrigger = ({ open }: SettingsDialogTriggerState) => {
-  const icon = <Settings strokeWidth={1.75} className="size-4 shrink-0" />;
+interface MenuRowProps {
+  onOpen: () => void;
+}
 
-  return <PanelRow active={open} label="Settings" icon={icon} />;
+const SettingsMenuItem = ({ onOpen }: MenuRowProps) => {
+  const open = useUIStateStore((state) => state.settingsDialogOpen);
+  const setOpen = useUIStateStore((state) => state.setSettingsDialogOpen);
+
+  return (
+    <PanelRow
+      onClick={() => {
+        setOpen(true);
+        onOpen();
+      }}
+      active={open}
+      label="Settings"
+      icon={<Settings strokeWidth={1.75} className="size-4 shrink-0" />}
+    />
+  );
 };
 
-const renderUpdatesTrigger = ({
-  open,
-  updateAvailable,
-}: UpdaterDialogTriggerState) => {
+const UpdatesMenuItem = ({ onOpen }: MenuRowProps) => {
+  const open = useUIStateStore((state) => state.updateDialogOpen);
+  const setOpen = useUIStateStore((state) => state.setUpdateDialogOpen);
+  const updateAvailable = useUIStateStore((state) => state.updateAvailable);
+
   const iconClassName = cn(
     "size-4 shrink-0",
     updateAvailable && "text-green-400",
   );
-  const icon = <CloudDownload strokeWidth={1.75} className={iconClassName} />;
-  const badge = updateAvailable ? <UpdateBadge /> : null;
 
   return (
-    <PanelRow active={open} label="Updates" icon={icon} trailing={badge} />
+    <PanelRow
+      onClick={() => {
+        setOpen(true);
+        onOpen();
+      }}
+      active={open}
+      label="Updates"
+      icon={<CloudDownload strokeWidth={1.75} className={iconClassName} />}
+      trailing={updateAvailable ? <UpdateBadge /> : null}
+    />
   );
 };
 
@@ -133,71 +153,44 @@ interface ClusterProps {
 const Cluster = ({ items, isSelected }: ClusterProps) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pillRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [anchorOffset, setAnchorOffset] = useState({ side: 8, align: 0 });
 
   const current = items.find(isSelected);
   const CurrentIcon = current?.activeIcon;
-
-  const clearTimers = () => {
-    if (openTimer.current) clearTimeout(openTimer.current);
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-  };
-
-  useEffect(() => clearTimers, []);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!wrapperRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open]);
-
-  const handleEnter = () => {
-    clearTimers();
-    openTimer.current = setTimeout(() => setOpen(true), 120);
-  };
-
-  const handleLeave = () => {
-    clearTimers();
-    closeTimer.current = setTimeout(() => setOpen(false), 220);
-  };
-
-  const handlePanelEnter = () => {
-    clearTimers();
-  };
-
-  const handleToggle = () => {
-    clearTimers();
-    setOpen((current) => !current);
-  };
 
   const handleSelect = (href: string) => {
     navigate(href);
     setOpen(false);
   };
 
+  // Radix anchors the panel to the trigger button, but the panel used to hang
+  // off the whole pill. Re-anchor it to the pill on open by measuring the
+  // difference between the pill and the trigger.
+  const handleOpenChange = (next: boolean) => {
+    if (next) {
+      const pill = pillRef.current;
+      const trigger = triggerRef.current;
+      if (pill && trigger) {
+        const pillRect = pill.getBoundingClientRect();
+        const triggerRect = trigger.getBoundingClientRect();
+        setAnchorOffset({
+          side: 8 + (pillRect.bottom - triggerRect.bottom),
+          align: triggerRect.right - pillRect.right,
+        });
+      }
+    }
+    setOpen(next);
+  };
+
   const wrapperClassName = cn(
-    "relative pointer-events-auto transition-opacity duration-200",
+    "pointer-events-auto transition-opacity duration-200",
     "opacity-80 hover:opacity-100",
   );
 
   const pillClassName = cn(
-    "flex items-center gap-1.5 rounded-full p-1",
+    "flex items-center gap-1.5 rounded-full p-1.5",
     "border border-border",
     "backdrop-blur-xl shadow-lg shadow-black/10 transition-colors duration-200",
     open ? "bg-card/70" : "bg-card/40",
@@ -216,13 +209,8 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
   );
 
   const panelClassName = cn(
-    "absolute right-0 top-full mt-2 w-56 origin-top-right p-1.5",
-    "rounded-2xl border border-border/40 bg-card/70 backdrop-blur-2xl",
-    "shadow-xl shadow-black/15 ring-1 ring-inset ring-foreground/5",
-    "transition-all duration-200 ease-out",
-    open
-      ? "visible translate-y-0 scale-100 opacity-100"
-      : "pointer-events-none invisible -translate-y-1 scale-95 opacity-0",
+    "w-56 origin-top-right rounded-2xl border border-border/40 bg-card/70 p-1.5",
+    "backdrop-blur-2xl shadow-xl shadow-black/15 ring-1 ring-inset ring-foreground/5",
   );
 
   const headerClassName = cn(
@@ -231,62 +219,66 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
   );
 
   return (
-    <div
-      ref={wrapperRef}
-      className={wrapperClassName}
-      onPointerLeave={handleLeave}
-    >
-      <div data-tauri-drag-region className={pillClassName}>
-        <button
-          type="button"
-          aria-label={open ? "Hide navigation" : "Show navigation"}
-          aria-expanded={open}
-          onClick={handleToggle}
-          onPointerEnter={handleEnter}
-          className={triggerClassName}
-        >
-          {CurrentIcon && (
-            <CurrentIcon strokeWidth={1.75} className="size-3.5 text-primary" />
-          )}
-          {current && (
-            <span className="text-xs font-medium text-foreground/90">
-              {current.label}
-            </span>
-          )}
-          <ChevronDown strokeWidth={2.25} className={chevronClassName} />
-        </button>
+    <div className={wrapperClassName}>
+      <div ref={pillRef} data-tauri-drag-region className={pillClassName}>
+        <DropdownMenu open={open} onOpenChange={handleOpenChange}>
+          <DropdownMenuTrigger asChild>
+            <button
+              ref={triggerRef}
+              type="button"
+              aria-label={open ? "Hide navigation" : "Show navigation"}
+              className={triggerClassName}
+            >
+              {CurrentIcon && (
+                <CurrentIcon
+                  strokeWidth={1.75}
+                  className="size-3.5 text-primary"
+                />
+              )}
+              {current && (
+                <span className="text-xs font-medium text-foreground/90">
+                  {current.label}
+                </span>
+              )}
+              <ChevronDown strokeWidth={2.25} className={chevronClassName} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="bottom"
+            align="end"
+            sideOffset={anchorOffset.side}
+            alignOffset={anchorOffset.align}
+            className={panelClassName}
+          >
+            <DropdownMenuLabel className={headerClassName}>
+              Navigate
+            </DropdownMenuLabel>
+            <div className="flex flex-col gap-0.5">
+              {items.map((item) => (
+                <ModeRow
+                  key={item.base}
+                  item={item}
+                  selected={isSelected(item)}
+                  onSelect={() => handleSelect(item.href)}
+                />
+              ))}
+            </div>
+
+            <DropdownMenuSeparator className="mx-1 my-1.5 h-px bg-border/50" />
+
+            <div className="flex flex-col gap-0.5">
+              <UpdatesMenuItem onOpen={() => setOpen(false)} />
+              <SettingsMenuItem onOpen={() => setOpen(false)} />
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <MusicMenu className="size-6" />
-        <div className="flex flex-row gap-1">
+        <div className="flex flex-row gap-1 pointer-events-none">
           <span aria-hidden className="h-3.5 w-px bg-border/60" />
           <span aria-hidden className="h-3.5 w-px bg-border/60" />
           <span aria-hidden className="h-3.5 w-px bg-border/60" />
         </div>
         <WindowControls />
-      </div>
-
-      <div
-        aria-hidden={!open}
-        className={panelClassName}
-        onPointerEnter={handlePanelEnter}
-      >
-        <p className={headerClassName}>Navigate</p>
-        <nav className="flex flex-col gap-0.5">
-          {items.map((item) => (
-            <ModeRow
-              key={item.base}
-              item={item}
-              selected={isSelected(item)}
-              onSelect={() => handleSelect(item.href)}
-            />
-          ))}
-        </nav>
-
-        <div aria-hidden className="mx-1 my-1.5 h-px bg-border/50" />
-
-        <div className="flex flex-col gap-0.5">
-          <UpdaterDialog trigger={renderUpdatesTrigger} />
-          <SettingsDialog trigger={renderSettingsTrigger} />
-        </div>
       </div>
     </div>
   );
@@ -300,6 +292,8 @@ export const Chrome = () => {
       <div className="pointer-events-none absolute inset-x-0 top-0.5 z-50 flex justify-end p-3">
         <Cluster items={items} isSelected={isSelected} />
       </div>
+      <SettingsDialog />
+      <UpdaterDialog />
       <Command items={items} />
     </>
   );

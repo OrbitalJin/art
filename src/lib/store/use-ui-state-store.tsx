@@ -29,10 +29,12 @@ interface SettingsState {
   journalState: JournalState;
   settingsDialogOpen: boolean;
   updateDialogOpen: boolean;
+  updateAvailable: boolean;
   setChatState: (partial: Partial<ChatState>) => void;
   setJournalState: (partial: Partial<JournalState>) => void;
   setSettingsDialogOpen: (open: boolean) => void;
   setUpdateDialogOpen: (open: boolean) => void;
+  setUpdateAvailable: (available: boolean) => void;
 }
 
 type PersistedUIState = Pick<
@@ -65,6 +67,7 @@ export const useUIStateStore = create<SettingsState>()(
       },
       settingsDialogOpen: false,
       updateDialogOpen: false,
+      updateAvailable: false,
       setChatState: (partial: Partial<ChatState>) =>
         set((state) => ({ chatState: { ...state.chatState, ...partial } })),
       setJournalState: (partial: Partial<JournalState>) =>
@@ -72,6 +75,8 @@ export const useUIStateStore = create<SettingsState>()(
       setSettingsDialogOpen: (open: boolean) =>
         set({ settingsDialogOpen: open }),
       setUpdateDialogOpen: (open: boolean) => set({ updateDialogOpen: open }),
+      setUpdateAvailable: (available: boolean) =>
+        set({ updateAvailable: available }),
     }),
     {
       name: "ui-state-storage",

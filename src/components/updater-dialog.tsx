@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { CloudDownload, ScrollText } from "lucide-react";
 
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
@@ -9,29 +9,26 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UpdateTab } from "./update/update-tab";
 import { ChangelogTab } from "./update/changelog-tab";
 import { useAppUpdater } from "@/hooks/use-app-updater";
 
-export interface UpdaterDialogTriggerState {
-  open: boolean;
-  updateAvailable: boolean;
-}
-
-interface UpdaterDialogProps {
-  trigger: (state: UpdaterDialogTriggerState) => ReactNode;
-}
-
-export const UpdaterDialog = ({ trigger }: UpdaterDialogProps) => {
+export const UpdaterDialog = () => {
   const open = useUIStateStore((state) => state.updateDialogOpen);
   const setOpen = useUIStateStore((state) => state.setUpdateDialogOpen);
+  const setUpdateAvailable = useUIStateStore(
+    (state) => state.setUpdateAvailable,
+  );
   const [tab, setTab] = useState("update");
   const { status } = useAppUpdater(true);
 
   const updateAvailable = status === "available";
+
+  useEffect(() => {
+    setUpdateAvailable(updateAvailable);
+  }, [updateAvailable, setUpdateAvailable]);
 
   useEffect(() => {
     if (status === "available") setOpen(true);
@@ -39,10 +36,6 @@ export const UpdaterDialog = ({ trigger }: UpdaterDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger({ open, updateAvailable })}
-      </DialogTrigger>
-
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden rounded-2xl p-0">
         <DialogHeader className="shrink-0 border-b bg-muted/20 px-6 py-5">
           <DialogTitle>Updates</DialogTitle>

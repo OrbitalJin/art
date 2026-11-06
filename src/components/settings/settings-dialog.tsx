@@ -5,7 +5,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
@@ -25,7 +24,7 @@ import { ChatSettingsTab } from "./tabs/chat";
 import { IdentitiesSettingsTab } from "./tabs/identities";
 import { AppearanceSettingTab } from "./tabs/appearance";
 import { getVersion } from "@tauri-apps/api/app";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
@@ -64,15 +63,7 @@ function AppVersion() {
   );
 }
 
-export interface SettingsDialogTriggerState {
-  open: boolean;
-}
-
-interface SettingsDialogProps {
-  trigger: (state: SettingsDialogTriggerState) => ReactNode;
-}
-
-export const SettingsDialog = ({ trigger }: SettingsDialogProps) => {
+export const SettingsDialog = () => {
   const resetSettings = useSettingsStore((state) => state.resetSettings);
   const settingsOpen = useUIStateStore((state) => state.settingsDialogOpen);
   const setSettingsOpen = useUIStateStore(
@@ -91,7 +82,6 @@ export const SettingsDialog = ({ trigger }: SettingsDialogProps) => {
   };
   return (
     <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-      <DialogTrigger asChild>{trigger({ open: settingsOpen })}</DialogTrigger>
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 scrollbar-none overflow-scroll p-0">
         <DialogHeader className="border-b px-6 py-4">
           <DialogTitle className="text-xl">Settings</DialogTitle>
