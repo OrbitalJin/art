@@ -1,15 +1,6 @@
 import React, { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowRight,
-  CalendarDays,
-  FileText,
-  Inbox,
-  Lightbulb,
-  ListPlus,
-  Mail,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useSessionIndex } from "@/lib/store/session/index-store";
@@ -68,8 +59,8 @@ const SectionLabel: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const labelClassName = cn(
-    "mb-1 text-[10px] font-medium uppercase tracking-[0.14em]",
-    "text-muted-foreground/45",
+    "mb-1 text-[10px] font-medium uppercase tracking-wider",
+    "text-muted-foreground/60",
   );
 
   return <p className={labelClassName}>{children}</p>;
@@ -93,30 +84,19 @@ const Shortcut: React.FC<{ label: string; keys: string }> = ({
 };
 
 interface StarterProps {
-  icon: LucideIcon;
   label: string;
   prompt: string;
   onSelect: (prompt: string) => void;
 }
 
-const Starter: React.FC<StarterProps> = ({
-  icon: Icon,
-  label,
-  prompt,
-  onSelect,
-}) => {
+const Starter: React.FC<StarterProps> = ({ label, prompt, onSelect }) => {
   const rowClassName = cn(
     "group flex w-full cursor-pointer items-center gap-3 py-3 text-left outline-none",
     "border-b border-border/30 last:border-b-0",
   );
 
-  const iconClassName = cn(
-    "size-4 shrink-0 text-muted-foreground/40 transition-colors duration-200",
-    "group-hover:text-primary group-focus-visible:text-primary",
-  );
-
   const labelClassName = cn(
-    "flex-1 text-[15.5px] text-foreground/70 transition-colors duration-200",
+    "flex-1 text-sm text-foreground/70 transition-colors duration-200",
     "group-hover:text-foreground group-focus-visible:text-foreground",
   );
 
@@ -133,7 +113,6 @@ const Starter: React.FC<StarterProps> = ({
       onClick={() => onSelect(prompt)}
       className={rowClassName}
     >
-      <Icon strokeWidth={1.75} className={iconClassName} />
       <span className={labelClassName}>{label}</span>
       <ArrowRight strokeWidth={1.75} className={arrowClassName} />
     </button>
@@ -146,12 +125,7 @@ const RecentRow: React.FC<{
   onOpen: () => void;
 }> = ({ title, updatedAt, onOpen }) => {
   const rowClassName = cn(
-    "group flex w-full cursor-pointer items-center gap-3 py-2 text-left outline-none",
-  );
-
-  const dotClassName = cn(
-    "size-1 shrink-0 rounded-full bg-muted-foreground/25 transition-colors duration-150",
-    "group-hover:bg-primary group-focus-visible:bg-primary",
+    "group flex w-full cursor-pointer items-center gap-4 py-2 text-left outline-none",
   );
 
   const titleClassName = cn(
@@ -168,7 +142,6 @@ const RecentRow: React.FC<{
 
   return (
     <button type="button" onClick={onOpen} className={rowClassName}>
-      <span aria-hidden className={dotClassName} />
       <span className={titleClassName}>{title}</span>
       <span className={timeClassName}>{relativeTime(updatedAt)}</span>
     </button>
@@ -180,19 +153,16 @@ const ChatStarters: React.FC<{ onSelect: (prompt: string) => void }> = ({
 }) => (
   <>
     <Starter
-      icon={FileText}
       label="Summarize my notes about…"
       prompt="Summarize my notes about "
       onSelect={onSelect}
     />
     <Starter
-      icon={Mail}
       label="Draft an email about…"
       prompt="Draft an email about "
       onSelect={onSelect}
     />
     <Starter
-      icon={Lightbulb}
       label="Explain this like I'm new to it…"
       prompt="Explain this like I'm new to it: "
       onSelect={onSelect}
@@ -205,19 +175,16 @@ const AgentStarters: React.FC<{ onSelect: (prompt: string) => void }> = ({
 }) => (
   <>
     <Starter
-      icon={CalendarDays}
       label="Plan out my week…"
       prompt="Plan out my week: "
       onSelect={onSelect}
     />
     <Starter
-      icon={ListPlus}
       label="Add a task to…"
       prompt="Add a task to "
       onSelect={onSelect}
     />
     <Starter
-      icon={Inbox}
       label="Check my email inbox"
       prompt="Check my email inbox"
       onSelect={onSelect}

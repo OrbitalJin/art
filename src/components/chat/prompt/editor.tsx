@@ -2,6 +2,7 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
@@ -62,7 +63,10 @@ export const PromptEditor = forwardRef<PromptHandle, PromptEditorProps>(
     ref,
   ) => {
     const editorRef = useRef<Editor | null>(null);
-    const stashPickerRef = useRef<StashPickerState>({ active: false, count: 0 });
+    const stashPickerRef = useRef<StashPickerState>({
+      active: false,
+      count: 0,
+    });
 
     // Latest props for the editor callbacks, which are captured once at creation.
     const handlersRef = useRef({ onChange, onSend, enterKeySends, onPaste });
@@ -77,8 +81,10 @@ export const PromptEditor = forwardRef<PromptHandle, PromptEditorProps>(
 
     const initialContent = useRef<JSONContent>(docFromText(value)).current;
 
-    const editor = useEditor({
-      extensions: [
+    // Build the extension set once per composer instance: rebuilding it every
+    // render makes Tiptap re-apply options and allocate fresh plugin keys.
+    const extensions = useMemo(
+      () => [
         StarterKit.configure({
           blockquote: false,
           bold: false,
@@ -103,6 +109,11 @@ export const PromptEditor = forwardRef<PromptHandle, PromptEditorProps>(
         }),
         ...(stashSuggestion ? [createStashSuggestion(stashPickerRef)] : []),
       ],
+      [stashSuggestion],
+    );
+
+    const editor = useEditor({
+      extensions,
       content: initialContent,
       editable,
       autofocus: autoFocus ? "end" : false,
@@ -134,13 +145,16 @@ export const PromptEditor = forwardRef<PromptHandle, PromptEditorProps>(
 
           // Plain newline: insert a hard break instead of a new paragraph.
           event.preventDefault();
-          editorRef.current?.commands.setHardBreak();
+          const instance = editorRef.current;
+          if (instance && !instance.isDestroyed)
+            instance.commands.setHardBreak();
           return true;
         },
         handlePaste: (_view: EditorView, event: ClipboardEvent) =>
           handlersRef.current.onPaste?.(event) ?? false,
       },
       onUpdate: ({ editor: instance }) => {
+        if (instance.isDestroyed) return;
         handlersRef.current.onChange(instance.getText());
       },
     });
@@ -151,13 +165,13 @@ export const PromptEditor = forwardRef<PromptHandle, PromptEditorProps>(
 
     // Keep the editor editable state in sync with key availability.
     useEffect(() => {
-      editor?.setEditable(editable);
+      if (editor && !editor.isDestroyed) editor.setEditable(editable);
     }, [editor, editable]);
 
     // Reflect external draft changes (session switch, starter prompts) that
     // replace the whole value rather than coming from typing.
     useEffect(() => {
-      if (!editor) return;
+      if (!editor || editor.isDestroyed) return;
       if (editor.getText() === value) return;
       editor.commands.setContent(docFromText(value), { emitUpdate: false });
     }, [editor, value]);
@@ -166,12 +180,14 @@ export const PromptEditor = forwardRef<PromptHandle, PromptEditorProps>(
       ref,
       () => ({
         focus: () => {
-          editorRef.current?.commands.focus("end");
+          const instance = editorRef.current;
+          if (instance && !instance.isDestroyed) instance.commands.focus("end");
         },
         insertText: (text: string) => {
           const instance = editorRef.current;
+          if (!instance || instance.isDestroyed) return;
           const nodes = inlineFromText(text);
-          if (!instance || nodes.length === 0) return;
+          if (nodes.length === 0) return;
           instance.chain().focus().insertContent(nodes).run();
         },
       }),

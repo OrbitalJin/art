@@ -2,7 +2,7 @@ import { useState } from "react";
 import { GitBranch, MoreHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, formatDateAsAgo } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -45,9 +45,33 @@ const stopPropagation = (event: React.SyntheticEvent) => {
   event.stopPropagation();
 };
 
-const StatusDot: React.FC<{ streaming: boolean }> = ({ streaming }) => {
-  return streaming && <Spinner />;
+const AttentionDot: React.FC = () => {
+  const haloClassName = cn(
+    "absolute inline-flex size-full animate-ping rounded-full bg-amber-500/60",
+    "motion-reduce:animate-none",
+  );
+
+  return (
+    <span
+      role="status"
+      aria-label="Needs your attention"
+      className="relative flex size-1.5 shrink-0"
+    >
+      <span className="relative inline-flex size-1.5 rounded-full bg-amber-500" />
+      <span className={haloClassName} />
+    </span>
+  );
 };
+
+const StatusMark: React.FC<{ streaming: boolean; attention: boolean }> = ({
+  streaming,
+  attention,
+}) => {
+  if (streaming) return <Spinner />;
+  if (attention) return <AttentionDot />;
+  return null;
+};
+
 const BranchLink: React.FC<{
   parentTitle?: string;
   onOpen: () => void;
@@ -56,23 +80,27 @@ const BranchLink: React.FC<{
     ? `Branched from ${parentTitle}`
     : "Original session no longer exists";
 
+  const buttonClassName = cn(
+    "shrink-0 cursor-pointer rounded-sm text-muted-foreground/50 outline-none",
+    "transition-colors duration-150 hover:text-foreground",
+    "focus-visible:ring-2 focus-visible:ring-ring/50",
+  );
+
+  const handleClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    onOpen();
+  };
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
           type="button"
           aria-label={label}
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpen();
-          }}
-          className={cn(
-            "shrink-0 cursor-pointer rounded-sm text-muted-foreground/50 outline-none",
-            "transition-colors duration-150 hover:text-foreground",
-            "focus-visible:ring-2 focus-visible:ring-ring/50",
-          )}
+          onClick={handleClick}
+          className={buttonClassName}
         >
-          <GitBranch className="size-3" />
+          <GitBranch strokeWidth={1.75} className="size-3" />
         </button>
       </TooltipTrigger>
       <TooltipContent side="right">{label}</TooltipContent>
@@ -92,6 +120,11 @@ const TitleInput: React.FC<{
     if (event.key === "Escape") onCancel();
   };
 
+  const inputClassName = cn(
+    "-mx-1.5 h-6 min-w-0 flex-1 rounded-md bg-background/60 px-1.5",
+    "text-[13px] text-foreground ring-1 ring-ring/40 outline-none",
+  );
+
   return (
     <input
       type="text"
@@ -101,7 +134,7 @@ const TitleInput: React.FC<{
       onChange={(event) => onChange(event.target.value)}
       onBlur={onCancel}
       onKeyDown={handleKeyDown}
-      className="-mx-1.5 h-6 min-w-0 flex-1 rounded bg-background/60 px-1.5 text-[13px] text-foreground ring-1 ring-ring/40 outline-none"
+      className={inputClassName}
     />
   );
 };
@@ -117,7 +150,8 @@ const DeleteDialog: React.FC<{
       <AlertDialogHeader>
         <AlertDialogTitle>Delete this session?</AlertDialogTitle>
         <AlertDialogDescription className="break-words">
-          “{title}” will be permanently deleted. This can't be undone.
+          <span className="font-medium text-foreground">“{title}”</span> will be
+          permanently deleted. This can't be undone.
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
@@ -130,10 +164,34 @@ const DeleteDialog: React.FC<{
   </AlertDialog>
 );
 
-const SessionMenu: React.FC<{ item: SessionMeta; onRename: () => void }> = ({
-  item,
-  onRename,
-}) => {
+const MenuTrigger: React.FC = () => {
+  const triggerClassName = cn(
+    "size-6 rounded-md text-muted-foreground/70 opacity-0 transition-opacity duration-150",
+    "group-hover:opacity-100 group-focus-within:opacity-100",
+    "focus-visible:opacity-100 data-[state=open]:opacity-100",
+    "hover:bg-accent/60 hover:text-foreground",
+  );
+
+  return (
+    <DropdownMenuTrigger asChild>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className={triggerClassName}
+      >
+        <MoreHorizontal strokeWidth={1.75} className="size-4" />
+        <span className="sr-only">Session options</span>
+      </Button>
+    </DropdownMenuTrigger>
+  );
+};
+
+const SessionMenu: React.FC<{
+  item: SessionMeta;
+  onRename: () => void;
+  onOpenChange?: (open: boolean) => void;
+}> = ({ item, onRename, onOpenChange }) => {
   const togglePinned = useSessionIndex((state) => state.togglePinned);
   const toggleArchived = useSessionIndex((state) => state.toggleArchived);
 
@@ -141,6 +199,11 @@ const SessionMenu: React.FC<{ item: SessionMeta; onRename: () => void }> = ({
 
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    onOpenChange?.(next);
+  };
 
   const handleRegenerateTitle = () => {
     void generateSessionTitle(item.id);
@@ -157,7 +220,7 @@ const SessionMenu: React.FC<{ item: SessionMeta; onRename: () => void }> = ({
 
   const handleDeleteSelect = (event: Event) => {
     event.preventDefault();
-    setOpen(false);
+    handleOpenChange(false);
     requestAnimationFrame(() => setConfirmOpen(true));
   };
 
@@ -170,41 +233,45 @@ const SessionMenu: React.FC<{ item: SessionMeta; onRename: () => void }> = ({
     toast.success("Session deleted successfully.");
   };
 
-  const triggerClasses = cn(
-    "size-6 text-muted-foreground/70 opacity-0 transition-opacity duration-150",
-    "group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100",
-    "hover:bg-transparent hover:text-foreground",
+  const contentClassName = cn(
+    "w-44 rounded-xl border-border/40 bg-popover/80 p-1",
+    "shadow-lg shadow-black/10 backdrop-blur-2xl",
+  );
+
+  const itemClassName = "rounded-lg";
+
+  const deleteClassName = cn(
+    itemClassName,
+    "text-destructive focus:bg-destructive/10 focus:text-destructive",
   );
 
   return (
     <>
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className={triggerClasses}
-          >
-            <MoreHorizontal className="size-4" />
-            <span className="sr-only">Session options</span>
-          </Button>
-        </DropdownMenuTrigger>
+      <DropdownMenu open={open} onOpenChange={handleOpenChange}>
+        <MenuTrigger />
 
-        <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuContent align="end" className={contentClassName}>
           {!item.archived && (
             <>
               <DropdownMenuGroup>
-                <DropdownMenuItem onSelect={() => togglePinned(item.id)}>
+                <DropdownMenuItem
+                  className={itemClassName}
+                  onSelect={() => togglePinned(item.id)}
+                >
                   {item.pinned ? "Unpin" : "Pin"}
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={onRename}>Rename</DropdownMenuItem>
+                <DropdownMenuItem className={itemClassName} onSelect={onRename}>
+                  Rename
+                </DropdownMenuItem>
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />
 
               <DropdownMenuGroup>
-                <DropdownMenuItem onSelect={handleRegenerateTitle}>
+                <DropdownMenuItem
+                  className={itemClassName}
+                  onSelect={handleRegenerateTitle}
+                >
                   Regenerate title
                 </DropdownMenuItem>
               </DropdownMenuGroup>
@@ -214,8 +281,13 @@ const SessionMenu: React.FC<{ item: SessionMeta; onRename: () => void }> = ({
           )}
 
           <DropdownMenuGroup>
-            <DropdownMenuItem onSelect={handleBranch}>Branch</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => toggleArchived(item.id)}>
+            <DropdownMenuItem className={itemClassName} onSelect={handleBranch}>
+              Branch
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className={itemClassName}
+              onSelect={() => toggleArchived(item.id)}
+            >
               {item.archived ? "Unarchive" : "Archive"}
             </DropdownMenuItem>
           </DropdownMenuGroup>
@@ -223,7 +295,7 @@ const SessionMenu: React.FC<{ item: SessionMeta; onRename: () => void }> = ({
           <DropdownMenuSeparator />
 
           <DropdownMenuItem
-            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+            className={deleteClassName}
             onSelect={handleDeleteSelect}
           >
             Delete
@@ -239,6 +311,24 @@ const SessionMenu: React.FC<{ item: SessionMeta; onRename: () => void }> = ({
       />
     </>
   );
+};
+
+// pointer-events-none: the label fades out on hover but would otherwise keep
+// intercepting clicks meant for the menu button underneath it.
+const RowTime: React.FC<{
+  label: string;
+  swapWithMenu: boolean;
+  hidden: boolean;
+}> = ({ label, swapWithMenu, hidden }) => {
+  const timeClassName = cn(
+    "pointer-events-none col-start-1 row-start-1",
+    "text-[11px] tabular-nums text-muted-foreground/70",
+    "transition-opacity duration-150",
+    swapWithMenu && "group-hover:opacity-0 group-focus-within:opacity-0",
+    hidden && "opacity-0",
+  );
+
+  return <span className={timeClassName}>{label}</span>;
 };
 
 export const SessionListItem: React.FC<Props> = ({
@@ -260,11 +350,13 @@ export const SessionListItem: React.FC<Props> = ({
 
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(title);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const parentSession = branchOf ? getMeta(branchOf) : undefined;
   const canOpen = !editing && !isTitleGenerating;
-  const showStatus = isStreaming || needsAttention;
   const showMenu = !editing && !isTitleGenerating && !isStreaming;
+  const hideTime = showMenu && menuOpen;
+  const timeLabel = formatDateAsAgo(item.updatedAt);
 
   const handleStartEditing = () => {
     setText(title);
@@ -303,20 +395,24 @@ export const SessionListItem: React.FC<Props> = ({
     }
   };
 
-  const rowClasses = cn(
+  const rowClassName = cn(
     "group relative flex w-full max-w-full min-w-0 items-center gap-2 overflow-hidden",
-    "rounded-md px-2.5 py-1.5 text-[13px] select-none outline-none",
+    "rounded-lg px-2.5 py-1.5 text-[13px] select-none outline-none",
     "transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/50",
     canOpen ? "cursor-pointer" : "cursor-default",
     active
-      ? "bg-accent/40 text-foreground"
-      : "text-foreground/70 hover:bg-accent/20 hover:text-foreground",
+      ? "bg-accent/50 text-foreground"
+      : "text-foreground/70 hover:bg-accent/30 hover:text-foreground",
   );
 
-  const titleClasses = cn(
+  const titleClassName = cn(
     "block min-w-0 flex-1 truncate",
     isStreaming && "shimmer",
     isTitleGenerating && "shimmer text-muted-foreground",
+  );
+
+  const trailingClassName = cn(
+    "relative grid shrink-0 items-center justify-items-end",
   );
 
   const titleLabel = isTitleGenerating ? "Generating title…" : title;
@@ -327,7 +423,7 @@ export const SessionListItem: React.FC<Props> = ({
       aria-current={active ? "page" : undefined}
       onClick={handleOpen}
       onKeyDown={handleRowKeyDown}
-      className={rowClasses}
+      className={rowClassName}
     >
       {branchOf && (
         <BranchLink
@@ -335,6 +431,8 @@ export const SessionListItem: React.FC<Props> = ({
           onOpen={handleOpenParent}
         />
       )}
+
+      <StatusMark streaming={isStreaming} attention={needsAttention} />
 
       {editing ? (
         <TitleInput
@@ -344,20 +442,28 @@ export const SessionListItem: React.FC<Props> = ({
           onCancel={handleCancel}
         />
       ) : (
-        <span title={titleLabel} className={titleClasses}>
+        <span title={titleLabel} className={titleClassName}>
           {titleLabel}
         </span>
       )}
 
       <div
-        className="flex size-6 shrink-0 items-center justify-center"
+        className={trailingClassName}
         onClick={stopPropagation}
         onKeyDown={stopPropagation}
       >
-        {showMenu && <SessionMenu item={item} onRename={handleStartEditing} />}
-      </div>
+        <RowTime label={timeLabel} swapWithMenu={showMenu} hidden={hideTime} />
 
-      {showStatus && <StatusDot streaming={isStreaming} />}
+        {showMenu && (
+          <div className="relative col-start-1 row-start-1">
+            <SessionMenu
+              item={item}
+              onRename={handleStartEditing}
+              onOpenChange={setMenuOpen}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

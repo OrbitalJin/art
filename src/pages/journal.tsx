@@ -1,4 +1,4 @@
-import "@/styles/tiptap.css";
+import "@/styles/rich-editor.css";
 
 import { EditorContent } from "@tiptap/react";
 import { useCallback, useEffect } from "react";

@@ -42,7 +42,7 @@ export const editorExtensions = [
 
 export const editorProps = {
   attributes: {
-    class: "tiptap focus:outline-none",
+    class: "rich-editor focus:outline-none",
     spellcheck: "false",
   },
   handleClick: (_: unknown, __: unknown, event: MouseEvent) => {

@@ -1,7 +1,9 @@
 @reference "./index.css";
 
-/* Composer-specific Tiptap styles — intentionally separate from `.tiptap`
-   (the journal editor) so the composer stays a plain, compact input. */
+/* Composer-specific Tiptap styles — intentionally separate from `.rich-editor`
+   (the journal + interval memo editors) so the composer stays a plain, compact
+   input. Note: Tiptap adds its own `tiptap` class to every editor, so rich
+   styles are keyed to `.rich-editor` (see rich-editor.css) to avoid leaking. */
 .prompt-composer p {
   margin: 0;
 }

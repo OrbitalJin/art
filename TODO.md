@@ -204,7 +204,8 @@ Bento-style task board with drag-and-drop organization.
 ### Planned
 
 - [ ] Add support for $skills
-- [ ] Add #stash refs
+- [x] Add @stash refs
+- [ ] Add /commands
 
 - [x] Nutrition tools
 - [ ] Inspiration tools

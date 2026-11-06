@@ -149,13 +149,14 @@ export const StashSuggestionList = forwardRef<
   const [selectedIndex, setSelectedIndex] = useState(0);
   const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
 
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [items]);
+  // Clamp to the filtered list; the stored index can exceed it after filtering.
+  const activeIndex = items.length
+    ? Math.min(selectedIndex, items.length - 1)
+    : 0;
 
   useEffect(() => {
-    itemRefs.current[selectedIndex]?.scrollIntoView({ block: "nearest" });
-  }, [selectedIndex]);
+    itemRefs.current[activeIndex]?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex]);
 
   const selectItem = (index: number) => {
     const item = items[index];
@@ -171,15 +172,15 @@ export const StashSuggestionList = forwardRef<
       }
 
       if (event.key === "ArrowUp") {
-        setSelectedIndex((index) => (index + items.length - 1) % items.length);
+        setSelectedIndex((activeIndex + items.length - 1) % items.length);
         return true;
       }
       if (event.key === "ArrowDown") {
-        setSelectedIndex((index) => (index + 1) % items.length);
+        setSelectedIndex((activeIndex + 1) % items.length);
         return true;
       }
       if (event.key === "Enter" || event.key === "Tab") {
-        selectItem(selectedIndex);
+        selectItem(activeIndex);
         return true;
       }
       return false;
@@ -207,7 +208,7 @@ export const StashSuggestionList = forwardRef<
             <SuggestionRow
               key={item.id}
               item={item}
-              selected={index === selectedIndex}
+              selected={index === activeIndex}
               rowRef={(element) => {
                 itemRefs.current[index] = element;
               }}

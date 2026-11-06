@@ -1,12 +1,15 @@
 @reference "./index.css";
 
-.tiptap::after {
+/* Rich-text editor styles for the journal and interval memo. Keyed to
+   `.rich-editor` (a class we control), not Tiptap's own `.tiptap`, because
+   Tiptap prepends `tiptap` to every editor — including the chat composer. */
+.rich-editor::after {
   content: "";
   display: block;
   height: 50vh;
 }
 
-.tiptap {
+.rich-editor {
   @apply font-sans text-[15px] leading-[1.7] text-foreground/90 outline-none min-h-full selection:bg-primary/30;
   word-wrap: break-word;
   white-space: pre-wrap;

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/trace";
 
 interface ThinkingSectionProps {
-  reasoning?: string | null;
+  reasoning: string;
   status: "streaming" | "done";
 }
 
@@ -33,24 +33,13 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
   const [open, setOpen] = useState(false);
   const isStreaming = status === "streaming";
 
-  if (!reasoning) {
-    if (!isStreaming) return null;
-    return (
-      <Trace className="mb-2 gap-0">
-        <TraceLine status="running">
-          <TraceTitle className="text-[13px]">Thinking</TraceTitle>
-        </TraceLine>
-      </Trace>
-    );
-  }
-
   return (
     <Trace className="mb-2 gap-0">
       <TraceCollapsible open={open} onOpenChange={setOpen}>
         <TraceCollapsibleTrigger className="w-full">
           <TraceLine status={isStreaming ? "running" : undefined}>
             <TraceTitle className="text-[13px]">
-              {isStreaming ? currentAction(reasoning) : "Introspection"}
+              {isStreaming ? currentAction(reasoning) : "Reasoning"}
             </TraceTitle>
           </TraceLine>
         </TraceCollapsibleTrigger>

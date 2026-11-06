@@ -44,6 +44,16 @@ export const formatDateAsAgo = (timestamp: number) => {
   return date.toLocaleDateString();
 };
 
+export function formatMessageTime(timestamp: number): string {
+  const date = new Date(timestamp);
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const hours = date.getHours();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  const formattedHours = hours % 12 || 12;
+
+  return `${formattedHours}:${minutes} ${ampm}`;
+}
+
 export function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
   const months = [

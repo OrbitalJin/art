@@ -20,29 +20,43 @@ export const SessionSection: React.FC<Props> = ({
   open = false,
   children,
 }) => {
-  return (
-    <div className="space-y-1">
-      <div
-        className={cn(
-          "flex items-center justify-between p-2",
-          "hover:text-foreground transition-colors tracking-wide",
-          "text-xs font-medium text-muted-foreground/50 cursor-pointer select-none",
-        )}
-        onClick={() => setOpen(!open)}
-      >
-        <div className="flex items-center gap-2">
-          {Icon ? (
-            <Icon className="h-3 w-3" />
-          ) : isPinned ? (
-            <Pin className="h-3 w-3 text-primary" />
-          ) : null}
-          <span>{title}</span>
-          <span>({count})</span>
-        </div>
-        <ChevronRight className={cn("h-3 w-3", open && "rotate-90")} />
-      </div>
+  const headerClassName = cn(
+    "group flex w-full cursor-pointer select-none items-center justify-between",
+    "rounded-lg px-2.5 py-1.5 text-left outline-none",
+    "text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60",
+    "transition-colors duration-150 hover:text-foreground",
+    "focus-visible:ring-2 focus-visible:ring-ring/50",
+  );
 
-      {open && <div className="space-y-1">{children}</div>}
+  const chevronClassName = cn(
+    "size-3 shrink-0 text-muted-foreground/40 transition-transform duration-200",
+    "group-hover:text-foreground",
+    open && "rotate-90",
+  );
+
+  const leadingIcon = Icon ? (
+    <Icon strokeWidth={1.75} className="size-3" />
+  ) : isPinned ? (
+    <Pin strokeWidth={1.75} className="size-3" />
+  ) : null;
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className={headerClassName}
+      >
+        <span className="flex items-center gap-2">
+          {leadingIcon}
+          <span>{title}</span>
+          <span className="tabular-nums text-muted-foreground/40">{count}</span>
+        </span>
+        <ChevronRight strokeWidth={2.25} className={chevronClassName} />
+      </button>
+
+      {open && <div className="flex flex-col gap-0.5">{children}</div>}
     </div>
   );
 };

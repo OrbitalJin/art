@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useSessionIndex } from "@/lib/store/session/index-store";
+import type { SessionMeta } from "@/lib/store/session/types";
 import { SessionListItem } from "./item";
 import { SessionSection } from "./section";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -23,13 +24,32 @@ const getTimeGroup = (updatedAt: number) => {
   return "older";
 };
 
+const SessionRows: React.FC<{
+  sessions: SessionMeta[];
+  onSwitch?: () => void;
+}> = ({ sessions, onSwitch }) => {
+  const activeId = useSessionIndex((s) => s.activeId);
+
+  return (
+    <>
+      {sessions.map((session) => (
+        <SessionListItem
+          key={session.id}
+          item={session}
+          active={session.id === activeId}
+          onSwitch={onSwitch}
+        />
+      ))}
+    </>
+  );
+};
+
 interface Props {
   onSessionSwitch?: () => void;
   query: string;
 }
 
 export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
-  const activeId = useSessionIndex((s) => s.activeId);
   const sessions = useSessionIndex((s) => s.sessions);
   const { type } = useParams<{ type: string }>();
   const typeFilter = type === "agent" ? "agent" : "chat";
@@ -92,11 +112,12 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
 
   const isEmpty =
     archived.length === 0 && regular.length === 0 && pinned.length === 0;
+  const emptyLabel = query.trim() ? "No matches" : "No sessions yet";
 
   return (
     <div className="min-w-0 flex-1 overflow-hidden">
       <ScrollArea className="h-full px-2 scroll-fade-y [&>[data-radix-scroll-area-viewport]>div]:block!">
-        <div className="min-w-0 space-y-2 pb-4">
+        <div className="flex min-w-0 flex-col gap-3 pb-4">
           {pinned.length > 0 && (
             <SessionSection
               title="Pinned"
@@ -105,14 +126,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
               open={isPinnedOpen}
               setOpen={setIsPinnedOpen}
             >
-              {pinned.map((session) => (
-                <SessionListItem
-                  key={session.id}
-                  item={session}
-                  active={session.id === activeId}
-                  onSwitch={onSessionSwitch}
-                />
-              ))}
+              <SessionRows sessions={pinned} onSwitch={onSessionSwitch} />
             </SessionSection>
           )}
 
@@ -124,14 +138,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
               open={isTodayOpen}
               setOpen={setIsTodayOpen}
             >
-              {today.map((session) => (
-                <SessionListItem
-                  key={session.id}
-                  item={session}
-                  active={session.id === activeId}
-                  onSwitch={onSessionSwitch}
-                />
-              ))}
+              <SessionRows sessions={today} onSwitch={onSessionSwitch} />
             </SessionSection>
           )}
 
@@ -143,14 +150,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
               open={isYesterdayOpen}
               setOpen={setIsYesterdayOpen}
             >
-              {yesterday.map((session) => (
-                <SessionListItem
-                  key={session.id}
-                  item={session}
-                  active={session.id === activeId}
-                  onSwitch={onSessionSwitch}
-                />
-              ))}
+              <SessionRows sessions={yesterday} onSwitch={onSessionSwitch} />
             </SessionSection>
           )}
 
@@ -162,14 +162,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
               open={isLast7DaysOpen}
               setOpen={setIsLast7DaysOpen}
             >
-              {last7Days.map((session) => (
-                <SessionListItem
-                  key={session.id}
-                  item={session}
-                  active={session.id === activeId}
-                  onSwitch={onSessionSwitch}
-                />
-              ))}
+              <SessionRows sessions={last7Days} onSwitch={onSessionSwitch} />
             </SessionSection>
           )}
 
@@ -181,14 +174,7 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
               open={isOlderOpen}
               setOpen={setIsOlderOpen}
             >
-              {older.map((session) => (
-                <SessionListItem
-                  key={session.id}
-                  item={session}
-                  active={session.id === activeId}
-                  onSwitch={onSessionSwitch}
-                />
-              ))}
+              <SessionRows sessions={older} onSwitch={onSessionSwitch} />
             </SessionSection>
           )}
 
@@ -201,20 +187,13 @@ export const SessionList: React.FC<Props> = ({ onSessionSwitch, query }) => {
               icon={Archive}
               setOpen={setIsArchivedOpen}
             >
-              {archived.map((session) => (
-                <SessionListItem
-                  key={session.id}
-                  item={session}
-                  active={session.id === activeId}
-                  onSwitch={onSessionSwitch}
-                />
-              ))}
+              <SessionRows sessions={archived} onSwitch={onSessionSwitch} />
             </SessionSection>
           )}
 
           {isEmpty && (
-            <div className="flex h-full items-center justify-center pt-[50%] text-sm text-muted-foreground">
-              No sessions found
+            <div className="flex h-full items-center justify-center pt-[50%] text-xs text-muted-foreground/60">
+              {emptyLabel}
             </div>
           )}
         </div>

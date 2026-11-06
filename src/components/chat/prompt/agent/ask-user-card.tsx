@@ -42,15 +42,14 @@ const OptionButton: React.FC<{
   onSelect: () => void;
 }> = ({ option, selected, multiple, disabled, onSelect }) => {
   const buttonClassName = cn(
-    "block w-full select-none rounded-lg text-left outline-none",
+    "block w-full select-none rounded-md text-left outline-none",
     "transition-colors duration-150",
     "hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring/50",
     "disabled:pointer-events-none",
-    selected && "bg-accent/40",
   );
 
   const titleClassName = cn(
-    selected && "text-foreground/90",
+    selected && "font-medium text-foreground/90",
     disabled && !selected && "text-muted-foreground/45",
   );
 
@@ -97,9 +96,11 @@ const CardActions: React.FC<{
   onNext,
   onSubmit,
 }) => {
+  const actionClassName = "h-7 rounded-md px-3 text-xs";
+
   const skipClassName = cn(
-    "h-7 rounded-full px-3 text-xs text-muted-foreground",
-    "hover:text-foreground",
+    actionClassName,
+    "text-muted-foreground hover:text-foreground",
   );
 
   return (
@@ -119,7 +120,7 @@ const CardActions: React.FC<{
           size="sm"
           variant={isPending ? "secondary" : "ghost"}
           onClick={onNext}
-          className="h-7 rounded-full px-3 text-xs"
+          className={actionClassName}
         >
           Next
         </Button>
@@ -129,7 +130,7 @@ const CardActions: React.FC<{
           size="sm"
           disabled={!canSubmit}
           onClick={onSubmit}
-          className="h-7 rounded-full px-3 text-xs"
+          className={actionClassName}
         >
           Submit
         </Button>
@@ -162,7 +163,7 @@ const QuestionBlock: React.FC<{
     options.length > 0 ? "Or type your own answer…" : "Your answer…";
 
   const inputClassName = cn(
-    "h-8 rounded-full border-border/40 bg-background/40 px-3 text-xs",
+    "h-8 rounded-md border-border/40 bg-transparent px-3 text-xs",
   );
 
   return (
@@ -212,29 +213,25 @@ const QuestionNav: React.FC<{
   total: number;
   onBack?: () => void;
 }> = ({ current, total, onBack }) => {
-  const navClassName = cn(
-    "flex items-center gap-0.5 rounded-full bg-muted/40 p-0.5",
-    !onBack && "pl-2.5",
+  const countClassName = cn(
+    "text-[11px] font-medium tabular-nums text-muted-foreground/70",
   );
 
   return (
-    <div className={navClassName}>
+    <div className="flex items-center gap-0.5">
       {onBack && (
         <Button
           size="icon-xs"
           variant="ghost"
           aria-label="Previous question"
           onClick={onBack}
-          className="rounded-full text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground"
         >
           <ChevronLeft aria-hidden />
         </Button>
       )}
-      <span
-        aria-live="polite"
-        className="px-1.5 text-[11px] font-medium tabular-nums text-muted-foreground/70"
-      >
-        Question {current} of {total}
+      <span aria-live="polite" className={countClassName}>
+        {current} / {total}
       </span>
     </div>
   );

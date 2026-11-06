@@ -208,7 +208,7 @@ export async function sendToSession(
         input: usage?.inputTokens ?? 0,
         output: usage?.outputTokens ?? 0,
       },
-      reasoning: acc.reasoningText || undefined,
+      createdAt: Date.now(),
     });
 
     if (status === "streaming") {

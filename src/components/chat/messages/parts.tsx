@@ -4,6 +4,7 @@ import { Layers } from "lucide-react";
 import type { MessagePart, ToolCallPart } from "@/lib/store/session/types";
 import { Renderer } from "./renderer";
 import { ToolCallRow } from "./tool-call";
+import { ThinkingSection } from "./thinking-section";
 import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
 import { resolveTool, type ResolvedTool } from "./tools/registry";
 import { ToolCard } from "./tools/card";
@@ -102,7 +103,16 @@ export const MessageParts: React.FC<Props> = ({ parts, streaming }) => {
   const questions = useQuestionStore((state) => state.pending);
   const groupToolCalls = useSettingsStore((state) => state.groupToolCalls);
 
-  if (parts.length === 0) return null;
+  if (parts.length === 0) {
+    if (!streaming) return null;
+    return (
+      <Trace className="mb-2 gap-0">
+        <TraceLine status="running">
+          <TraceTitle className="text-[13px]">Thinking</TraceTitle>
+        </TraceLine>
+      </Trace>
+    );
+  }
 
   const lastIndex = parts.length - 1;
   const nodes: React.ReactNode[] = [];
@@ -143,6 +153,18 @@ export const MessageParts: React.FC<Props> = ({ parts, streaming }) => {
             <Renderer content={part.text} />
           )}
         </div>,
+      );
+      return;
+    }
+
+    if (part.type === "reasoning") {
+      flush();
+      nodes.push(
+        <ThinkingSection
+          key={`reason-${index}`}
+          reasoning={part.text}
+          status={streaming && index === lastIndex ? "streaming" : "done"}
+        />,
       );
       return;
     }

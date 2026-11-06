@@ -96,6 +96,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         parts: [{ type: "text", text }],
         attachments: persistedAttachments,
         tokenUsage: { input: 0, output: 0 },
+        createdAt: Date.now(),
       });
       useDraftStore.getState().clear(activeId);
       const { sendToSession } = await loadSendToSession();
@@ -125,6 +126,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         parts: [{ type: "text", text }],
         attachments: existingAttachments,
         tokenUsage: { input: 0, output: 0 },
+        createdAt: Date.now(),
       });
       useDraftStore.getState().clear(activeId);
       const { sendToSession } = await loadSendToSession();
@@ -148,7 +150,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         toolCalls: streamSnapshot.toolCalls,
         status: streamSnapshot.status,
         tokenUsage: { input: 0, output: 0 },
-        reasoning: streamSnapshot.reasoningText || undefined,
       } satisfies Message,
     ];
   }, [sessionData, activeMeta, streamSnapshot]);

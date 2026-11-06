@@ -3,9 +3,9 @@ import { useCopy } from "@/hooks/use-copy";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, GitBranch } from "lucide-react";
 import type { Message } from "@/lib/store/session/types";
-import { messageText } from "@/lib/store/session/types";
+import { messageText, isReasoningPart } from "@/lib/store/session/types";
 import { MessageParts } from "./parts";
-import { cn } from "@/lib/utils";
+import { cn, formatDate, formatMessageTime } from "@/lib/utils";
 import { MODELS } from "@/lib/ai/models";
 import {
   Tooltip,
@@ -46,8 +46,11 @@ const MessageMeta: React.FC<{
   tokens: number;
   modelName?: string;
   premium: boolean;
-}> = ({ tokens, modelName, premium }) => {
+  createdAt?: number;
+}> = ({ tokens, modelName, premium, createdAt }) => {
   const modelClasses = cn(premium && "text-amber-500/70");
+  const hasModel = Boolean(modelName);
+  const hasMeta = tokens > 0 || hasModel;
 
   return (
     <div className="flex cursor-default items-center gap-1.5 text-xs text-muted-foreground/60 select-none">
@@ -56,12 +59,29 @@ const MessageMeta: React.FC<{
       )}
       {tokens > 0 && modelName && <span aria-hidden>·</span>}
       {modelName && <span className={modelClasses}>{modelName}</span>}
+      {createdAt !== undefined && hasMeta && <span aria-hidden>·</span>}
+      {createdAt !== undefined && (
+        <time
+          dateTime={new Date(createdAt).toISOString()}
+          title={formatDate(createdAt)}
+          className="tabular-nums"
+        >
+          {formatMessageTime(createdAt)}
+        </time>
+      )}
     </div>
   );
 };
 
 export const AssistantMessage: React.FC<Message> = (message) => {
-  const { parts, modelId, id: messageId, tokenUsage, reasoning } = message;
+  const {
+    parts,
+    modelId,
+    id: messageId,
+    tokenUsage,
+    reasoning,
+    createdAt,
+  } = message;
   const { output } = tokenUsage;
 
   const activeId = useSessionIndex((state) => state.activeId);
@@ -74,6 +94,7 @@ export const AssistantMessage: React.FC<Message> = (message) => {
   const premium = model?.tier === 3;
 
   const hasContent = parts.length > 0 || !!reasoning;
+  const hasReasoningPart = parts.some(isReasoningPart);
   const isStreamingMessage = messageId === streamingMessageId;
   const shouldRenderFooter = hasContent && !isStreamingMessage;
 
@@ -97,10 +118,12 @@ export const AssistantMessage: React.FC<Message> = (message) => {
   return (
     <div className="group relative w-full min-w-0 animate-in fade-in duration-100 select-auto">
       <div className="min-w-0 leading-7 text-foreground/80 text-base">
-        <ThinkingSection
-          reasoning={reasoning}
-          status={isStreamingMessage ? "streaming" : "done"}
-        />
+        {!hasReasoningPart && reasoning && (
+          <ThinkingSection
+            reasoning={reasoning}
+            status={isStreamingMessage ? "streaming" : "done"}
+          />
+        )}
 
         <MessageParts parts={parts} streaming={isStreamingMessage} />
 
@@ -128,6 +151,7 @@ export const AssistantMessage: React.FC<Message> = (message) => {
               tokens={output}
               modelName={model?.displayName}
               premium={premium}
+              createdAt={createdAt}
             />
           </div>
         )}

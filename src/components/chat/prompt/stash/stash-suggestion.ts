@@ -77,6 +77,8 @@ const getItems = (query: string): Item[] => {
 const activate: NonNullable<
   SuggestionOptions<Item, Item>["command"]
 > = ({ editor, range, props }) => {
+  if (editor.isDestroyed) return;
+
   const entry = findEntry(props.id);
 
   if (!entry || (entry.kind === "template" && hasPlaceholders(entry.content))) {
@@ -102,7 +104,8 @@ const renderSuggestion = (
   let latest: Props | null = null;
 
   const consumeQuery = () => {
-    latest?.editor.chain().focus().deleteRange(latest.range).run();
+    if (!latest || latest.editor.isDestroyed) return;
+    latest.editor.chain().focus().deleteRange(latest.range).run();
   };
 
   const handleEdit = (item: Item) => {

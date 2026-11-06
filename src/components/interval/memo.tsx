@@ -37,7 +37,10 @@ export const Memo: React.FC<Props> = ({ className }) => {
   return (
     <EditorContent
       editor={editor}
-      className={cn(className, "p-6 text-sm tiptap focus:outline-none h-full")}
+      className={cn(
+        className,
+        "p-6 text-sm rich-editor focus:outline-none h-full",
+      )}
     />
   );
 };

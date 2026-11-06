@@ -36,7 +36,7 @@ import {
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { branchFromSession, revertMessage } from "@/lib/store/session/commands";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import { cn, formatDate, formatMessageTime } from "@/lib/utils";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { toast } from "sonner";
 import { useChatMessages } from "@/contexts/chat-context";
@@ -258,7 +258,9 @@ const MessageAttachments: React.FC<{ attachments: MessageAttachment[] }> = ({
   if (attachments.length === 0) return null;
 
   const images = attachments.filter(isImageAttachment);
-  const files = attachments.filter((attachment) => !isImageAttachment(attachment));
+  const files = attachments.filter(
+    (attachment) => !isImageAttachment(attachment),
+  );
 
   return (
     <div className="flex w-full flex-col items-end gap-1.5">
@@ -455,6 +457,7 @@ export const UserMessage: React.FC<Message> = (message) => {
       <MessageFooter
         content={content}
         messageId={message.id}
+        createdAt={message.createdAt}
         setDraft={setDraft}
         setIsEditing={setIsEditing}
       />
@@ -534,6 +537,7 @@ const RevertAction: React.FC<{
 interface FooterProps {
   messageId: string;
   content: string;
+  createdAt?: number;
   setDraft: (draft: string) => void;
   setIsEditing: (editing: boolean) => void;
 }
@@ -541,6 +545,7 @@ interface FooterProps {
 const MessageFooter: React.FC<FooterProps> = ({
   content,
   messageId,
+  createdAt,
   setDraft,
   setIsEditing,
 }) => {
@@ -583,10 +588,19 @@ const MessageFooter: React.FC<FooterProps> = ({
   return (
     <div
       className={cn(
-        "flex items-center gap-0.5 opacity-0 transition-opacity duration-150",
+        "flex items-center opacity-0 transition-opacity duration-150",
         "group-hover:opacity-100 focus-within:opacity-100",
       )}
     >
+      {createdAt !== undefined && (
+        <time
+          dateTime={new Date(createdAt).toISOString()}
+          title={formatDate(createdAt)}
+          className="ml-1 text-xs tabular-nums text-muted-foreground/60 select-none"
+        >
+          {formatMessageTime(createdAt)}
+        </time>
+      )}
       <RevertAction disabled={disabled} onConfirm={handleRevert} />
 
       <FooterAction label="Retry" disabled={disabled} onClick={handleRetry}>

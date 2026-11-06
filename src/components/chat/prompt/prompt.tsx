@@ -175,7 +175,9 @@ export const Prompt: React.FC<Props> = ({ promptRef, className }) => {
   const stopping = isSending;
   const showSendButton = isSending || canSend;
 
-  const placeholder = isAgent ? "Give your agent a task…" : "Ask anything…";
+  const placeholder = isAgent
+    ? "Give your agent a task, @ stash."
+    : "Ask anything…";
 
   // Publish the composer's measured height to the chat shell so the message
   // thread can reserve space beneath it and keep every message reachable.

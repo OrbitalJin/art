@@ -11,14 +11,12 @@ import { DONE_TOOL_NAME } from "@/lib/ai/tools/done";
 export interface StreamAccumulator {
   parts: MessagePart[];
   toolCalls: ToolCallBlock[];
-  reasoningText: string;
   status: Extract<MessageStatus, "streaming" | "aborted" | "error">;
 }
 
 export const initialAccumulator: StreamAccumulator = {
   parts: [],
   toolCalls: [],
-  reasoningText: "",
   status: "streaming",
 };
 
@@ -31,6 +29,20 @@ const appendText = (parts: MessagePart[], text: string): MessagePart[] => {
     next[next.length - 1] = { ...last, text: last.text + text };
   } else {
     next.push({ type: "text", text });
+  }
+  return next;
+};
+
+const appendReasoning = (
+  parts: MessagePart[],
+  text: string,
+): MessagePart[] => {
+  const next = parts.slice();
+  const last = next[next.length - 1];
+  if (last && last.type === "reasoning") {
+    next[next.length - 1] = { ...last, text: last.text + text };
+  } else {
+    next.push({ type: "reasoning", text });
   }
   return next;
 };
@@ -96,19 +108,21 @@ export function applyStreamEvent(
       return withParts(acc, parts);
     }
 
-    case "reasoning-start":
-      // A turn can produce several reasoning blocks (one per step), so append
-      // instead of resetting; separate blocks with a blank line.
-      return {
-        ...acc,
-        reasoningText: acc.reasoningText ? `${acc.reasoningText}\n\n` : "",
-      };
+    case "reasoning-start": {
+      // A turn can produce several reasoning blocks (one per step). Separate a
+      // new block from the previous one when nothing else came in between.
+      const last = acc.parts[acc.parts.length - 1];
+      if (last && last.type === "reasoning") {
+        const parts = acc.parts.slice();
+        parts[parts.length - 1] = { ...last, text: `${last.text}\n\n` };
+        return { ...acc, parts };
+      }
+      return acc;
+    }
 
     case "reasoning-delta":
-      return {
-        ...acc,
-        reasoningText: acc.reasoningText + event.text,
-      };
+      if (!event.text) return acc;
+      return { ...acc, parts: appendReasoning(acc.parts, event.text) };
 
     case "reasoning-end":
       return { ...acc };

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check, ChevronRight, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Marker, MarkerContent } from "@/components/ui/marker";
-import { cn } from "@/lib/utils";
+import { cn, formatDate, formatMessageTime } from "@/lib/utils";
 import type { Message } from "@/lib/store/session/types";
 import { messageText } from "@/lib/store/session/types";
 import { Renderer } from "@/components/chat/messages/renderer";
@@ -25,12 +25,14 @@ interface PartialFooterProps {
   copied: boolean;
   onCopy: () => void;
   modelName?: string;
+  createdAt?: number;
 }
 
 const PartialFooter: React.FC<PartialFooterProps> = ({
   copied,
   onCopy,
   modelName,
+  createdAt,
 }) => {
   const copyButtonClasses = cn(
     "size-6 text-muted-foreground/60 hover:bg-transparent",
@@ -54,15 +56,25 @@ const PartialFooter: React.FC<PartialFooterProps> = ({
         )}
       </Button>
 
-      {modelName && (
-        <span className="text-xs text-muted-foreground/50">{modelName}</span>
-      )}
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground/50">
+        {modelName && <span>{modelName}</span>}
+        {modelName && createdAt !== undefined && <span aria-hidden>·</span>}
+        {createdAt !== undefined && (
+          <time
+            dateTime={new Date(createdAt).toISOString()}
+            title={formatDate(createdAt)}
+            className="tabular-nums"
+          >
+            {formatMessageTime(createdAt)}
+          </time>
+        )}
+      </div>
     </div>
   );
 };
 
 export const AbortedMessage: React.FC<Message> = (message) => {
-  const { modelId } = message;
+  const { modelId, createdAt } = message;
   const content = messageText(message);
   const { copied, copy } = useCopy(content);
   const [isOpen, setIsOpen] = useState(false);
@@ -128,6 +140,7 @@ export const AbortedMessage: React.FC<Message> = (message) => {
             copied={copied}
             onCopy={copy}
             modelName={model?.displayName}
+            createdAt={createdAt}
           />
         </div>
       )}

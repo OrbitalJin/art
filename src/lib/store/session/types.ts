@@ -59,11 +59,16 @@ export interface TextPart {
   text: string;
 }
 
+export interface ReasoningPart {
+  type: "reasoning";
+  text: string;
+}
+
 export interface ToolCallPart extends ToolCallBlock {
   type: "tool-call";
 }
 
-export type MessagePart = TextPart | ToolCallPart;
+export type MessagePart = TextPart | ToolCallPart | ReasoningPart;
 
 export interface MessageAttachment {
   base64: string;
@@ -110,9 +115,12 @@ export interface Message {
   toolCalls?: ToolCallBlock[];
   status?: MessageStatus;
   modelId?: ModelId;
+  // Legacy: reasoning now streams as a `reasoning` part. Kept so older
+  // persisted messages still render.
   reasoning?: string;
   attachments?: ChatAttachment[];
   tokenUsage: TokenUsage;
+  createdAt?: number;
 }
 
 export const isTextPart = (part: MessagePart): part is TextPart =>
@@ -120,6 +128,9 @@ export const isTextPart = (part: MessagePart): part is TextPart =>
 
 export const isToolCallPart = (part: MessagePart): part is ToolCallPart =>
   part.type === "tool-call";
+
+export const isReasoningPart = (part: MessagePart): part is ReasoningPart =>
+  part.type === "reasoning";
 
 export const messageText = (message: Pick<Message, "parts">): string =>
   message.parts
