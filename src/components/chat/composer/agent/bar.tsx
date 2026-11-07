@@ -14,6 +14,7 @@ import {
 import { usePlanStore, type Plan } from "@/lib/store/use-plan-store";
 import { cn } from "@/lib/utils";
 import { AccessControl } from "./access-control";
+import { ConfigureMenu } from "./configure-menu";
 import { EnabledTools } from "./enabled-tools";
 import { ToolActivity } from "./tool-activity";
 import { useAgentTools } from "./use-agent-tools";
@@ -25,7 +26,6 @@ type Pending = { id: string; requestedAt: number } & (
   | { kind: "question"; question: PendingQuestion }
 );
 
-/** Pending approvals and questions for a session, oldest first. */
 const usePendingPrompts = (sessionId: string | undefined): Pending[] => {
   const approvals = useApprovalStore((state) => state.pending);
   const questions = useQuestionStore((state) => state.pending);
@@ -320,7 +320,17 @@ export const AgentBar = () => {
             ) : (
               <EnabledTools session={session} />
             )}
-            <AccessControl disabled={streaming} />
+            <div className="flex shrink-0 flex-row items-center gap-1">
+              <ConfigureMenu
+                disabled={isSending}
+                session={session}
+                onAddFolder={tools.onAddFolder}
+                onRemoveFolder={tools.onRemoveFolder}
+                onToggle={tools.onToggle}
+                onRevokeAll={tools.onRevokeAll}
+              />
+              <AccessControl disabled={streaming} />
+            </div>
           </>
         )}
       </div>
