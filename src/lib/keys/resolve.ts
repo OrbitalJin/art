@@ -6,13 +6,26 @@ export const ART_KEYS_COLLECTION = "keys";
 let inFlight: { artKey: string; promise: Promise<void> } | null = null;
 
 /**
- * Resolves the full key set for the currently configured art key. The keys are
- * never persisted: they are fetched live on launch and whenever the art key
- * changes. A missing key clears the resolved set; a failed fetch records an
- * error and leaves the set empty so tool gating disables features.
+ * Resolves the full key set for the active key source. With the `"art"` source
+ * the keys are fetched live from PocketBase and never persisted; a missing art
+ * key clears the set and a failed fetch records an error. With the `"own"`
+ * source the keys are read straight from the user-supplied set, no network.
  */
 export const resolveKeys = async (): Promise<void> => {
-  const artKey = useSettingsStore.getState().artKey;
+  const { keySource, artKey, ownKeys } = useSettingsStore.getState();
+
+  if (keySource === "own") {
+    useSettingsStore.setState({
+      keys: {
+        gateway: ownKeys.gateway,
+        usda: ownKeys.usda,
+        exa: ownKeys.exa,
+      },
+      keysStatus: "ready",
+      keysError: null,
+    });
+    return;
+  }
 
   if (!artKey) {
     useSettingsStore.setState({
@@ -37,6 +50,8 @@ export const resolveKeys = async (): Promise<void> => {
         .collection(ART_KEYS_COLLECTION)
         .getOne<ArtKeys>(artKey, { requestKey: null });
 
+      if (useSettingsStore.getState().keySource !== "art") return;
+
       useSettingsStore.setState({
         keys: {
           gateway: record.gateway ?? "",
@@ -47,6 +62,8 @@ export const resolveKeys = async (): Promise<void> => {
         keysError: null,
       });
     } catch (error) {
+      if (useSettingsStore.getState().keySource !== "art") return;
+
       useSettingsStore.setState({
         keys: null,
         keysStatus: "error",

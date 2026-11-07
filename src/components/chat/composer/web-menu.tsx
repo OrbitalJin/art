@@ -17,7 +17,8 @@ import { Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SEARCH_GROUPS } from "./agent/configure-menu/groups";
 import { ToolRow } from "./agent/configure-menu/rows";
-import { ART_KEY_NOTICE, KeyNotice } from "./key-notice";
+import { KeyNotice } from "./key-notice";
+import { useKeyNotice } from "./use-key-notice";
 import { composerControlClasses } from "./toolbar";
 
 /**
@@ -33,6 +34,7 @@ export const WebMenu: React.FC = () => {
   const setGroups = useSessionIndex((state) => state.setGroups);
   const hasKey = useHasKey("exa");
   const keysLoading = useKeysLoading();
+  const keyNotice = useKeyNotice();
   const { isSending: disabled } = useChatStream();
   const [open, setOpen] = useState(false);
 
@@ -137,7 +139,7 @@ export const WebMenu: React.FC = () => {
 
         {!hasKey && !keysLoading && (
           <KeyNotice className="border-t border-border/50 px-3.5 py-2.5">
-            {ART_KEY_NOTICE} to use web tools.
+            {keyNotice} to use web tools.
           </KeyNotice>
         )}
       </DropdownMenuContent>

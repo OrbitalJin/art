@@ -42,7 +42,8 @@ import { StashSaveButton } from "./stash/stash-save-button";
 import { StashDialogs } from "./stash/stash-dialogs";
 import { AgentBar } from "./agent/bar";
 import { AgentAttention } from "./agent/attention";
-import { ART_KEY_NOTICE, KeyNotice } from "./key-notice";
+import { KeyNotice } from "./key-notice";
+import { useKeyNotice } from "./use-key-notice";
 import { filesFromDataTransfer, useUpload } from "@/hooks/use-upload";
 import { resolveAttachmentUrl } from "@/lib/upload/pocketbase";
 import type { ChatAttachment } from "@/lib/store/session/types";
@@ -210,6 +211,7 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
   const hasKey = useHasKey("gateway");
   const hasUploadKey = useHasKey("uploads");
   const keysLoading = useKeysLoading();
+  const keyNotice = useKeyNotice();
   const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
@@ -309,7 +311,7 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
 
         {(!hasKey || !hasUploadKey) && !keysLoading && (
           <KeyNotice className="mb-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs">
-            {ART_KEY_NOTICE} to start chatting and attach files.
+            {keyNotice} to start chatting and attach files.
           </KeyNotice>
         )}
 

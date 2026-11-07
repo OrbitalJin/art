@@ -6,7 +6,7 @@ import {
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { useUpload } from "@/hooks/use-upload";
 import { useHasKey, useKeysLoading } from "@/lib/store/use-settings-store";
-import { ART_KEY_NOTICE } from "./key-notice";
+import { useKeyNotice } from "./use-key-notice";
 import { Button } from "@/components/ui/button";
 import { MAX_ATTACHMENT_SIZE } from "@/lib/utils/images";
 import { composerControlClasses } from "./toolbar";
@@ -19,6 +19,7 @@ export const Attach = () => {
   const { isSending: disabled } = useChatStream();
   const hasUploadKey = useHasKey("uploads");
   const keysLoading = useKeysLoading();
+  const keyNotice = useKeyNotice();
 
   return (
     <Tooltip>
@@ -36,7 +37,7 @@ export const Attach = () => {
       <TooltipContent>
         {hasUploadKey || keysLoading
           ? `Attach image or PDF · up to ${MAX_MB} MB`
-          : `${ART_KEY_NOTICE} to attach files`}
+          : `${keyNotice} to attach files`}
       </TooltipContent>
     </Tooltip>
   );

@@ -26,9 +26,10 @@ export const pb = new PocketBase(PB_URL);
 
 pb.beforeSend = (url, options) => {
   options.fetch = nativeFetch as typeof fetch;
+  const { keySource, artKey, ownKeys } = useSettingsStore.getState();
   options.query = {
     ...options.query,
-    secret: useSettingsStore.getState().artKey,
+    secret: keySource === "own" ? ownKeys.upload : artKey,
   };
   return { url, options };
 };

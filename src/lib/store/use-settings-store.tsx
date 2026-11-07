@@ -17,6 +17,18 @@ export interface ArtKeys {
   exa: string;
 }
 
+/** Where the app sources its API keys from. */
+export type KeySource = "art" | "own";
+
+/** User-supplied keys, used when the key source is `"own"`. Persisted. */
+export interface OwnKeys {
+  gateway: string;
+  exa: string;
+  usda: string;
+  /** PocketBase upload secret for attachments. */
+  upload: string;
+}
+
 export type KeysStatus = "idle" | "loading" | "ready" | "error";
 
 export interface UserProfile {
@@ -35,8 +47,11 @@ export interface AgentProfile {
 }
 
 interface SettingsState {
+  keySource: KeySource;
   artKey: string;
-  /** Resolved from `artKey`; never persisted. */
+  /** User-supplied keys, used when `keySource` is `"own"`; persisted. */
+  ownKeys: OwnKeys;
+  /** Resolved from the active source; never persisted. */
   keys: ArtKeys | null;
   keysStatus: KeysStatus;
   keysError: string | null;
@@ -53,6 +68,8 @@ interface SettingsState {
   agentProfile: AgentProfile;
 
   setArtKey: (key: string) => void;
+  setKeySource: (source: KeySource) => void;
+  setOwnKey: (key: keyof OwnKeys, value: string) => void;
   setFontSize: (size: FontSize) => void;
   setCornerRadius: (radius: CornerRadius) => void;
   setDefaultModel: (model: ModelId) => void;
@@ -86,7 +103,14 @@ export const DEFAULT_AGENT_PROFILE: AgentProfile = {
 };
 
 const initialState = {
+  keySource: "art" as KeySource,
   artKey: "",
+  ownKeys: {
+    gateway: "",
+    exa: "",
+    usda: "",
+    upload: "",
+  } as OwnKeys,
   keys: null as ArtKeys | null,
   keysStatus: "idle" as KeysStatus,
   keysError: null as string | null,
@@ -109,7 +133,9 @@ type PersistedSettings = Omit<
 >;
 
 const partialize = (state: SettingsState): PersistedSettings => ({
+  keySource: state.keySource,
   artKey: state.artKey,
+  ownKeys: state.ownKeys,
   fontSize: state.fontSize,
   cornerRadius: state.cornerRadius,
   defaultModel: state.defaultModel,
@@ -128,6 +154,10 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       ...initialState,
       setArtKey: (key: string) => set({ artKey: key }),
+      setKeySource: (source: KeySource) =>
+        set({ keySource: source, keysError: null }),
+      setOwnKey: (key: keyof OwnKeys, value: string) =>
+        set((state) => ({ ownKeys: { ...state.ownKeys, [key]: value } })),
       setFontSize: (size: FontSize) => set({ fontSize: size }),
       setCornerRadius: (radius: CornerRadius) => set({ cornerRadius: radius }),
       setDefaultModel: (model: ModelId) => set({ defaultModel: model }),
@@ -151,7 +181,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 15,
+      version: 16,
       storage: createSettingsStorage<PersistedSettings>(),
       partialize,
       migrate: (persistedState: unknown, version: number) => {
@@ -276,6 +306,21 @@ export const useSettingsStore = create<SettingsState>()(
             delete state.exaKey;
           }
         }
+        if (version < 16) {
+          const state = persistedState as {
+            keySource?: KeySource;
+            ownKeys?: Partial<OwnKeys>;
+          };
+          if (state) {
+            state.keySource = state.keySource ?? "art";
+            state.ownKeys = {
+              gateway: state.ownKeys?.gateway ?? "",
+              exa: state.ownKeys?.exa ?? "",
+              usda: state.ownKeys?.usda ?? "",
+              upload: state.ownKeys?.upload ?? "",
+            };
+          }
+        }
         return persistedState as SettingsState;
       },
     },
@@ -285,7 +330,11 @@ export const useSettingsStore = create<SettingsState>()(
 export const useHasKey = (type?: KeyType): boolean =>
   useSettingsStore((state) => {
     if (!type) return true;
-    if (type === "uploads") return state.artKey.length > 0;
+    if (type === "uploads") {
+      return state.keySource === "own"
+        ? state.ownKeys.upload.length > 0
+        : state.artKey.length > 0;
+    }
     const keys = state.keys;
     if (!keys) return false;
     return type === "gateway"

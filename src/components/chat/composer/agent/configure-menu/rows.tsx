@@ -1,6 +1,6 @@
 import { Check, ChevronRight } from "lucide-react";
 import { useHasKey, useKeysLoading } from "@/lib/store/use-settings-store";
-import { ART_KEY_NOTICE } from "../../key-notice";
+import { useKeyNotice } from "../../use-key-notice";
 import type { SessionMeta } from "@/lib/store/session/types";
 import { CATEGORY_LABELS, type Category, type ToolGroup } from "./groups";
 import { groupActive, groupsInCategory, selectableRowClasses } from "./helpers";
@@ -140,6 +140,7 @@ export const GroupRow: React.FC<{
 }> = ({ group, session, onOpenFiles, onToggle }) => {
   const hasKey = useHasKey(group.requiresKey);
   const keysLoading = useKeysLoading();
+  const keyNotice = useKeyNotice();
 
   if (group.source === "files") {
     const folderCount = (session.folders ?? []).length;
@@ -154,7 +155,7 @@ export const GroupRow: React.FC<{
 
   const enabled = hasKey && session.groups?.[group.key] === true;
   const showDescription = hasKey || !group.requiresKey || keysLoading;
-  const subtitle = showDescription ? group.description : ART_KEY_NOTICE;
+  const subtitle = showDescription ? group.description : keyNotice;
 
   return (
     <ToolRow

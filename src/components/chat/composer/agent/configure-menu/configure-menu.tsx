@@ -11,7 +11,8 @@ import type { Category } from "./groups";
 import { TOOL_GROUPS } from "./groups";
 import { groupsInCategory } from "./helpers";
 import { cn } from "@/lib/utils";
-import { ART_KEY_NOTICE, KeyNotice } from "../../key-notice";
+import { KeyNotice } from "../../key-notice";
+import { useKeyNotice } from "../../use-key-notice";
 import { CategoryPage } from "./category-page";
 import { FilesPage } from "./files-page";
 import { MainPage } from "./main-page";
@@ -42,6 +43,7 @@ export const ConfigureMenu: React.FC<{
 }) => {
   const hasExa = useHasKey("exa");
   const keysLoading = useKeysLoading();
+  const keyNotice = useKeyNotice();
   const contentRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState<MenuPage>(MAIN_PAGE);
@@ -127,7 +129,7 @@ export const ConfigureMenu: React.FC<{
 
         {showExaKeyNotice && (
           <KeyNotice className="border-t border-border/50 px-3.5 py-2.5">
-            {ART_KEY_NOTICE}.
+            {keyNotice}.
           </KeyNotice>
         )}
       </DropdownMenuContent>

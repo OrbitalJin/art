@@ -166,6 +166,8 @@ interface SecretKeyFieldProps {
   status: KeysStatus;
   error: string | null;
   onSave: (value: string) => void;
+  /** Shown when the field is configured and not in an error state. */
+  description?: string;
 }
 
 const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
@@ -175,6 +177,7 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
   status,
   error,
   onSave,
+  description: hint,
 }) => {
   const [editing, setEditing] = useState(false);
 
@@ -185,7 +188,7 @@ const SecretKeyField: React.FC<SecretKeyFieldProps> = ({
   const buttonText = editing ? "Cancel" : configured ? "Edit" : "Add";
   const buttonVariant = editing || configured ? "outline" : "default";
   const errorText = error ?? "Could not resolve the art key.";
-  const description = failed ? errorText : "Stored on this device.";
+  const description = failed ? errorText : (hint ?? "Stored on this device.");
 
   const previewClasses = cn(
     "font-mono text-xs",
@@ -297,9 +300,63 @@ const AccessModeOption: React.FC<AccessModeOptionProps> = ({
   );
 };
 
+interface KeySourceOptionProps {
+  label: string;
+  description: string;
+  selected: boolean;
+  onSelect: () => void;
+}
+
+const KeySourceOption: React.FC<KeySourceOptionProps> = ({
+  label,
+  description,
+  selected,
+  onSelect,
+}) => {
+  const optionClasses = cn(
+    "flex w-full cursor-pointer items-start gap-3 px-4 py-3.5 text-left",
+    "outline-none transition-colors duration-150",
+    "hover:bg-muted/40 focus-visible:bg-muted/40",
+    selected && "bg-primary/5",
+  );
+
+  const indicatorClasses = cn(
+    "mt-0.5 flex size-3.5 shrink-0 items-center justify-center rounded-full border",
+    "transition-colors duration-150",
+    selected ? "border-primary bg-primary" : "border-muted-foreground/40",
+  );
+
+  const labelClasses = cn(
+    "text-[13px] font-medium",
+    selected ? "text-foreground" : "text-foreground/80",
+  );
+
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      className={optionClasses}
+    >
+      <span className={indicatorClasses}>
+        {selected && <span className="size-1.5 rounded-full bg-background" />}
+      </span>
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span className={labelClasses}>{label}</span>
+        <span className="text-xs text-muted-foreground">{description}</span>
+      </span>
+    </button>
+  );
+};
+
 export const ChatSettingsTab: React.FC = () => {
   const artKey = useSettingsStore((state) => state.artKey);
   const setArtKey = useSettingsStore((state) => state.setArtKey);
+  const keySource = useSettingsStore((state) => state.keySource);
+  const setKeySource = useSettingsStore((state) => state.setKeySource);
+  const ownKeys = useSettingsStore((state) => state.ownKeys);
+  const setOwnKey = useSettingsStore((state) => state.setOwnKey);
   const keysStatus = useSettingsStore((state) => state.keysStatus);
   const keysError = useSettingsStore((state) => state.keysError);
   const defaultModel = useSettingsStore((state) => state.defaultModel);
@@ -350,16 +407,78 @@ export const ChatSettingsTab: React.FC = () => {
       description="Configure your chat and agent experience."
     >
       <SettingsSection title="Access">
-        <SettingsCard>
-          <SecretKeyField
-            label="Art key"
-            placeholder="art key"
-            value={artKey}
-            status={keysStatus}
-            error={keysError}
-            onSave={setArtKey}
-          />
-        </SettingsCard>
+        <div className={CARD_CLASSES}>
+          <div
+            role="radiogroup"
+            aria-label="Key source"
+            className="divide-y divide-border/50"
+          >
+            <KeySourceOption
+              label="Art (managed)"
+              description="Resolve your keys from Art with a single key."
+              selected={keySource === "art"}
+              onSelect={() => setKeySource("art")}
+            />
+            <KeySourceOption
+              label="Your own keys"
+              description="Use keys you provide. Stored on this device only."
+              selected={keySource === "own"}
+              onSelect={() => setKeySource("own")}
+            />
+          </div>
+        </div>
+
+        {keySource === "art" ? (
+          <SettingsCard>
+            <SecretKeyField
+              label="Art key"
+              placeholder="art key"
+              value={artKey}
+              status={keysStatus}
+              error={keysError}
+              onSave={setArtKey}
+            />
+          </SettingsCard>
+        ) : (
+          <SettingsCard>
+            <SecretKeyField
+              label="Gateway key"
+              placeholder="gateway key"
+              value={ownKeys.gateway}
+              status="idle"
+              error={null}
+              onSave={(value) => setOwnKey("gateway", value)}
+              description="Used for chat and agent models."
+            />
+            <SecretKeyField
+              label="Search key"
+              placeholder="exa key"
+              value={ownKeys.exa}
+              status="idle"
+              error={null}
+              onSave={(value) => setOwnKey("exa", value)}
+              description="Used for web search and fetch tools."
+            />
+            <SecretKeyField
+              label="Nutrition key"
+              placeholder="usda key"
+              value={ownKeys.usda}
+              status="idle"
+              error={null}
+              onSave={(value) => setOwnKey("usda", value)}
+              description="Used for nutrition and macros tools."
+            />
+            <SecretKeyField
+              label="Upload secret"
+              placeholder="upload secret"
+              value={ownKeys.upload}
+              status="idle"
+              error={null}
+              onSave={(value) => setOwnKey("upload", value)}
+              description="Used to upload attachments."
+            />
+          </SettingsCard>
+        )}
       </SettingsSection>
 
       <SettingsSection title="Chat">
