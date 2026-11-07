@@ -16,7 +16,7 @@ import {
   stripJournalRefs,
   type JournalRef,
 } from "@/lib/journal/ref";
-import { useJournalStore } from "@/lib/store/use-journal-store";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
 const loadSendToSession = () => import("@/lib/ai/stream/send-stream");
 import {
   STREAMING_MESSAGE_ID,
@@ -46,7 +46,7 @@ const ChatMessagesContext = createContext<ChatMessagesValues | null>(null);
 
 /** Resolve the reference tokens in a draft to the entries that still exist. */
 const resolveRefs = (text: string): JournalRef[] => {
-  const get = useJournalStore.getState().getFn;
+  const get = useJournalIndex.getState().getPage;
   return parseJournalRefIds(text).flatMap((id) => {
     const page = get(id);
     return page ? [{ id: page.id, title: page.title }] : [];

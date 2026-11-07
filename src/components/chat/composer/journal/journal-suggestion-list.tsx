@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { cn } from "@/lib/utils";
+import { cn, formatDateAsAgo } from "@/lib/utils";
 import { WORKSPACES, type Workspace } from "@/lib/store/journal/types";
 import type { JournalSuggestionItem } from "./journal-suggestion";
 
@@ -66,11 +66,17 @@ const Row = ({
     >
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate text-[13px] font-medium">{item.label}</span>
-        {item.preview && (
-          <span className="truncate text-[11px] text-muted-foreground/70">
-            {item.preview}
+        <span className="truncate text-[11px] tabular-nums text-muted-foreground/70">
+          {formatDateAsAgo(item.lastViewedAt)}
+          <span aria-hidden className="mx-1.5">
+            ·
           </span>
-        )}
+          {item.wordCount === 0
+            ? "Empty"
+            : `${item.wordCount.toLocaleString()} ${
+                item.wordCount === 1 ? "word" : "words"
+              }`}
+        </span>
       </span>
 
       {showWorkspace && (

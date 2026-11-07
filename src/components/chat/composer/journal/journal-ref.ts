@@ -1,6 +1,6 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { journalRefToken } from "@/lib/journal/ref";
-import { useJournalStore } from "@/lib/store/use-journal-store";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
 
 /**
  * Inline chip for a journal reference in the composer.
@@ -28,7 +28,7 @@ export const JournalRefNode = Node.create({
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    const title = useJournalStore.getState().getFn(node.attrs.id)?.title;
+    const title = useJournalIndex.getState().getPage(node.attrs.id)?.title;
     return [
       "span",
       mergeAttributes(HTMLAttributes, {

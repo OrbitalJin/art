@@ -5,7 +5,7 @@ import Suggestion, {
   type SuggestionOptions,
   type SuggestionProps,
 } from "@tiptap/suggestion";
-import { useJournalStore } from "@/lib/store/use-journal-store";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
 import {
   JournalSuggestionList,
   type JournalSuggestionListHandle,
@@ -18,7 +18,8 @@ export interface JournalSuggestionItem {
   id: string;
   label: string;
   workspace: Workspace;
-  preview: string;
+  lastViewedAt: number;
+  wordCount: number;
 }
 
 /**
@@ -38,13 +39,8 @@ export const JOURNAL_SUGGESTION_CHAR = "#";
 
 const pluginKey = new PluginKey("journalSuggestion");
 
-const previewOf = (content: string): string => {
-  const single = content.replace(/\s+/g, " ").trim();
-  return single.length <= 80 ? single : `${single.slice(0, 80).trimEnd()}…`;
-};
-
 const getItems = (query: string): Item[] => {
-  const pages = useJournalStore.getState().pages;
+  const pages = useJournalIndex.getState().pages;
   const needle = query.trim().toLowerCase();
 
   const matched = pages.filter((page) => {
@@ -52,7 +48,6 @@ const getItems = (query: string): Item[] => {
     if (!needle) return true;
     return (
       page.title.toLowerCase().includes(needle) ||
-      page.content.toLowerCase().includes(needle) ||
       page.tags.some((tag) => tag.toLowerCase().includes(needle))
     );
   });
@@ -63,7 +58,8 @@ const getItems = (query: string): Item[] => {
       id: page.id,
       label: page.title || "Untitled",
       workspace: page.workspace,
-      preview: previewOf(page.content),
+      lastViewedAt: page.lastViewedAt,
+      wordCount: page.wordCount,
     }));
 };
 

@@ -8,7 +8,8 @@ import type {
 import { messageText } from "@/lib/store/session/types";
 import type { JournalRef } from "@/lib/journal/ref";
 import { format } from "@/lib/ai/prompts/format";
-import { useJournalStore } from "@/lib/store/use-journal-store";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
+import { journalContentStore } from "@/lib/store/journal/content-store";
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { sessionDataStore } from "@/lib/store/session/data-store";
 import { appendMessage } from "@/lib/store/session/commands";
@@ -46,24 +47,38 @@ function attachmentToPart(attachment: ChatAttachment) {
   };
 }
 
-const journalEntries = (refs: JournalRef[]) =>
+const journalEntries = (refs: JournalRef[], bodies: Map<string, string>) =>
   refs.map((ref) => {
-    const page = useJournalStore.getState().getFn(ref.id);
+    const page = useJournalIndex.getState().getPage(ref.id);
     return {
       id: ref.id,
       title: page?.title ?? ref.title,
-      content: page?.content ?? "",
+      content: bodies.get(ref.id) ?? "",
     };
   });
 
-function toSDKMessages(messages: Message[]) {
+/** Read every referenced page's body, keyed by id, for prompt assembly. */
+const loadRefBodies = async (
+  refs: JournalRef[],
+): Promise<Map<string, string>> => {
+  const ids = new Set(refs.map((ref) => ref.id));
+  const bodies = new Map<string, string>();
+  await Promise.all(
+    [...ids].map(async (id) => {
+      bodies.set(id, await journalContentStore.getState().ensure(id));
+    }),
+  );
+  return bodies;
+};
+
+function toSDKMessages(messages: Message[], bodies: Map<string, string>) {
   return messages
     .filter((m) => m.role === "user" || m.role === "assistant")
     .map((m) => {
       const base = messageText(m);
       const text =
         m.role === "user" && m.refs?.length
-          ? base + format.journalRefs(journalEntries(m.refs))
+          ? base + format.journalRefs(journalEntries(m.refs, bodies))
           : base;
       if (m.role === "user" && m.attachments?.length) {
         return {
@@ -146,8 +161,11 @@ export async function sendToSession(
         ? history.slice(0, -1)
         : history;
 
+    const allRefs = [...trailing.flatMap((m) => m.refs ?? []), ...(refs ?? [])];
+    const bodies = await loadRefBodies(allRefs);
+
     const currentText = refs?.length
-      ? text + format.journalRefs(journalEntries(refs))
+      ? text + format.journalRefs(journalEntries(refs, bodies))
       : text;
 
     const currentUserContent = attachments?.length
@@ -163,7 +181,7 @@ export async function sendToSession(
       ),
       abortSignal: controller.signal,
       messages: [
-        ...toSDKMessages(trailing),
+        ...toSDKMessages(trailing, bodies),
         { role: "user" as const, content: currentUserContent },
       ],
       experimental_transform: smoothStream({

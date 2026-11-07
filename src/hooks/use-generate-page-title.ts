@@ -1,4 +1,5 @@
-import { useJournalStore } from "@/lib/store/use-journal-store";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
+import { journalContentStore } from "@/lib/store/journal/content-store";
 import { useSettingsStore } from "@/lib/store/use-settings-store";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -15,14 +16,14 @@ export const useGeneratePageTitle = () => {
     setGenerating(true);
 
     try {
-      const pages = useJournalStore.getState().pages;
-      const page = pages.find((p) => p.id === pageId);
-      if (!page?.content.trim()) return;
+      const page = useJournalIndex.getState().getPage(pageId);
+      if (!page) return;
 
       const apiKey = useSettingsStore.getState().keys?.gateway;
       if (!apiKey) return;
 
-      const contentPreview = page.content.slice(0, 2000).trim();
+      const content = await journalContentStore.getState().ensure(pageId);
+      const contentPreview = content.slice(0, 2000).trim();
       if (!contentPreview) return;
 
       const [{ generateText, Output, createGateway }, { nativeFetch }] =
@@ -48,7 +49,7 @@ export const useGeneratePageTitle = () => {
 
       const title = genOutput.title;
       if (title?.trim()) {
-        useJournalStore.getState().updateTitle(pageId, title.trim());
+        useJournalIndex.getState().updateTitle(pageId, title.trim());
         return title.trim();
       }
     } catch (err) {

@@ -21,27 +21,61 @@ import {
 } from "@/components/ui/tooltip";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
-import { useJournalStore } from "@/lib/store/use-journal-store";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
 import { Button } from "@/components/ui/button";
 import { useParams, useNavigate } from "react-router-dom";
 
 const JournalContent = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
-  const { isDisabled, isEditable, toggleEditable, editor, setCurrentTab } =
-    useJournalEditor();
+  const hydrated = useJournalIndex((s) => s.hydrated);
+  const activeId = useJournalIndex((s) => s.activeId);
 
+  // The route owns "which page is open". Once hydrated, resolve a missing id
+  // to the active/first page, and bounce ids that no longer exist.
   useEffect(() => {
-    if (!pageId) return;
-    const store = useJournalStore.getState();
-    const page = store.getFn(pageId);
-    if (page) {
-      store.setActive(pageId);
-      setCurrentTab(page.workspace);
-    } else {
+    if (!hydrated) return;
+
+    if (!pageId) {
+      const fallback =
+        activeId ?? useJournalIndex.getState().pages[0]?.id ?? null;
+      if (fallback) navigate(`/journal/${fallback}`, { replace: true });
+      return;
+    }
+
+    if (!useJournalIndex.getState().getPage(pageId)) {
       navigate("/journal", { replace: true });
     }
-  }, [pageId, navigate, setCurrentTab]);
+  }, [hydrated, pageId, activeId, navigate]);
+
+  useEffect(() => {
+    if (hydrated && pageId) useJournalIndex.getState().setActive(pageId);
+  }, [hydrated, pageId]);
+
+  const journalState = useUIStateStore((state) => state.journalState);
+  const setJournalState = useUIStateStore((state) => state.setJournalState);
+
+  const isOpen = journalState.sidebarOpen;
+  const setIsOpen = (open: boolean) => {
+    setJournalState({ sidebarOpen: open });
+  };
+
+  if (!hydrated || !pageId) return null;
+
+  return (
+    <div className="relative flex flex-1 flex-row gap-2 lg:px-0">
+      <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+      <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+
+      <JournalEditorProvider pageId={pageId}>
+        <EditorPane />
+      </JournalEditorProvider>
+    </div>
+  );
+};
+
+const EditorPane = () => {
+  const { editor, isEditable, toggleEditable } = useJournalEditor();
 
   const journalState = useUIStateStore((state) => state.journalState);
   const setJournalState = useUIStateStore((state) => state.setJournalState);
@@ -66,11 +100,6 @@ const JournalContent = () => {
   const zoomReset = useCallback(() => {
     setZoomLevel(100);
   }, [setZoomLevel]);
-
-  const isOpen = journalState.sidebarOpen;
-  const setIsOpen = (open: boolean) => {
-    setJournalState({ sidebarOpen: open });
-  };
 
   useHotkey("Alt+T", () => toggleEditable(), { ignoreInputs: false });
 
@@ -104,10 +133,7 @@ const JournalContent = () => {
   }
 
   return (
-    <div className="relative flex flex-1 flex-row gap-2 lg:px-0">
-      <StaticSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-      <FloatingSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-
+    <>
       <div
         className={cn(
           "absolute bottom-3 right-3 z-30",
@@ -195,7 +221,6 @@ const JournalContent = () => {
       <div
         className={cn(
           "relative flex h-full w-full flex-col overflow-hidden",
-          isDisabled && "pointer-events-none opacity-80",
         )}
       >
         <EditorContextMenu
@@ -212,12 +237,8 @@ const JournalContent = () => {
       </div>
 
       <Command editor={editor} />
-    </div>
+    </>
   );
 };
 
-export const Journal = () => (
-  <JournalEditorProvider>
-    <JournalContent />
-  </JournalEditorProvider>
-);
+export const Journal = () => <JournalContent />;

@@ -1,29 +1,18 @@
-import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import { open as openFile } from "@tauri-apps/plugin-fs";
 import { toast } from "sonner";
-import { useJournalStore } from "@/lib/store/use-journal-store";
-import type { Page } from "@/lib/store/journal/types";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
+import { journalContentStore } from "@/lib/store/journal/content-store";
 
 export const useTradeJournal = () => {
-  const sessions = useJournalStore((state) => state.pages);
-  const activeId = useJournalStore((state) => state.activeId);
-  const importFn = useJournalStore((state) => state.importFn);
-
-  const sortedPages = [...sessions].sort((a, b) => b.lastViewedAt - a.lastViewedAt);
-
-  const exportCurrentPage = () => {
-    if (!activeId) return;
-    exportPage(activeId);
-  };
-
-  const exportPage = (id: string) => {
-    const session = sessions.find((s) => s.id === id);
-    if (!session) {
-      return toast.error("Page not found");
+  const exportPage = async (id: string) => {
+    const page = useJournalIndex.getState().getPage(id);
+    if (!page) {
+      toast.error("Page not found");
+      return;
     }
 
     try {
-      const jsonData = JSON.stringify(session);
+      const content = await journalContentStore.getState().ensure(id);
+      const jsonData = JSON.stringify({ ...page, content });
 
       const blob = new Blob([jsonData], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -43,65 +32,5 @@ export const useTradeJournal = () => {
     }
   };
 
-  const importPage = async () => {
-    try {
-      const path = await openDialog({
-        multiple: false,
-        directory: false,
-        filters: [{ name: "Page", extensions: ["json", "md"] }],
-      });
-
-      if (!path) {
-        return toast.error("No file provided");
-      }
-      const file = await openFile(path, {
-        read: true,
-      });
-      const stat = await file.stat();
-      const buffer = new Uint8Array(stat.size);
-      await file.read(buffer);
-      const content = new TextDecoder().decode(buffer);
-      await file.close();
-
-      const session = JSON.parse(content) as Page;
-      importFn(session);
-      toast.success("Page imported successfully");
-    } catch {
-      toast.error("Failed to import page data");
-    }
-  };
-
-  const exportAllPages = () => {
-    if (sessions.length === 0) {
-      return toast.error("No pages to export");
-    }
-
-    try {
-      const jsonData = JSON.stringify(sessions);
-
-      const blob = new Blob([jsonData], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `art_notes_export_${Date.now()}.json`;
-
-      document.body.appendChild(link);
-      link.click();
-
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast.success("All pages exported successfully");
-    } catch {
-      toast.error("Failed to export pages");
-    }
-  };
-
-  return {
-    sortedPages,
-    exportCurrentPage,
-    exportPage,
-    exportAllPages,
-    importPage,
-  };
+  return { exportPage };
 };

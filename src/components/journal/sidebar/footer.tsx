@@ -7,10 +7,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useJournalEditor } from "@/contexts/note-editor-context";
 import { useCopy } from "@/hooks/use-copy";
-import { useJournalStore } from "@/lib/store/use-journal-store";
-import { countWords } from "@/lib/store/journal/content";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
+import { usePageMarkdown } from "@/lib/store/journal/content-store";
 import { cn } from "@/lib/utils";
 
 const ActionButton: React.FC<{
@@ -45,12 +44,10 @@ const formatStat = (value: number, singular: string, plural: string) =>
   `${value.toLocaleString()} ${value === 1 ? singular : plural}`;
 
 export const SidebarFooter = () => {
-  const { currentTab } = useJournalEditor();
-  const pages = useJournalStore((state) => state.pages);
-  const currentNote = useJournalStore((state) =>
-    state.getFn(state.activeId ?? ""),
-  );
-  const content = currentNote?.content ?? "";
+  const currentTab = useJournalIndex((state) => state.currentWorkspace);
+  const activeId = useJournalIndex((state) => state.activeId);
+  const pages = useJournalIndex((state) => state.pages);
+  const content = usePageMarkdown(activeId) ?? "";
   const { copy, copied } = useCopy(content);
 
   const stats = useMemo(() => {
@@ -58,7 +55,7 @@ export const SidebarFooter = () => {
       (page) => page.workspace === currentTab,
     );
     const words = workspacePages.reduce(
-      (total, page) => total + countWords(page.content),
+      (total, page) => total + page.wordCount,
       0,
     );
     return { count: workspacePages.length, words };

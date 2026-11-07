@@ -5,7 +5,7 @@ import { Highlight } from "@tiptap/extension-highlight";
 import { TableKit } from "@tiptap/extension-table";
 import { Tag } from "@/lib/editor/extensions/tag";
 import { createTagSuggestion } from "@/lib/editor/extensions/tag-suggestion";
-import { useJournalStore } from "@/lib/store/use-journal-store";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
 import { Typography } from "@tiptap/extension-typography";
 import { Youtube } from "@tiptap/extension-youtube";
 import { Link } from "@tiptap/extension-link";
@@ -22,7 +22,10 @@ export const editorExtensions = [
   Link,
   Highlight,
   Tag,
-  createTagSuggestion(() => useJournalStore.getState().getAllTags()),
+  createTagSuggestion(() => {
+    const tags = useJournalIndex.getState().pages.flatMap((page) => page.tags);
+    return [...new Set(tags)].sort();
+  }),
   Typography,
   Youtube.configure({
     inline: true,

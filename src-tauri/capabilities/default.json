@@ -32,6 +32,7 @@
     "fs:allow-copy-file",
     "fs:allow-app-read",
     "fs:allow-app-read-recursive",
+    "fs:allow-appdata-write-recursive",
     "fs:allow-appcache-read",
     "fs:allow-appcache-read-recursive",
     "fs:allow-appcache-write",

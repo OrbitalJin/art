@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import { Archive } from "lucide-react";
-import { useJournalStore } from "@/lib/store/use-journal-store";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
 import { PageListItem } from "@/components/journal/sidebar/page/item";
-import { useJournalEditor } from "@/contexts/note-editor-context";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 import { Section } from "./section";
@@ -29,9 +28,9 @@ interface Props {
 }
 
 export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
-  const { currentTab } = useJournalEditor();
-  const activeId = useJournalStore((state) => state.activeId);
-  const pages = useJournalStore((state) => state.pages);
+  const currentTab = useJournalIndex((state) => state.currentWorkspace);
+  const activeId = useJournalIndex((state) => state.activeId);
+  const pages = useJournalIndex((state) => state.pages);
   const journalState = useUIStateStore((s) => s.journalState);
   const setJournalState = useUIStateStore((s) => s.setJournalState);
 
@@ -115,7 +114,7 @@ export const PageList: React.FC<Props> = ({ query, selectedTags }) => {
         active={page.id === activeId}
         updatedAt={page.updatedAt}
         tags={page.tags}
-        content={page.content}
+        wordCount={page.wordCount}
       />
     ));
 

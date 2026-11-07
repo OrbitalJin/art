@@ -10,10 +10,7 @@ import type {
 import { ASK_USER_TOOL_NAME } from "@/lib/ai/tools/ask-user";
 import { PLAN_TOOL_NAME } from "@/lib/ai/tools/plan";
 import { READ_SHEET_TOOL_NAME } from "@/lib/ai/tools/sheets";
-import {
-  JOURNAL_READ_TOOL_NAME,
-  JOURNAL_SEARCH_TOOL_NAME,
-} from "@/lib/ai/tools/journal";
+import { JOURNAL_READ_TOOL_NAME } from "@/lib/ai/tools/journal";
 import type { JournalToolName } from "@/lib/ai/tools/journal";
 import {
   SHOW_NUTRITION_TOOL_NAME,
@@ -44,10 +41,7 @@ import { renderer as readSheet } from "./renderers/googlesheets/read-sheet";
 import { renderer as transcript } from "./renderers/youtube/transcript";
 import { renderer as nutrition } from "./renderers/nutrition/nutrition";
 import { renderer as fetchMacros } from "./renderers/nutrition/fetch-macros";
-import {
-  readRenderer as journalRead,
-  searchRenderer as journalSearch,
-} from "./renderers/journal/journal";
+import { readRenderer as journalRead } from "./renderers/journal/journal";
 import { genericRenderer } from "./renderers/generic";
 
 const fileRenderers = {
@@ -100,7 +94,6 @@ const googlesheetsRenderers = {
 
 const journalRenderers = {
   [JOURNAL_READ_TOOL_NAME]: journalRead,
-  [JOURNAL_SEARCH_TOOL_NAME]: journalSearch,
 } satisfies Record<JournalToolName, ToolRendererEntry>;
 
 /**

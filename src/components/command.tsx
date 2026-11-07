@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/command";
 import { createSession } from "@/lib/store/session/commands";
 import type { NavigationItem } from "@/components/layout/navigation";
-import { useJournalStore } from "@/lib/store/use-journal-store";
+import { createPage } from "@/lib/store/journal/commands";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
 import { Kbd } from "./ui/kbd";
 import { useUIStateStore } from "@/lib/store/use-ui-state-store";
 interface Props {
@@ -28,7 +29,6 @@ interface Props {
 }
 
 export const Command: React.FC<Props> = ({ items }) => {
-  const { create: createNote } = useJournalStore();
   const setSettingsDialogOpen = useUIStateStore(
     (state) => state.setSettingsDialogOpen,
   );
@@ -46,8 +46,11 @@ export const Command: React.FC<Props> = ({ items }) => {
   };
 
   const handleQuickThought = () => {
-    createNote(undefined, "Quick Thought");
-    handleNavigate("/journal");
+    const id = createPage(
+      useJournalIndex.getState().currentWorkspace,
+      "Quick Thought",
+    );
+    handleNavigate(`/journal/${id}`);
   };
 
   const handleQuickTask = () => {

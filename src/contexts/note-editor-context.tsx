@@ -1,44 +1,72 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useEditor, Editor } from "@tiptap/react";
 
-import { useJournalStore } from "@/lib/store/use-journal-store";
-import type { Workspace } from "@/lib/store/journal/types";
+import { journalContentStore } from "@/lib/store/journal/content-store";
 import { editorExtensions, editorProps } from "@/lib/editor/config";
 import { useEditorSync } from "@/hooks/use-editor-sync";
-import { useEditorStateSelector } from "@/hooks/use-editor-state-selector";
-import { useTagNavigation } from "@/hooks/use-tag-navigation";
 
 interface JournalEditorContextValue {
   editor: Editor | null;
-  wordCount: number;
-  charCount: number;
-  isDisabled: boolean;
   isEditable: boolean;
-  isSaving: boolean;
-  currentTab: Workspace;
-  setEditable: (editable: boolean) => void;
   toggleEditable: () => void;
-  setCurrentTab: (tab: Workspace) => void;
-  handleTagClick: (tag: string) => void;
 }
 
 const JournalEditorContext = createContext<JournalEditorContextValue | null>(
   null,
 );
 
-interface Props {
+interface ProviderProps {
+  pageId: string;
   children: React.ReactNode;
 }
 
-export const JournalEditorProvider: React.FC<Props> = ({ children }) => {
-  const activeId = useJournalStore((s) => s.activeId);
-  const currentWorkspace = useJournalStore((s) => s.currentWorkspace);
-  const [currentTab, setCurrentTab] = useState<Workspace>(currentWorkspace);
+/**
+ * Resolves the page body, then mounts one editor instance per page. The `key`
+ * makes each instance belong to exactly one note: no content swapping, no
+ * cross-note undo history, and saves can never land on the wrong id.
+ */
+export const JournalEditorProvider: React.FC<ProviderProps> = ({
+  pageId,
+  children,
+}) => {
+  const [loaded, setLoaded] = useState<{
+    pageId: string;
+    markdown: string;
+  } | null>(null);
 
   useEffect(() => {
-    setCurrentTab(currentWorkspace);
-  }, [currentWorkspace]);
+    let active = true;
+    void journalContentStore
+      .getState()
+      .ensure(pageId)
+      .then((body) => {
+        if (active) setLoaded({ pageId, markdown: body });
+      });
+    return () => {
+      active = false;
+    };
+  }, [pageId]);
 
+  if (loaded?.pageId !== pageId) return null;
+
+  return (
+    <PageEditor key={pageId} pageId={pageId} initialMarkdown={loaded.markdown}>
+      {children}
+    </PageEditor>
+  );
+};
+
+interface PageEditorProps {
+  pageId: string;
+  initialMarkdown: string;
+  children: React.ReactNode;
+}
+
+const PageEditor: React.FC<PageEditorProps> = ({
+  pageId,
+  initialMarkdown,
+  children,
+}) => {
   const editor = useEditor({
     editable: true,
     // Do not create the editor during render. `useEditor` otherwise schedules
@@ -48,28 +76,21 @@ export const JournalEditorProvider: React.FC<Props> = ({ children }) => {
     immediatelyRender: false,
     extensions: editorExtensions,
     editorProps,
+    content: initialMarkdown,
   });
 
-  const { isSaving } = useEditorSync(editor, activeId);
-  const { isEditable, isDisabled, setEditable, toggleEditable, state } =
-    useEditorStateSelector(editor);
-  const { handleTagClick } = useTagNavigation(editor);
+  useEditorSync(editor, pageId);
+
+  const [isEditable, setIsEditable] = useState(true);
+  const toggleEditable = () => {
+    const next = !isEditable;
+    setIsEditable(next);
+    editor?.setEditable(next);
+  };
 
   return (
     <JournalEditorContext.Provider
-      value={{
-        editor,
-        wordCount: state?.wordCount ?? 0,
-        charCount: state?.charCount ?? 0,
-        isDisabled,
-        isEditable,
-        isSaving,
-        currentTab,
-        setEditable,
-        setCurrentTab,
-        handleTagClick,
-        toggleEditable,
-      }}
+      value={{ editor, isEditable, toggleEditable }}
     >
       {children}
     </JournalEditorContext.Provider>
@@ -80,7 +101,7 @@ export const useJournalEditor = () => {
   const context = useContext(JournalEditorContext);
 
   if (!context) {
-    throw new Error("useJournalEditor must be used within NoteEditorProvider");
+    throw new Error("useJournalEditor must be used within JournalEditorProvider");
   }
 
   return context;

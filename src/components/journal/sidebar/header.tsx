@@ -13,8 +13,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { WORKSPACES, type Workspace } from "@/lib/store/journal/types";
-import { useJournalStore } from "@/lib/store/use-journal-store";
-import { useJournalEditor } from "@/contexts/note-editor-context";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
+import { createPage } from "@/lib/store/journal/commands";
 import { TagFilterDropdown } from "./page/tag/filter-dropdown";
 
 interface Props {
@@ -32,9 +32,9 @@ export const SidebarHeader: React.FC<Props> = ({
   setQuery,
   onClose,
 }) => {
-  const create = useJournalStore((state) => state.create);
-  const pages = useJournalStore((state) => state.pages);
-  const { currentTab, setCurrentTab } = useJournalEditor();
+  const pages = useJournalIndex((state) => state.pages);
+  const currentTab = useJournalIndex((state) => state.currentWorkspace);
+  const setCurrentTab = useJournalIndex((state) => state.setWorkspace);
   const navigate = useNavigate();
 
   const workspacePages = useMemo(
@@ -66,8 +66,8 @@ export const SidebarHeader: React.FC<Props> = ({
   };
 
   const handleCreate = () => {
-    create(currentTab);
-    navigate("/journal");
+    const id = createPage(currentTab);
+    navigate(`/journal/${id}`);
   };
 
   const clearTag = (tag: string) => {

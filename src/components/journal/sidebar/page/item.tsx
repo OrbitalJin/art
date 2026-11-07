@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -27,9 +27,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Spinner } from "@/components/ui/spinner";
-import { useJournalStore } from "@/lib/store/use-journal-store";
+import { useJournalIndex } from "@/lib/store/journal/index-store";
+import { deletePage } from "@/lib/store/journal/commands";
 import { WORKSPACES } from "@/lib/store/journal/types";
-import { countWords } from "@/lib/store/journal/content";
 import { useGeneratePageTitle } from "@/hooks/use-generate-page-title";
 import { useTradeJournal } from "@/hooks/use-trade-journal";
 
@@ -40,7 +40,7 @@ interface Props {
   active: boolean;
   updatedAt: number;
   tags: string[];
-  content: string;
+  wordCount: number;
 }
 
 const MAX_VISIBLE_TAGS = 3;
@@ -140,11 +140,10 @@ const PageMenu: React.FC<{
   onGenerate: () => void;
   onOpenChange?: (open: boolean) => void;
 }> = ({ id, title, pinned, onRename, onGenerate, onOpenChange }) => {
-  const togglePinned = useJournalStore((state) => state.togglePinned);
-  const toggleArchived = useJournalStore((state) => state.toggleArchived);
-  const changeWorkspace = useJournalStore((state) => state.changeWorkspace);
-  const deleteFn = useJournalStore((state) => state.deleteFn);
-  const page = useJournalStore((state) => state.getFn(id));
+  const togglePinned = useJournalIndex((state) => state.togglePinned);
+  const toggleArchived = useJournalIndex((state) => state.toggleArchived);
+  const changeWorkspace = useJournalIndex((state) => state.changeWorkspace);
+  const page = useJournalIndex((state) => state.getPage(id));
   const { exportPage } = useTradeJournal();
 
   const navigate = useNavigate();
@@ -165,10 +164,10 @@ const PageMenu: React.FC<{
 
   const handleDelete = () => {
     setConfirmOpen(false);
-    if (id === useJournalStore.getState().activeId) {
+    if (id === useJournalIndex.getState().activeId) {
       navigate("/journal", { replace: true });
     }
-    deleteFn(id);
+    deletePage(id);
     toast.success("Page deleted successfully.");
   };
 
@@ -341,9 +340,9 @@ export const PageListItem: React.FC<Props> = ({
   active,
   updatedAt,
   tags,
-  content,
+  wordCount,
 }) => {
-  const updateTitle = useJournalStore((state) => state.updateTitle);
+  const updateTitle = useJournalIndex((state) => state.updateTitle);
   const { generating, generateTitle } = useGeneratePageTitle();
   const navigate = useNavigate();
 
@@ -356,7 +355,6 @@ export const PageListItem: React.FC<Props> = ({
   const hideTime = showMenu && menuOpen;
   const timeLabel = formatDateAsAgo(updatedAt);
 
-  const wordCount = useMemo(() => countWords(content), [content]);
   const visibleTags = tags.slice(0, MAX_VISIBLE_TAGS);
   const hiddenTagCount = Math.max(0, tags.length - MAX_VISIBLE_TAGS);
   const hasTags = tags.length > 0;
