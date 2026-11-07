@@ -25,6 +25,139 @@ import { useJournalIndex } from "@/lib/store/journal/index-store";
 import { Button } from "@/components/ui/button";
 import { useParams, useNavigate } from "react-router-dom";
 
+const MIN_ZOOM = 50;
+const MAX_ZOOM = 200;
+const ZOOM_STEP = 10;
+
+const PillButton: React.FC<{
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}> = ({ label, onClick, disabled = false, className, children }) => {
+  const buttonClassName = cn(
+    "h-6 rounded-full text-muted-foreground transition-colors duration-150",
+    "hover:bg-accent/60 hover:text-foreground",
+    "focus-visible:ring-2 focus-visible:ring-ring/50",
+    "disabled:pointer-events-none disabled:opacity-40",
+    className,
+  );
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      className={buttonClassName}
+    >
+      {children}
+    </Button>
+  );
+};
+
+const PillDivider: React.FC = () => (
+  <span aria-hidden className="h-3.5 w-px shrink-0 bg-border/60" />
+);
+
+interface EditorToolbarProps {
+  zoomLevel: number;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onZoomReset: () => void;
+  isEditable: boolean;
+  onToggleEditable: () => void;
+}
+
+const EditorToolbar: React.FC<EditorToolbarProps> = ({
+  zoomLevel,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset,
+  isEditable,
+  onToggleEditable,
+}) => {
+  const modeLabel = isEditable ? "Switch to read mode" : "Switch to edit mode";
+
+  const wrapperClassName = cn(
+    "absolute bottom-3 right-3 z-30 transition-opacity duration-200",
+    "opacity-70 hover:opacity-100",
+  );
+
+  const pillClassName = cn(
+    "flex items-center gap-1.5 rounded-full p-1",
+    "border border-border/40 bg-card/40 ring-1 ring-inset ring-foreground/5",
+    "shadow-lg shadow-black/10 backdrop-blur-xl",
+  );
+
+  const iconButtonClassName = "w-6 p-0";
+  const percentClassName = "min-w-12 px-2 text-xs font-medium tabular-nums";
+
+  return (
+    <div className={wrapperClassName}>
+      <div className={pillClassName}>
+        <PillButton
+          label="Zoom out"
+          onClick={onZoomOut}
+          disabled={zoomLevel <= MIN_ZOOM}
+          className={iconButtonClassName}
+        >
+          <ZoomOut strokeWidth={1.75} className="size-3.5" />
+        </PillButton>
+
+        <PillButton
+          label="Reset zoom"
+          onClick={onZoomReset}
+          className={percentClassName}
+        >
+          {zoomLevel}%
+        </PillButton>
+
+        <PillButton
+          label="Zoom in"
+          onClick={onZoomIn}
+          disabled={zoomLevel >= MAX_ZOOM}
+          className={iconButtonClassName}
+        >
+          <ZoomIn strokeWidth={1.75} className="size-3.5" />
+        </PillButton>
+
+        <PillDivider />
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PillButton
+              label={modeLabel}
+              onClick={onToggleEditable}
+              className={iconButtonClassName}
+            >
+              {isEditable ? (
+                <Pen strokeWidth={1.75} className="size-3.5" />
+              ) : (
+                <Eye strokeWidth={1.75} className="size-3.5" />
+              )}
+            </PillButton>
+          </TooltipTrigger>
+
+          <TooltipContent side="top">
+            <div className="flex items-center gap-2">
+              <span>{modeLabel}</span>
+              <KbdGroup>
+                <Kbd>Alt</Kbd>
+                <span>+</span>
+                <Kbd>T</Kbd>
+              </KbdGroup>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </div>
+  );
+};
+
 const JournalContent = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
@@ -84,17 +217,19 @@ const EditorPane = () => {
 
   const setZoomLevel = useCallback(
     (level: number) => {
-      setJournalState({ zoomLevel: Math.min(200, Math.max(50, level)) });
+      setJournalState({
+        zoomLevel: Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, level)),
+      });
     },
     [setJournalState],
   );
 
   const zoomIn = useCallback(() => {
-    setZoomLevel(zoomLevel + 10);
+    setZoomLevel(zoomLevel + ZOOM_STEP);
   }, [zoomLevel, setZoomLevel]);
 
   const zoomOut = useCallback(() => {
-    setZoomLevel(zoomLevel - 10);
+    setZoomLevel(zoomLevel - ZOOM_STEP);
   }, [zoomLevel, setZoomLevel]);
 
   const zoomReset = useCallback(() => {
@@ -132,96 +267,21 @@ const EditorPane = () => {
     return null;
   }
 
+  const zoomStyle: React.CSSProperties = { zoom: zoomLevel / 100 };
+
   return (
     <>
-      <div
-        className={cn(
-          "absolute bottom-3 right-3 z-30",
-          "flex items-center gap-2 rounded-xl border border-border",
-          "bg-background/80 backdrop-blur shadow-sm transition-all duration-300 opacity-70",
-          "px-2 py-1.5",
-          "hover:bg-background/90",
-        )}
-      >
-        <div className="flex items-center gap-1">
-          <Button
-            onClick={zoomOut}
-            variant="ghost"
-            className={cn(
-              "inline-flex h-8 w-8 items-center justify-center rounded-md",
-              "text-muted-foreground transition-colors",
-              "hover:bg-muted hover:text-foreground",
-              "disabled:pointer-events-none disabled:opacity-40",
-            )}
-            disabled={zoomLevel <= 50}
-          >
-            <ZoomOut size={16} />
-          </Button>
-
-          <Button
-            onClick={zoomReset}
-            variant="ghost"
-            className={cn(
-              "h-8 min-w-[3.25rem] rounded-md px-2 text-xs font-medium",
-              "tabular-nums text-muted-foreground transition-colors",
-              "hover:bg-muted hover:text-foreground",
-            )}
-          >
-            {zoomLevel}%
-          </Button>
-
-          <Button
-            onClick={zoomIn}
-            variant="ghost"
-            className={cn(
-              "inline-flex h-8 w-8 items-center justify-center rounded-md",
-              "text-muted-foreground transition-colors",
-              "hover:bg-muted hover:text-foreground",
-              "disabled:pointer-events-none disabled:opacity-40",
-            )}
-            disabled={zoomLevel >= 200}
-          >
-            <ZoomIn size={16} />
-          </Button>
-        </div>
-
-        <div className="h-5 w-px bg-border/70" />
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant={"ghost"}
-              size="icon"
-              onClick={toggleEditable}
-              aria-label={
-                isEditable ? "Switch to read mode" : "Switch to edit mode"
-              }
-              className="h-8 gap-1.5 px-2.5"
-            >
-              {isEditable ? <Pen size={15} /> : <Eye size={15} />}
-            </Button>
-          </TooltipTrigger>
-
-          <TooltipContent side="bottom">
-            <div className="flex items-center gap-2">
-              <span>
-                {isEditable ? "Switch to read mode" : "Switch to edit mode"}
-              </span>
-              <KbdGroup>
-                <Kbd>Alt</Kbd>
-                <span>+</span>
-                <Kbd>T</Kbd>
-              </KbdGroup>
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </div>
+      <EditorToolbar
+        zoomLevel={zoomLevel}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onZoomReset={zoomReset}
+        isEditable={isEditable}
+        onToggleEditable={toggleEditable}
+      />
 
       <div
-        className={cn(
-          "relative flex h-full w-full flex-col overflow-hidden",
-        )}
+        className={cn("relative flex h-full w-full flex-col overflow-hidden")}
       >
         <EditorContextMenu
           editor={editor}
@@ -230,7 +290,7 @@ const EditorPane = () => {
             "justify-center p-2 select-auto pt-14",
           )}
         >
-          <div style={{ zoom: zoomLevel / 100 } as React.CSSProperties}>
+          <div style={zoomStyle}>
             <EditorContent editor={editor} className="px-2" />
           </div>
         </EditorContextMenu>

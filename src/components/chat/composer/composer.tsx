@@ -175,7 +175,7 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
 
   const placeholder = isAgent
     ? "Give your agent a task. @ stash, # journal."
-    : "Ask anything…";
+    : "Ask anything… @ stash, # journal.";
 
   const handleSend = () => {
     if (!hasKey || attachmentsPending) return;
@@ -253,8 +253,6 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
             autoFocus
             onSend={handleSend}
             enterKeySends={enterKeySends}
-            stashSuggestion={isAgent}
-            journalSuggestion={isAgent}
             onPaste={handlePaste}
           />
 

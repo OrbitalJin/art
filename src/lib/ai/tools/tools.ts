@@ -26,7 +26,7 @@ export const toolsFor = async (session: SessionMeta): Promise<ToolSet> => {
     : {};
 
   if (session.type === "chat") {
-    return { ...search, ...nutrition, ...macros };
+    return { ...search, ...nutrition, ...macros, ...journalTools() };
   }
 
   const tools: ToolSet = {

@@ -38,10 +38,6 @@ interface ComposerEditorProps {
   onSend: () => void;
   /** When true plain Enter sends and Shift+Enter breaks; otherwise reversed. */
   enterKeySends: boolean;
-  /** Enable the inline "@" stash picker (agent sessions only). */
-  stashSuggestion?: boolean;
-  /** Enable the inline "#" journal reference picker (agent sessions only). */
-  journalSuggestion?: boolean;
   /** Intercept paste before Tiptap handles it. Return true when consumed. */
   onPaste?: (event: ClipboardEvent) => boolean;
   className?: string;
@@ -63,8 +59,6 @@ export const ComposerEditor = forwardRef<ComposerHandle, ComposerEditorProps>(
       autoFocus,
       onSend,
       enterKeySends,
-      stashSuggestion,
-      journalSuggestion,
       onPaste,
       className,
     },
@@ -120,12 +114,10 @@ export const ComposerEditor = forwardRef<ComposerHandle, ComposerEditorProps>(
           placeholder: () => placeholderRef.current,
         }),
         JournalRefNode,
-        ...(stashSuggestion ? [createStashSuggestion(stashPickerRef)] : []),
-        ...(journalSuggestion
-          ? [createJournalSuggestion(journalPickerRef)]
-          : []),
+        createStashSuggestion(stashPickerRef),
+        createJournalSuggestion(journalPickerRef),
       ],
-      [stashSuggestion, journalSuggestion],
+      [],
     );
 
     const editor = useEditor({
