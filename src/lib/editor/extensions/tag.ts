@@ -133,6 +133,20 @@ export const Tag = Mark.create({
     };
   },
 
+  // Apply the marks to content that arrived already-tagged (e.g. a note opened
+  // from disk). The normalizer below only runs on doc-changing transactions,
+  // and creating an editor with content emits none, so without this the tags
+  // render unstyled until the first edit. Marked no-history no-update so this
+  // is not treated as an edit (no undo entry, no save).
+  onCreate() {
+    const mark = this.type;
+    const tr = this.editor.state.tr;
+    if (!applyMarks(tr, mark)) return;
+    tr.setMeta("addToHistory", false);
+    tr.setMeta("preventUpdate", true);
+    this.editor.view.dispatch(tr);
+  },
+
   addProseMirrorPlugins() {
     const mark = this.type;
     return [
