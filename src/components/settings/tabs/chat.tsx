@@ -414,17 +414,6 @@ export const ChatSettingsTab: React.FC = () => {
               aria-label="Enter to send"
             />
           </SettingRow>
-
-          <SettingRow
-            title="Group tool calls"
-            description="Collapse consecutive tool calls into one expandable summary row."
-          >
-            <Switch
-              checked={groupToolCalls}
-              onCheckedChange={setGroupToolCalls}
-              aria-label="Group tool calls"
-            />
-          </SettingRow>
         </SettingsCard>
       </SettingsSection>
 
@@ -452,39 +441,55 @@ export const ChatSettingsTab: React.FC = () => {
               </SelectContent>
             </Select>
           </SettingRow>
-        </SettingsCard>
-      </SettingsSection>
 
-      <SettingsSection
-        title="Tool access"
-        description="Default policy for new agent sessions."
-      >
-        <div
-          role="radiogroup"
-          aria-label="Default access mode"
-          className={CARD_CLASSES}
-        >
-          <AccessModeOption
-            mode="readonly"
-            label="Read only"
-            description="The agent can read, search, and ask questions, but cannot create, edit, or delete anything."
-            selected={defaultAccessMode === "readonly"}
-            onSelect={() => setDefaultAccessMode("readonly")}
-          />
-          <AccessModeOption
-            mode="confirm"
-            label="Ask to write"
-            description="Reads run freely; every create, edit, or delete pauses for your approval first."
-            selected={defaultAccessMode === "confirm"}
-            onSelect={() => setDefaultAccessMode("confirm")}
-          />
-          <AccessModeOption
-            mode="autonomous"
-            label="Autonomous"
-            description="The agent runs tools immediately, including writes, without waiting for you."
-            selected={defaultAccessMode === "autonomous"}
-            onSelect={() => setDefaultAccessMode("autonomous")}
-          />
+          <SettingRow
+            title="Group tool calls"
+            description="Collapse consecutive tool calls into one expandable summary row."
+          >
+            <Switch
+              checked={groupToolCalls}
+              onCheckedChange={setGroupToolCalls}
+              aria-label="Group tool calls"
+            />
+          </SettingRow>
+        </SettingsCard>
+
+        <div className={CARD_CLASSES}>
+          <div className="flex flex-col gap-0.5 px-4 py-3.5">
+            <p className="text-[13px] font-medium text-foreground">
+              Default access mode
+            </p>
+            <p className="text-xs text-muted-foreground">
+              What the agent may do without asking.
+            </p>
+          </div>
+          <div
+            role="radiogroup"
+            aria-label="Default access mode"
+            className="divide-y divide-border/50"
+          >
+            <AccessModeOption
+              mode="readonly"
+              label="Read only"
+              description="The agent can read, search, and ask questions, but cannot create, edit, or delete anything."
+              selected={defaultAccessMode === "readonly"}
+              onSelect={() => setDefaultAccessMode("readonly")}
+            />
+            <AccessModeOption
+              mode="confirm"
+              label="Ask to write"
+              description="Reads run freely; every create, edit, or delete pauses for your approval first."
+              selected={defaultAccessMode === "confirm"}
+              onSelect={() => setDefaultAccessMode("confirm")}
+            />
+            <AccessModeOption
+              mode="autonomous"
+              label="Autonomous"
+              description="The agent runs tools immediately, including writes, without waiting for you."
+              selected={defaultAccessMode === "autonomous"}
+              onSelect={() => setDefaultAccessMode("autonomous")}
+            />
+          </div>
         </div>
       </SettingsSection>
 
