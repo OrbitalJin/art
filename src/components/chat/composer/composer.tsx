@@ -261,7 +261,6 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
               <JumpSelect />
               <Attach />
               {!isAgent && <PersonaSelect />}
-              {!isAgent && <WebMenu />}
               {isAgent && session && (
                 <ConfigureMenu
                   disabled={isSending}
@@ -272,7 +271,8 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
                   onRevokeAll={tools.onRevokeAll}
                 />
               )}
-              {isAgent && <StashSaveButton />}
+              <StashSaveButton />
+              {!isAgent && <WebMenu />}
             </div>
 
             <div className="flex flex-row itemc-center gap-1.5">

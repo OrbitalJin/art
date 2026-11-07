@@ -15,6 +15,8 @@ import { ART_KEY_NOTICE, KeyNotice } from "../../key-notice";
 import { CategoryPage } from "./category-page";
 import { FilesPage } from "./files-page";
 import { MainPage } from "./main-page";
+import { Button } from "@/components/ui/button";
+import { composerControlClasses } from "../../toolbar";
 
 type MenuPage =
   | { name: "main" }
@@ -52,15 +54,6 @@ export const ConfigureMenu: React.FC<{
     setOpen(next);
     if (!next) setPage(MAIN_PAGE);
   };
-
-  const triggerClasses = cn(
-    "flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg",
-    "text-muted-foreground outline-none opacity-70 hover:opacity-100",
-    "transition-colors duration-150 hover:bg-muted/60 hover:text-foreground",
-    "focus-visible:ring-2 focus-visible:ring-ring/50",
-    "data-[state=open]:bg-muted/60 data-[state=open]:text-foreground",
-    "disabled:pointer-events-none disabled:opacity-50",
-  );
 
   const contentClasses = cn(
     "w-80 max-w-[calc(100vw-2rem)] rounded-xl p-0 shadow-lg",
@@ -118,14 +111,9 @@ export const ConfigureMenu: React.FC<{
   return (
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild disabled={disabled}>
-        <button
-          type="button"
-          aria-label="Configure tools"
-          title="Configure tools"
-          className={triggerClasses}
-        >
-          <Settings2 size={13} aria-hidden />
-        </button>
+        <Button size="icon" variant="ghost" className={composerControlClasses}>
+          <Settings2 className="h-4 w-4" aria-hidden />
+        </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
