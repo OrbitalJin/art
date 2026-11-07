@@ -32,6 +32,8 @@ interface ComposerEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  /** Short accessible name for the textbox, e.g. "Message". */
+  ariaLabel: string;
   editable: boolean;
   autoFocus?: boolean;
   /** Called when Enter (or Shift+Enter, per settings) should send. */
@@ -44,8 +46,8 @@ interface ComposerEditorProps {
 }
 
 const editorClasses = cn(
-  "composer min-h-[70px] max-h-[250px] lg:max-h-[400px] overflow-y-auto",
-  "px-3.5 pt-3.5 pb-1 text-[15px] leading-[1.5] text-foreground/90",
+  "composer min-h-[80px] max-h-[250px] lg:max-h-[400px] overflow-y-auto",
+  "p-4 pb-1 text-sm text-foreground/90",
   "whitespace-pre-wrap break-words outline-none",
 );
 
@@ -55,6 +57,7 @@ export const ComposerEditor = forwardRef<ComposerHandle, ComposerEditorProps>(
       value,
       onChange,
       placeholder,
+      ariaLabel,
       editable,
       autoFocus,
       onSend,
@@ -132,7 +135,7 @@ export const ComposerEditor = forwardRef<ComposerHandle, ComposerEditorProps>(
           class: cn(editorClasses, className),
           role: "textbox",
           "aria-multiline": "true",
-          "aria-label": placeholder,
+          "aria-label": ariaLabel,
         },
         handleKeyDown: (_view: EditorView, event: KeyboardEvent) => {
           if (event.isComposing || event.key !== "Enter") return false;

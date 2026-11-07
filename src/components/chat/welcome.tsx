@@ -278,6 +278,8 @@ const WelcomeMessage: React.FC<Props> = ({ composerRef }) => {
         delay={240}
         className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-2"
       >
+        <Shortcut keys="@" label="stash" />
+        <Shortcut keys="#" label="journal" />
         <Shortcut keys="Ctrl + Tab" label="mode" />
         <Shortcut keys="Ctrl + /" label="focus" />
         <Shortcut keys="Ctrl + K" label="commands" />

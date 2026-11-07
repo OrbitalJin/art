@@ -277,6 +277,7 @@ const Cluster = ({ items, isSelected }: ClusterProps) => {
           <span aria-hidden className="h-3.5 w-px bg-border/60" />
           <span aria-hidden className="h-3.5 w-px bg-border/60" />
           <span aria-hidden className="h-3.5 w-px bg-border/60" />
+          <span aria-hidden className="h-3.5 w-px bg-border/60" />
         </div>
         <WindowControls />
       </div>

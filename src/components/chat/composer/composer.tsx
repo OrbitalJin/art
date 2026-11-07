@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowUp,
   File as FileIcon,
@@ -7,6 +8,11 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
   useHasKey,
@@ -36,8 +42,6 @@ import { StashSaveButton } from "./stash/stash-save-button";
 import { StashDialogs } from "./stash/stash-dialogs";
 import { AgentBar } from "./agent/bar";
 import { AgentAttention } from "./agent/attention";
-import { ConfigureMenu } from "./agent/configure-menu";
-import { useAgentTools } from "./agent/use-agent-tools";
 import { ART_KEY_NOTICE, KeyNotice } from "./key-notice";
 import { filesFromDataTransfer, useUpload } from "@/hooks/use-upload";
 import { resolveAttachmentUrl } from "@/lib/upload/pocketbase";
@@ -119,25 +123,61 @@ const ComposerAttachments: React.FC<{
   </AttachmentGroup>
 );
 
-const SendButton: React.FC<{
-  visible: boolean;
-  stopping: boolean;
-  disabled: boolean;
-  onClick: () => void;
-}> = ({ visible, stopping, disabled, onClick }) => {
-  const buttonClasses = cn(
-    "size-8 transition-all duration-200",
-    visible
-      ? "scale-100 opacity-100"
-      : "pointer-events-none scale-90 opacity-0",
+const HintKey: React.FC<{ keys: string; label: string }> = ({
+  keys,
+  label,
+}) => {
+  const keysClassName = cn(
+    "rounded-md border border-border/50 bg-background/40 px-1.5 py-0.5",
+    "text-[10px] font-medium text-muted-foreground/60",
   );
 
   return (
+    <span className="flex items-center gap-1.5">
+      <kbd className={keysClassName}>{keys}</kbd>
+      <span>{label}</span>
+    </span>
+  );
+};
+
+const EmptyHint: React.FC = () => {
+  const hintClassName = cn(
+    "pointer-events-none absolute right-4 top-4 hidden items-center gap-3",
+    "text-[10px] text-muted-foreground/50 sm:flex",
+  );
+
+  return (
+    <div aria-hidden className={hintClassName}>
+      <HintKey keys="@" label="stash" />
+      <HintKey keys="#" label="journal" />
+    </div>
+  );
+};
+
+interface SendButtonProps {
+  stopping: boolean;
+  disabled: boolean;
+  reason: string | null;
+  onClick: () => void;
+}
+
+const SendButton: React.FC<SendButtonProps> = ({
+  stopping,
+  disabled,
+  reason,
+  onClick,
+}) => {
+  const buttonClassName = cn(
+    "size-8 transition-opacity duration-200",
+    disabled && "opacity-40",
+  );
+
+  const button = (
     <Button
       type="button"
       size="icon"
       aria-label={stopping ? "Stop generating" : "Send message"}
-      className={buttonClasses}
+      className={buttonClassName}
       onClick={onClick}
       disabled={disabled}
     >
@@ -148,12 +188,24 @@ const SendButton: React.FC<{
       )}
     </Button>
   );
+
+  if (!reason) return button;
+
+  // A disabled button swallows pointer events, so the tooltip hangs off a wrapper.
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex">{button}</span>
+      </TooltipTrigger>
+      <TooltipContent side="top">{reason}</TooltipContent>
+    </Tooltip>
+  );
 };
 
 export const Composer: React.FC<Props> = ({ composerRef, className }) => {
   const { prompt, setPrompt, attachments, sendMessage } = useChatInput();
   const { ingest, remove, retry, ingestClipboardImage } = useUpload();
-  const { abortStream, isSending, toolCalls } = useChatStream();
+  const { abortStream, isSending } = useChatStream();
   const enterKeySends = useSettingsStore((state) => state.enterKeySends);
   const hasKey = useHasKey("gateway");
   const hasUploadKey = useHasKey("uploads");
@@ -161,24 +213,33 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
   const session = useSessionIndex((state) =>
     state.sessions.find((s) => s.id === state.activeId),
   );
-  const tools = useAgentTools(session, toolCalls);
+
+  const [dragging, setDragging] = useState(false);
 
   const isAgent = session?.type === "agent";
   const hasAttachments = attachments.length > 0;
-  const attachmentsPending = attachments.some(
-    (a) => a.status === "uploading" || a.status === "error",
-  );
-  const canSend =
-    hasKey && !attachmentsPending && (Boolean(prompt.trim()) || hasAttachments);
-  const stopping = isSending;
-  const showSendButton = isSending || canSend;
+  const hasText = Boolean(prompt.trim());
+  const uploading = attachments.some((a) => a.status === "uploading");
+  const failed = attachments.some((a) => a.status === "error");
+  const attachmentsPending = uploading || failed;
+  const canSend = hasKey && !attachmentsPending && (hasText || hasAttachments);
+  const canAcceptFiles = hasUploadKey && !isSending;
+  const showHint = prompt.length === 0;
 
-  const placeholder = isAgent
-    ? "Give your agent a task. @ stash, # journal."
-    : "Ask anything… @ stash, # journal.";
+  const sendBlockReason = !hasKey
+    ? "Add your API key to send"
+    : uploading
+      ? "Waiting for uploads to finish"
+      : failed
+        ? "Remove or retry the failed upload"
+        : null;
+
+  const placeholder = isAgent ? "Give your agent a task…" : "Ask anything…";
+
+  const editorLabel = isAgent ? "Agent task" : "Message";
 
   const handleSend = () => {
-    if (!hasKey || attachmentsPending) return;
+    if (!canSend || isSending) return;
     sendMessage(prompt, attachments);
   };
 
@@ -205,12 +266,39 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
     return true;
   };
 
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    if (!canAcceptFiles) return;
+    if (!Array.from(event.dataTransfer.types).includes("Files")) return;
+    event.preventDefault();
+    setDragging(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    const next = event.relatedTarget;
+    if (next instanceof Node && event.currentTarget.contains(next)) return;
+    setDragging(false);
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    setDragging(false);
+    if (!canAcceptFiles) return;
+
+    const files = filesFromDataTransfer(event.dataTransfer);
+    if (!files.length) return;
+
+    event.preventDefault();
+    ingest(files);
+  };
+
+  const handleSendClick = isSending ? () => abortStream() : handleSend;
+
   const containerClasses = cn(
     "relative flex flex-col overflow-hidden rounded-xl border border-border/60",
     "bg-card/70 backdrop-blur-xl backdrop-saturate-150",
     "shadow-lg shadow-black/5 transition-colors duration-200",
     "hover:border-border",
     "focus-within:border-ring/40 focus-within:ring-4 focus-within:ring-ring/10",
+    dragging && "border-ring/60 bg-accent/30 ring-4 ring-ring/15",
     !hasKey && "opacity-60",
   );
 
@@ -232,7 +320,13 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
           </div>
         )}
 
-        <div className={containerClasses}>
+        <div
+          className={containerClasses}
+          onDragEnter={handleDragOver}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           {isAgent && <AgentBar />}
 
           {hasAttachments && (
@@ -243,45 +337,39 @@ export const Composer: React.FC<Props> = ({ composerRef, className }) => {
             />
           )}
 
-          <ComposerEditor
-            key={session?.id ?? "composer"}
-            ref={composerRef}
-            value={prompt}
-            onChange={setPrompt}
-            placeholder={placeholder}
-            editable={hasKey}
-            autoFocus
-            onSend={handleSend}
-            enterKeySends={enterKeySends}
-            onPaste={handlePaste}
-          />
+          <div className="relative">
+            <ComposerEditor
+              key={session?.id ?? "composer"}
+              ref={composerRef}
+              value={prompt}
+              onChange={setPrompt}
+              placeholder={placeholder}
+              ariaLabel={editorLabel}
+              editable={hasKey}
+              autoFocus
+              onSend={handleSend}
+              enterKeySends={enterKeySends}
+              onPaste={handlePaste}
+            />
+            {showHint && <EmptyHint />}
+          </div>
 
           <div className="flex items-center justify-between px-2 pb-2">
             <div className="flex flex-row items-center gap-1.5">
-              <JumpSelect />
               <Attach />
               {!isAgent && <PersonaSelect />}
-              {isAgent && session && (
-                <ConfigureMenu
-                  disabled={isSending}
-                  session={session}
-                  onAddFolder={tools.onAddFolder}
-                  onRemoveFolder={tools.onRemoveFolder}
-                  onToggle={tools.onToggle}
-                  onRevokeAll={tools.onRevokeAll}
-                />
-              )}
-              <StashSaveButton />
               {!isAgent && <WebMenu />}
+              {hasText && <StashSaveButton />}
+              <JumpSelect />
             </div>
 
-            <div className="flex flex-row itemc-center gap-1.5">
+            <div className="flex flex-row items-center gap-1.5">
               <ModelSelect />
               <SendButton
-                visible={showSendButton}
-                stopping={stopping}
+                stopping={isSending}
                 disabled={!isSending && !canSend}
-                onClick={isSending ? () => abortStream() : handleSend}
+                reason={isSending ? null : sendBlockReason}
+                onClick={handleSendClick}
               />
             </div>
           </div>

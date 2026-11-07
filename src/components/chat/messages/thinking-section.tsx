@@ -13,24 +13,29 @@ interface ThinkingSectionProps {
   status: "streaming" | "done";
 }
 
-// Last readable step, whether the model wrote one sentence per line or a
-// paragraph.
-const currentAction = (reasoning: string): string => {
-  const segments = reasoning.split(/\n+|(?<=[.!?])\s+/).filter((s) => s.trim());
-  const last = segments[segments.length - 1] ?? "";
-  return (
-    last
-      .replace(/^[\s>*#\d.-]+/, "")
-      .replace(/[*_`]/g, "")
-      .trim() || "Thinking"
-  );
-};
+// One calm, stable label per thought. Tracking the model's latest sentence made
+// the title churn on every token, which read as visual noise.
+const THINKING_WORDS = [
+  "Thinking",
+  "Pondering",
+  "Contemplating",
+  "Musing",
+  "Deliberating",
+  "Cogitating",
+  "Ruminating",
+  "Mulling",
+  "Considering",
+  "Reflecting",
+];
 
 export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
   reasoning,
   status,
 }) => {
   const [open, setOpen] = useState(false);
+  const [thinkingWord] = useState(
+    () => THINKING_WORDS[Math.floor(Math.random() * THINKING_WORDS.length)],
+  );
   const isStreaming = status === "streaming";
 
   return (
@@ -39,7 +44,7 @@ export const ThinkingSection: React.FC<ThinkingSectionProps> = ({
         <TraceCollapsibleTrigger className="w-full">
           <TraceLine status={isStreaming ? "running" : undefined}>
             <TraceTitle className="text-[13px]">
-              {isStreaming ? currentAction(reasoning) : "Reasoning"}
+              {isStreaming ? thinkingWord : "Reasoning"}
             </TraceTitle>
           </TraceLine>
         </TraceCollapsibleTrigger>
