@@ -5,16 +5,21 @@ import {
   type StreamAccumulator,
 } from "@/lib/ai/stream/stream-accumulator";
 
-export const STREAMING_MESSAGE_ID = "streaming-response";
-
 export interface SessionStream {
   snapshot: StreamAccumulator;
   status: MessageStatus;
+  /**
+   * The id the live stream is rendered under. It is generated up front and
+   * reused for the persisted message so the list item keeps the same React key
+   * across stream end — otherwise the item unmounts and remounts, briefly
+   * shrinking the content and yanking a scrolled-up reader to the bottom.
+   */
+  messageId: string;
 }
 
 interface StreamState {
   streams: Record<string, SessionStream>;
-  begin: (sessionId: string) => AbortController;
+  begin: (sessionId: string, messageId: string) => AbortController;
   setSnapshot: (sessionId: string, snapshot: StreamAccumulator) => void;
   end: (sessionId: string) => void;
   abort: (sessionId?: string) => void;
@@ -26,13 +31,17 @@ const controllers = new Map<string, AbortController>();
 export const useStreamStore = create<StreamState>()((set) => ({
   streams: {},
 
-  begin: (sessionId) => {
+  begin: (sessionId, messageId) => {
     const controller = new AbortController();
     controllers.set(sessionId, controller);
     set((state) => ({
       streams: {
         ...state.streams,
-        [sessionId]: { snapshot: initialAccumulator, status: "streaming" },
+        [sessionId]: {
+          snapshot: initialAccumulator,
+          status: "streaming",
+          messageId,
+        },
       },
     }));
     return controller;
@@ -40,11 +49,12 @@ export const useStreamStore = create<StreamState>()((set) => ({
 
   setSnapshot: (sessionId, snapshot) => {
     set((state) => {
-      if (!(sessionId in state.streams)) return state;
+      const existing = state.streams[sessionId];
+      if (!existing) return state;
       return {
         streams: {
           ...state.streams,
-          [sessionId]: { snapshot, status: snapshot.status },
+          [sessionId]: { ...existing, snapshot, status: snapshot.status },
         },
       };
     });

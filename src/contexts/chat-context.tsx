@@ -18,10 +18,7 @@ import {
 } from "@/lib/journal/ref";
 import { useJournalIndex } from "@/lib/store/journal/index-store";
 const loadSendToSession = () => import("@/lib/ai/stream/send-stream");
-import {
-  STREAMING_MESSAGE_ID,
-  useStreamStore,
-} from "@/lib/store/use-stream-store";
+import { useStreamStore } from "@/lib/store/use-stream-store";
 import { useDraft, useDraftStore } from "@/lib/store/use-draft-store";
 
 interface ChatInputValues {
@@ -68,6 +65,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const streamSnapshot = useStreamStore((state) =>
     activeId ? state.streams[activeId]?.snapshot : undefined,
+  );
+  const streamingMessageId = useStreamStore((state) =>
+    activeId ? (state.streams[activeId]?.messageId ?? null) : null,
   );
 
   const setPrompt = useCallback(
@@ -158,12 +158,18 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   const messages = useMemo(() => {
     const base = sessionData?.messages ?? [];
 
-    if (!streamSnapshot) return base;
+    if (!streamSnapshot || !streamingMessageId) return base;
+
+    // The persisted message reuses the stream's id. Once it lands in the store,
+    // prefer it and drop the live entry so the list item keeps the same React
+    // key instead of unmounting — which is what lets the scroller yank a
+    // scrolled-up reader to the bottom when streaming finishes.
+    if (base.some((message) => message.id === streamingMessageId)) return base;
 
     return [
       ...base,
       {
-        id: STREAMING_MESSAGE_ID,
+        id: streamingMessageId,
         role: "assistant" as const,
         modelId: activeMeta?.modelId,
         parts: streamSnapshot.parts,
@@ -172,7 +178,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         tokenUsage: { input: 0, output: 0 },
       } satisfies Message,
     ];
-  }, [sessionData, activeMeta, streamSnapshot]);
+  }, [sessionData, activeMeta, streamSnapshot, streamingMessageId]);
 
   const inputValue = useMemo(
     () => ({

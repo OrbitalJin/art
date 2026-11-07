@@ -114,7 +114,8 @@ export async function sendToSession(
   const { userProfile, agentProfile } = useSettingsStore.getState();
   const profiles = { user: userProfile, agent: agentProfile };
 
-  const controller = useStreamStore.getState().begin(sessionId);
+  const messageId = crypto.randomUUID();
+  const controller = useStreamStore.getState().begin(sessionId, messageId);
   usePlanStore.getState().clear(sessionId);
 
   let acc = initialAccumulator;
@@ -217,7 +218,6 @@ export async function sendToSession(
     useApprovalStore.getState().clear(sessionId);
     useQuestionStore.getState().clear(sessionId);
     usePlanStore.getState().clear(sessionId);
-    useStreamStore.getState().end(sessionId);
 
     const stillExists = useSessionIndex.getState().getMeta(sessionId);
     if (stillExists) {
@@ -235,28 +235,35 @@ export async function sendToSession(
       }
     }
 
-    await appendMessage(sessionId, {
-      id: crypto.randomUUID(),
-      role: "assistant",
-      parts: acc.parts.length
-        ? acc.parts
-        : [{ type: "text" as const, text: " " }],
-      toolCalls: acc.toolCalls.length ? acc.toolCalls : undefined,
-      status: status !== "streaming" ? status : "complete",
-      modelId: session.modelId,
-      tokenUsage: {
-        input: usage?.inputTokens ?? 0,
-        output: usage?.outputTokens ?? 0,
-      },
-      createdAt: Date.now(),
-    });
+    try {
+      await appendMessage(sessionId, {
+        id: messageId,
+        role: "assistant",
+        parts: acc.parts.length
+          ? acc.parts
+          : [{ type: "text" as const, text: " " }],
+        toolCalls: acc.toolCalls.length ? acc.toolCalls : undefined,
+        status: status !== "streaming" ? status : "complete",
+        modelId: session.modelId,
+        tokenUsage: {
+          input: usage?.inputTokens ?? 0,
+          output: usage?.outputTokens ?? 0,
+        },
+        createdAt: Date.now(),
+      });
 
-    if (status === "streaming") {
-      const ss = useSessionIndex.getState().getMeta(sessionId);
-      const messages = sessionDataStore.getState().cache[sessionId]?.messages;
-      if (ss && !ss.titleGenerated && messages?.length === 2) {
-        generateSessionTitle(sessionId);
+      if (status === "streaming") {
+        const ss = useSessionIndex.getState().getMeta(sessionId);
+        const messages = sessionDataStore.getState().cache[sessionId]?.messages;
+        if (ss && !ss.titleGenerated && messages?.length === 2) {
+          generateSessionTitle(sessionId);
+        }
       }
+    } finally {
+      // End the stream only after the persisted message (same id) is in the
+      // store. Dropping the live entry first would unmount the list item, shrink
+      // the content mid-scroll, and let the scroller jump to the bottom.
+      useStreamStore.getState().end(sessionId);
     }
   }
 }
