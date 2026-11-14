@@ -6,9 +6,11 @@ import { ThemeProvider } from "@/contexts/theme-context.tsx";
 import { ChatProvider } from "./contexts/chat-context.tsx";
 import { hydrateSessions } from "@/lib/store/session/commands";
 import { hydrateJournal } from "@/lib/store/journal/commands";
+import { initTray } from "@/lib/tray";
 
 void hydrateSessions();
 void hydrateJournal();
+void initTray();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

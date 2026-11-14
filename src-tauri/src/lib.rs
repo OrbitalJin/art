@@ -1,6 +1,7 @@
 mod search;
 
 use std::path::{Path, PathBuf};
+use tauri::Manager;
 use tauri_plugin_fs::FsExt;
 
 #[tauri::command]
@@ -50,9 +51,7 @@ fn is_protected(path: &Path) -> bool {
     }
 
     if let Some(home) = home_dir() {
-        let home = strip_verbatim(
-            std::fs::canonicalize(&home).unwrap_or(home),
-        );
+        let home = strip_verbatim(std::fs::canonicalize(&home).unwrap_or(home));
         if home.starts_with(path) {
             return true;
         }
@@ -245,6 +244,13 @@ async fn fetch_youtube_captions(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.unminimize();
+                let _ = window.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())

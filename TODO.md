@@ -203,7 +203,8 @@ Bento-style task board with drag-and-drop organization.
 
 ### Planned
 
-- [ ] Add #journal refs
+- [ ] Fix scrolling issues while streaming code blocks
+- [x] Add #journal refs
 - [x] Add @stash refs
 - [ ] Add /commands
 

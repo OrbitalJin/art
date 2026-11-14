@@ -46,7 +46,7 @@ const WindowButton = ({
 export const WindowControls = () => {
   const minimize = () => appWindow.minimize();
   const toggleMaximize = () => appWindow.toggleMaximize();
-  const close = () => appWindow.close();
+  const hide = () => appWindow.hide();
 
   return (
     <div
@@ -69,7 +69,7 @@ export const WindowControls = () => {
         label="Close"
         icon={X}
         dotColor="group-hover/controls:bg-red-400"
-        onClick={close}
+        onClick={hide}
       />
     </div>
   );

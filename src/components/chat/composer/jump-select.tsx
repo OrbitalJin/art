@@ -23,10 +23,8 @@ import {
   Paperclip,
 } from "lucide-react";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import {
-  useMessageScroller,
-  useMessageScrollerVisibility,
-} from "@/components/ui/message-scroller";
+import { useMessageScroller } from "@/components/ui/message-scroller";
+import { useActiveMessageId } from "@/hooks/use-active-message";
 import { useSessionIndex } from "@/lib/store/session/index-store";
 import { useSession } from "@/lib/store/session/data-store";
 import type { Message } from "@/lib/store/session/types";
@@ -236,7 +234,7 @@ export const JumpSelect = () => {
   const activeId = useSessionIndex((state) => state.activeId);
   const sessionData = useSession(activeId);
   const { scrollToMessage } = useMessageScroller();
-  const { currentAnchorId } = useMessageScrollerVisibility();
+  const currentMessageId = useActiveMessageId();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -307,7 +305,7 @@ export const JumpSelect = () => {
                   key={m.id}
                   message={m}
                   index={i}
-                  isActive={currentAnchorId === m.id}
+                  isActive={currentMessageId === m.id}
                   query={search}
                   onSelect={() => handleSelect(m.id)}
                 />

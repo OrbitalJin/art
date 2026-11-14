@@ -5,6 +5,7 @@ import {
   useMessageScroller,
   useMessageScrollerVisibility,
 } from "@/components/ui/message-scroller";
+import { useActiveMessageId } from "@/hooks/use-active-message";
 import { messageText, type Message } from "@/lib/store/session/types";
 
 interface Props {
@@ -187,7 +188,8 @@ const RailTooltip: React.FC<RailTooltipProps> = ({
  */
 export const MessageRail: React.FC<Props> = ({ messages }) => {
   const { scrollToMessage } = useMessageScroller();
-  const { currentAnchorId, visibleMessageIds } = useMessageScrollerVisibility();
+  const { visibleMessageIds } = useMessageScrollerVisibility();
+  const activeId = useActiveMessageId();
   const railRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -227,14 +229,9 @@ export const MessageRail: React.FC<Props> = ({ messages }) => {
   const tooltipTop =
     hovered === null ? 0 : CHEVRON_SIZE + hovered * row + row / 2;
 
-  // The anchor is the message at the reading position; fall back to the first
-  // visible one so the rail always has a highlight while scrolling.
-  const anchorExists = messages.some((m) => m.id === currentAnchorId);
-  const activeId = anchorExists
-    ? currentAnchorId
-    : (visibleMessageIds[0] ?? null);
-
-  const activeIndex = messages.findIndex((m) => m.id === activeId);
+  // Position of the message at the reading line, used to step the chevrons.
+  const activeIndex =
+    activeId === null ? -1 : messages.findIndex((m) => m.id === activeId);
 
   const jumpTo = (index: number) => {
     const target = messages[index];
@@ -278,7 +275,7 @@ export const MessageRail: React.FC<Props> = ({ messages }) => {
 
       <RailChevron
         direction="down"
-        disabled={activeIndex < 0 || activeIndex >= count - 1}
+        disabled={activeIndex >= count - 1}
         onJump={() => jumpTo(activeIndex + 1)}
       />
 
