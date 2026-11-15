@@ -36,6 +36,7 @@ ignore = "0.4.30"
 globset = "0.4.19"
 grep-searcher = "0.1.17"
 grep-regex = "0.1.14"
+tauri-plugin-notification = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = "2"

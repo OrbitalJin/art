@@ -7,6 +7,8 @@
     "core:default",
     "core:tray:default",
     "core:app:allow-default-window-icon",
+    "notification:allow-is-permission-granted",
+    "notification:allow-notify",
     "core:window:default",
     "core:window:allow-start-dragging",
     "core:window:allow-close",
