@@ -1,7 +1,7 @@
 mod search;
 
 use std::path::{Path, PathBuf};
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use tauri_plugin_fs::FsExt;
 
 #[tauri::command]
@@ -245,7 +245,15 @@ async fn fetch_youtube_captions(
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            // `art --ask` (e.g. from a Hyprland keybind) summons the overlay
+            // instead of raising the main window.
+            if args.iter().any(|arg| arg == "--ask") {
+                let _ = app.emit("super-prompt:summon", ());
+                return;
+            }
+
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
                 let _ = window.unminimize();

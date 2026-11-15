@@ -1,0 +1,19 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "super-prompt",
+  "description": "Permissions for the Super Prompt overlay window",
+  "windows": ["super-prompt"],
+  "permissions": [
+    "core:default",
+    "core:event:allow-emit-to",
+    "core:event:allow-listen",
+    "store:allow-load",
+    "store:allow-get-store",
+    "store:allow-get",
+    "core:window:allow-hide",
+    "core:window:allow-show",
+    "core:window:allow-close",
+    "core:window:allow-set-focus",
+    "core:window:allow-start-dragging"
+  ]
+}

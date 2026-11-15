@@ -14,6 +14,7 @@ import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { UpdaterDialog } from "@/components/updater-dialog";
 import { useIntervalStore } from "@/lib/store/use-interval-store";
 import { Command } from "@/components/command";
+import { SuperPromptBridge } from "@/components/super-prompt/bridge";
 import {
   useNavigation,
   type NavigationItem,
@@ -296,6 +297,7 @@ export const Chrome = () => {
       <SettingsDialog />
       <UpdaterDialog />
       <Command items={items} />
+      <SuperPromptBridge />
     </>
   );
 };

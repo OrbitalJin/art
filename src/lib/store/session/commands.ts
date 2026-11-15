@@ -31,6 +31,39 @@ export const createSession = (type: SessionType, title?: string): string => {
   return meta.id;
 };
 
+/**
+ * Starts a fresh session from a single prompt and streams the reply into it.
+ *
+ * Used by the Super Prompt overlay, which only needs to navigate to the
+ * returned id afterward. When no gateway key is set the prompt is left in the
+ * session's draft so it isn't lost and the user can send it once a key exists.
+ */
+export const startPromptSession = async (
+  type: SessionType,
+  text: string,
+  title?: string,
+): Promise<string> => {
+  const id = createSession(type, title);
+
+  if (!useSettingsStore.getState().keys?.gateway) {
+    useDraftStore.getState().setPrompt(id, text);
+    return id;
+  }
+
+  await appendMessage(id, {
+    id: crypto.randomUUID(),
+    role: "user",
+    parts: [{ type: "text", text }],
+    tokenUsage: { input: 0, output: 0 },
+    createdAt: Date.now(),
+  });
+
+  const { sendToSession } = await import("@/lib/ai/stream/send-stream");
+  void sendToSession(id, text);
+
+  return id;
+};
+
 export const deleteSession = (id: string): void => {
   useStreamStore.getState().abort(id);
   useDraftStore.getState().clear(id);

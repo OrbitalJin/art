@@ -2,6 +2,7 @@ import { defaultWindowIcon } from "@tauri-apps/api/app";
 import { Menu } from "@tauri-apps/api/menu";
 import { TrayIcon } from "@tauri-apps/api/tray";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { showSuperPrompt } from "@/lib/super-prompt";
 
 const TRAY_ID = "main-tray";
 
@@ -24,6 +25,13 @@ export async function initTray(): Promise<void> {
         text: "Show Art",
         action: () => {
           void appWindow.show();
+        },
+      },
+      {
+        id: "ask",
+        text: "Ask Art…",
+        action: () => {
+          void showSuperPrompt();
         },
       },
       {

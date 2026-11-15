@@ -49,20 +49,37 @@ export interface SessionDataState {
   remove: (id: string) => void;
 }
 
+/**
+ * In-flight reads keyed by session id. Without this, two concurrent `ensure`
+ * calls for a brand-new session each read the (empty) file and set the cache,
+ * so the later one clobbers messages added in between — e.g. the user message a
+ * "start and send immediately" flow appends while `activeId` is settling.
+ */
+const ensuring = new Map<string, Promise<void>>();
+
 export const sessionDataStore = createStore<SessionDataState>()((set, get) => ({
   cache: {},
 
-  ensure: async (id) => {
-    if (get().cache[id] !== undefined) return;
-    const raw = await readSessionData(id);
-    const { data, pruned } = pruneLegacyMedia(raw ?? { messages: [] });
-    set((state) => ({
-      cache: { ...state.cache, [id]: data },
-    }));
-    if (pruned) {
-      await writeSessionData(id, data);
-      useSessionIndex.getState().updateMeta(id, { legacyMedia: true });
-    }
+  ensure: (id) => {
+    if (get().cache[id] !== undefined) return Promise.resolve();
+
+    const pending = ensuring.get(id);
+    if (pending) return pending;
+
+    const promise = (async () => {
+      const raw = await readSessionData(id);
+      const { data, pruned } = pruneLegacyMedia(raw ?? { messages: [] });
+      set((state) => ({
+        cache: { ...state.cache, [id]: data },
+      }));
+      if (pruned) {
+        await writeSessionData(id, data);
+        useSessionIndex.getState().updateMeta(id, { legacyMedia: true });
+      }
+    })().finally(() => ensuring.delete(id));
+
+    ensuring.set(id, promise);
+    return promise;
   },
 
   addMessage: (id, message) => {

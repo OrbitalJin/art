@@ -7,6 +7,7 @@ import {
   Drama,
   MessageCirclePlus,
   Settings2,
+  Sparkles,
 } from "lucide-react";
 import {
   CommandDialog,
@@ -19,6 +20,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { createSession } from "@/lib/store/session/commands";
+import { showSuperPrompt } from "@/lib/super-prompt";
 import type { NavigationItem } from "@/components/layout/navigation";
 import { createPage } from "@/lib/store/journal/commands";
 import { useJournalIndex } from "@/lib/store/journal/index-store";
@@ -59,6 +61,11 @@ export const Command: React.FC<Props> = ({ items }) => {
 
   const handleOpenSettings = () => {
     setSettingsDialogOpen(true);
+    setOpen(false);
+  };
+
+  const handleAskArt = () => {
+    void showSuperPrompt();
     setOpen(false);
   };
 
@@ -131,6 +138,14 @@ export const Command: React.FC<Props> = ({ items }) => {
             New Agent
             <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
               <Kbd>Ctrl</Kbd>+<Kbd>Alt</Kbd>+<Kbd>A</Kbd>
+            </CommandShortcut>
+          </CommandItem>
+
+          <CommandItem value="ask art" onSelect={handleAskArt}>
+            <Sparkles className="mr-2 h-4 w-4" />
+            Ask Art…
+            <CommandShortcut className="flex flex-row items-center gap-1 scale-80">
+              <Kbd>Super</Kbd>+<Kbd>Shift</Kbd>+<Kbd>A</Kbd>
             </CommandShortcut>
           </CommandItem>
 
